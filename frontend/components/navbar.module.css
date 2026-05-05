@@ -1,0 +1,91 @@
+.nav {
+  background: #1a6fc4;
+  padding: 16px 24px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.logo {
+  color: white;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.links {
+  display: flex;
+  gap: 32px;
+}
+
+.link {
+  color: white;
+  text-decoration: none;
+  font-size: 20px;
+  padding-left: 32px;
+  padding-right: 32px;
+  padding-top: 32px;
+}
+
+.link:hover {
+  opacity: 0.8;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+}
+
+.avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #d0e8ff;
+}
+
+.logoArea {
+  display: flex;
+  align-items: center;
+  padding-left: 50px;
+}
+
+
+.dropdown {
+  position: relative;
+}
+
+.dropdownTrigger {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: white;
+  cursor: pointer;
+}
+
+.dropdownMenu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 8px 0;
+  min-width: 200px;
+}
+
+.dropdown:hover .dropdownMenu {
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdownMenu a {
+  padding: 10px 16px;
+  color: #444;
+  text-decoration: none;
+}
+
+.dropdownMenu a:hover {
+  background: #f0f4ff;
+}

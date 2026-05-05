@@ -1,0 +1,141 @@
+/*=================================== ช่องของ Hero banner =======================================================*/
+
+.hero {
+  background: #e8f1fb;
+  padding: 48px 64px;
+  width: 80%;
+  margin: 32px auto;
+  min-height: 300px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.heroText h1 {
+  font-size: 32px;
+  font-weight: bold;
+  color: #1a6fc4;
+  margin-bottom: 12px;
+}
+
+.heroText p {
+  font-size: 16px;
+  color: #444;
+  max-width: 400px;
+}
+
+.heroImage {
+  width: 400px;
+  height: 250px;
+  object-fit: contain;
+}
+
+/*================================ ส่วนของ เเจ้งปัญหา / ข้อร้องเรียน ================================================*/
+
+.content{
+    width:80% ;
+    min-height: 400px;
+    margin: 0 auto 32px auto; 
+    display: flex ;
+    gap: 24px;
+
+}
+
+.reportCard {
+  flex: 2;
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  
+}
+
+.reportCard h2 {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.reportCard p {
+  color: #888;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.reportOptions {
+  display: flex;
+  gap: 32px;
+  padding: 32;
+}
+
+.reportOption {
+  flex: 1;
+  border: 1px solid #d0e0f0;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.reportOption span {
+  font-weight: bold;
+  font-size: 24px;
+  color: #1a6fc4;
+}
+
+.reportOption p {
+  font-size: 16px;
+  color: #000000;
+  text-align: center;
+  margin: 0;
+}
+
+.reportBtn {
+  background: #1a6fc4;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 20px;
+  cursor: pointer;
+  margin-top: auto;
+}
+
+/*================================================ ช่องทางการติดต่อ =====================================================*/
+
+.contactCard {
+  flex: 1;
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contactCard h2 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #444;
+  font-size: 14px;
+}
+
+.trackBtn {
+  margin-top: auto;
+  border: 1px solid #1a6fc4;
+  background: white;
+  color: #1a6fc4;
+  border-radius: 20px;
+  padding: 10px 20px;
+  cursor: pointer;
+  width: 100%;
+}
