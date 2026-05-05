@@ -14,6 +14,9 @@ export default function Navbar() {
           height={200}
         />
       </div>
+      <div className={styles.link}>
+        <a href="/home">หน้าหลัก</a>
+      </div>
 
       <div className={styles.dropdown}>
         <div className={styles.dropdownTrigger}>
@@ -27,7 +30,7 @@ export default function Navbar() {
       </div>
 
       <div className={styles.link}>
-        การติดตาม
+        <a href="/track">การติดตาม</a>
       </div>
 
       <div className={styles.user}>
