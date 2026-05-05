@@ -14,15 +14,23 @@ export default function Navbar() {
           height={200}
         />
       </div>
+      <div className={styles.link}>
+        <a href="/home">หน้าหลัก</a>
+      </div>
 
       <div className={styles.dropdown}>
         <div className={styles.dropdownTrigger}>
           แจ้งปัญหา <ChevronDown size={16} />
         </div>
         <div className={styles.dropdownMenu}>
-          <a href="/report/system">แจ้งปัญหาระบบ</a>
-          <a href="/report/service">แจ้งข้อร้องเรียน</a>
+          <a href="/report/system">เเจ้งประเด็นผู้ใช้งานระบบ สำหรับผู้ใช้งาน Site งาน</a>
+          <a href="/report/normal">เเจ้งประเด็นผู้ใช้เเบบผู้ใช้งานทั้วไป/ประชาชน</a>
+          <a href="/report/service">เเจ้งข้อร้องเรียนการให้บริการ</a>
         </div>
+      </div>
+
+      <div className={styles.link}>
+        <a href="/track">การติดตาม</a>
       </div>
 
       <div className={styles.user}>

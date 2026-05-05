@@ -1,7 +1,7 @@
-export default function reportPage(){
+export default function reportSystemPage(){
     return(
         <div>
             Hello
         </div>
-    );
+    )
 }
