@@ -1,20 +1,39 @@
 .nav {
   background: #1a6fc4;
+  width: 100%;
+  box-sizing: border-box;
   padding: 16px 24px;
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.navContent {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
+  gap: 12px;
 }
 
-.logo {
+.mobileMenuButton {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.16);
   color: white;
-  font-weight: bold;
-  font-size: 20px;
+  cursor: pointer;
 }
 
-.links {
-  display: flex;
-  gap: 32px;
+.mobileMenuButton:hover {
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .link {
@@ -24,6 +43,7 @@
   padding-left: 32px;
   padding-right: 32px;
   padding-top: 32px;
+  white-space: nowrap;
 }
 
 .link:hover {
@@ -35,6 +55,7 @@
   align-items: center;
   gap: 12px;
   color: white;
+  min-width: 0;
 }
 
 .avatar {
@@ -42,14 +63,21 @@
   height: 60px;
   border-radius: 50%;
   background: #d0e8ff;
+  flex-shrink: 0;
 }
 
 .logoArea {
   display: flex;
   align-items: center;
   padding-left: 50px;
+  flex-shrink: 0;
 }
 
+.userName {
+  font-size: 20px;
+  padding: 24px;
+  white-space: nowrap;
+}
 
 .dropdown {
   position: relative;
@@ -58,27 +86,29 @@
 .dropdownTrigger {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 4px;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
   color: white;
   cursor: pointer;
   font-size: 20px;
+  white-space: nowrap;
 }
 
 .dropdownMenu {
   display: none;
   position: absolute;
-  top: 100%;
+  top: calc(100% + 8px);
   left: 0;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   padding: 8px 0;
-  min-width: 200px;
-}
-
-.dropdown:hover .dropdownMenu {
-  display: flex;
-  flex-direction: column;
+  min-width: 240px;
+  z-index: 20;
 }
 
 .dropdownMenu a {
@@ -89,4 +119,106 @@
 
 .dropdownMenu a:hover {
   background: #f0f4ff;
+}
+
+@media (max-width: 1200px) {
+  .navContent {
+    gap: 8px;
+  }
+
+  .logoArea {
+    padding-left: 0;
+  }
+
+  .link {
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-top: 20px;
+    font-size: 18px;
+  }
+
+  .dropdownTrigger,
+  .userName {
+    font-size: 18px;
+  }
+
+  .userName {
+    padding: 16px 12px;
+  }
+}
+
+@media (min-width: 901px) {
+  .dropdown:hover .dropdownMenu {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 900px) {
+  .nav {
+    padding: 16px;
+  }
+
+  .mobileMenuButton {
+    display: inline-flex;
+  }
+
+  .navContent {
+    display: none;
+    width: 100%;
+    margin-top: 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+    padding-top: 12px;
+  }
+
+  .navContentOpen {
+    display: flex;
+  }
+
+  .logoArea {
+    padding-left: 0;
+  }
+
+  .link,
+  .dropdown,
+  .user {
+    width: 100%;
+  }
+
+  .link {
+    padding: 0;
+    font-size: 16px;
+  }
+
+  .dropdownTrigger {
+    justify-content: space-between;
+    font-size: 16px;
+  }
+
+  .dropdownMenu {
+    position: static;
+    margin-top: 8px;
+    display: none;
+    min-width: 0;
+    box-shadow: none;
+  }
+
+  .dropdownMenuOpen {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .user {
+    justify-content: flex-start;
+  }
+
+  .userName {
+    padding: 0;
+    font-size: 16px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
 }
