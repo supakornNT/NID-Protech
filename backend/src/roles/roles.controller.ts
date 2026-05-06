@@ -5,39 +5,39 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
-  Put,
 } from '@nestjs/common';
-import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { RolesService } from './roles.service';
 
-@Controller('roles')
+@Controller('admin/roles')
 export class RolesController {
-  constructor(private readonly rolesService: RolesService) {}
+  constructor(private readonly role: RolesService) {}
 
   @Get()
   findAll() {
-    return this.rolesService.findAll();
+    return this.role.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.rolesService.findOne(id);
+    return this.role.findOne(id);
   }
 
   @Post()
   create(@Body() body: CreateRoleDto) {
-    return this.rolesService.create(body);
+    return this.role.create(body);
   }
 
-  @Put(':id')
+  @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateRoleDto) {
-    return this.rolesService.update(id, body);
+    return this.role.update(id, body);
   }
 
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
-    return this.rolesService.remove(id);
+    return this.role.remove(id);
   }
 }
