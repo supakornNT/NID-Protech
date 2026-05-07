@@ -1,13 +1,19 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { FileText, Info, Search } from "lucide-react";
 
-import { ProTechTable } from "@/components/tables/protech-table";
 import { ProTechSearch } from "@/components/tables/protech-search";
 import { ProTechButton } from "@/components/tables/protech-button";
 
-const columns = [
+import { Column } from "@/types/table";
+import { ProTechTable } from "@/components/tables/protech-table";
+import { TrackingRow } from "@/types/tracking";
+
+;
+
+const columns: Column<TrackingRow>[] = [
   {
     key: "trackingNo",
     title: "หมายเลขการติดตาม",
@@ -37,9 +43,14 @@ const columns = [
     key: "detail",
     title: "รายละเอียด",
     className: "min-w-[140px]",
-    render: () => (
+    render: (_, row) => (
       <div className="flex justify-center">
-        <Info size={18} />
+        <Link href={`/track/${row.trackingNo}`}>
+          <Info
+            size={18}
+            className="cursor-pointer text-[#3A6FCF] hover:opacity-70"
+          />
+        </Link>
       </div>
     ),
   },
@@ -147,7 +158,7 @@ const data = [
     dueDate: "20-5-2569",
     status: "เสร็จสิ้น",
   },
-   {
+  {
     trackingNo: "TH155-154-777",
     system: "Trade",
     dueDate: "20-5-2569",
@@ -165,7 +176,7 @@ const data = [
     dueDate: "20-5-2569",
     status: "เสร็จสิ้น",
   },
-   {
+  {
     trackingNo: "TH155-154-777",
     system: "Trade",
     dueDate: "20-5-2569",
@@ -183,7 +194,7 @@ const data = [
     dueDate: "20-5-2569",
     status: "เสร็จสิ้น",
   },
-   {
+  {
     trackingNo: "TH155-154-777",
     system: "Trade",
     dueDate: "20-5-2569",
@@ -201,24 +212,7 @@ const data = [
     dueDate: "20-5-2569",
     status: "เสร็จสิ้น",
   },
-   {
-    trackingNo: "TH155-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
   {
-    trackingNo: "TH166-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH177-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  }, {
     trackingNo: "TH155-154-777",
     system: "Trade",
     dueDate: "20-5-2569",
@@ -236,7 +230,25 @@ const data = [
     dueDate: "20-5-2569",
     status: "เสร็จสิ้น",
   },
-   {
+  {
+    trackingNo: "TH155-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "เสร็จสิ้น",
+  },
+  {
+    trackingNo: "TH166-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "เสร็จสิ้น",
+  },
+  {
+    trackingNo: "TH177-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "เสร็จสิ้น",
+  },
+  {
     trackingNo: "TH155-154-777",
     system: "Trade",
     dueDate: "20-5-2569",
@@ -261,8 +273,8 @@ export default function Page() {
 
   const filteredData = data.filter((item) =>
     Object.values(item).some((value) =>
-      String(value).toLowerCase().includes(search.toLowerCase())
-    )
+      String(value).toLowerCase().includes(search.toLowerCase()),
+    ),
   );
 
   return (

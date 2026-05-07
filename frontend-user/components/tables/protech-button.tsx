@@ -11,6 +11,7 @@ import {
   X,
   Check,
   TriangleAlert,
+  Info,
 } from "lucide-react";
 
 type ButtonVariant =
@@ -23,7 +24,8 @@ type ButtonVariant =
   | "outline"
   | "success"
   | "warning"
-  | "danger";
+  | "danger"
+  | "detail";
 
 type ProTechButtonProps = {
   children?: React.ReactNode;
@@ -169,6 +171,16 @@ export function ProTechButton({
 
       active:bg-red-700
     `,
+
+    /* DETAIL */
+   detail: `
+  bg-gray-200
+  text-gray-700
+
+  hover:bg-gray-300
+
+  active:bg-gray-400
+`,
   };
 
   /* =========================
@@ -196,6 +208,7 @@ export function ProTechButton({
       <TriangleAlert size={16} />
     ),
 
+    detail: null,
     danger: <Trash2 size={16} />,
   };
 

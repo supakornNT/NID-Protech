@@ -11,19 +11,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ProTechTableProps } from "@/types/table";
 
-type Column<T> = {
-  key: keyof T | string;
-  title: string;
-  className?: string;
-  render?: (value: unknown, row: T, index: number) => React.ReactNode;
-};
-
-type ProTechTableProps<T> = {
-  columns: Column<T>[];
-  data: T[];
-  limit?: number;
-};
 
 export function ProTechTable<T>({
   columns,
