@@ -104,7 +104,6 @@ export class CustomersService {
     return this.findOne(id);
   }
 
-
   async approve(id: number) {
     await this.db.query<ResultSetHeader>(
       'UPDATE customers SET status = ? WHERE id = ?',
@@ -131,5 +130,4 @@ export class CustomersService {
 
     return this.findOne(id);
   }
-
 }
