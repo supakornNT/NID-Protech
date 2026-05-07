@@ -10,35 +10,45 @@ import { CalendarIcon, Paperclip, X } from "lucide-react";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FormInput } from "@/components/ui/form-input";
-import { Label } from "@/components/ui/label";
 import styles from "../report.module.css";
 
 export default function ReportInternalPage() {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [files, setFiles] = useState<File[]>([]);
+  const [form, setForm] = useState({
+  reporter: "",
+  organization: "",
+  title: "",
+  problem_type: "",
+  system: "",
+  detail: "",
+});
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4 sm:p-6">
       <Card className={styles.card}>
-        <div className="px-8 pt-6 pb-2 border-b">
+        <div className="px-4 sm:px-8 pt-6 pb-2 border-b">
           <h1 className="text-2xl font-bold">
             รายงานปัญหาเกี่ยวกับระบบภายในองค์กร
           </h1>
         </div>
 
-        <div className="px-8 py-6 flex flex-col gap-5">
-          <div className="flex gap-6">
+        <div className="px-4 sm:px-8 py-6 flex flex-col gap-5">
+          <div className="flex flex-col sm:flex-row gap-6">
             <FormInput
               label="ผู้แจ้ง"
               placeholder="กรุณาใส่ชื่อผู้แจ้งปัญหา"
               className="flex-1"
               inputClassName={styles.input}
+              value={form.reporter}
+              onChange={(e) => setForm({ ...form, reporter: e.target.value })}
             />
             <FormInput
               label="หน่วยงาน"
               placeholder="กรุณาเลือกหน่วยงาน"
               className="flex-1"
               inputClassName={styles.input}
+              // value={form.}
             />
           </div>
 
@@ -46,23 +56,29 @@ export default function ReportInternalPage() {
             label="หัวข้อเรื่อง"
             placeholder="กรุณาเขียนหัวข้อเรื่อง"
             inputClassName={styles.input}
+            value={form.title}
+            onChange={(e)=>setForm({ ...form, title:e.target.value})}
           />
 
-          <div className="flex gap-6">
+          <div className="flex flex-col sm:flex-row gap-6">
             <FormInput
               label="ประเภทปัญหา"
               placeholder="กรุณาเลือกประเภทปัญหา"
               className="flex-1"
               inputClassName={styles.input}
+              value={form.problem_type}
+              onChange={(e)=>setForm({ ...form, problem_type:e.target.value})}
             />
             <FormInput
               label="ระบบ"
               placeholder="กรุณาเลือกระบบ"
               className="flex-1"
               inputClassName={styles.input}
+              value={form.system}
+              onChange={(e)=>setForm({...form, system:e.target.value})}
             />
             <div className="flex flex-col gap-1 flex-1">
-              <Label>ระยะเวลา</Label>
+              <p style={{ fontSize:16, fontWeight: 500 }}>ระยะเวลา</p>
               <Popover>
                 <PopoverTrigger
                   className={`${styles.input} flex items-center gap-2 w-full`}
@@ -89,7 +105,7 @@ export default function ReportInternalPage() {
 
           {/* รายละเอียด */}
           <div className="flex flex-col gap-1">
-            <Label>รายละเอียด</Label>
+            <p style={{ fontSize:16, fontWeight: 500 }}>รายละเอียด</p>
             <textarea
               className={`${styles.input} min-h-35 resize-none`}
               placeholder="กรุณาอธิบายปัญหาที่พบ"
@@ -98,7 +114,7 @@ export default function ReportInternalPage() {
 
           {/* แนบไฟล์ */}
           <div className="flex flex-col gap-2">
-            <Label>แนบไฟล์</Label>
+            <p style={{ fontSize:16, fontWeight: 500 }}>แนบไฟล์</p>
             <Popover>
               <PopoverTrigger className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:bg-gray-50 w-fit">
                 <Paperclip size={14} />

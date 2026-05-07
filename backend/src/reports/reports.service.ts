@@ -58,10 +58,11 @@ export class ReportsService {
 
   async create(dto: CreateReportDto): Promise<Report | null> {
     const [result] = await this.db.query<ResultSetHeader>(
-      'INSERT INTO reports (report_no, customer_id, system_id, problem_type_id, title, detail, status, score, reject_reason, resolve_due_at, closed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO reports (report_no, customer_id, organization, system_id, problem_type_id, title, detail, status, score, reject_reason, resolve_due_at, closed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         dto.report_no,
         dto.customer_id,
+        dto.organization,
         dto.system_id,
         dto.problem_type_id,
         dto.title,
@@ -89,6 +90,7 @@ export class ReportsService {
       SET
         report_no = ?,
         customer_id = ?,
+        organization = ?,
         system_id = ?,
         problem_type_id = ?,
         title = ?,
@@ -102,6 +104,7 @@ export class ReportsService {
       [
         dto.report_no ?? current.report_no,
         dto.customer_id ?? current.customer_id,
+        dto.organization ?? current.organization,
         dto.system_id ?? current.system_id,
         dto.problem_type_id ?? current.problem_type_id,
         dto.title ?? current.title,
@@ -126,6 +129,4 @@ export class ReportsService {
 
     return this.findOne(id);
   }
-
-
 }

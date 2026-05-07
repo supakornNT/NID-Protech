@@ -10,7 +10,6 @@ import { Paperclip, X } from "lucide-react";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FormInput } from "@/components/ui/form-input";
-import { Label } from "@/components/ui/label";
 import styles from "../report.module.css";
 
 export default function ReportServicePage() {
@@ -18,16 +17,16 @@ export default function ReportServicePage() {
   const [identity, setIdentity] = useState<"reveal" | "anonymous">("anonymous");
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4 sm:p-6">
       <Card className={styles.card}>
-        <div className="px-8 pt-6 pb-2 border-b">
+        <div className="px-4 sm:px-8 pt-6 pb-2 border-b">
           <h1 className="text-2xl font-bold">
             รายงานปัญหาเกี่ยวกับระบบภายในองค์กร
           </h1>
         </div>
 
-        <div className="px-8 py-6 flex flex-col gap-5">
-          <div className="flex gap-6">
+        <div className="px-4 sm:px-8 py-6 flex flex-col gap-5">
+          <div className="flex flex-col sm:flex-row gap-6">
             <FormInput
               label="ผู้แจ้ง"
               placeholder="กรุณาใส่ชื่อผู้แจ้งปัญหา"
@@ -35,7 +34,7 @@ export default function ReportServicePage() {
               inputClassName={styles.input}
             />
             <div className="flex flex-col gap-1 flex-1">
-              <Label>การเปิดเผยตัวตน</Label>
+              <p style={{ fontSize:16, fontWeight: 500 }}>การเปิดเผยตน</p>
               <div className="flex items-center gap-4 h-9">
                 <label className="flex items-center gap-2 cursor-pointer text-sm">
                   <input
@@ -77,7 +76,7 @@ export default function ReportServicePage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <Label>รายละเอียด</Label>
+            <p style={{ fontSize:16, fontWeight: 500 }}>รายละเอียด</p>
             <textarea
               className={`${styles.input} min-h-35 resize-none`}
               placeholder="กรุณาอธิบายปัญหาที่พบ"
@@ -86,7 +85,7 @@ export default function ReportServicePage() {
 
           {/* แนบไฟล์ */}
           <div className="flex flex-col gap-2">
-            <Label>แนบไฟล์</Label>
+            <p style={{ fontSize:16, fontWeight: 500 }}>แนบไฟล์</p>
             <Popover>
               <PopoverTrigger className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:bg-gray-50 w-fit">
                 <Paperclip size={14} />

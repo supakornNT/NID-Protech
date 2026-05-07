@@ -1,17 +1,19 @@
 export class CreateReportDto {
-  report_no: string;
+  report_no!: string;
 
-  customer_id: number;
+  customer_id!: number;
 
-  system_id: number;
+  organization!: string;
 
-  problem_type_id: number;
+  system_id!: number;
 
-  title: string;
+  problem_type_id!: number;
 
-  detail: string;
+  title!: string;
 
-  status: string;
+  detail!: string;
+
+  status!: string;
 
   score?: number;
 
