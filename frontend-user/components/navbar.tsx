@@ -1,33 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import Image from "next/image";
-import {
-  ChevronDown,
-  Menu,
-  UserRound,
-  X,
-} from "lucide-react";
+
+import { ChevronDown, Menu, UserRound, X } from "lucide-react";
 
 import styles from "./navbar.module.css";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState(false);
 
-
   useEffect(() => {
-    if (typeof document === "undefined") {
-      return;
-    }
+    if (!mobileMenuOpen) return;
 
     const previousOverflow = document.body.style.overflow;
 
-    if (mobileMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = previousOverflow;
-    }
+    document.body.style.overflow = "hidden";
 
     return () => {
       document.body.style.overflow = previousOverflow;
@@ -36,7 +27,9 @@ export default function Navbar() {
 
   return (
     <>
+      {/* NAVBAR */}
       <nav className={styles.nav}>
+        {/* MOBILE MENU BUTTON */}
         <button
           type="button"
           className={styles.mobileMenuButton}
@@ -47,6 +40,7 @@ export default function Navbar() {
           {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
 
+        {/* LOGO */}
         <div className={styles.logoArea}>
           <Image
             src="/ProTechLogoFinal.png"
@@ -57,30 +51,42 @@ export default function Navbar() {
           />
         </div>
 
+        {/* DESKTOP LINKS */}
         <div className={styles.desktopLink}>
-          <a href="/home">หน้าหลัก</a>
+          <Link href="/home">หน้าหลัก</Link>
         </div>
 
+        {/* DESKTOP DROPDOWN */}
         <div className={styles.desktopDropdown}>
           <div className={styles.desktopDropdownTrigger}>
             แจ้งปัญหา <ChevronDown size={16} />
           </div>
+
           <div className={styles.desktopDropdownMenu}>
-            <a href="/report/system">เเจ้งประเด็นผู้ใช้งานระบบ สำหรับผู้ใช้งาน Site งาน</a>
-            <a href="/report/normal">เเจ้งประเด็นผู้ใช้เเบบผู้ใช้งานทั้วไป/ประชาชน</a>
-            <a href="/report/service">เเจ้งข้อร้องเรียนการให้บริการ</a>
+            <Link href="/report/system">
+              เเจ้งประเด็นผู้ใช้งานระบบ สำหรับผู้ใช้งาน Site งาน
+            </Link>
+
+            <Link href="/report/normal">
+              เเจ้งประเด็นผู้ใช้เเบบผู้ใช้งานทั้วไป/ประชาชน
+            </Link>
+
+            <Link href="/report/service">เเจ้งข้อร้องเรียนการให้บริการ</Link>
           </div>
         </div>
 
         <div className={styles.desktopLink}>
-          <a href="/track">การติดตาม</a>
+          <Link href="/track">การติดตาม</Link>
         </div>
 
+        {/* USER */}
         <div className={styles.desktopUser}>
           <div className={styles.avatar} />
+
           <span className={styles.desktopUserName}>ชื่อ - นามสกุล</span>
         </div>
 
+        {/* MOBILE USER BUTTON */}
         <button
           type="button"
           className={styles.mobileAvatarButton}
@@ -90,6 +96,7 @@ export default function Navbar() {
         </button>
       </nav>
 
+      {/* OVERLAY */}
       <div
         className={`${styles.mobileOverlay} ${
           mobileMenuOpen ? styles.mobileOverlayOpen : ""
@@ -98,15 +105,22 @@ export default function Navbar() {
         aria-hidden={!mobileMenuOpen}
       />
 
+      {/* MOBILE PANEL */}
       <div
         className={`${styles.mobilePanel} ${
           mobileMenuOpen ? styles.mobilePanelOpen : ""
         }`}
       >
-        <a href="/home" className={styles.mobileItem}>
+        {/* HOME */}
+        <Link
+          href="/home"
+          className={styles.mobileItem}
+          onClick={() => setMobileMenuOpen(false)}
+        >
           <span className={styles.mobileItemLeft}>หน้าหลัก</span>
-        </a>
+        </Link>
 
+        {/* MOBILE DROPDOWN */}
         <button
           type="button"
           className={styles.mobileItemButton}
@@ -114,6 +128,7 @@ export default function Navbar() {
           aria-expanded={mobileSubmenuOpen}
         >
           <span className={styles.mobileItemLeft}>แจ้งปัญหา</span>
+
           <ChevronDown
             size={18}
             className={`${styles.submenuChevron} ${
@@ -122,22 +137,45 @@ export default function Navbar() {
           />
         </button>
 
+        {/* MOBILE SUBMENU */}
         <div
           className={`${styles.mobileSubmenu} ${
             mobileSubmenuOpen ? styles.mobileSubmenuOpen : ""
           }`}
         >
-          <a href="/report/system" className={styles.mobileSubmenuItem}>
-            แจ้งปัญหา
-          </a>
-          <a href="/report/service" className={styles.mobileSubmenuItem}>
-            แจ้งข้อร้องเรียน
-          </a>
+          <Link
+            href="/report/system"
+            className={styles.mobileSubmenuItem}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+          เเจ้งประเด็นผู้ใช้งานระบบ สำหรับผู้ใช้งาน Site งาน
+          </Link>
+
+          <Link
+            href="/report/normal"
+            className={styles.mobileSubmenuItem}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+             เเจ้งประเด็นผู้ใช้เเบบผู้ใช้งานทั้วไป/ประชาชน
+          </Link>
+          
+          <Link
+            href="/report/service"
+            className={styles.mobileSubmenuItem}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+              เเจ้งข้อร้องเรียนการให้บริการ
+          </Link>
         </div>
 
-        <a href="/track" className={styles.mobileItem}>
+        {/* TRACK */}
+        <Link
+          href="/track"
+          className={styles.mobileItem}
+          onClick={() => setMobileMenuOpen(false)}
+        >
           <span className={styles.mobileItemLeft}>การติดตาม</span>
-        </a>
+        </Link>
       </div>
     </>
   );

@@ -2,7 +2,12 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { FileText, Info, Search } from "lucide-react";
+
+import {
+  FileText,
+  Info,
+  Search,
+} from "lucide-react";
 
 import { ProTechSearch } from "@/components/tables/protech-search";
 import { ProTechButton } from "@/components/tables/protech-button";
@@ -10,8 +15,7 @@ import { ProTechButton } from "@/components/tables/protech-button";
 import { Column } from "@/types/table";
 import { ProTechTable } from "@/components/tables/protech-table";
 import { TrackingRow } from "@/types/tracking";
-
-;
+import { data } from "@/app/mock";
 
 const columns: Column<TrackingRow>[] = [
   {
@@ -61,239 +65,86 @@ const columns: Column<TrackingRow>[] = [
   },
 ];
 
-const data = [
-  {
-    trackingNo: "TH123-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "รอการประเมิน",
-  },
-  {
-    trackingNo: "TH133-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH144-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH155-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH166-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH177-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH133-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH144-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH155-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH166-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH177-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH133-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH144-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH155-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH166-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH177-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH155-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH166-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH177-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH155-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH166-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH177-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH155-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH166-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH177-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH155-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH166-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH177-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH155-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH166-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH177-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH155-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH166-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-  {
-    trackingNo: "TH177-154-777",
-    system: "Trade",
-    dueDate: "20-5-2569",
-    status: "เสร็จสิ้น",
-  },
-];
+
 
 export default function Page() {
-  const [search, setSearch] = React.useState("");
+  const [search, setSearch] =
+    React.useState("");
 
-  const filteredData = data.filter((item) =>
-    Object.values(item).some((value) =>
-      String(value).toLowerCase().includes(search.toLowerCase()),
-    ),
+  const [limit, setLimit] =
+    React.useState(10);
+
+  React.useEffect(() => {
+    function handleResize() {
+      if (window.innerWidth < 640) {
+        setLimit(5);
+      } else {
+        setLimit(10);
+      }
+    }
+
+    handleResize();
+
+    window.addEventListener(
+      "resize",
+      handleResize,
+    );
+
+    return () =>
+      window.removeEventListener(
+        "resize",
+        handleResize,
+      );
+  }, []);
+
+  const filteredData = data.filter(
+    (item) =>
+      Object.values(item).some((value) =>
+        String(value)
+          .toLowerCase()
+          .includes(
+            search.toLowerCase(),
+          ),
+      ),
   );
 
   return (
     <div className="mx-auto h-full w-full min-w-0 max-w-7xl px-4 pt-6 sm:px-6 lg:px-10">
-      <h1 className="mb-4 text-3xl font-medium text-[#3A6FCF] sm:text-4xl">
+      {/* TITLE */}
+      <h1 className="mb-4 text-2xl font-medium text-[#3A6FCF] sm:text-4xl">
         ค้นหาหมายเลขการติดตาม
       </h1>
 
-      <div className="mb-5 flex min-w-0 items-center gap-3">
+      {/* SEARCH */}
+     <div className="mb-5 flex min-w-0 items-center gap-3">
         <ProTechSearch
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) =>
+            setSearch(
+              e.target.value,
+            )
+          }
           icon={<Search size={22} />}
         />
 
-        <ProTechButton className="shrink-0">ค้นหา</ProTechButton>
+        <ProTechButton className=" shrink-0 ">
+          ค้นหา
+        </ProTechButton>
       </div>
 
-      <ProTechTable columns={columns} data={filteredData} limit={10} />
+      {/* TABLE */}
+      <div className="w-full">
+        <ProTechTable
+          columns={columns}
+          data={filteredData}
+          limit={limit}
+        />
+
+        {/* PAGINATION */}
+        <div className="mt-4 flex justify-end">
+          {/* pagination component */}
+        </div>
+      </div>
     </div>
   );
 }

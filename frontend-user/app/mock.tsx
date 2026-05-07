@@ -155,3 +155,126 @@ export const MOCK_DATA: Record<string, TrackingDetail> = {
     ],
   },
 };
+
+
+export const data = [
+  {
+    trackingNo: "TH123-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "รอการประเมิน",
+  },
+  {
+    trackingNo: "TH133-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "เสร็จสิ้น",
+  },
+   {
+    trackingNo: "TH123-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "รอการประเมิน",
+  },
+  {
+    trackingNo: "TH133-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "เสร็จสิ้น",
+  },
+   {
+    trackingNo: "TH123-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "รอการประเมิน",
+  },
+  {
+    trackingNo: "TH133-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "เสร็จสิ้น",
+  }, {
+    trackingNo: "TH123-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "รอการประเมิน",
+  },
+  {
+    trackingNo: "TH133-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "เสร็จสิ้น",
+  }, {
+    trackingNo: "TH123-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "รอการประเมิน",
+  },
+  {
+    trackingNo: "TH133-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "เสร็จสิ้น",
+  },
+   {
+    trackingNo: "TH123-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "รอการประเมิน",
+  },
+  {
+    trackingNo: "TH133-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "เสร็จสิ้น",
+  },
+   {
+    trackingNo: "TH123-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "รอการประเมิน",
+  },
+  {
+    trackingNo: "TH133-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "เสร็จสิ้น",
+  },
+   {
+    trackingNo: "TH123-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "รอการประเมิน",
+  },
+  {
+    trackingNo: "TH133-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "เสร็จสิ้น",
+  },
+  
+  {
+    trackingNo: "TH144-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "เสร็จสิ้น",
+  },
+  {
+    trackingNo: "TH155-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "เสร็จสิ้น",
+  },
+  {
+    trackingNo: "TH166-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "เสร็จสิ้น",
+  },
+  {
+    trackingNo: "TH177-154-777",
+    system: "Trade",
+    dueDate: "20-5-2569",
+    status: "เสร็จสิ้น",
+  },
+];

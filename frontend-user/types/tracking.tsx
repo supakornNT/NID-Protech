@@ -28,25 +28,28 @@ export type TrackingStep = {
 };
 
 export type TrackingDetail = {
+  id: number;
+
+  resolutionRequestId?: number;
+
   trackingNo: string;
 
-  status: TicketStatus;
-
-  problem: string;
-
-  ratingStatus?:
-    | RatingStatus
-    | null;
+  status: string;
 
   repairStatus: string;
 
   repairedBy: string;
 
-  solution: string;
+  ratingStatus?: string;
 
-  timeline: TrackingStep[];
+  problem: string;
+
+  timeline: {
+    label: string;
+    date?: string;
+    time?: string;
+  }[];
 };
-
 export type RepairFile = {
   id: number;
   name: string;
