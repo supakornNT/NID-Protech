@@ -63,7 +63,7 @@ export default function RejectWorkModal({
 
           <ProTechButton
             onClick={onConfirm}
-            variant="danger"
+            
             disabled={disabled}
           >
             ส่งตีกลับงาน

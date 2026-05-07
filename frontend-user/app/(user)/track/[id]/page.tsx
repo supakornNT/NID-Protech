@@ -275,16 +275,16 @@ export default function Page({ params }: Props) {
               <div className="flex justify-end gap-3 py-4">
                 <ProTechButton
                   onClick={() => setShowRejectWork(true)}
-                  variant="danger"
+                  variant="outline"
                 >
-                  ตีกลับงาน
+                  ไม่อนุมัติ
                 </ProTechButton>
 
                 <ProTechButton
                   onClick={() => setShowConfirmClose(true)}
                   variant="primary"
                 >
-                  ยืนยัน
+                  อนุมัติ
                 </ProTechButton>
               </div>
             )}

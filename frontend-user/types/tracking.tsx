@@ -40,6 +40,8 @@ export type TrackingDetail = {
 
   repairedBy: string;
 
+  solution?: string;
+
   ratingStatus?: string;
 
   problem: string;
