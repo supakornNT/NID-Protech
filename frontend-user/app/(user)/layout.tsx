@@ -1,10 +1,17 @@
-import Navbar from "@/components/navbar"
+import Navbar from "@/components/navbar";
 
-export default function UserLayout({ children }: { children: React.ReactNode }) {
+export default function UserLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <div>
+    <div className="flex min-h-dvh w-full flex-col overflow-x-hidden bg-[#F5F7FB]">
       <Navbar />
-      <main>{children}</main>
+
+      <main className="w-full flex-1 overflow-x-hidden">
+        {children}
+      </main>
     </div>
-  )
+  );
 }
