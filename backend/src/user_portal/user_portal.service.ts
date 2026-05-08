@@ -3,7 +3,6 @@ import {
   Inject,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import type {
   Pool,
@@ -44,6 +43,7 @@ interface DashboardSummaryRow extends RowDataPacket {
 interface PublicReportRow extends RowDataPacket {
   report_no: string;
   system_name: string | null;
+  problem_name: string | null;
   resolve_due_at: Date | string | null;
   status: string;
 }
@@ -95,7 +95,7 @@ export class UserPortalService {
       FROM reports r
       INNER JOIN problem_types pt
         ON pt.id = r.problem_type_id
-      WHERE pt.report_type = 'issue'`,
+     `,
     );
 
     const summary = rows[0];
@@ -108,10 +108,7 @@ export class UserPortalService {
     };
   }
 
-  async getReports(
-    query: GetReportsQuery,
-    user?: { customer_id?: number; customerId?: number },
-  ): Promise<PublicReportList> {
+  async getReports(query: GetReportsQuery): Promise<PublicReportList> {
     await this.syncExpiredWaitingConfirmReports();
 
     const page = parsePositiveIntegerUtil(query.page, 1, 'page');
@@ -123,14 +120,10 @@ export class UserPortalService {
     const status = query.status?.trim() ?? '';
     const whereClauses: string[] = [];
     const params: Array<string | number> = [];
-    const customerId = Number(user?.customer_id ?? user?.customerId);
 
-    if (!Number.isInteger(customerId) || customerId <= 0) {
-      throw new UnauthorizedException('customer identity is required');
-    }
-
-    whereClauses.push('r.customer_id = ?');
-    params.push(customerId);
+    // TODO:
+    // หลังจากทำ login แล้ว
+    // ต้อง filter ด้วย customer_id จาก JWT token
 
     if (search.length > 0) {
       const likeSearch = `%${search}%`;
@@ -152,9 +145,7 @@ export class UserPortalService {
     }
 
     const whereSql =
-      whereClauses.length > 0
-        ? `WHERE pt.report_type = 'issue' AND ${whereClauses.join(' AND ')}`
-        : `WHERE pt.report_type = 'issue'`;
+      whereClauses.length > 0 ? ` AND ${whereClauses.join(' AND ')}` : ``;
 
     const [countRows] = await this.db.query<
       Array<RowDataPacket & { total: number }>
@@ -178,6 +169,7 @@ export class UserPortalService {
       `SELECT
         r.report_no,
         s.name AS system_name,
+        pt.name AS problem_name,
         r.resolve_due_at,
         r.status
       FROM reports r
@@ -196,6 +188,7 @@ export class UserPortalService {
       items: rows.map((row) => ({
         trackingNo: row.report_no,
         system: row.system_name ?? '-',
+        problem: row.problem_name ?? '-',
         dueDate: formatDateOnlyUtil(row.resolve_due_at),
         document: `tracking-${row.report_no}.pdf`,
         status: mapReportStatusLabelUtil(row.status),

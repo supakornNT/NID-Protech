@@ -88,9 +88,7 @@ function formatCountdown(diff: number): string {
 }
 
 function parseDateTime(value: string): number {
-  const normalizedValue = value.includes("T")
-    ? value
-    : value.replace(" ", "T");
+  const normalizedValue = value.includes("T") ? value : value.replace(" ", "T");
 
   return new Date(normalizedValue).getTime();
 }
@@ -145,14 +143,12 @@ export function useTrackingDetail(reportNo: string) {
       report?.statusCode !== "waiting_confirm" ||
       !report.customerConfirmDueAt
     ) {
-      setCountdown("");
       return;
     }
 
     const deadline = parseDateTime(report.customerConfirmDueAt);
 
     if (Number.isNaN(deadline)) {
-      setCountdown("");
       return;
     }
 
@@ -169,9 +165,7 @@ export function useTrackingDetail(reportNo: string) {
       return true;
     }
 
-    if (!updateCountdown()) {
-      return;
-    }
+    updateCountdown();
 
     const timer = setInterval(() => {
       if (!updateCountdown()) {
@@ -182,6 +176,8 @@ export function useTrackingDetail(reportNo: string) {
     return () => clearInterval(timer);
   }, [report?.customerConfirmDueAt, report?.statusCode]);
 
+
+  
   async function rejectReport(reason: string) {
     if (!report) {
       return;

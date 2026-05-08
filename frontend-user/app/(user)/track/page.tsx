@@ -30,6 +30,11 @@ const columns: Column<ReportListItem>[] =
       title: "ระบบ",
       className: "min-w-[120px]",
     },
+     {
+      key: "problem",
+      title: "ปัญหา/ข้อร้องเรียน",
+      className: "min-w-[120px]",
+    },
     {
       key: "dueDate",
       title: "ระยะเวลากำหนดการแก้ไข",
@@ -98,7 +103,7 @@ export default function Page() {
   } = useReportList();
 
   return (
-    <div className="mx-auto h-full w-full min-w-0 max-w-7xl px-4 pt-6 sm:px-6 lg:px-10">
+    <div className="mx-auto h-full w-full min-w-0 max-w-[90rem] px-4 pt-6 sm:px-6 lg:px-10">
       <h1 className="mb-4 text-2xl font-medium text-[#3A6FCF] sm:text-4xl">
         ค้นหาหมายเลขการติดตาม
       </h1>
