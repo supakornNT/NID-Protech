@@ -3,6 +3,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import type {
   Pool,
@@ -10,17 +11,28 @@ import type {
   ResultSetHeader,
   RowDataPacket,
 } from 'mysql2/promise';
+import { formatDateOnly as formatDateOnlyUtil } from '../common/utils/date-time.util';
+import { parsePositiveInteger as parsePositiveIntegerUtil } from '../common/utils/number.util';
+import { mapReportStatusLabel as mapReportStatusLabelUtil } from '../common/utils/report-status.util';
 import { ConfirmReportDto } from './dto/confirm-report.dto';
+import { RateReportDto } from './dto/rate-report.dto';
 import { RejectReportDto } from './dto/reject-report.dto';
 import { DashboardSummary } from './interfaces/dashboard-summary.interface';
 import {
   GetReportsQuery,
   PublicReportList,
 } from './interfaces/public-report-list.interface';
+import { PublicReportTrack } from './interfaces/public-report-track.interface';
+import { mapTrackResponse } from './mappers/report-track.mapper';
 import {
-  PublicReportTrack,
-  PublicReportTrackTimeline,
-} from './interfaces/public-report-track.interface';
+  ReportTrackRow,
+  StatusLogRow,
+} from './interfaces/report-track-row.interface';
+import {
+  validateConfirmReportDto,
+  validateRateReportDto,
+  validateRejectReportDto,
+} from './validation/user-portal.validation';
 
 interface DashboardSummaryRow extends RowDataPacket {
   total: number;
@@ -36,40 +48,6 @@ interface PublicReportRow extends RowDataPacket {
   status: string;
 }
 
-interface TotalCountRow extends RowDataPacket {
-  total: number;
-}
-
-interface ReportTrackRow extends RowDataPacket {
-  id: number;
-  report_no: string;
-  title: string;
-  detail: string;
-  score: number | null;
-  customer_id: number;
-  report_status: string;
-  report_created_at: Date | string;
-  ticket_id: number | null;
-  ticket_status: string | null;
-  assigned_staff_id: number | null;
-  resolution_request_id: number | null;
-  resolution_request_status: string | null;
-  resolution_summary: string | null;
-  reviewed_at: Date | string | null;
-  repaired_by_name: string | null;
-  repaired_by_surname: string | null;
-}
-
-interface StatusLogRow extends RowDataPacket {
-  new_status: string;
-  created_at: Date | string;
-}
-
-interface TicketStatusRow extends RowDataPacket {
-  id: number;
-  status: string;
-}
-
 interface ReportIdentityRow extends RowDataPacket {
   id: number;
   report_no: string;
@@ -77,20 +55,16 @@ interface ReportIdentityRow extends RowDataPacket {
   status: string;
 }
 
-const REPORT_STATUS_LABELS: Record<string, string> = {
-  draft: 'ฉบับร่าง',
-  submitted: 'รับเรื่องแล้ว',
-  screening: 'รอตรวจสอบ',
-  assigned: 'รอดำเนินการ',
-  in_progress: 'รอดำเนินการ',
-  waiting_confirm: 'รอตรวจสอบโดยลูกค้า',
-  closed: 'เสร็จสิ้น',
-  rejected: 'ถูกปฏิเสธ',
-};
+interface ExpiredWaitingConfirmRow extends RowDataPacket {
+  report_id: number;
+  customer_id: number;
+  report_status: string;
+  ticket_id: number;
+  ticket_status: string;
+  waiting_confirm_at: Date | string;
+}
 
 const REPORT_STATUS_VALUES = new Set([
-  'draft',
-  'submitted',
   'screening',
   'assigned',
   'in_progress',
@@ -98,6 +72,9 @@ const REPORT_STATUS_VALUES = new Set([
   'closed',
   'rejected',
 ]);
+
+const AUTO_CLOSE_NOTE =
+  'System auto-closed after customer confirmation deadline expired';
 
 @Injectable()
 export class UserPortalService {
@@ -107,13 +84,18 @@ export class UserPortalService {
   ) {}
 
   async getDashboardSummary(): Promise<DashboardSummary> {
+    await this.syncExpiredWaitingConfirmReports();
+
     const [rows] = await this.db.query<DashboardSummaryRow[]>(
       `SELECT
         COUNT(*) AS total,
-        SUM(CASE WHEN status = 'screening' THEN 1 ELSE 0 END) AS screening,
-        SUM(CASE WHEN status IN ('assigned', 'in_progress') THEN 1 ELSE 0 END) AS in_progress,
-        SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) AS completed
-      FROM reports`,
+        SUM(CASE WHEN r.status = 'screening' THEN 1 ELSE 0 END) AS screening,
+        SUM(CASE WHEN r.status IN ('assigned', 'in_progress') THEN 1 ELSE 0 END) AS in_progress,
+        SUM(CASE WHEN r.status = 'closed' THEN 1 ELSE 0 END) AS completed
+      FROM reports r
+      INNER JOIN problem_types pt
+        ON pt.id = r.problem_type_id
+      WHERE pt.report_type = 'issue'`,
     );
 
     const summary = rows[0];
@@ -126,20 +108,30 @@ export class UserPortalService {
     };
   }
 
-  async getReports(query: GetReportsQuery): Promise<PublicReportList> {
-    const page = this.parsePositiveInteger(query.page, 1, 'page');
+  async getReports(
+    query: GetReportsQuery,
+    user?: { customer_id?: number; customerId?: number },
+  ): Promise<PublicReportList> {
+    await this.syncExpiredWaitingConfirmReports();
+
+    const page = parsePositiveIntegerUtil(query.page, 1, 'page');
     const limit = Math.min(
-      this.parsePositiveInteger(query.limit, 10, 'limit'),
+      parsePositiveIntegerUtil(query.limit, 10, 'limit'),
       100,
     );
     const search = query.search?.trim() ?? '';
     const status = query.status?.trim() ?? '';
     const whereClauses: string[] = [];
     const params: Array<string | number> = [];
+    const customerId = Number(user?.customer_id ?? user?.customerId);
 
-    // TODO:
-    // หลังจากทำ login แล้ว
-    // ต้อง filter ด้วย customer_id จาก JWT token
+    if (!Number.isInteger(customerId) || customerId <= 0) {
+      throw new UnauthorizedException('customer identity is required');
+    }
+
+    whereClauses.push('r.customer_id = ?');
+    params.push(customerId);
+
     if (search.length > 0) {
       const likeSearch = `%${search}%`;
       whereClauses.push(`(
@@ -160,11 +152,17 @@ export class UserPortalService {
     }
 
     const whereSql =
-      whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+      whereClauses.length > 0
+        ? `WHERE pt.report_type = 'issue' AND ${whereClauses.join(' AND ')}`
+        : `WHERE pt.report_type = 'issue'`;
 
-    const [countRows] = await this.db.query<TotalCountRow[]>(
+    const [countRows] = await this.db.query<
+      Array<RowDataPacket & { total: number }>
+    >(
       `SELECT COUNT(*) AS total
       FROM reports r
+      INNER JOIN problem_types pt
+        ON pt.id = r.problem_type_id
       LEFT JOIN systems s
         ON r.system_id = s.id
       ${whereSql}`,
@@ -183,6 +181,8 @@ export class UserPortalService {
         r.resolve_due_at,
         r.status
       FROM reports r
+      INNER JOIN problem_types pt
+        ON pt.id = r.problem_type_id
       LEFT JOIN systems s
         ON r.system_id = s.id
       ${whereSql}
@@ -196,9 +196,9 @@ export class UserPortalService {
       items: rows.map((row) => ({
         trackingNo: row.report_no,
         system: row.system_name ?? '-',
-        dueDate: this.formatDateOnly(row.resolve_due_at),
+        dueDate: formatDateOnlyUtil(row.resolve_due_at),
         document: `tracking-${row.report_no}.pdf`,
-        status: this.mapReportStatusLabel(row.status),
+        status: mapReportStatusLabelUtil(row.status),
       })),
       pagination: {
         page: safePage,
@@ -212,6 +212,8 @@ export class UserPortalService {
   }
 
   async getReportTrack(reportNo: string): Promise<PublicReportTrack> {
+    await this.syncExpiredWaitingConfirmReports();
+
     const report = await this.findReportTrackRowByReportNo(reportNo);
 
     if (!report) {
@@ -226,14 +228,14 @@ export class UserPortalService {
       [report.id],
     );
 
-    return this.mapTrackResponse(report, reportStatusLogs);
+    return mapTrackResponse(report, reportStatusLogs);
   }
 
   async confirmReport(
     id: number,
     dto: ConfirmReportDto,
   ): Promise<PublicReportTrack> {
-    this.validateConfirmReportDto(dto);
+    validateConfirmReportDto(dto);
 
     const connection = await this.db.getConnection();
 
@@ -246,6 +248,12 @@ export class UserPortalService {
         throw new NotFoundException(`Report ${id} not found`);
       }
 
+      if (identity.status !== 'waiting_confirm') {
+        throw new BadRequestException(
+          'report is not waiting for customer confirmation',
+        );
+      }
+
       await connection.query<ResultSetHeader>(
         `INSERT INTO report_confirmations (
           report_id,
@@ -253,20 +261,21 @@ export class UserPortalService {
           result,
           comment,
           score
-        ) VALUES (?, ?, 'confirmed', ?, ?)`,
-        [identity.id, identity.customer_id, dto.comment ?? null, dto.score],
+        ) VALUES (?, ?, 'confirmed', ?, NULL)`,
+        [identity.id, identity.customer_id, dto.comment ?? null],
       );
 
       await connection.query<ResultSetHeader>(
         `UPDATE reports
         SET status = 'closed',
-            score = ?,
             closed_at = NOW()
         WHERE id = ?`,
-        [dto.score, identity.id],
+        [identity.id],
       );
 
-      const [ticketRows] = await connection.query<TicketStatusRow[]>(
+      const [ticketRows] = await connection.query<
+        Array<RowDataPacket & { id: number; status: string }>
+      >(
         `SELECT id, status
         FROM tickets
         WHERE report_id = ?`,
@@ -323,28 +332,11 @@ export class UserPortalService {
       connection.release();
     }
 
-    const updated = await this.findReportTrackRowById(id);
-
-    if (!updated) {
-      throw new NotFoundException(`Report ${id} not found after update`);
-    }
-
-    const [reportStatusLogs] = await this.db.query<StatusLogRow[]>(
-      `SELECT new_status, created_at
-      FROM report_status_logs
-      WHERE report_id = ?
-      ORDER BY created_at ASC, id ASC`,
-      [updated.id],
-    );
-
-    return this.mapTrackResponse(updated, reportStatusLogs);
+    return this.getReportTrackByIdAfterMutation(id);
   }
 
-  async rejectReport(
-    id: number,
-    dto: RejectReportDto,
-  ): Promise<PublicReportTrack> {
-    this.validateRejectReportDto(dto);
+  async rateReport(id: number, dto: RateReportDto): Promise<PublicReportTrack> {
+    validateRateReportDto(dto);
 
     const connection = await this.db.getConnection();
 
@@ -355,6 +347,77 @@ export class UserPortalService {
 
       if (!identity) {
         throw new NotFoundException(`Report ${id} not found`);
+      }
+
+      if (identity.status !== 'closed') {
+        throw new BadRequestException('report is not closed');
+      }
+
+      const [confirmationRows] = await connection.query<
+        Array<RowDataPacket & { id: number }>
+      >(
+        `SELECT id
+        FROM report_confirmations
+        WHERE report_id = ?
+          AND result = 'confirmed'
+        ORDER BY id DESC
+        LIMIT 1`,
+        [identity.id],
+      );
+
+      const confirmationId = Number(confirmationRows[0]?.id ?? 0);
+
+      if (confirmationId <= 0) {
+        throw new NotFoundException(`Confirmation for report ${id} not found`);
+      }
+
+      await connection.query<ResultSetHeader>(
+        `UPDATE reports
+        SET score = ?
+        WHERE id = ?`,
+        [dto.score, identity.id],
+      );
+
+      await connection.query<ResultSetHeader>(
+        `UPDATE report_confirmations
+        SET score = ?,
+            comment = ?
+        WHERE id = ?`,
+        [dto.score, dto.comment ?? null, confirmationId],
+      );
+
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+
+    return this.getReportTrackByIdAfterMutation(id);
+  }
+
+  async rejectReport(
+    id: number,
+    dto: RejectReportDto,
+  ): Promise<PublicReportTrack> {
+    validateRejectReportDto(dto);
+
+    const connection = await this.db.getConnection();
+
+    try {
+      await connection.beginTransaction();
+
+      const identity = await this.findReportIdentityById(connection, id);
+
+      if (!identity) {
+        throw new NotFoundException(`Report ${id} not found`);
+      }
+
+      if (identity.status !== 'waiting_confirm') {
+        throw new BadRequestException(
+          'report is not waiting for customer confirmation',
+        );
       }
 
       await connection.query<ResultSetHeader>(
@@ -376,7 +439,9 @@ export class UserPortalService {
         [identity.id],
       );
 
-      const [ticketRows] = await connection.query<TicketStatusRow[]>(
+      const [ticketRows] = await connection.query<
+        Array<RowDataPacket & { id: number; status: string }>
+      >(
         `SELECT id, status
         FROM tickets
         WHERE report_id = ?
@@ -428,6 +493,12 @@ export class UserPortalService {
       connection.release();
     }
 
+    return this.getReportTrackByIdAfterMutation(id);
+  }
+
+  private async getReportTrackByIdAfterMutation(
+    id: number,
+  ): Promise<PublicReportTrack> {
     const updated = await this.findReportTrackRowById(id);
 
     if (!updated) {
@@ -442,7 +513,110 @@ export class UserPortalService {
       [updated.id],
     );
 
-    return this.mapTrackResponse(updated, reportStatusLogs);
+    return mapTrackResponse(updated, reportStatusLogs);
+  }
+
+  private async syncExpiredWaitingConfirmReports(): Promise<void> {
+    const connection = await this.db.getConnection();
+
+    try {
+      await connection.beginTransaction();
+
+      const [expiredRows] = await connection.query<ExpiredWaitingConfirmRow[]>(
+        `SELECT
+          r.id AS report_id,
+          r.customer_id,
+          r.status AS report_status,
+          t.id AS ticket_id,
+          t.status AS ticket_status,
+          (
+            SELECT rsl.created_at
+            FROM report_status_logs rsl
+            WHERE rsl.report_id = r.id
+              AND rsl.new_status = 'waiting_confirm'
+            ORDER BY rsl.id DESC
+            LIMIT 1
+          ) AS waiting_confirm_at
+        FROM reports r
+        INNER JOIN tickets t
+          ON t.id = (
+            SELECT t2.id
+            FROM tickets t2
+            WHERE t2.report_id = r.id
+            ORDER BY t2.id DESC
+            LIMIT 1
+          )
+        WHERE r.status = 'waiting_confirm'
+          AND t.status = 'waiting_confirm'
+          AND (
+            SELECT rsl.created_at
+            FROM report_status_logs rsl
+            WHERE rsl.report_id = r.id
+              AND rsl.new_status = 'waiting_confirm'
+            ORDER BY rsl.id DESC
+            LIMIT 1
+          ) IS NOT NULL
+          AND DATE_ADD(
+            (
+              SELECT rsl.created_at
+              FROM report_status_logs rsl
+              WHERE rsl.report_id = r.id
+                AND rsl.new_status = 'waiting_confirm'
+              ORDER BY rsl.id DESC
+              LIMIT 1
+            ),
+            INTERVAL 3 DAY
+          ) < NOW()`,
+      );
+
+      for (const row of expiredRows) {
+        await connection.query<ResultSetHeader>(
+          `UPDATE reports
+          SET status = 'closed',
+              closed_at = NOW()
+          WHERE id = ?`,
+          [row.report_id],
+        );
+
+        await connection.query<ResultSetHeader>(
+          `UPDATE tickets
+          SET status = 'closed',
+              closed_at = NOW()
+          WHERE id = ?`,
+          [row.ticket_id],
+        );
+
+        await connection.query<ResultSetHeader>(
+          `INSERT INTO report_status_logs (
+            report_id,
+            old_status,
+            new_status,
+            changed_by_type,
+            changed_by_id,
+            note
+          ) VALUES (?, ?, 'closed', 'system', NULL, ?)`,
+          [row.report_id, row.report_status, AUTO_CLOSE_NOTE],
+        );
+
+        await connection.query<ResultSetHeader>(
+          `INSERT INTO ticket_status_logs (
+            ticket_id,
+            old_status,
+            new_status,
+            changed_by,
+            note
+          ) VALUES (?, ?, 'closed', NULL, ?)`,
+          [row.ticket_id, row.ticket_status, AUTO_CLOSE_NOTE],
+        );
+      }
+
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
   }
 
   private async findReportTrackRowByReportNo(
@@ -458,16 +632,14 @@ export class UserPortalService {
         r.customer_id,
         r.status AS report_status,
         r.created_at AS report_created_at,
-        t.id AS ticket_id,
-        t.status AS ticket_status,
-        t.assigned_staff_id,
-        trr.id AS resolution_request_id,
         trr.status AS resolution_request_status,
         trr.summary AS resolution_summary,
         trr.reviewed_at,
         staff.name AS repaired_by_name,
         staff.surname AS repaired_by_surname
       FROM reports r
+      INNER JOIN problem_types pt
+        ON pt.id = r.problem_type_id
       LEFT JOIN tickets t
         ON t.id = (
           SELECT t2.id
@@ -487,6 +659,7 @@ export class UserPortalService {
       LEFT JOIN staffs staff
         ON staff.id = COALESCE(t.assigned_staff_id, trr.requested_by)
       WHERE r.report_no = ?
+        AND pt.report_type = 'issue'
       LIMIT 1`,
       [reportNo],
     );
@@ -507,16 +680,14 @@ export class UserPortalService {
         r.customer_id,
         r.status AS report_status,
         r.created_at AS report_created_at,
-        t.id AS ticket_id,
-        t.status AS ticket_status,
-        t.assigned_staff_id,
-        trr.id AS resolution_request_id,
         trr.status AS resolution_request_status,
         trr.summary AS resolution_summary,
         trr.reviewed_at,
         staff.name AS repaired_by_name,
         staff.surname AS repaired_by_surname
       FROM reports r
+      INNER JOIN problem_types pt
+        ON pt.id = r.problem_type_id
       LEFT JOIN tickets t
         ON t.id = (
           SELECT t2.id
@@ -536,6 +707,7 @@ export class UserPortalService {
       LEFT JOIN staffs staff
         ON staff.id = COALESCE(t.assigned_staff_id, trr.requested_by)
       WHERE r.id = ?
+        AND pt.report_type = 'issue'
       LIMIT 1`,
       [id],
     );
@@ -548,256 +720,16 @@ export class UserPortalService {
     id: number,
   ): Promise<ReportIdentityRow | null> {
     const [rows] = await connection.query<ReportIdentityRow[]>(
-      `SELECT id, report_no, customer_id, status
+      `SELECT reports.id, reports.report_no, reports.customer_id, reports.status
       FROM reports
-      WHERE id = ?
+      INNER JOIN problem_types pt
+        ON pt.id = reports.problem_type_id
+      WHERE reports.id = ?
+        AND pt.report_type = 'issue'
       LIMIT 1`,
       [id],
     );
 
     return rows[0] ?? null;
-  }
-
-  private mapTrackResponse(
-    report: ReportTrackRow,
-    reportStatusLogs: StatusLogRow[],
-  ): PublicReportTrack {
-    const currentStep = this.getCurrentStep(report.report_status);
-    const firstInProgressLog = reportStatusLogs.find(
-      (log) =>
-        log.new_status === 'assigned' || log.new_status === 'in_progress',
-    );
-    const waitingConfirmLog = reportStatusLogs.find(
-      (log) => log.new_status === 'waiting_confirm',
-    );
-    const screeningLog = reportStatusLogs.find(
-      (log) => log.new_status === 'screening',
-    );
-
-    const reportedAt = this.toDateTimeParts(report.report_created_at);
-    const screeningAt = this.toDateTimeParts(screeningLog?.created_at);
-    const inProgressAt = this.toDateTimeParts(firstInProgressLog?.created_at);
-    const waitingConfirmAt = this.toDateTimeParts(
-      waitingConfirmLog?.created_at,
-    );
-
-    const timeline: PublicReportTrackTimeline[] = [
-      {
-        label: 'แจ้งปัญหา',
-        status: this.getTimelineStatus(1, currentStep, report.report_status),
-        date: reportedAt.date,
-        time: reportedAt.time,
-      },
-      {
-        label: 'คัดกรอง',
-        status: this.getTimelineStatus(2, currentStep, report.report_status),
-        date: screeningAt.date,
-        time: screeningAt.time,
-      },
-      {
-        label: 'ดำเนินการ',
-        status: this.getTimelineStatus(3, currentStep, report.report_status),
-        date: inProgressAt.date,
-        time: inProgressAt.time,
-      },
-      {
-        label: 'รอตรวจสอบโดยลูกค้า',
-        status: this.getTimelineStatus(4, currentStep, report.report_status),
-        date: waitingConfirmAt.date,
-        time: waitingConfirmAt.time,
-      },
-    ];
-
-    return {
-      id: report.id,
-      trackingNo: report.report_no,
-      problem: report.title,
-      status: this.mapReportStatusLabel(report.report_status),
-      repairStatus: this.mapRepairStatus(
-        report.report_status,
-        report.resolution_request_status,
-      ),
-      repairedBy: this.getStaffFullName(
-        report.repaired_by_name,
-        report.repaired_by_surname,
-      ),
-      resolutionRequestId: report.resolution_request_id,
-      ratingStatus: report.score === null ? 'ยังไม่ประเมิน' : 'ประเมินแล้ว',
-      timeline,
-      solution: report.resolution_summary ?? report.detail,
-      repairedAt: this.formatDateTime(report.reviewed_at),
-    };
-  }
-
-  private mapReportStatusLabel(status: string): string {
-    return REPORT_STATUS_LABELS[status] ?? status;
-  }
-
-  private validateConfirmReportDto(dto: ConfirmReportDto): void {
-    if (!Number.isInteger(dto.score) || dto.score < 1 || dto.score > 5) {
-      throw new BadRequestException('score must be an integer between 1 and 5');
-    }
-
-    if (dto.comment !== undefined && typeof dto.comment !== 'string') {
-      throw new BadRequestException('comment must be a string');
-    }
-  }
-
-  private validateRejectReportDto(dto: RejectReportDto): void {
-    if (typeof dto.reason !== 'string' || dto.reason.trim().length === 0) {
-      throw new BadRequestException('reason is required');
-    }
-  }
-
-  private parsePositiveInteger(
-    value: string | undefined,
-    fallback: number,
-    fieldName: string,
-  ): number {
-    if (!value) {
-      return fallback;
-    }
-
-    const parsedValue = Number(value);
-
-    if (!Number.isInteger(parsedValue) || parsedValue <= 0) {
-      throw new BadRequestException(`${fieldName} must be a positive integer`);
-    }
-
-    return parsedValue;
-  }
-
-  private mapRepairStatus(
-    reportStatus: string,
-    resolutionRequestStatus: string | null,
-  ): string {
-    if (
-      reportStatus === 'waiting_confirm' &&
-      resolutionRequestStatus === 'approved'
-    ) {
-      return 'หัวหน้าอนุมัติผลการแก้ไขแล้ว รอลูกค้ายืนยัน';
-    }
-
-    if (reportStatus === 'waiting_confirm') {
-      return 'ส่งผลการแก้ไขแล้ว รอลูกค้ายืนยัน';
-    }
-
-    if (reportStatus === 'closed') {
-      return 'ลูกค้ายืนยันปิดงานแล้ว';
-    }
-
-    if (reportStatus === 'assigned' || reportStatus === 'in_progress') {
-      return 'เจ้าหน้าที่กำลังดำเนินการแก้ไข';
-    }
-
-    if (reportStatus === 'screening') {
-      return 'เจ้าหน้าที่กำลังคัดกรองปัญหา';
-    }
-
-    if (reportStatus === 'rejected') {
-      return 'รายการถูกปฏิเสธ';
-    }
-
-    return 'รับเรื่องแล้ว';
-  }
-
-  private getCurrentStep(reportStatus: string): number {
-    if (reportStatus === 'screening') {
-      return 2;
-    }
-
-    if (reportStatus === 'assigned' || reportStatus === 'in_progress') {
-      return 3;
-    }
-
-    return 4;
-  }
-
-  private getTimelineStatus(
-    stepNumber: number,
-    currentStep: number,
-    reportStatus: string,
-  ): 'completed' | 'active' | 'pending' {
-    if (reportStatus === 'closed') {
-      return 'completed';
-    }
-
-    if (stepNumber < currentStep) {
-      return 'completed';
-    }
-
-    if (stepNumber === currentStep) {
-      return 'active';
-    }
-
-    return 'pending';
-  }
-
-  private getStaffFullName(
-    name: string | null,
-    surname: string | null,
-  ): string {
-    const fullName = [name, surname]
-      .filter((value): value is string => Boolean(value))
-      .join(' ');
-
-    return fullName || '-';
-  }
-
-  private formatDateOnly(value: Date | string | null): string | null {
-    if (!value) {
-      return null;
-    }
-
-    return this.toIsoDate(value);
-  }
-
-  private formatDateTime(value: Date | string | null): string | null {
-    if (!value) {
-      return null;
-    }
-
-    const date = this.normalizeDate(value);
-    const year = date.getFullYear();
-    const month = `${date.getMonth() + 1}`.padStart(2, '0');
-    const day = `${date.getDate()}`.padStart(2, '0');
-    const hours = `${date.getHours()}`.padStart(2, '0');
-    const minutes = `${date.getMinutes()}`.padStart(2, '0');
-
-    return `${year}-${month}-${day} ${hours}:${minutes}`;
-  }
-
-  private toDateTimeParts(value?: Date | string | null): {
-    date?: string;
-    time?: string;
-  } {
-    if (!value) {
-      return {};
-    }
-
-    const date = this.normalizeDate(value);
-    const year = date.getFullYear();
-    const month = `${date.getMonth() + 1}`.padStart(2, '0');
-    const day = `${date.getDate()}`.padStart(2, '0');
-    const hours = `${date.getHours()}`.padStart(2, '0');
-    const minutes = `${date.getMinutes()}`.padStart(2, '0');
-
-    return {
-      date: `${year}-${month}-${day}`,
-      time: `${hours}:${minutes}`,
-    };
-  }
-
-  private toIsoDate(value: Date | string): string {
-    const date = this.normalizeDate(value);
-    const year = date.getFullYear();
-    const month = `${date.getMonth() + 1}`.padStart(2, '0');
-    const day = `${date.getDate()}`.padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
-  }
-
-  private normalizeDate(value: Date | string): Date {
-    return value instanceof Date ? value : new Date(value);
   }
 }

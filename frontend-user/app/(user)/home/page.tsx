@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import Image from "next/image";
 import {
   Airplay,
@@ -11,84 +10,35 @@ import {
   Phone,
 } from "lucide-react";
 
+import { useDashboardSummary } from "@/hooks/use-dashboard-summary";
+
 import styles from "./home.module.css";
 
-interface DashboardSummary {
-  total: number;
-  screening: number;
-  inProgress: number;
-  completed: number;
-}
-
-const DEFAULT_SUMMARY: DashboardSummary = {
-  total: 0,
-  screening: 0,
-  inProgress: 0,
-  completed: 0,
-};
-
-function buildApiUrl(path: string): string {
-  return `${process.env.NEXT_PUBLIC_API_URL}${path}`;
-}
-
-async function fetchJson<T>(path: string, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(buildApiUrl(path), {
-    signal,
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    throw new Error(`Request failed with status ${response.status}`);
-  }
-
-  return (await response.json()) as T;
-}
-
 export default function HomePage() {
-  const [summary, setSummary] =
-    React.useState<DashboardSummary>(DEFAULT_SUMMARY);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
+  // Flow หน้านี้:
+  // 1. mount หน้าแล้ว useDashboardSummary() จะเรียก GET /user/dashboard-summary
+  // 2. API คืนค่าสรุปจาก reports ที่อยู่ใน customer tracking flow
+  //    โดยข้อมูลมาจาก table reports:
+  //    - total <- COUNT(*) ของ reports
+  //    - screening <- reports.status = 'screening'
+  //    - inProgress <- reports.status IN ('assigned', 'in_progress')
+  //    - completed <- reports.status = 'closed'
+  // 3. หน้าเอา total/screening/inProgress/completed ไปแทนตัวเลขในการ์ดสรุป
+  const { summary, loading, error } =
+    useDashboardSummary();
 
-  React.useEffect(() => {
-    const controller = new AbortController();
-
-    async function loadSummary() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const data = await fetchJson<DashboardSummary>(
-          "/user/dashboard-summary",
-          controller.signal,
-        );
-
-        setSummary(data);
-      } catch (loadError) {
-        if (loadError instanceof Error && loadError.name === "AbortError") {
-          return;
-        }
-
-        setError(
-          loadError instanceof Error
-            ? loadError.message
-            : "Failed to load dashboard summary",
-        );
-        setSummary(DEFAULT_SUMMARY);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    void loadSummary();
-
-    return () => controller.abort();
-  }, []);
-
-  const totalValue = loading ? "..." : String(summary.total);
-  const screeningValue = loading ? "..." : String(summary.screening);
-  const inProgressValue = loading ? "..." : String(summary.inProgress);
-  const completedValue = loading ? "..." : String(summary.completed);
+  const totalValue = loading
+    ? "..."
+    : String(summary.total);
+  const screeningValue = loading
+    ? "..."
+    : String(summary.screening);
+  const inProgressValue = loading
+    ? "..."
+    : String(summary.inProgress);
+  const completedValue = loading
+    ? "..."
+    : String(summary.completed);
 
   return (
     <main className={styles.page}>
@@ -155,9 +105,7 @@ export default function HomePage() {
             <div className={styles.contactItem}>
               <MapPin size={22} />
               <span>
-                1224 เธ–.เธจเธฃเธตเธเธเธฃเธดเธเธ—เธฃเน
-                เนเธเธงเธเธชเธงเธเธซเธฅเธงเธ เน€เธเธ•เธชเธงเธเธซเธฅเธงเธ
-                เธเธฃเธธเธเน€เธ—เธเธกเธซเธฒเธเธเธฃ 10250
+                1224 ถ.ศรีนครินทร์ แขวงสวนหลวง เขตสวนหลวง กรุงเทพมหานคร 10250
               </span>
             </div>
           </div>

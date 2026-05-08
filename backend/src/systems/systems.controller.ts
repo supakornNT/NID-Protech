@@ -12,7 +12,6 @@ import { CreateSystemDto } from './dto/create-system.dto';
 import { UpdateSystemDto } from './dto/update-system.dto';
 import { SystemsService } from './systems.service';
 
-
 @Controller('admin/systems')
 export class SystemsController {
   constructor(private readonly system: SystemsService) {}
@@ -41,5 +40,4 @@ export class SystemsController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.system.remove(id);
   }
-
 }

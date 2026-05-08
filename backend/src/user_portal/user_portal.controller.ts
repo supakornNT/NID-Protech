@@ -6,8 +6,11 @@ import {
   ParseIntPipe,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import { ConfirmReportDto } from './dto/confirm-report.dto';
+import { RateReportDto } from './dto/rate-report.dto';
 import { RejectReportDto } from './dto/reject-report.dto';
 import type { GetReportsQuery } from './interfaces/public-report-list.interface';
 import { UserPortalService } from './user_portal.service';
@@ -22,8 +25,17 @@ export class UserPortalController {
   }
 
   @Get('reports')
-  getReports(@Query() query: GetReportsQuery) {
-    return this.userPortalService.getReports(query);
+  getReports(
+    @Query() query: GetReportsQuery,
+    @Req()
+    req: Request & {
+      user?: {
+        customer_id?: number;
+        customerId?: number;
+      };
+    },
+  ) {
+    return this.userPortalService.getReports(query, req.user);
   }
 
   @Get('reports/track/:reportNo')
@@ -37,6 +49,14 @@ export class UserPortalController {
     @Body() body: ConfirmReportDto,
   ) {
     return this.userPortalService.confirmReport(id, body);
+  }
+
+  @Post('reports/:id/rating')
+  rateReport(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: RateReportDto,
+  ) {
+    return this.userPortalService.rateReport(id, body);
   }
 
   @Post('reports/:id/reject')

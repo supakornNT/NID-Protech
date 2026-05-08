@@ -3,7 +3,6 @@ import { TrackingDetail } from "@/types/tracking";
 export const MOCK_DATA: Record<string, TrackingDetail> = {
   TH001: {
     id: 1,
-    resolutionRequestId: 1001,
     trackingNo: "TH001",
     status: "รอตรวจสอบ",
     problem: "ไม่สามารถเข้าสู่ระบบ และทำรายการได้",
@@ -34,7 +33,6 @@ export const MOCK_DATA: Record<string, TrackingDetail> = {
 
   TH002: {
     id: 2,
-    resolutionRequestId: 1002,
     trackingNo: "TH002",
     status: "รอดำเนินการ",
     problem: "ไม่สามารถเข้าสู่ระบบ และทำรายการได้",
@@ -66,7 +64,6 @@ export const MOCK_DATA: Record<string, TrackingDetail> = {
 
   TH003: {
     id: 3,
-    resolutionRequestId: 1003,
     trackingNo: "TH003",
     status: "รอตรวจสอบโดยลูกค้า",
     problem: "ไม่สามารถเข้าสู่ระบบ และทำรายการได้",
@@ -99,7 +96,6 @@ export const MOCK_DATA: Record<string, TrackingDetail> = {
 
   TH004: {
     id: 4,
-    resolutionRequestId: 1004,
     trackingNo: "TH004",
     status: "เสร็จสิ้น",
     ratingStatus: "ยังไม่ประเมิน",
@@ -133,7 +129,6 @@ export const MOCK_DATA: Record<string, TrackingDetail> = {
 
   TH005: {
     id: 5,
-    resolutionRequestId: 1005,
     trackingNo: "TH005",
     status: "เสร็จสิ้น",
     ratingStatus: "ประเมินแล้ว",

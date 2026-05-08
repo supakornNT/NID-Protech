@@ -2,343 +2,130 @@
 
 import * as React from "react";
 
-import {
-  ClipboardPlus,
-  FileWarning,
-  Info,
-  Wrench,
-} from "lucide-react";
+import { ClipboardPlus, FileWarning, Info, Wrench } from "lucide-react";
 
-import StepProgress from "@/components/trackstep/StepProgress";
-
-import {
-  Props,
-  RepairDetail,
-  TrackingDetail,
-} from "@/types/tracking";
-
-import RatingModal from "@/components/trackstep/popup/RatingModal";
-import RepairDetailModal from "@/components/trackstep/popup/RepairDetailModal";
 import ConfirmCloseModal from "@/components/trackstep/popup/ConfirmCloseModal";
+import RatingModal from "@/components/trackstep/popup/RatingModal";
 import RejectWorkModal from "@/components/trackstep/popup/RejectWorkModal";
-
+import RepairDetailModal from "@/components/trackstep/popup/RepairDetailModal";
+import StepProgress from "@/components/trackstep/StepProgress";
 import { ProTechButton } from "@/components/tables/protech-button";
-
-interface TrackingTimelineApiItem {
-  label: string;
-  status: "completed" | "active" | "pending";
-  date?: string;
-  time?: string;
-}
-
-interface TrackingDetailApiResponse {
-  id: number;
-  trackingNo: string;
-  problem: string;
-  status: string;
-  repairStatus: string;
-  repairedBy: string;
-  resolutionRequestId: number | null;
-  ratingStatus: string;
-  timeline: TrackingTimelineApiItem[];
-  solution: string;
-  repairedAt: string | null;
-}
-
-type TrackingDetailView = TrackingDetail & {
-  repairedAt?: string | null;
-};
-
-function buildApiUrl(path: string): string {
-  return `${process.env.NEXT_PUBLIC_API_URL}${path}`;
-}
-
-async function fetchJson<T>(
-  path: string,
-  init?: RequestInit,
-): Promise<T> {
-  const response = await fetch(buildApiUrl(path), {
-    cache: "no-store",
-    ...init,
-  });
-
-  if (!response.ok) {
-    throw new Error(`Request failed with status ${response.status}`);
-  }
-
-  return (await response.json()) as T;
-}
-
-function mapTrackingDetail(
-  data: TrackingDetailApiResponse,
-): TrackingDetailView {
-  return {
-    id: data.id,
-    trackingNo: data.trackingNo,
-    problem: data.problem,
-    status: data.status,
-    repairStatus: data.repairStatus,
-    repairedBy: data.repairedBy,
-    resolutionRequestId:
-      data.resolutionRequestId ?? undefined,
-    ratingStatus: data.ratingStatus,
-    timeline: data.timeline.map((item) => ({
-      label: item.label,
-      date: item.date,
-      time: item.time,
-    })),
-    solution: data.solution,
-    repairedAt: data.repairedAt,
-  };
-}
-
-function getActiveStep(
-  status: string,
-): number {
-  if (status === "รอตรวจสอบ") {
-    return 2;
-  }
-
-  if (status === "รอดำเนินการ") {
-    return 3;
-  }
-
-  return 4;
-}
-
-function buildRepairDetail(
-  ticket: TrackingDetailView,
-): RepairDetail {
-  return {
-    description:
-      ticket.solution ?? "-",
-    repairedAt:
-      ticket.repairedAt ?? "-",
-    files: [],
-  };
-}
+import { useTrackingDetail } from "@/hooks/use-tracking-detail";
+import { Props, RepairDetail } from "@/types/tracking";
 
 export default function Page({ params }: Props) {
   const { id } = React.use(params);
-
-  const [countdown, setCountdown] = React.useState("");
-  const [ticket, setTicket] =
-    React.useState<TrackingDetailView | null>(null);
-  const [loading, setLoading] =
-    React.useState(true);
-  const [error, setError] =
-    React.useState<string | null>(null);
 
   const [showRepairDetail, setShowRepairDetail] = React.useState(false);
   const [showRating, setShowRating] = React.useState(false);
   const [showConfirmClose, setShowConfirmClose] = React.useState(false);
   const [showRejectWork, setShowRejectWork] = React.useState(false);
-
   const [rejectReason, setRejectReason] = React.useState("");
-
   const [repairDetail, setRepairDetail] = React.useState<RepairDetail | null>(
     null,
   );
 
-  const [submitting, setSubmitting] = React.useState(false);
+  const {
+    report,
+    loading,
+    error,
+    ratingSubmitting,
+    countdown,
+    activeStep,
+    buildRepairDetail,
+    rejectReport,
+    confirmReport,
+    rateReport,
+  } = useTrackingDetail(id);
 
-  React.useEffect(() => {
-    if (ticket?.status !== "รอตรวจสอบโดยลูกค้า") return;
-
-    const deadline = new Date().getTime() + 3 * 24 * 60 * 60 * 1000;
-
-    const timer = setInterval(() => {
-      const now = new Date().getTime();
-      const diff = deadline - now;
-
-      if (diff <= 0) {
-        setCountdown("หมดเวลา");
-        clearInterval(timer);
-        return;
-      }
-
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor(
-        (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
-      );
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-      setCountdown(`${days} วัน ${hours} ชม. ${minutes} นาที ${seconds} วิ`);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [ticket?.status]);
-
-  React.useEffect(() => {
-    const controller = new AbortController();
-
-    async function loadData() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const result =
-          await fetchJson<TrackingDetailApiResponse>(
-            `/user/reports/track/${encodeURIComponent(id)}`,
-            {
-              signal: controller.signal,
-            },
-          );
-
-        setTicket(
-          mapTrackingDetail(result),
-        );
-      } catch (loadError) {
-        if (
-          loadError instanceof Error &&
-          loadError.name === "AbortError"
-        ) {
-          return;
-        }
-
-        setError(
-          loadError instanceof Error
-            ? loadError.message
-            : "Failed to load tracking detail",
-        );
-        setTicket(null);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    void loadData();
-
-    return () => controller.abort();
-  }, [id]);
+  // Flow หน้านี้:
+  // 1. ใช้ params.id เป็น reportNo แล้วเรียก GET /user/reports/track/:reportNo
+  // 2. API คืน detail ของ report เช่น statusCode, problem, repairStatus,
+  //    repairedBy, timeline, solution และ customerConfirmDueAt
+  //    โดยข้อมูลหลักมาจาก:
+  //    -report. id <- reports.id
+  //    - trackingNo <- reports.report_no
+  //    - problem <- reports.title
+  //    - statusCode <- reports.status
+  //    - status <- reports.status แล้ว backend map เป็น label ไทย
+  //    - repairStatus <- tickets.status / ticket_resolution_requests.status
+  //      แล้ว backend map เป็นข้อความแสดงผล
+  //    - repairedBy <- staffs.name + staffs.surname
+  //      (อ้างจาก ticket ผู้รับผิดชอบล่าสุด)
+  //    - solution <- ticket_resolution_requests.summary
+  //    - timeline <- report_status_logs ของ report นี้
+  //    - customerConfirmDueAt <- derive จาก report_status_logs.created_at
+  //      ตอน new_status = 'waiting_confirm' แล้วบวก 3 วัน
+  // 3. statusCode เป็นตัวคุมการแสดงผล:
+  //    - waiting_confirm: แสดง countdown และปุ่มอนุมัติ/ไม่อนุมัติ
+  //    - closed: แสดงปุ่มประเมินเมื่อยังไม่เคยให้คะแนน
+  //    - rejected: แสดงกากบาทที่ step คัดกรอง
+  // 4. action ในหน้านี้:
+  //    - confirmReport() -> POST /user/reports/:id/confirm
+  //    - rejectReport(reason) -> POST /user/reports/:id/reject
+  //    - rateReport(...) -> POST /user/reports/:id/rating
 
   if (loading) {
     return <div className="p-6">กำลังโหลด...</div>;
   }
 
-  if (error || !ticket) {
-    return (
-      <div className="p-6 text-red-600">
-        {error ?? "ไม่พบข้อมูล"}
-      </div>
-    );
+  if (error || !report) {
+    return <div className="p-6 text-red-600">{error ?? "ไม่พบข้อมูล"}</div>;
   }
 
-  const activeStep = getActiveStep(
-    ticket.status,
-  );
+  async function handleOpenRepairDetail() {
+    const currentReport = report;
 
-  async function fetchRepairDetail() {
-    const currentTicket = ticket;
-
-    if (!currentTicket) {
+    if (!currentReport) {
       return;
     }
 
-    setRepairDetail(
-      buildRepairDetail(currentTicket),
-    );
+    // modal นี้ใช้ข้อมูลที่ได้มาจาก detail API เดิม
+    // ไม่ได้ยิง API เพิ่มตอนเปิดรายละเอียดการแก้ไข
+    setRepairDetail(buildRepairDetail(currentReport));
     setShowRepairDetail(true);
   }
 
-  function handleConfirmDone() {
+  async function handleConfirmDone() {
+    // ยืนยันผลการแก้ไข -> backend ปิด report/ticket แล้วส่งสถานะล่าสุดกลับมา
+    await confirmReport();
     setShowConfirmClose(false);
-    setShowRating(true);
   }
 
   async function handleRejectWork() {
-    if (!ticket) return;
-
-    try {
-      setSubmitting(true);
-      setError(null);
-
-      const result =
-        await fetchJson<TrackingDetailApiResponse>(
-          `/user/reports/${ticket.id}/reject`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            body: JSON.stringify({
-              reason: rejectReason,
-            }),
-          },
-        );
-
-      setTicket(
-        mapTrackingDetail(result),
-      );
-      setShowRejectWork(false);
-      setRejectReason("");
-    } catch (submitError) {
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : "Failed to reject report",
-      );
-    } finally {
-      setSubmitting(false);
-    }
+    // ไม่อนุมัติ -> ส่ง reason เพื่อ reopen งานกลับไป assigned
+    await rejectReport(rejectReason);
+    setShowRejectWork(false);
+    setRejectReason("");
   }
 
-  async function submitRating(payload: {
+  async function handleSubmitRating(payload: {
     rating: number;
     comment: string;
   }) {
-    if (!ticket) return;
-
-    try {
-      setSubmitting(true);
-      setError(null);
-
-      const result =
-        await fetchJson<TrackingDetailApiResponse>(
-          `/user/reports/${ticket.id}/confirm`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            body: JSON.stringify({
-              score: payload.rating,
-              comment: payload.comment,
-            }),
-          },
-        );
-
-      setTicket(
-        mapTrackingDetail(result),
-      );
-      setShowRating(false);
-    } catch (submitError) {
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : "Failed to confirm report",
-      );
-    } finally {
-      setSubmitting(false);
-    }
+    // ให้คะแนนหลังงาน closed แล้วเท่านั้น
+    await rateReport(payload);
+    setShowRating(false);
   }
+
+  const canReview = report.statusCode === "waiting_confirm";
+  const canRate =
+    report.statusCode === "closed" && report.ratingStatus !== "ประเมินแล้ว";
+  const canViewRepairDetail =
+    report.statusCode === "waiting_confirm" || report.statusCode === "closed";
 
   return (
     <>
       <div className="mx-auto flex w-full max-w-3xl flex-col items-center px-4 py-6 sm:py-10">
         {error ? (
-          <p className="mb-4 self-stretch text-sm text-red-600">
-            {error}
-          </p>
+          <p className="mb-4 self-stretch text-sm text-red-600">{error}</p>
         ) : null}
 
         <StepProgress
-          steps={ticket.timeline}
+          steps={report.timeline}
           activeStep={activeStep}
-          isCompleted={ticket.status === "เสร็จสิ้น"}
+          isCompleted={report.statusCode === "closed"}
+          rejectedStep={report.statusCode === "rejected" ? 2 : undefined}
         />
 
         <section className="mt-10 w-full max-w-3xl overflow-hidden rounded-[28px] border border-[#2F66C5] bg-white shadow-sm sm:mt-16">
@@ -349,19 +136,17 @@ export default function Page({ params }: Props) {
               </div>
 
               <div>
-                <p className="font-semibold text-[#20498F]">{ticket.status}</p>
+                <p className="font-semibold text-[#20498F]">{report.status}</p>
 
-                <p className="text-xs text-[#315FAF]">
-                  ระบบติดตามการดำเนินงาน
-                </p>
+                <p className="text-xs text-[#315FAF]">ระบบติดตามการดำเนินงาน</p>
               </div>
             </div>
 
-            {ticket.status === "รอตรวจสอบโดยลูกค้า" && (
+            {canReview ? (
               <p className="text-[14px] font-medium text-[#315FAF] sm:text-[15px]">
                 เหลือ {countdown}
               </p>
-            )}
+            ) : null}
           </div>
 
           <div className="px-4 py-5 sm:px-8">
@@ -372,20 +157,18 @@ export default function Page({ params }: Props) {
               </div>
 
               <p className="text-[14px] text-gray-700 sm:text-[15px] sm:text-right">
-                {ticket.problem}
+                {report.problem}
               </p>
             </div>
 
             <div className="flex flex-col gap-2 border-b py-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <Info size={22} className="shrink-0 text-gray-500" />
-                <p className="text-[14px] sm:text-[15px]">
-                  สถานะการดำเนินงาน
-                </p>
+                <p className="text-[14px] sm:text-[15px]">สถานะการดำเนินงาน</p>
               </div>
 
               <p className="text-[14px] text-gray-700 sm:text-[15px] sm:text-right">
-                {ticket.repairStatus}
+                {report.repairStatus}
               </p>
             </div>
 
@@ -395,9 +178,11 @@ export default function Page({ params }: Props) {
                 <p className="text-[14px] sm:text-[15px]">ดำเนินการโดย</p>
               </div>
 
-              <p className="text-[14px] text-gray-700 sm:text-[15px] sm:text-right">
-                {ticket.repairedBy}
-              </p>
+              <div className="sm:flex sm:min-w-[220px] sm:items-center sm:justify-end">
+                <p className="text-[14px] text-gray-700 sm:text-[15px] sm:text-right">
+                  {report.repairedBy ?? "-"}
+                </p>
+              </div>
             </div>
 
             <div className="py-4">
@@ -408,13 +193,17 @@ export default function Page({ params }: Props) {
                   <p className="text-[14px] sm:text-[15px]">วิธีการแก้ไข</p>
                 </div>
 
-                <ProTechButton onClick={fetchRepairDetail} variant="detail">
+                <ProTechButton
+                  onClick={canViewRepairDetail ? handleOpenRepairDetail : undefined}
+                  variant="detail"
+                  disabled={!canViewRepairDetail}
+                >
                   รายละเอียด
                 </ProTechButton>
               </div>
             </div>
 
-            {ticket.status === "รอตรวจสอบโดยลูกค้า" && (
+            {canReview ? (
               <div className="flex justify-end gap-3 py-4">
                 <ProTechButton
                   onClick={() => setShowRejectWork(true)}
@@ -430,16 +219,15 @@ export default function Page({ params }: Props) {
                   อนุมัติ
                 </ProTechButton>
               </div>
-            )}
+            ) : null}
 
-            {ticket.status === "เสร็จสิ้น" &&
-              ticket.ratingStatus !== "ประเมินแล้ว" && (
-                <div className="flex justify-end py-4">
-                  <ProTechButton onClick={() => setShowRating(true)}>
-                    ประเมิน
-                  </ProTechButton>
-                </div>
-              )}
+            {canRate ? (
+              <div className="flex justify-end py-4">
+                <ProTechButton onClick={() => setShowRating(true)}>
+                  ประเมิน
+                </ProTechButton>
+              </div>
+            ) : null}
           </div>
         </section>
       </div>
@@ -452,7 +240,9 @@ export default function Page({ params }: Props) {
         confirmText="ยืนยัน"
         cancelText="ยกเลิก"
         onClose={() => setShowConfirmClose(false)}
-        onConfirm={handleConfirmDone}
+        onConfirm={() => {
+          void handleConfirmDone();
+        }}
       />
 
       <RejectWorkModal
@@ -476,9 +266,9 @@ export default function Page({ params }: Props) {
 
       <RatingModal
         open={showRating}
-        loading={submitting}
+        loading={ratingSubmitting}
         onClose={() => setShowRating(false)}
-        onSubmit={submitRating}
+        onSubmit={handleSubmitRating}
       />
     </>
   );

@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import Link from "next/link";
 
 import {
@@ -11,77 +10,13 @@ import {
 
 import { ProTechSearch } from "@/components/tables/protech-search";
 import { ProTechButton } from "@/components/tables/protech-button";
+import {
+  ReportListItem,
+  useReportList,
+} from "@/hooks/use-report-list";
 
 import { Column } from "@/types/table";
 import { ProTechTable } from "@/components/tables/protech-table";
-import { TrackingRow } from "@/types/tracking";
-
-interface ReportListItem
-  extends TrackingRow {
-  document: string;
-}
-
-interface PaginationMeta {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-  hasNext: boolean;
-  hasPrevious: boolean;
-}
-
-interface ReportListResponse {
-  items: ReportListItem[];
-  pagination: PaginationMeta;
-}
-
-function buildApiUrl(
-  path: string,
-): string {
-  return `${process.env.NEXT_PUBLIC_API_URL}${path}`;
-}
-
-async function fetchJson<T>(
-  path: string,
-  signal?: AbortSignal,
-): Promise<T> {
-  const response = await fetch(
-    buildApiUrl(path),
-    {
-      signal,
-      cache: "no-store",
-    },
-  );
-
-  if (!response.ok) {
-    throw new Error(
-      `Request failed with status ${response.status}`,
-    );
-  }
-
-  return (await response.json()) as T;
-}
-
-function buildReportsPath(
-  page: number,
-  limit: number,
-  search: string,
-): string {
-  const searchParams =
-    new URLSearchParams({
-      page: String(page),
-      limit: String(limit),
-    });
-
-  if (search.trim().length > 0) {
-    searchParams.set(
-      "search",
-      search.trim(),
-    );
-  }
-
-  return `/user/reports?${searchParams.toString()}`;
-}
 
 const columns: Column<ReportListItem>[] =
   [
@@ -134,115 +69,33 @@ const columns: Column<ReportListItem>[] =
     },
   ];
 
-const DEFAULT_PAGINATION: PaginationMeta =
-  {
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPages: 1,
-    hasNext: false,
-    hasPrevious: false,
-  };
-
 export default function Page() {
-  const [search, setSearch] =
-    React.useState("");
-  const [appliedSearch, setAppliedSearch] =
-    React.useState("");
-  const [reports, setReports] =
-    React.useState<ReportListItem[]>([]);
-  const [page, setPage] =
-    React.useState(1);
-  const [limit, setLimit] =
-    React.useState(10);
-  const [pagination, setPagination] =
-    React.useState<PaginationMeta>(
-      DEFAULT_PAGINATION,
-    );
-  const [loading, setLoading] =
-    React.useState(true);
-  const [error, setError] =
-    React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    function handleResize() {
-      if (window.innerWidth < 640) {
-        setLimit(5);
-        setPage(1);
-      } else {
-        setLimit(10);
-        setPage(1);
-      }
-    }
-
-    handleResize();
-
-    window.addEventListener(
-      "resize",
-      handleResize,
-    );
-
-    return () =>
-      window.removeEventListener(
-        "resize",
-        handleResize,
-      );
-  }, []);
-
-  React.useEffect(() => {
-    const controller =
-      new AbortController();
-
-    async function loadReports() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const data =
-          await fetchJson<ReportListResponse>(
-            buildReportsPath(
-              page,
-              limit,
-              appliedSearch,
-            ),
-            controller.signal,
-          );
-
-        setReports(data.items);
-        setPagination(data.pagination);
-      } catch (loadError) {
-        if (
-          loadError instanceof Error &&
-          loadError.name ===
-            "AbortError"
-        ) {
-          return;
-        }
-
-        setError(
-          loadError instanceof Error
-            ? loadError.message
-            : "Failed to load reports",
-        );
-        setReports([]);
-        setPagination(
-          DEFAULT_PAGINATION,
-        );
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    void loadReports();
-
-    return () =>
-      controller.abort();
-  }, [appliedSearch, limit, page]);
-
-  function handleSearch() {
-    setPage(1);
-    setAppliedSearch(search);
-  }
+  // Flow หน้านี้:
+  // 1. mount หน้าแล้ว useReportList() จะเรียก GET /user/reports?page=&limit=&search=
+  // 2. API คืนรายการ report พร้อม pagination สำหรับหน้า table
+  // 3. ตารางใช้ fields หลักคือ trackingNo, system, dueDate, document, status
+  //    โดย field หลักมาจาก:
+  //    - trackingNo <- reports.report_no
+  //    - system <- systems.name (join ด้วย reports.system_id)
+  //    - dueDate <- reports.resolve_due_at
+  //    - status <- reports.status แล้ว backend map เป็น label ไทย
+  //    - document <- ค่าที่ frontend ประกอบเพื่อใช้แสดงในตาราง
+  // 4. กดค้นหา -> applySearch() -> ยิง API ใหม่พร้อม search
+  //    search ตอนนี้ค้นจาก:
+  //    - reports.report_no
+  //    - reports.title
+  //    - systems.name
+  // 5. เปลี่ยนหน้า -> setPage() -> ยิง API ใหม่ตาม page/limit
+  const {
+    search,
+    setSearch,
+    reports,
+    pagination,
+    loading,
+    error,
+    setPage,
+    applySearch,
+  } = useReportList();
 
   return (
     <div className="mx-auto h-full w-full min-w-0 max-w-7xl px-4 pt-6 sm:px-6 lg:px-10">
@@ -263,7 +116,7 @@ export default function Page() {
 
         <ProTechButton
           className=" shrink-0 "
-          onClick={handleSearch}
+          onClick={applySearch}
         >
           ค้นหา
         </ProTechButton>
@@ -282,6 +135,8 @@ export default function Page() {
       ) : null}
 
       <div className="w-full">
+        {/* กดรายละเอียดของแต่ละแถวจะไปหน้า /track/:trackingNo
+            เพื่อเรียก detail API ของ report รายการนั้น */}
         <ProTechTable
           columns={columns}
           data={reports}

@@ -12,7 +12,7 @@ export type Props = {
 };
 
 export type TicketStatus =
-  | "รอตรวจสอบ"
+  | "รอคัดกรอง"
   | "รอดำเนินการ"
   | "รอตรวจสอบโดยลูกค้า"
   | "เสร็จสิ้น";
@@ -29,29 +29,22 @@ export type TrackingStep = {
 
 export type TrackingDetail = {
   id: number;
-
-  resolutionRequestId?: number;
-
+  statusCode?: string;
+  customerConfirmDueAt?: string | null;
   trackingNo: string;
-
   status: string;
-
   repairStatus: string;
-
   repairedBy: string;
-
   solution?: string;
-
   ratingStatus?: string;
-
   problem: string;
-
   timeline: {
     label: string;
     date?: string;
     time?: string;
   }[];
 };
+
 export type RepairFile = {
   id: number;
   name: string;
@@ -67,11 +60,8 @@ export type RepairDetail = {
   files: RepairFile[];
 };
 
-export type StepProgressProps =
-  {
-    steps: TrackingStep[];
-
-    activeStep: number;
-
-    isCompleted?: boolean;
-  };
+export type StepProgressProps = {
+  steps: TrackingStep[];
+  activeStep: number;
+  isCompleted?: boolean;
+};
