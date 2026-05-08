@@ -45,18 +45,16 @@ export class TicketWorkLogsService {
   async create(dto: CreateTicketWorkLogDto): Promise<TicketWorkLog | null> {
     const [result] = await this.db.query<ResultSetHeader>(
       'INSERT INTO ticket_work_logs (ticket_id, staff_id, work_detail, work_status) VALUES (?, ?, ?, ?)',
-      [
-        dto.ticket_id,
-        dto.staff_id,
-        dto.work_detail,
-        dto.work_status,
-      ],
+      [dto.ticketId, dto.staffId, dto.workDetail, dto.workStatus],
     );
 
     return this.findOne(result.insertId);
   }
 
-  async update(id: number, dto: UpdateTicketWorkLogDto): Promise<TicketWorkLog | null> {
+  async update(
+    id: number,
+    dto: UpdateTicketWorkLogDto,
+  ): Promise<TicketWorkLog | null> {
     const current = await this.findOne(id);
 
     if (!current) {
@@ -72,10 +70,10 @@ export class TicketWorkLogsService {
         work_status = ?
       WHERE id = ?`,
       [
-        dto.ticket_id ?? current.ticket_id,
-        dto.staff_id ?? current.staff_id,
-        dto.work_detail ?? current.work_detail,
-        dto.work_status ?? current.work_status,
+        dto.ticketId ?? current.ticket_id,
+        dto.staffId ?? current.staff_id,
+        dto.workDetail ?? current.work_detail,
+        dto.workStatus ?? current.work_status,
         id,
       ],
     );
@@ -91,6 +89,4 @@ export class TicketWorkLogsService {
 
     return { message: 'deleted' };
   }
-
-
 }

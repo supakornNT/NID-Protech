@@ -1,11 +1,11 @@
 export class CreateTicketStatusLogDto {
-  ticket_id: number;
+  ticketId!: number;
 
-  old_status: string;
+  oldStatus!: string;
 
-  new_status: string;
+  newStatus!: string;
 
-  changed_by: number;
+  changedBy!: number;
 
   note?: string;
 }

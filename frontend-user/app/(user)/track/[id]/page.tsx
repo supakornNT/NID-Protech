@@ -17,8 +17,6 @@ import {
   TrackingDetail,
 } from "@/types/tracking";
 
-import { MOCK_DATA } from "@/app/mock";
-
 import RatingModal from "@/components/trackstep/popup/RatingModal";
 import RepairDetailModal from "@/components/trackstep/popup/RepairDetailModal";
 import ConfirmCloseModal from "@/components/trackstep/popup/ConfirmCloseModal";
@@ -26,20 +24,110 @@ import RejectWorkModal from "@/components/trackstep/popup/RejectWorkModal";
 
 import { ProTechButton } from "@/components/tables/protech-button";
 
-async function getTrackingDetail(id: string): Promise<TrackingDetail> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(MOCK_DATA[id] ?? MOCK_DATA.TH003);
-    }, 300);
+interface TrackingTimelineApiItem {
+  label: string;
+  status: "completed" | "active" | "pending";
+  date?: string;
+  time?: string;
+}
+
+interface TrackingDetailApiResponse {
+  id: number;
+  trackingNo: string;
+  problem: string;
+  status: string;
+  repairStatus: string;
+  repairedBy: string;
+  resolutionRequestId: number | null;
+  ratingStatus: string;
+  timeline: TrackingTimelineApiItem[];
+  solution: string;
+  repairedAt: string | null;
+}
+
+type TrackingDetailView = TrackingDetail & {
+  repairedAt?: string | null;
+};
+
+function buildApiUrl(path: string): string {
+  return `${process.env.NEXT_PUBLIC_API_URL}${path}`;
+}
+
+async function fetchJson<T>(
+  path: string,
+  init?: RequestInit,
+): Promise<T> {
+  const response = await fetch(buildApiUrl(path), {
+    cache: "no-store",
+    ...init,
   });
+
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`);
+  }
+
+  return (await response.json()) as T;
+}
+
+function mapTrackingDetail(
+  data: TrackingDetailApiResponse,
+): TrackingDetailView {
+  return {
+    id: data.id,
+    trackingNo: data.trackingNo,
+    problem: data.problem,
+    status: data.status,
+    repairStatus: data.repairStatus,
+    repairedBy: data.repairedBy,
+    resolutionRequestId:
+      data.resolutionRequestId ?? undefined,
+    ratingStatus: data.ratingStatus,
+    timeline: data.timeline.map((item) => ({
+      label: item.label,
+      date: item.date,
+      time: item.time,
+    })),
+    solution: data.solution,
+    repairedAt: data.repairedAt,
+  };
+}
+
+function getActiveStep(
+  status: string,
+): number {
+  if (status === "รอตรวจสอบ") {
+    return 2;
+  }
+
+  if (status === "รอดำเนินการ") {
+    return 3;
+  }
+
+  return 4;
+}
+
+function buildRepairDetail(
+  ticket: TrackingDetailView,
+): RepairDetail {
+  return {
+    description:
+      ticket.solution ?? "-",
+    repairedAt:
+      ticket.repairedAt ?? "-",
+    files: [],
+  };
 }
 
 export default function Page({ params }: Props) {
   const { id } = React.use(params);
 
   const [countdown, setCountdown] = React.useState("");
-  const [ticket, setTicket] = React.useState<TrackingDetail | null>(null);
-  const [loading, setLoading] = React.useState(true);
+  const [ticket, setTicket] =
+    React.useState<TrackingDetailView | null>(null);
+  const [loading, setLoading] =
+    React.useState(true);
+  const [error, setError] =
+    React.useState<string | null>(null);
 
   const [showRepairDetail, setShowRepairDetail] = React.useState(false);
   const [showRating, setShowRating] = React.useState(false);
@@ -83,107 +171,156 @@ export default function Page({ params }: Props) {
   }, [ticket?.status]);
 
   React.useEffect(() => {
-    async function loadData() {
-      const result = await getTrackingDetail(id);
+    const controller = new AbortController();
 
-      setTicket(result);
-      setLoading(false);
+    async function loadData() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const result =
+          await fetchJson<TrackingDetailApiResponse>(
+            `/user/reports/track/${encodeURIComponent(id)}`,
+            {
+              signal: controller.signal,
+            },
+          );
+
+        setTicket(
+          mapTrackingDetail(result),
+        );
+      } catch (loadError) {
+        if (
+          loadError instanceof Error &&
+          loadError.name === "AbortError"
+        ) {
+          return;
+        }
+
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Failed to load tracking detail",
+        );
+        setTicket(null);
+      } finally {
+        setLoading(false);
+      }
     }
 
-    loadData();
+    void loadData();
+
+    return () => controller.abort();
   }, [id]);
 
-  if (loading || !ticket) {
+  if (loading) {
     return <div className="p-6">กำลังโหลด...</div>;
   }
 
-  const activeStep =
-    ticket.status === "รอตรวจสอบ"
-      ? 2
-      : ticket.status === "รอดำเนินการ"
-        ? 3
-        : ticket.status === "รอตรวจสอบโดยลูกค้า"
-          ? 4
-          : 4;
+  if (error || !ticket) {
+    return (
+      <div className="p-6 text-red-600">
+        {error ?? "ไม่พบข้อมูล"}
+      </div>
+    );
+  }
+
+  const activeStep = getActiveStep(
+    ticket.status,
+  );
 
   async function fetchRepairDetail() {
-    setRepairDetail({
-      description: "Restart Service และตรวจสอบระบบเรียบร้อย",
-      repairedAt: "20 เมษายน 2567 เวลา 10:46 น.",
-      files: [
-        {
-          id: 1,
-          name: "การดำเนินการ",
-          type: "pdf",
-          size: "928 KB",
-          uploadedAt: "20 เมษายน 2567",
-          url: "#",
-        },
-        {
-          id: 2,
-          name: "รูปหลักฐาน",
-          type: "image",
-          size: "928 KB",
-          uploadedAt: "20 เมษายน 2567",
-          url: "#",
-        },
-      ],
-    });
+    const currentTicket = ticket;
 
+    if (!currentTicket) {
+      return;
+    }
+
+    setRepairDetail(
+      buildRepairDetail(currentTicket),
+    );
     setShowRepairDetail(true);
   }
 
   function handleConfirmDone() {
-    if (!ticket) return;
-
-    setTicket({
-      ...ticket,
-      status: "เสร็จสิ้น",
-      ratingStatus: "ยังไม่ประเมิน",
-      repairStatus: "ลูกค้ายืนยันปิดงานแล้ว",
-    });
+    setShowConfirmClose(false);
+    setShowRating(true);
   }
 
-  function handleRejectWork() {
+  async function handleRejectWork() {
     if (!ticket) return;
 
-    const payload = {
-      ticketId: ticket.id,
-      resolutionRequestId: ticket.resolutionRequestId,
-      status: "rejected",
-      rejectReason,
-    };
-
-    console.log("REJECT PAYLOAD:", payload);
-
-    setTicket({
-      ...ticket,
-      status: "รอดำเนินการ",
-      repairStatus: "ลูกค้าตีกลับงาน รอเจ้าหน้าที่ดำเนินการแก้ไขเพิ่มเติม",
-    });
-
-    setRejectReason("");
-  }
-
-  async function submitRating(payload: { rating: number; comment: string }) {
     try {
       setSubmitting(true);
+      setError(null);
 
-      console.log(payload);
+      const result =
+        await fetchJson<TrackingDetailApiResponse>(
+          `/user/reports/${ticket.id}/reject`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              reason: rejectReason,
+            }),
+          },
+        );
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setTicket(
+        mapTrackingDetail(result),
+      );
+      setShowRejectWork(false);
+      setRejectReason("");
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Failed to reject report",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
-      setTicket((prev) => {
-        if (!prev) return prev;
+  async function submitRating(payload: {
+    rating: number;
+    comment: string;
+  }) {
+    if (!ticket) return;
 
-        return {
-          ...prev,
-          ratingStatus: "ประเมินแล้ว",
-          repairStatus: "ลูกค้าประเมินเรียบร้อย",
-        };
-      });
+    try {
+      setSubmitting(true);
+      setError(null);
 
+      const result =
+        await fetchJson<TrackingDetailApiResponse>(
+          `/user/reports/${ticket.id}/confirm`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              score: payload.rating,
+              comment: payload.comment,
+            }),
+          },
+        );
+
+      setTicket(
+        mapTrackingDetail(result),
+      );
       setShowRating(false);
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Failed to confirm report",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -192,6 +329,12 @@ export default function Page({ params }: Props) {
   return (
     <>
       <div className="mx-auto flex w-full max-w-3xl flex-col items-center px-4 py-6 sm:py-10">
+        {error ? (
+          <p className="mb-4 self-stretch text-sm text-red-600">
+            {error}
+          </p>
+        ) : null}
+
         <StepProgress
           steps={ticket.timeline}
           activeStep={activeStep}
@@ -309,10 +452,7 @@ export default function Page({ params }: Props) {
         confirmText="ยืนยัน"
         cancelText="ยกเลิก"
         onClose={() => setShowConfirmClose(false)}
-        onConfirm={() => {
-          handleConfirmDone();
-          setShowConfirmClose(false);
-        }}
+        onConfirm={handleConfirmDone}
       />
 
       <RejectWorkModal
@@ -324,8 +464,7 @@ export default function Page({ params }: Props) {
           setRejectReason("");
         }}
         onConfirm={() => {
-          handleRejectWork();
-          setShowRejectWork(false);
+          void handleRejectWork();
         }}
       />
 

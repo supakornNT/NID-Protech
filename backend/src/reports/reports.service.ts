@@ -60,17 +60,17 @@ export class ReportsService {
     const [result] = await this.db.query<ResultSetHeader>(
       'INSERT INTO reports (report_no, customer_id, system_id, problem_type_id, title, detail, status, score, reject_reason, resolve_due_at, closed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
-        dto.report_no,
-        dto.customer_id,
-        dto.system_id,
-        dto.problem_type_id,
+        dto.reportNo,
+        dto.customerId,
+        dto.systemId,
+        dto.problemTypeId,
         dto.title,
         dto.detail,
         dto.status,
         dto.score,
-        dto.reject_reason,
-        dto.resolve_due_at,
-        dto.closed_at,
+        dto.rejectReason,
+        dto.resolveDueAt,
+        dto.closedAt,
       ],
     );
 
@@ -100,17 +100,17 @@ export class ReportsService {
         closed_at = ?
       WHERE id = ?`,
       [
-        dto.report_no ?? current.report_no,
-        dto.customer_id ?? current.customer_id,
-        dto.system_id ?? current.system_id,
-        dto.problem_type_id ?? current.problem_type_id,
+        dto.reportNo ?? current.report_no,
+        dto.customerId ?? current.customer_id,
+        dto.systemId ?? current.system_id,
+        dto.problemTypeId ?? current.problem_type_id,
         dto.title ?? current.title,
         dto.detail ?? current.detail,
         dto.status ?? current.status,
         dto.score ?? current.score,
-        dto.reject_reason ?? current.reject_reason,
-        dto.resolve_due_at ?? current.resolve_due_at,
-        dto.closed_at ?? current.closed_at,
+        dto.rejectReason ?? current.reject_reason,
+        dto.resolveDueAt ?? current.resolve_due_at,
+        dto.closedAt ?? current.closed_at,
         id,
       ],
     );
@@ -126,6 +126,4 @@ export class ReportsService {
 
     return this.findOne(id);
   }
-
-
 }

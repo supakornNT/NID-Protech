@@ -1,13 +1,13 @@
 export class CreateCustomerDto {
-  name: string;
+  name!: string;
 
-  surname: string;
+  surname!: string;
 
-  email: string;
+  email!: string;
 
-  phone: string;
+  phone!: string;
 
-  customer_type: string;
+  customerType!: string;
 
   status?: string;
 }

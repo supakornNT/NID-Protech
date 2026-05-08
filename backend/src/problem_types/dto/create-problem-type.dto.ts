@@ -1,7 +1,7 @@
 export class CreateProblemTypeDto {
   name?: string;
 
-  report_type?: string;
+  reportType?: string;
 
   status?: string;
 }

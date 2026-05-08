@@ -1,13 +1,13 @@
 export class CreateReportStatusLogDto {
-  report_id: number;
+  reportId!: number;
 
-  old_status: string;
+  oldStatus!: string;
 
-  new_status: string;
+  newStatus!: string;
 
-  changed_by_type: string;
+  changedByType!: string;
 
-  changed_by_id: number;
+  changedById!: number;
 
   note?: string;
 }

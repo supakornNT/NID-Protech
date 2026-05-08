@@ -56,7 +56,7 @@ export class CustomersService {
         dto.surname,
         dto.email,
         dto.phone,
-        dto.customer_type,
+        dto.customerType,
         dto.status ?? 'pending',
       ],
     );
@@ -86,7 +86,7 @@ export class CustomersService {
         dto.surname ?? current.surname,
         dto.email ?? current.email,
         dto.phone ?? current.phone,
-        dto.customer_type ?? current.customer_type,
+        dto.customerType ?? current.customer_type,
         dto.status ?? current.status,
         id,
       ],

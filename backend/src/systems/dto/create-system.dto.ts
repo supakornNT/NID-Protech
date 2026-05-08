@@ -1,7 +1,7 @@
 export class CreateSystemDto {
-  organization_id: number;
+  organizationId!: number;
 
-  name: string;
+  name!: string;
 
   status?: string;
 }

@@ -55,17 +55,16 @@ export class StaffTeamRolesService {
   async create(dto: CreateStaffTeamRoleDto): Promise<StaffTeamRole | null> {
     const [result] = await this.db.query<ResultSetHeader>(
       'INSERT INTO staff_team_roles (staff_id, team_id, role_id) VALUES (?, ?, ?)',
-      [
-        dto.staff_id,
-        dto.team_id,
-        dto.role_id,
-      ],
+      [dto.staffId, dto.teamId, dto.roleId],
     );
 
     return this.findOne(result.insertId);
   }
 
-  async update(id: number, dto: UpdateStaffTeamRoleDto): Promise<StaffTeamRole | null> {
+  async update(
+    id: number,
+    dto: UpdateStaffTeamRoleDto,
+  ): Promise<StaffTeamRole | null> {
     const current = await this.findOne(id);
 
     if (!current) {
@@ -80,9 +79,9 @@ export class StaffTeamRolesService {
         role_id = ?
       WHERE id = ?`,
       [
-        dto.staff_id ?? current.staff_id,
-        dto.team_id ?? current.team_id,
-        dto.role_id ?? current.role_id,
+        dto.staffId ?? current.staff_id,
+        dto.teamId ?? current.team_id,
+        dto.roleId ?? current.role_id,
         id,
       ],
     );
@@ -98,6 +97,4 @@ export class StaffTeamRolesService {
 
     return { message: 'deleted' };
   }
-
-
 }

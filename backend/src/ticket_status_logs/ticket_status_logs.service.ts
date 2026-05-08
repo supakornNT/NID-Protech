@@ -47,19 +47,16 @@ export class TicketStatusLogsService {
   async create(dto: CreateTicketStatusLogDto): Promise<TicketStatusLog | null> {
     const [result] = await this.db.query<ResultSetHeader>(
       'INSERT INTO ticket_status_logs (ticket_id, old_status, new_status, changed_by, note) VALUES (?, ?, ?, ?, ?)',
-      [
-        dto.ticket_id,
-        dto.old_status,
-        dto.new_status,
-        dto.changed_by,
-        dto.note,
-      ],
+      [dto.ticketId, dto.oldStatus, dto.newStatus, dto.changedBy, dto.note],
     );
 
     return this.findOne(result.insertId);
   }
 
-  async update(id: number, dto: UpdateTicketStatusLogDto): Promise<TicketStatusLog | null> {
+  async update(
+    id: number,
+    dto: UpdateTicketStatusLogDto,
+  ): Promise<TicketStatusLog | null> {
     const current = await this.findOne(id);
 
     if (!current) {
@@ -76,10 +73,10 @@ export class TicketStatusLogsService {
         note = ?
       WHERE id = ?`,
       [
-        dto.ticket_id ?? current.ticket_id,
-        dto.old_status ?? current.old_status,
-        dto.new_status ?? current.new_status,
-        dto.changed_by ?? current.changed_by,
+        dto.ticketId ?? current.ticket_id,
+        dto.oldStatus ?? current.old_status,
+        dto.newStatus ?? current.new_status,
+        dto.changedBy ?? current.changed_by,
         dto.note ?? current.note,
         id,
       ],
@@ -96,6 +93,4 @@ export class TicketStatusLogsService {
 
     return { message: 'deleted' };
   }
-
-
 }

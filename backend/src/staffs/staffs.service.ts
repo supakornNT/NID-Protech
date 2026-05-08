@@ -56,7 +56,7 @@ export class StaffsService {
         dto.surname,
         dto.email,
         dto.phone,
-        dto.password_hash,
+        dto.passwordHash,
         dto.status ?? 'active',
       ],
     );
@@ -86,7 +86,7 @@ export class StaffsService {
         dto.surname ?? current.surname,
         dto.email ?? current.email,
         dto.phone ?? current.phone,
-        dto.password_hash ?? current.password_hash,
+        dto.passwordHash ?? current.password_hash,
         dto.status ?? current.status,
         id,
       ],
@@ -103,7 +103,6 @@ export class StaffsService {
 
     return this.findOne(id);
   }
-
 
   async inactive(id: number) {
     await this.db.query<ResultSetHeader>(
@@ -122,5 +121,4 @@ export class StaffsService {
 
     return this.findOne(id);
   }
-
 }

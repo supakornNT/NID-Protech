@@ -44,22 +44,21 @@ export class ReportConfirmationsService {
     return rows[0] ?? null;
   }
 
-  async create(dto: CreateReportConfirmationDto): Promise<ReportConfirmation | null> {
+  async create(
+    dto: CreateReportConfirmationDto,
+  ): Promise<ReportConfirmation | null> {
     const [result] = await this.db.query<ResultSetHeader>(
       'INSERT INTO report_confirmations (report_id, customer_id, result, comment, score) VALUES (?, ?, ?, ?, ?)',
-      [
-        dto.report_id,
-        dto.customer_id,
-        dto.result,
-        dto.comment,
-        dto.score,
-      ],
+      [dto.reportId, dto.customerId, dto.result, dto.comment, dto.score],
     );
 
     return this.findOne(result.insertId);
   }
 
-  async update(id: number, dto: UpdateReportConfirmationDto): Promise<ReportConfirmation | null> {
+  async update(
+    id: number,
+    dto: UpdateReportConfirmationDto,
+  ): Promise<ReportConfirmation | null> {
     const current = await this.findOne(id);
 
     if (!current) {
@@ -76,8 +75,8 @@ export class ReportConfirmationsService {
         score = ?
       WHERE id = ?`,
       [
-        dto.report_id ?? current.report_id,
-        dto.customer_id ?? current.customer_id,
+        dto.reportId ?? current.report_id,
+        dto.customerId ?? current.customer_id,
         dto.result ?? current.result,
         dto.comment ?? current.comment,
         dto.score ?? current.score,
@@ -96,6 +95,4 @@ export class ReportConfirmationsService {
 
     return { message: 'deleted' };
   }
-
-
 }

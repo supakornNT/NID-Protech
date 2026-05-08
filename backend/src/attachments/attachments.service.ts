@@ -48,18 +48,21 @@ export class AttachmentsService {
     const [result] = await this.db.query<ResultSetHeader>(
       'INSERT INTO attachments (report_id, ticket_id, attachment_type, original_name, file_ext) VALUES (?, ?, ?, ?, ?)',
       [
-        dto.report_id,
-        dto.ticket_id,
-        dto.attachment_type,
-        dto.original_name,
-        dto.file_ext,
+        dto.reportId,
+        dto.ticketId,
+        dto.attachmentType,
+        dto.originalName,
+        dto.fileExt,
       ],
     );
 
     return this.findOne(result.insertId);
   }
 
-  async update(id: number, dto: UpdateAttachmentDto): Promise<Attachment | null> {
+  async update(
+    id: number,
+    dto: UpdateAttachmentDto,
+  ): Promise<Attachment | null> {
     const current = await this.findOne(id);
 
     if (!current) {
@@ -76,11 +79,11 @@ export class AttachmentsService {
         file_ext = ?
       WHERE id = ?`,
       [
-        dto.report_id ?? current.report_id,
-        dto.ticket_id ?? current.ticket_id,
-        dto.attachment_type ?? current.attachment_type,
-        dto.original_name ?? current.original_name,
-        dto.file_ext ?? current.file_ext,
+        dto.reportId ?? current.report_id,
+        dto.ticketId ?? current.ticket_id,
+        dto.attachmentType ?? current.attachment_type,
+        dto.originalName ?? current.original_name,
+        dto.fileExt ?? current.file_ext,
         id,
       ],
     );
@@ -96,6 +99,4 @@ export class AttachmentsService {
 
     return { message: 'deleted' };
   }
-
-
 }

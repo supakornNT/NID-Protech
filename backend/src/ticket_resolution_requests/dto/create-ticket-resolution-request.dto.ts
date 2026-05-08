@@ -1,15 +1,15 @@
 export class CreateTicketResolutionRequestDto {
-  ticket_id: number;
+  ticketId!: number;
 
-  requested_by: number;
+  requestedBy!: number;
 
-  summary: string;
+  summary!: string;
 
-  status: string;
+  status!: string;
 
-  reviewed_by?: number;
+  reviewedBy?: number;
 
-  reviewed_at?: string;
+  reviewedAt?: string;
 
-  reject_reason?: string;
+  rejectReason?: string;
 }

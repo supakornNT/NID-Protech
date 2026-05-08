@@ -9,4 +9,8 @@ export type ProTechTableProps<T> = {
   columns: Column<T>[];
   data: T[];
   limit?: number;
+  page?: number;
+  totalPages?: number;
+  totalItems?: number;
+  onPageChange?: (page: number) => void;
 };

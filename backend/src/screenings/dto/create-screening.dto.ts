@@ -1,7 +1,7 @@
 export class CreateScreeningDto {
-  report_id?: number;
+  reportId?: number;
 
-  screened_by?: number;
+  screenedBy?: number;
 
   result?: string;
 

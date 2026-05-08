@@ -50,11 +50,11 @@ export class ReportStatusLogsService {
     const [result] = await this.db.query<ResultSetHeader>(
       'INSERT INTO report_status_logs (report_id, old_status, new_status, changed_by_type, changed_by_id, note) VALUES (?, ?, ?, ?, ?, ?)',
       [
-        dto.report_id,
-        dto.old_status,
-        dto.new_status,
-        dto.changed_by_type,
-        dto.changed_by_id,
+        dto.reportId,
+        dto.oldStatus,
+        dto.newStatus,
+        dto.changedByType,
+        dto.changedById,
         dto.note,
       ],
     );
@@ -62,7 +62,10 @@ export class ReportStatusLogsService {
     return this.findOne(result.insertId);
   }
 
-  async update(id: number, dto: UpdateReportStatusLogDto): Promise<ReportStatusLog | null> {
+  async update(
+    id: number,
+    dto: UpdateReportStatusLogDto,
+  ): Promise<ReportStatusLog | null> {
     const current = await this.findOne(id);
 
     if (!current) {
@@ -80,11 +83,11 @@ export class ReportStatusLogsService {
         note = ?
       WHERE id = ?`,
       [
-        dto.report_id ?? current.report_id,
-        dto.old_status ?? current.old_status,
-        dto.new_status ?? current.new_status,
-        dto.changed_by_type ?? current.changed_by_type,
-        dto.changed_by_id ?? current.changed_by_id,
+        dto.reportId ?? current.report_id,
+        dto.oldStatus ?? current.old_status,
+        dto.newStatus ?? current.new_status,
+        dto.changedByType ?? current.changed_by_type,
+        dto.changedById ?? current.changed_by_id,
         dto.note ?? current.note,
         id,
       ],
@@ -101,6 +104,4 @@ export class ReportStatusLogsService {
 
     return { message: 'deleted' };
   }
-
-
 }

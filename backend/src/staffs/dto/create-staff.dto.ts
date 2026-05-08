@@ -1,13 +1,13 @@
 export class CreateStaffDto {
-  name: string;
+  name!: string;
 
-  surname: string;
+  surname!: string;
 
-  email: string;
+  email!: string;
 
-  phone: string;
+  phone!: string;
 
-  password_hash: string;
+  passwordHash!: string;
 
   status?: string;
 }
