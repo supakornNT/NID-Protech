@@ -14,7 +14,29 @@ export default function RegisterPage() {
   const [userType, setUserType] = useState<UserType>("individual");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [form,setForm] = useState({
+    first_name: "",
+    last_name: "",
+    phone: "",
+    email: "",
+    password: "",
+    confirm_password: "",
+    company_name: "",
+  });
+  const [opt,setOtp] = useState("");
+  const [error,setError] = useState("");
+  const [loading,setLoading] = useState(false);
   useState(false);
+
+  function validate(){
+    if(!form.first_name || !form.last_name) return "กรุณากรอกชื่อ-นามสกุล";
+    if(!form.phone) return "กรุณากรอกเบอร์โทร";
+    if(!form.email) return "กรุณากรอกอีเมล";
+    if(form.password.length < 8) return "รหัสผ่านต้องมีอย่างน้อย 8 ตัว";
+    if(form.password !== form.confirm_password) return "รหัสผ่านไม่ตรงกัน";
+    if(opt.length < 6) return "กรุณากรอก OTP ให้ครบ"
+    return null
+  }
 
   return (
     <div
@@ -112,12 +134,16 @@ export default function RegisterPage() {
             placeholder="กรุณากรอกชื่อ"
             className="flex-1"
             inputClassName={styles.input}
+            value={form.first_name}
+            onChange={(e)=> setForm({...form,first_name: e.target.value})}
           />
           <FormInput
             label="นามสกุล"
             placeholder="กรุณากรอกนามสกุล"
             className="flex-1"
             inputClassName={styles.input}
+            value={form.last_name}
+            onChange={(e)=> setForm({...form,last_name:e.target.value})}
           />
         </div>
         <p style={{ fontSize: 16, fontWeight: 1000, color: "#366DBD" }}>
@@ -129,12 +155,16 @@ export default function RegisterPage() {
             placeholder="กรุณากรอกเบอร์โทร"
             className="flex-1"
             inputClassName={styles.input}
+            value={form.phone}
+            onChange={(e)=>setForm({...form,phone:e.target.value})}
           />
           <FormInput
             label="อีเมล"
             placeholder="กรุณากรอกอีเมล"
             className="flex-1"
             inputClassName={styles.input}
+            value={form.email}
+            onChange={(e)=>setForm({...form,email:e.target.value})}
           />
         </div>
         <p style={{ fontSize: 16, fontWeight: 1000, color: "#366DBD" }}>
@@ -145,6 +175,8 @@ export default function RegisterPage() {
             label="รหัสผ่าน"
             placeholder="กรุณากรอกรหัสผ่าน"
             className="flex-1"
+            value={form.password}
+            onChange={(e)=>setForm({...form,password:e.target.value})}
             type={showPassword ? "text" : "password"}
             icon={<Lock size={16} className="text-gray-400" />}
             suffix={
@@ -164,6 +196,8 @@ export default function RegisterPage() {
             label="ยืนยันรหัสผ่าน"
             placeholder="กรุณากรอกรหัสผ่านอีกครั้ง"
             className="flex-1"
+            value={form.confirm_password}
+            onChange={(e)=>setForm({...form,confirm_password:e.target.value})}
             type={showConfirmPassword ? "text" : "password"}
             icon={<Lock size={16} className="text-gray-400" />}
             suffix={

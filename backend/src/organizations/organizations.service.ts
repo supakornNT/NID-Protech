@@ -95,4 +95,12 @@ export class OrganizationsService {
 
     return rows;
   }
+
+  async findName(id: number): Promise<Organization | null> {
+    const [rows] = await this.db.query<Organization[]>(
+      `SELECT id,name FROM organizations WHERE id = ? `,
+      [id],
+    );
+    return rows[0] ?? null;
+  }
 }

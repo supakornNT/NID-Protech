@@ -24,26 +24,25 @@ export default function ReportInternalPage() {
   const router = useRouter();
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [files, setFiles] = useState<File[]>([]);
-  const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
   const [form, setForm] = useState({
-    organization: "",
     title: "",
     problem_type_id: "",
     system_id: "",
     detail: "",
   });
 
-  const { fullName } = useCustomer(CUSTOMER_ID);
+  const { data: customer, fullName } = useCustomer(CUSTOMER_ID);
   const { data: problemTypes, loading: problemTypesLoading } =
     useProblemTypes("issue");
-  const { data: organizations, loading: organizationsLoading } =
-    useOrganizations();
-  const { data: systems } = useSystems(selectedOrgId);
+  const { data: organizations } = useOrganizations();
+  const { data: systems } = useSystems(customer?.organization_id ?? null);
+
+  const currentOrg = organizations.find((o) => o.id === customer?.organization_id);
 
   const handleSubmit = async () => {
     const formData = new FormData();
     formData.append("customer_id", "1");
-    formData.append("organization", form.organization);
+    formData.append("organization", currentOrg?.name ?? "");
     formData.append("title", form.title);
     formData.append("problem_type_id", form.problem_type_id);
     formData.append("system_id", form.system_id);
@@ -83,28 +82,13 @@ export default function ReportInternalPage() {
               value={fullName}
               disabled
             />
-            <div className="flex flex-col gap-1 flex-1">
-              <p style={{ fontSize: 16, fontWeight: 500 }}>หน่วยงาน</p>
-              <select
-                className={`${styles.input} ${styles.select}`}
-                value={form.organization}
-                onChange={(e) => {
-                  const selected = organizations.find(
-                    (o) => o.name === e.target.value,
-                  );
-                  setForm({ ...form, organization: e.target.value, system_id: "" });
-                  setSelectedOrgId(selected?.id ?? null);
-                }}
-                disabled={organizationsLoading}
-              >
-                <option value="">กรุณาเลือกหน่วยงาน</option>
-                {organizations.map((org) => (
-                  <option key={org.id} value={org.name}>
-                    {org.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <FormInput
+              label="หน่วยงาน"
+              className="flex-1"
+              inputClassName={`${styles.input} bg-gray-50 cursor-not-allowed`}
+              value={currentOrg?.name ?? "กำลังโหลด..."}
+              disabled
+            />
           </div>
 
           <div className="flex flex-col sm:flex-row gap-6">
@@ -145,10 +129,10 @@ export default function ReportInternalPage() {
                 className={`${styles.input} ${styles.select}`}
                 value={form.system_id}
                 onChange={(e) => setForm({ ...form, system_id: e.target.value })}
-                disabled={!selectedOrgId}
+                disabled={!customer?.organization_id}
               >
                 <option value="">
-                  {selectedOrgId ? "กรุณาเลือกระบบ" : "เลือกหน่วยงานก่อน"}
+                  {customer?.organization_id ? "กรุณาเลือกระบบ" : "กำลังโหลด..."}
                 </option>
                 {systems.map((s) => (
                   <option key={s.id} value={s.id}>

@@ -7,6 +7,7 @@ interface CustomerName {
   surname: string;
   email: string;
   phone: string;
+  organization_id: number | null;
 }
 
 export function useCustomer(id: number | null) {

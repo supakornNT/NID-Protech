@@ -17,6 +17,7 @@ export class CustomersService {
       customers.email,
       customers.phone,
       customers.customer_type,
+      customers.organization_id,
       customers.status,
       customers.created_at,
       customers.updated_at
@@ -36,6 +37,7 @@ export class CustomersService {
       customers.email,
       customers.phone,
       customers.customer_type,
+      customers.organization_id,
       customers.status,
       customers.created_at,
       customers.updated_at
@@ -54,7 +56,8 @@ export class CustomersService {
       customers.name,
       customers.surname,
       customers.email,
-      customers.phone
+      customers.phone,
+      customers.organization_id
       FROM customers
       WHERE customers.id = ?
       `,
@@ -66,13 +69,14 @@ export class CustomersService {
 
   async create(dto: CreateCustomerDto): Promise<Customer | null> {
     const [result] = await this.db.query<ResultSetHeader>(
-      'INSERT INTO customers (name, surname, email, phone, customer_type, status) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO customers (name, surname, email, phone, customer_type, organization_id, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [
         dto.name,
         dto.surname,
         dto.email,
         dto.phone,
         dto.customer_type,
+        dto.organization_id ?? null,
         dto.status ?? 'pending',
       ],
     );

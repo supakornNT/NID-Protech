@@ -7,6 +7,7 @@ export interface Customer extends RowDataPacket {
   email: string;
   phone: string;
   customer_type: string;
+  organization_id: number | null;
   status: string;
   created_at: Date | null;
   updated_at: Date | null;
