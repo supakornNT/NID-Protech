@@ -6,7 +6,7 @@ export default function UserLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-dvh w-full flex-col overflow-x-hidden bg-[#F5F7FB]">
+    <div className="flex min-h-dvh w-full flex-col overflow-x-hidden bg-white">
       <Navbar />
 
       <main className="w-full flex-1 overflow-x-hidden">

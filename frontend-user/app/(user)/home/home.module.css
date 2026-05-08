@@ -3,55 +3,32 @@
   max-width: 1120px;
   margin: 0 auto;
   padding: 48px 24px;
+  box-sizing: border-box;
 }
 
 .hero {
-  min-height: 250px;
   border-radius: 2px;
-  background:
-    linear-gradient(90deg, rgba(241, 247, 255, 0.98), rgba(221, 236, 255, 0.9)),
-    url("/home-hero.png");
-  background-size: cover;
-  background-position: center right;
-  display: flex;
-  align-items: center;
-  padding: 40px;
+  overflow: hidden;
 }
 
-.heroText {
-  max-width: 560px;
-}
-
-.heroText h1 {
-  font-size: 46px;
-  font-weight: 800;
-  color: #06469c;
-  margin: 0 0 18px;
-}
-
-.heroTitle {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 20px;
-}
-
-.heroDesc {
-  font-size: 15px;
-  line-height: 1.8;
-  color: #4b5563;
+.heroBanner {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .content {
   margin-top: 64px;
   display: grid;
-  grid-template-columns: 1.6fr 0.9fr;
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
   gap: 22px;
+  align-items: start;
 }
 
 .reportCard {
   background: #f2f7ff;
   padding: 36px 42px;
+  min-width: 0;
 }
 
 .cardHeader {
@@ -75,13 +52,13 @@
 
 .reportOptions {
   margin-top: 22px;
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 34px;
 }
 
 .reportOption {
-  width: 245px;
+  width: 100%;
   min-height: 258px;
   border: 1.5px solid #2f66c5;
   border-radius: 18px;
@@ -133,6 +110,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  min-width: 0;
 }
 
 .contactCard,
@@ -157,15 +135,18 @@
   font-size: 16px;
   line-height: 1.5;
   margin-bottom: 18px;
+  overflow-wrap: anywhere;
 }
 
 .statusList {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .statusBox {
-  width: 78px;
+  flex: 1 1 calc(50% - 6px);
+  min-width: 78px;
   height: 80px;
   border-radius: 16px;
   background: #e8f7f8;
@@ -212,13 +193,35 @@
   }
 
   .reportOptions {
-    flex-direction: column;
-    align-items: center;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .reportOption {
-    width: 100%;
-    max-width: 280px;
+    max-width: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: 32px 20px;
+  }
+
+  .content {
+    margin-top: 32px;
+  }
+
+  .reportCard {
+    padding: 28px 24px;
+  }
+
+  .cardHeader {
+    gap: 16px;
+  }
+
+  .cardHeader h2,
+  .contactCard h2,
+  .summaryCard h2 {
+    font-size: 22px;
   }
 }
 
@@ -227,33 +230,38 @@
     padding: 24px 16px;
   }
 
-  .hero {
-    padding: 28px 20px;
-    min-height: 220px;
-  }
-
-  .heroText h1 {
-    font-size: 34px;
-  }
-
-  .heroTitle {
-    font-size: 17px;
-  }
-
   .reportCard {
     padding: 24px 18px;
   }
 
   .cardHeader {
+    flex-direction: column;
     gap: 14px;
   }
 
-  .statusList {
-    flex-wrap: wrap;
+  .reportOptions {
+    grid-template-columns: 1fr;
+    gap: 18px;
   }
 
   .statusBox {
-    flex: 1;
-    min-width: 72px;
+    min-width: calc(50% - 6px);
+  }
+}
+
+@media (max-width: 420px) {
+  .page {
+    padding: 20px 12px;
+  }
+
+  .contactCard,
+  .summaryCard,
+  .reportCard {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .statusBox {
+    min-width: 100%;
   }
 }

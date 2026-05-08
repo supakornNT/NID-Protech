@@ -1,10 +1,11 @@
+import Image from "next/image";
 import {
   Airplay,
+  BadgeInfo,
   Mail,
   MapPin,
   Megaphone,
   Phone,
-  BadgeInfo,
 } from "lucide-react";
 
 import styles from "./home.module.css";
@@ -13,16 +14,14 @@ export default function HomePage() {
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
-        <div className={styles.heroText}>
-          <h1>ProTech Support</h1>
-          <p className={styles.heroTitle}>
-            ระบบรับแจ้งปัญหา และข้อร้องเรียนการให้บริการ
-          </p>
-          <p className={styles.heroDesc}>
-            รองรับการแจ้งปัญหาการใช้งานระบบ และข้อร้องเรียนด้านการให้บริการ
-            สามารถติดตามสถานะงาน และประเมินผลการดำเนินงานได้อย่างสะดวก
-          </p>
-        </div>
+        <Image
+          src="/images/banner.png"
+          alt="ProTech Support banner"
+          width={1600}
+          height={720}
+          priority
+          className={styles.heroBanner}
+        />
       </section>
 
       <section className={styles.content}>
@@ -77,7 +76,8 @@ export default function HomePage() {
             <div className={styles.contactItem}>
               <MapPin size={22} />
               <span>
-                1224 ถ.ศรีนครินทร์ แขวงสวนหลวง เขตสวนหลวง กรุงเทพมหานคร 10250
+                1224 ถ.ศรีนครินทร์ แขวงสวนหลวง เขตสวนหลวง กรุงเทพมหานคร
+                10250
               </span>
             </div>
           </div>
