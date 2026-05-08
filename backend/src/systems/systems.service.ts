@@ -46,14 +46,34 @@ export class SystemsService {
     return rows[0] ?? null;
   }
 
+  async findByOrganization(organizationId: number): Promise<System[]> {
+    const [rows] = await this.db.query<System[]>(
+      `SELECT id, name FROM systems
+       WHERE organization_id = ? AND status = 'active'`,
+      [organizationId],
+    );
+
+    return rows;
+  }
+
+  async findName(id: number): Promise<System | null> {
+    const [rows] = await this.db.query<System[]>(
+      `SELECT
+      system.id,
+      system.name
+      FROM systems
+      LEFT JOIN organizations ON organizations.id = systems.organization_id
+      WHERE systems.id = ?
+      `,
+      [id],
+    );
+    return rows[0] ?? null;
+  }
+
   async create(dto: CreateSystemDto): Promise<System | null> {
     const [result] = await this.db.query<ResultSetHeader>(
       'INSERT INTO systems (organization_id, name, status) VALUES (?, ?, ?)',
-      [
-        dto.organization_id,
-        dto.name,
-        dto.status ?? 'active',
-      ],
+      [dto.organization_id, dto.name, dto.status ?? 'active'],
     );
 
     return this.findOne(result.insertId);
@@ -92,6 +112,4 @@ export class SystemsService {
 
     return this.findOne(id);
   }
-
-
 }

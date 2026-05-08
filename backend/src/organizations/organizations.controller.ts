@@ -21,6 +21,11 @@ export class OrganizationsController {
     return this.organization.findAll();
   }
 
+  @Get('active')
+  findActive() {
+    return this.organization.findActive();
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.organization.findOne(id);

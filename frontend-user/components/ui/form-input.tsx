@@ -8,6 +8,7 @@ interface FormInputProps {
   className?: string;
   inputClassName?: string;
   value?: string;
+  disabled?: boolean;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
@@ -23,12 +24,18 @@ export function FormInput({
   className,
   inputClassName,
   value,
+  disabled,
   onChange,
 }: FormInputProps) {
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       <p style={{ fontSize: 16, fontWeight: 500 }}>{label}</p>
-      <Input className={inputClassName} placeholder={placeholder} value={value} onChange={onChange} />
+      <Input
+        className={inputClassName}
+        placeholder={placeholder}
+        disabled={disabled}
+        {...(value !== undefined ? { value, onChange: onChange ?? (() => {}) } : {})}
+      />
     </div>
   );
 }

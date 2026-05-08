@@ -48,6 +48,22 @@ export class CustomersService {
     return rows[0] ?? null;
   }
 
+  async findName(id: number): Promise<Customer | null> {
+    const [rows] = await this.db.query<Customer[]>(
+      `SELECT
+      customers.name,
+      customers.surname,
+      customers.email,
+      customers.phone
+      FROM customers
+      WHERE customers.id = ?
+      `,
+      [id],
+    );
+
+    return rows[0] ?? null;
+  }
+
   async create(dto: CreateCustomerDto): Promise<Customer | null> {
     const [result] = await this.db.query<ResultSetHeader>(
       'INSERT INTO customers (name, surname, email, phone, customer_type, status) VALUES (?, ?, ?, ?, ?, ?)',

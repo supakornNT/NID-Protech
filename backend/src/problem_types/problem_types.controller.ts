@@ -12,7 +12,6 @@ import { CreateProblemTypeDto } from './dto/create-problem-type.dto';
 import { UpdateProblemTypeDto } from './dto/update-problem-type.dto';
 import { ProblemTypesService } from './problem_types.service';
 
-
 @Controller('admin/problem-types')
 export class ProblemTypesController {
   constructor(private readonly problemType: ProblemTypesService) {}
@@ -20,6 +19,16 @@ export class ProblemTypesController {
   @Get()
   findAll() {
     return this.problemType.findAll();
+  }
+
+  @Get('complaint')
+  findComplain() {
+    return this.problemType.findByReportType('complaint');
+  }
+
+  @Get('issue')
+  findIssue() {
+    return this.problemType.findByReportType('issue');
   }
 
   @Get(':id')
@@ -33,7 +42,10 @@ export class ProblemTypesController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateProblemTypeDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateProblemTypeDto,
+  ) {
     return this.problemType.update(id, body);
   }
 
@@ -41,5 +53,4 @@ export class ProblemTypesController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.problemType.remove(id);
   }
-
 }

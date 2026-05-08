@@ -10,19 +10,59 @@ import { CalendarIcon, Paperclip, X } from "lucide-react";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FormInput } from "@/components/ui/form-input";
+import { useProblemTypes } from "@/hooks/useProblemTypes";
+import { useCustomer } from "@/hooks/useCustomer";
+import { useOrganizations } from "@/hooks/useOrganizations";
+import { useSystems } from "@/hooks/useSystems";
 import styles from "../report.module.css";
+import { useRouter } from "next/navigation";
+
+//เเล้วเดี๋ยวค่อย log
+const CUSTOMER_ID = 1;
 
 export default function ReportInternalPage() {
+  const router = useRouter();
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [files, setFiles] = useState<File[]>([]);
+  const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
   const [form, setForm] = useState({
-  reporter: "",
-  organization: "",
-  title: "",
-  problem_type: "",
-  system: "",
-  detail: "",
-});
+    organization: "",
+    title: "",
+    problem_type_id: "",
+    system_id: "",
+    detail: "",
+  });
+
+  const { fullName } = useCustomer(CUSTOMER_ID);
+  const { data: problemTypes, loading: problemTypesLoading } =
+    useProblemTypes("issue");
+  const { data: organizations, loading: organizationsLoading } =
+    useOrganizations();
+  const { data: systems } = useSystems(selectedOrgId);
+
+  const handleSubmit = async () => {
+    const formData = new FormData();
+    formData.append("customer_id", "1");
+    formData.append("organization", form.organization);
+    formData.append("title", form.title);
+    formData.append("problem_type_id", form.problem_type_id);
+    formData.append("system_id", form.system_id);
+    formData.append("detail", form.detail);
+    if (date) formData.append("resolve_due_at", date.toISOString());
+    for (const file of files) {
+      formData.append("files", file);
+    }
+
+    const res = await fetch("http://localhost:4000/reports/internal", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (res.ok) {
+      alert("ส่งรายงานสำเร็จ");
+      router.push("/home");
+    }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4 sm:p-6">
@@ -37,48 +77,89 @@ export default function ReportInternalPage() {
           <div className="flex flex-col sm:flex-row gap-6">
             <FormInput
               label="ผู้แจ้ง"
-              placeholder="กรุณาใส่ชื่อผู้แจ้งปัญหา"
+              placeholder="กำลังโหลด..."
               className="flex-1"
-              inputClassName={styles.input}
-              value={form.reporter}
-              onChange={(e) => setForm({ ...form, reporter: e.target.value })}
+              inputClassName={`${styles.input} bg-gray-50 cursor-not-allowed`}
+              value={fullName}
+              disabled
             />
-            <FormInput
-              label="หน่วยงาน"
-              placeholder="กรุณาเลือกหน่วยงาน"
-              className="flex-1"
-              inputClassName={styles.input}
-              // value={form.}
-            />
+            <div className="flex flex-col gap-1 flex-1">
+              <p style={{ fontSize: 16, fontWeight: 500 }}>หน่วยงาน</p>
+              <select
+                className={`${styles.input} ${styles.select}`}
+                value={form.organization}
+                onChange={(e) => {
+                  const selected = organizations.find(
+                    (o) => o.name === e.target.value,
+                  );
+                  setForm({ ...form, organization: e.target.value, system_id: "" });
+                  setSelectedOrgId(selected?.id ?? null);
+                }}
+                disabled={organizationsLoading}
+              >
+                <option value="">กรุณาเลือกหน่วยงาน</option>
+                {organizations.map((org) => (
+                  <option key={org.id} value={org.name}>
+                    {org.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-
-          <FormInput
-            label="หัวข้อเรื่อง"
-            placeholder="กรุณาเขียนหัวข้อเรื่อง"
-            inputClassName={styles.input}
-            value={form.title}
-            onChange={(e)=>setForm({ ...form, title:e.target.value})}
-          />
 
           <div className="flex flex-col sm:flex-row gap-6">
             <FormInput
-              label="ประเภทปัญหา"
-              placeholder="กรุณาเลือกประเภทปัญหา"
+              label="หัวข้อเรื่อง"
+              placeholder="กรุณาเขียนหัวข้อเรื่อง"
               className="flex-1"
               inputClassName={styles.input}
-              value={form.problem_type}
-              onChange={(e)=>setForm({ ...form, problem_type:e.target.value})}
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
             />
-            <FormInput
-              label="ระบบ"
-              placeholder="กรุณาเลือกระบบ"
-              className="flex-1"
-              inputClassName={styles.input}
-              value={form.system}
-              onChange={(e)=>setForm({...form, system:e.target.value})}
-            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-6">
+            {/* ประเภทปัญหา — dropdown */}
             <div className="flex flex-col gap-1 flex-1">
-              <p style={{ fontSize:16, fontWeight: 500 }}>ระยะเวลา</p>
+              <p style={{ fontSize: 16, fontWeight: 500 }}>ประเภทปัญหา</p>
+              <select
+                className={`${styles.input} ${styles.select}`}
+                value={form.problem_type_id}
+                onChange={(e) =>
+                  setForm({ ...form, problem_type_id: e.target.value })
+                }
+                disabled={problemTypesLoading}
+              >
+                <option value="">กรุณาเลือกประเภทปัญหา</option>
+                {problemTypes.map((pt) => (
+                  <option key={pt.id} value={pt.id}>
+                    {pt.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1 flex-1">
+              <p style={{ fontSize: 16, fontWeight: 500 }}>ระบบ</p>
+              <select
+                className={`${styles.input} ${styles.select}`}
+                value={form.system_id}
+                onChange={(e) => setForm({ ...form, system_id: e.target.value })}
+                disabled={!selectedOrgId}
+              >
+                <option value="">
+                  {selectedOrgId ? "กรุณาเลือกระบบ" : "เลือกหน่วยงานก่อน"}
+                </option>
+                {systems.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1 flex-1">
+              <p style={{ fontSize: 16, fontWeight: 500 }}>ระยะเวลา</p>
               <Popover>
                 <PopoverTrigger
                   className={`${styles.input} flex items-center gap-2 w-full`}
@@ -105,16 +186,18 @@ export default function ReportInternalPage() {
 
           {/* รายละเอียด */}
           <div className="flex flex-col gap-1">
-            <p style={{ fontSize:16, fontWeight: 500 }}>รายละเอียด</p>
+            <p style={{ fontSize: 16, fontWeight: 500 }}>รายละเอียด</p>
             <textarea
               className={`${styles.input} min-h-35 resize-none`}
               placeholder="กรุณาอธิบายปัญหาที่พบ"
+              value={form.detail}
+              onChange={(e) => setForm({ ...form, detail: e.target.value })}
             />
           </div>
 
           {/* แนบไฟล์ */}
           <div className="flex flex-col gap-2">
-            <p style={{ fontSize:16, fontWeight: 500 }}>แนบไฟล์</p>
+            <p style={{ fontSize: 16, fontWeight: 500 }}>แนบไฟล์</p>
             <Popover>
               <PopoverTrigger className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:bg-gray-50 w-fit">
                 <Paperclip size={14} />
@@ -176,8 +259,11 @@ export default function ReportInternalPage() {
             </Popover>
           </div>
         </div>
+
         <div className="flex justify-end px-8 pb-6">
-            <button className={styles.button}>ส่ง</button>
+          <button className={styles.button} onClick={handleSubmit}>
+            ส่ง
+          </button>
         </div>
       </Card>
     </div>
