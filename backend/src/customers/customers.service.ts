@@ -17,6 +17,7 @@ export class CustomersService {
       customers.email,
       customers.phone,
       customers.customer_type,
+      customers.organization_id,
       customers.status,
       customers.created_at,
       customers.updated_at
@@ -36,6 +37,7 @@ export class CustomersService {
       customers.email,
       customers.phone,
       customers.customer_type,
+      customers.organization_id,
       customers.status,
       customers.created_at,
       customers.updated_at
@@ -48,15 +50,33 @@ export class CustomersService {
     return rows[0] ?? null;
   }
 
+  async findName(id: number): Promise<Customer | null> {
+    const [rows] = await this.db.query<Customer[]>(
+      `SELECT
+      customers.name,
+      customers.surname,
+      customers.email,
+      customers.phone,
+      customers.organization_id
+      FROM customers
+      WHERE customers.id = ?
+      `,
+      [id],
+    );
+
+    return rows[0] ?? null;
+  }
+
   async create(dto: CreateCustomerDto): Promise<Customer | null> {
     const [result] = await this.db.query<ResultSetHeader>(
-      'INSERT INTO customers (name, surname, email, phone, customer_type, status) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO customers (name, surname, email, phone, customer_type, organization_id, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [
         dto.name,
         dto.surname,
         dto.email,
         dto.phone,
-        dto.customerType,
+        dto.customerType ?? dto.customer_type,
+        dto.organizationId ?? dto.organization_id ?? null,
         dto.status ?? 'pending',
       ],
     );
@@ -79,6 +99,7 @@ export class CustomersService {
         email = ?,
         phone = ?,
         customer_type = ?,
+        organization_id = ?,
         status = ?
       WHERE id = ?`,
       [
@@ -86,7 +107,8 @@ export class CustomersService {
         dto.surname ?? current.surname,
         dto.email ?? current.email,
         dto.phone ?? current.phone,
-        dto.customerType ?? current.customer_type,
+        dto.customerType ?? dto.customer_type ?? current.customer_type,
+        dto.organizationId ?? dto.organization_id ?? current.organization_id,
         dto.status ?? current.status,
         id,
       ],
@@ -103,7 +125,6 @@ export class CustomersService {
 
     return this.findOne(id);
   }
-
 
   async approve(id: number) {
     await this.db.query<ResultSetHeader>(
@@ -131,5 +152,4 @@ export class CustomersService {
 
     return this.findOne(id);
   }
-
 }

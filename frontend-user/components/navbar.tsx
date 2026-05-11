@@ -10,7 +10,6 @@ import styles from "./navbar.module.css";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState(false);
 
   useEffect(() => {
@@ -27,9 +26,7 @@ export default function Navbar() {
 
   return (
     <>
-      {/* NAVBAR */}
       <nav className={styles.nav}>
-        {/* MOBILE MENU BUTTON */}
         <button
           type="button"
           className={styles.mobileMenuButton}
@@ -40,7 +37,6 @@ export default function Navbar() {
           {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
 
-        {/* LOGO */}
         <div className={styles.logoArea}>
           <Image
             src="/ProTechLogoFinal.png"
@@ -51,27 +47,25 @@ export default function Navbar() {
           />
         </div>
 
-        {/* DESKTOP LINKS */}
         <div className={styles.desktopLink}>
           <Link href="/home">หน้าหลัก</Link>
         </div>
 
-        {/* DESKTOP DROPDOWN */}
         <div className={styles.desktopDropdown}>
           <div className={styles.desktopDropdownTrigger}>
             แจ้งปัญหา <ChevronDown size={16} />
           </div>
 
           <div className={styles.desktopDropdownMenu}>
-            <Link href="/report/system">
-              เเจ้งประเด็นผู้ใช้งานระบบ สำหรับผู้ใช้งาน Site งาน
+            <Link href="/report/internal">
+              รายงานปัญหาเกี่ยวกับระบบภายในองค์กร
             </Link>
-
-            <Link href="/report/normal">
-              เเจ้งประเด็นผู้ใช้เเบบผู้ใช้งานทั้วไป/ประชาชน
+            <Link href="/report/external">
+              รายงานปัญหาเกี่ยวกับระบบสาธารณะ
             </Link>
-
-            <Link href="/report/service">เเจ้งข้อร้องเรียนการให้บริการ</Link>
+            <Link href="/report/service">
+              แจ้งข้อร้องเรียนการให้บริการ
+            </Link>
           </div>
         </div>
 
@@ -79,14 +73,11 @@ export default function Navbar() {
           <Link href="/track">การติดตาม</Link>
         </div>
 
-        {/* USER */}
         <div className={styles.desktopUser}>
           <div className={styles.avatar} />
-
           <span className={styles.desktopUserName}>ชื่อ - นามสกุล</span>
         </div>
 
-        {/* MOBILE USER BUTTON */}
         <button
           type="button"
           className={styles.mobileAvatarButton}
@@ -96,7 +87,6 @@ export default function Navbar() {
         </button>
       </nav>
 
-      {/* OVERLAY */}
       <div
         className={`${styles.mobileOverlay} ${
           mobileMenuOpen ? styles.mobileOverlayOpen : ""
@@ -105,13 +95,11 @@ export default function Navbar() {
         aria-hidden={!mobileMenuOpen}
       />
 
-      {/* MOBILE PANEL */}
       <div
         className={`${styles.mobilePanel} ${
           mobileMenuOpen ? styles.mobilePanelOpen : ""
         }`}
       >
-        {/* HOME */}
         <Link
           href="/home"
           className={styles.mobileItem}
@@ -120,7 +108,6 @@ export default function Navbar() {
           <span className={styles.mobileItemLeft}>หน้าหลัก</span>
         </Link>
 
-        {/* MOBILE DROPDOWN */}
         <button
           type="button"
           className={styles.mobileItemButton}
@@ -137,38 +124,36 @@ export default function Navbar() {
           />
         </button>
 
-        {/* MOBILE SUBMENU */}
         <div
           className={`${styles.mobileSubmenu} ${
             mobileSubmenuOpen ? styles.mobileSubmenuOpen : ""
           }`}
         >
           <Link
-            href="/report/system"
+            href="/report/internal"
             className={styles.mobileSubmenuItem}
             onClick={() => setMobileMenuOpen(false)}
           >
-          เเจ้งประเด็นผู้ใช้งานระบบ สำหรับผู้ใช้งาน Site งาน
+            รายงานปัญหาเกี่ยวกับระบบภายในองค์กร
           </Link>
 
           <Link
-            href="/report/normal"
+            href="/report/external"
             className={styles.mobileSubmenuItem}
             onClick={() => setMobileMenuOpen(false)}
           >
-             เเจ้งประเด็นผู้ใช้เเบบผู้ใช้งานทั้วไป/ประชาชน
+            รายงานปัญหาเกี่ยวกับระบบสาธารณะ
           </Link>
-          
+
           <Link
             href="/report/service"
             className={styles.mobileSubmenuItem}
             onClick={() => setMobileMenuOpen(false)}
           >
-              เเจ้งข้อร้องเรียนการให้บริการ
+            แจ้งข้อร้องเรียนการให้บริการ
           </Link>
         </div>
 
-        {/* TRACK */}
         <Link
           href="/track"
           className={styles.mobileItem}

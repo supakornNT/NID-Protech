@@ -87,4 +87,20 @@ export class OrganizationsService {
 
     return this.findOne(id);
   }
+
+  async findActive(): Promise<Organization[]> {
+    const [rows] = await this.db.query<Organization[]>(
+      `SELECT id, name, type FROM organizations WHERE status = 'active'`,
+    );
+
+    return rows;
+  }
+
+  async findName(id: number): Promise<Organization | null> {
+    const [rows] = await this.db.query<Organization[]>(
+      `SELECT id,name FROM organizations WHERE id = ? `,
+      [id],
+    );
+    return rows[0] ?? null;
+  }
 }

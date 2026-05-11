@@ -45,7 +45,7 @@ export class ProblemTypesService {
   async create(dto: CreateProblemTypeDto): Promise<ProblemType | null> {
     const [result] = await this.db.query<ResultSetHeader>(
       'INSERT INTO problem_types (name, report_type, status) VALUES (?, ?, ?)',
-      [dto.name, dto.reportType, dto.status ?? 'active'],
+      [dto.name, dto.reportType ?? dto.report_type, dto.status ?? 'active'],
     );
 
     return this.findOne(result.insertId);
@@ -70,7 +70,7 @@ export class ProblemTypesService {
       WHERE id = ?`,
       [
         dto.name ?? current.name,
-        dto.reportType ?? current.report_type,
+        dto.reportType ?? dto.report_type ?? current.report_type,
         dto.status ?? current.status,
         id,
       ],
@@ -86,5 +86,16 @@ export class ProblemTypesService {
     );
 
     return this.findOne(id);
+  }
+
+  async findByReportType(type: string): Promise<ProblemType[]> {
+    const [rows] = await this.db.query<ProblemType[]>(
+      `SELECT id, name, report_type
+       FROM problem_types
+       WHERE report_type = ? AND status = 'active'`,
+      [type],
+    );
+
+    return rows;
   }
 }

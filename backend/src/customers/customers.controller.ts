@@ -12,8 +12,7 @@ import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { CustomersService } from './customers.service';
 
-
-@Controller('admin/customers')
+@Controller('customers')
 export class CustomersController {
   constructor(private readonly customer: CustomersService) {}
 
@@ -26,6 +25,10 @@ export class CustomersController {
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.customer.findOne(id);
   }
+  @Get('name/:id')
+  findName(@Param('id', ParseIntPipe) id: number) {
+    return this.customer.findName(id);
+  }
 
   @Post()
   create(@Body() body: CreateCustomerDto) {
@@ -33,7 +36,10 @@ export class CustomersController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateCustomerDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateCustomerDto,
+  ) {
     return this.customer.update(id, body);
   }
 
@@ -56,5 +62,4 @@ export class CustomersController {
   inactive(@Param('id', ParseIntPipe) id: number) {
     return this.customer.inactive(id);
   }
-
 }

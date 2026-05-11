@@ -21,6 +21,11 @@ export class SystemsController {
     return this.system.findAll();
   }
 
+  @Get('by-organization/:orgId')
+  findByOrganization(@Param('orgId', ParseIntPipe) orgId: number) {
+    return this.system.findByOrganization(orgId);
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.system.findOne(id);

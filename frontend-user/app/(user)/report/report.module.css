@@ -1,0 +1,41 @@
+.header{
+    font-size: 32;
+    padding: 48;
+    
+}
+
+.card{
+    width: 70% ;
+    min-height: 80vh;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    border-radius: 16px;
+}
+
+.input {
+    border: 1px solid #7c7f85;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+    
+}
+
+.select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%236b7280' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 28px;
+}
+
+.button {
+    background-color: #0844eb;
+    color: white;
+    font-size: 14px;
+    padding: 8px 24px;
+    border-radius: 9999px;
+    cursor: pointer;
+}
+
+.button:hover {
+    background-color: #0636c4;
+}
