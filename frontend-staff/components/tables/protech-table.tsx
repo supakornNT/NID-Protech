@@ -62,6 +62,7 @@ export function ProTechTable<T>({
     1,
     Math.ceil(data.length / limit),
   );
+
   const currentPage = isControlled
     ? Math.min(
         page,
@@ -71,19 +72,24 @@ export function ProTechTable<T>({
         internalPage,
         derivedTotalPages,
       );
+
   const resolvedTotalPages = isControlled
     ? Math.max(1, totalPages)
     : derivedTotalPages;
+
   const resolvedTotalItems = isControlled
     ? totalItems
     : data.length;
 
   const startIndex =
     (currentPage - 1) * limit;
+
   const endIndex = startIndex + limit;
+
   const currentData = isControlled
     ? data
     : data.slice(startIndex, endIndex);
+
   const visiblePages = getVisiblePages(
     currentPage,
     resolvedTotalPages,
@@ -115,7 +121,7 @@ export function ProTechTable<T>({
                 {columns.map((column, index) => (
                   <TableHead
                     key={index}
-                    className={`h-15 border-r border-[#7FA7E8] px-4 text-center text-sm font-normal text-[#3A6FCF] last:border-r-0 ${
+                    className={`h-15 px-4 text-center text-sm font-normal text-black ${
                       column.className || ""
                     }`}
                   >
@@ -146,7 +152,7 @@ export function ProTechTable<T>({
                           return (
                             <TableCell
                               key={colIndex}
-                              className="h-12 border-r border-[#7FA7E8] px-4 py-3 text-center text-sm text-[#3A6FCF] last:border-r-0"
+                              className="h-12 border-r border-[#7FA7E8] px-4 py-3 text-center text-sm text-black last:border-r-0"
                             >
                               {column.render
                                 ? column.render(
@@ -206,7 +212,9 @@ export function ProTechTable<T>({
             className="flex h-9 items-center gap-1 rounded-md px-1 text-sm text-gray-500 transition hover:text-[#3A6FCF] disabled:cursor-not-allowed disabled:opacity-40 sm:px-2"
           >
             <ChevronLeft size={16} />
-            <span className="hidden sm:inline">Previous</span>
+            <span className="hidden sm:inline">
+              Previous
+            </span>
           </button>
 
           {visiblePages.map((visiblePage) => (
@@ -239,7 +247,9 @@ export function ProTechTable<T>({
             }
             className="flex h-9 items-center gap-1 rounded-md px-1 text-sm text-gray-500 transition hover:text-[#3A6FCF] disabled:cursor-not-allowed disabled:opacity-40 sm:px-2"
           >
-            <span className="hidden sm:inline">Next</span>
+            <span className="hidden sm:inline">
+              Next
+            </span>
             <ChevronRight size={16} />
           </button>
         </div>

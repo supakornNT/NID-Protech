@@ -33,27 +33,27 @@ const menuItems = [
     children: [
       {
         title: "จัดการข้อมูลลงทะเบียนผู้แจ้งประเด็น",
-        href: "/admin/management/customers",
+        href: "/management/customers",
         icon: List,
       },
       {
         title: "จัดการกลุ่มผู้ใช้งาน",
-        href: "/admin/management/user-groups",
+        href: "/management/user-groups",
         icon: Users,
       },
       {
         title: "จัดการสิทธิ์ผู้ใช้งานจำแนกตามกลุ่ม",
-        href: "/admin/management/permissions",
+        href: "/management/permissions",
         icon: ShieldCheck,
       },
       {
         title: "จัดการข้อมูลผู้ใช้งาน",
-        href: "/admin/management/users",
+        href: "/management/users",
         icon: UserCheck,
       },
       {
         title: "จัดการข้อมูลลงทะเบียนทีมแก้ไขประเด็น",
-        href: "/admin/management/teams",
+        href: "/management/teams",
         icon: Users,
       },
     ],
@@ -64,24 +64,24 @@ const menuItems = [
     children: [
       {
         title: "จัดการข้อมูลองค์กร",
-        href: "/admin/system-management/organizations",
+        href: "/system-management/organizations",
         icon: Building2,
       },
       {
         title: "จัดการโครงการ",
-        href: "/admin/system-management/projects",
+        href: "/system-management/projects",
         icon: FolderKanban,
       },
       {
         title: "จัดการรูปแบบประเด็นและคำร้อง",
-        href: "/admin/system-management/problem-types",
+        href: "/system-management/problem-types",
         icon: FileText,
       },
     ],
   },
   {
     title: "ประวัติการเข้าใช้งาน",
-    href: "/admin/login-logs",
+    href: "/login-logs",
     icon: ClipboardList,
   },
 ];
