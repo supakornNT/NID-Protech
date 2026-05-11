@@ -114,7 +114,7 @@ export default function AdminHomePage() {
         </section>
 
         <section className="mt-4 grid grid-cols-1 gap-4 lg:mt-6 lg:grid-cols-[1fr_1fr] lg:gap-6">
-          <Card className="rounded-xl border-0 bg-white shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#FCFDFF]">
+          <Card className="rounded-xl border-0 bg-white shadow-none transition-all duration-200">
             <CardContent className="p-5 sm:p-6 lg:p-7">
               <h2 className="text-xl font-bold text-[#111827]">
                 สัดส่วนผู้ใช้งานระบบ
@@ -143,7 +143,7 @@ export default function AdminHomePage() {
                   </div>
 
                   {activeItem && (
-                    <div className="absolute left-1/2 top-full z-10 mt-3 w-max -translate-x-1/2 rounded-xl border border-[#DCE9FF] bg-white px-4 py-3 shadow-lg transition-all duration-200 lg:left-auto lg:right-0 lg:top-4 lg:mt-0 lg:translate-x-0">
+                    <div className="absolute -right-24 top-3 z-10 w-max rounded-xl border border-[#DCE9FF] bg-white px-4 py-3 shadow-lg transition-all duration-200">
                       <p className="text-base font-semibold text-[#2F66C5]">
                         {activeItem.label}
                       </p>
@@ -199,7 +199,7 @@ export default function AdminHomePage() {
           </Card>
 
           <div className="space-y-4 lg:space-y-6">
-            <Card className="rounded-xl border-0 bg-white shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#FCFDFF]">
+            <Card className="rounded-xl border-0 bg-white shadow-none transition-all duration-200 ">
               <CardContent className="p-5 sm:p-6">
                 <h2 className="text-xl font-bold text-black">
                   ข้อมูลองค์กรและระบบ
@@ -230,7 +230,7 @@ export default function AdminHomePage() {
               </CardContent>
             </Card>
 
-            <Card className="rounded-xl border-0 bg-white shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#FCFDFF]">
+            <Card className="rounded-xl border-0 bg-white shadow-none transition-all duration-200 ">
               <CardContent className="p-5 sm:p-6">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <h2 className="text-xl font-bold text-black">
@@ -260,7 +260,7 @@ export default function AdminHomePage() {
           </div>
         </section>
 
-        <Card className="mt-4 rounded-xl border-0 bg-white shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#FCFDFF] lg:mt-6">
+        <Card className="mt-4 rounded-xl border-0 bg-white shadow-none transition-all duration-200 lg:mt-6">
           <CardContent className="p-5 sm:p-6 lg:p-7">
             <h2 className="text-xl font-bold text-black">
               ข้อมูลโครงสร้าง
