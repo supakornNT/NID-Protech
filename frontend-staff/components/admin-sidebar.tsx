@@ -24,7 +24,7 @@ import {
 const menuItems = [
   {
     title: "หน้าหลัก",
-    href: "/admin",
+    href: "/home",
     icon: Home,
   },
   {
@@ -33,27 +33,27 @@ const menuItems = [
     children: [
       {
         title: "จัดการข้อมูลลงทะเบียนผู้แจ้งประเด็น",
-        href: "/admin/customers",
+        href: "/admin/management/customers",
         icon: List,
       },
       {
         title: "จัดการกลุ่มผู้ใช้งาน",
-        href: "/admin/user-groups",
+        href: "/admin/management/user-groups",
         icon: Users,
       },
       {
         title: "จัดการสิทธิ์ผู้ใช้งานจำแนกตามกลุ่ม",
-        href: "/admin/permissions",
+        href: "/admin/management/permissions",
         icon: ShieldCheck,
       },
       {
         title: "จัดการข้อมูลผู้ใช้งาน",
-        href: "/admin/users",
+        href: "/admin/management/users",
         icon: UserCheck,
       },
       {
         title: "จัดการข้อมูลลงทะเบียนทีมแก้ไขประเด็น",
-        href: "/admin/teams",
+        href: "/admin/management/teams",
         icon: Users,
       },
     ],
@@ -64,17 +64,17 @@ const menuItems = [
     children: [
       {
         title: "จัดการข้อมูลองค์กร",
-        href: "/admin/organizations",
+        href: "/admin/system-management/organizations",
         icon: Building2,
       },
       {
         title: "จัดการโครงการ",
-        href: "/admin/projects",
+        href: "/admin/system-management/projects",
         icon: FolderKanban,
       },
       {
         title: "จัดการรูปแบบประเด็นและคำร้อง",
-        href: "/admin/problem-types",
+        href: "/admin/system-management/problem-types",
         icon: FileText,
       },
     ],

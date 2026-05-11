@@ -155,7 +155,7 @@ export default function AdminHomePage() {
                   )}
                 </div>
 
-                <div className="w-full max-w-[360px] space-y-2 lg:w-[250px] lg:max-w-none">
+               <div className="w-full max-w-[420px] space-y-3 lg:w-[340px] lg:max-w-none">
                   {chartSegments.map((item) => {
                     const isActive = activeChart === item.label;
 
