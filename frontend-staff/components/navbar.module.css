@@ -1,0 +1,271 @@
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #1565c0 0%, #1e88e5 100%);
+}
+
+.logoArea {
+  display: flex;
+  align-items: center;
+  padding-left: 50px;
+}
+
+.logoImage {
+  width: auto;
+  height: auto;
+}
+
+.desktopLink {
+  color: white;
+  text-decoration: none;
+  font-size: 20px;
+  padding-left: 32px;
+  padding-right: 32px;
+  padding-top: 32px;
+}
+
+.desktopLink:hover {
+  opacity: 0.8;
+}
+
+.desktopDropdown {
+  position: relative;
+}
+
+.desktopDropdownTrigger {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: white;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.desktopDropdownMenu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 200px;
+  padding: 8px 0;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 20;
+}
+
+.desktopDropdown:hover .desktopDropdownMenu {
+  display: flex;
+  flex-direction: column;
+}
+
+.desktopDropdownMenu a {
+  padding: 10px 16px;
+  color: #444;
+  text-decoration: none;
+}
+
+.desktopDropdownMenu a:hover {
+  background: #f0f4ff;
+}
+
+.desktopUser {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+}
+
+.avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 999px;
+  background: #d0e8ff;
+}
+
+.desktopUserName {
+  padding: 24px;
+  font-size: 20px;
+}
+
+.mobileMenuButton,
+.mobileAvatarButton {
+  display: none;
+}
+
+.mobileOverlay,
+.mobilePanel {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    align-items: center;
+    justify-content: space-between;
+    padding: calc(env(safe-area-inset-top) + 10px) 14px 12px;
+    background: linear-gradient(135deg, #1565c0 0%, #1e88e5 100%);
+    box-shadow: none;
+  }
+
+  .logoArea {
+    flex: 1;
+    justify-content: center;
+    padding-left: 0;
+  }
+
+  .logoImage {
+    width: 122px;
+    height: auto;
+  }
+
+  .desktopLink,
+  .desktopDropdown,
+  .desktopUser {
+    display: none;
+  }
+
+  .mobileMenuButton,
+  .mobileAvatarButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: white;
+  }
+
+  .mobileOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 54;
+    display: block;
+    pointer-events: none;
+  }
+
+  .mobileOverlayOpen {
+    pointer-events: auto;
+  }
+
+  .mobilePanel {
+    position: fixed;
+    top: calc(env(safe-area-inset-top) + 72px);
+    left: 0;
+    right: 0;
+    z-index: 55;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    max-height: calc(100dvh - (env(safe-area-inset-top) + 72px));
+    overflow: hidden;
+    padding: 0 18px;
+    background: #1e88e5;
+    box-shadow: none;
+    opacity: 0;
+    transform: translateY(-8px);
+    pointer-events: none;
+    transition:
+      padding 220ms ease,
+      opacity 220ms ease,
+      transform 220ms ease;
+  }
+
+  .mobilePanelOpen {
+    padding: 10px 18px 18px;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .mobileItem,
+  .mobileItemButton,
+  .mobileProfile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 54px;
+    padding: 0 4px;
+    color: white;
+    text-decoration: none;
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    transition: background 180ms ease;
+  }
+
+  .mobileItemButton {
+    width: 100%;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .mobileItem:active,
+  .mobileItemButton:active {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .mobileItemLeft {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .mobileSubmenu {
+    display: none;
+  }
+
+  .mobileSubmenuOpen {
+    display: block;
+  }
+
+  .mobileSubmenuItem {
+    display: flex;
+    align-items: center;
+    min-height: 46px;
+    padding: 0 4px 0 28px;
+    color: rgba(255, 255, 255, 0.96);
+    text-decoration: none;
+    background: transparent;
+    border-top: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+  }
+
+  .submenuChevron {
+    transition: transform 200ms ease;
+  }
+
+  .submenuChevronOpen {
+    transform: rotate(180deg);
+  }
+
+  .mobileProfile {
+    justify-content: flex-start;
+    gap: 12px;
+    border-bottom: 0;
+  }
+
+  .mobileProfileAvatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
