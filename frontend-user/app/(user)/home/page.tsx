@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 
 import { useDashboardSummary } from "@/hooks/use-dashboard-summary";
-import TicketPdfButton from "@/components/pdf/TicketPdfButton";
 
 import styles from "./home.module.css";
 import { ProTechButton } from "@/components/tables/protech-button";
@@ -33,22 +32,10 @@ export default function HomePage() {
   const screeningValue = loading ? "..." : String(summary.screening);
   const inProgressValue = loading ? "..." : String(summary.inProgress);
   const completedValue = loading ? "..." : String(summary.completed);
-  const sampleTicket = {
-    ticketNo: "TH001",
-    reporterName: "Demo User",
-    problem: "Unable to access the system dashboard.",
-  };
 
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
-        <div>
-          <TicketPdfButton
-            ticket={sampleTicket}
-            trackingPath="/track/TH001"
-            buttonLabel="Download Sample Ticket PDF"
-          />
-        </div>
         <Image
           src="/images/banner.png"
           alt="ProTech Support banner"

@@ -48,11 +48,7 @@ const columns: Column<ReportListItem>[] =
     render: (_, row) => (
       <div className="flex justify-center">
         <TicketPdfButton
-          ticket={{
-            ticketNo: row.trackingNo,
-            reporterName: "-",
-            problem: row.problem,
-          }}
+          ticket={{ trackingNo: row.trackingNo }}
           trackingPath={`/track/${row.trackingNo}`}
           fileName={`${row.trackingNo}.pdf`}
           buttonLabel="Download PDF"

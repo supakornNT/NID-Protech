@@ -289,7 +289,6 @@ export class UserPortalService {
           LIMIT 1
         )
       WHERE r.report_no = ?
-        AND pt.report_type = 'issue'
       LIMIT 1`,
       [reportNo],
     );

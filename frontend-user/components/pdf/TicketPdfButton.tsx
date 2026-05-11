@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { PDFDownloadLink } from "@react-pdf/renderer";
+import { useState } from "react";
 import { FileText } from "lucide-react";
+import { pdf } from "@react-pdf/renderer";
 import QRCode from "qrcode";
 
 import { TicketPdf, type TicketPdfData } from "./TicketPdf";
 
 type TicketPdfButtonProps = {
-  ticket: TicketPdfData;
+  ticket: Pick<TicketPdfData, "trackingNo">;
   trackingPath: string;
   fileName?: string;
   buttonLabel?: string;
@@ -29,9 +29,7 @@ function normalizeBasePath(basePath: string): string {
 
 function buildAppUrl(path: string): string {
   const basePath = normalizeBasePath(process.env.NEXT_PUBLIC_BASE_PATH ?? "");
-  const normalizedPath = path.startsWith("/")
-    ? path
-    : `/${path}`;
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   const fullPath = `${basePath}${normalizedPath}`;
 
   if (typeof window === "undefined") {
@@ -42,12 +40,28 @@ function buildAppUrl(path: string): string {
 }
 
 function buildTrackingUrl(trackingPath: string): string {
-  if (trackingPath.startsWith("http://") || trackingPath.startsWith("https://")) {
+  if (
+    trackingPath.startsWith("http://") ||
+    trackingPath.startsWith("https://")
+  ) {
     return trackingPath;
   }
 
   return buildAppUrl(trackingPath);
 }
+
+function downloadBlob(blob: Blob, fileName: string): void {
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = objectUrl;
+  link.download = fileName;
+  link.click();
+
+  URL.revokeObjectURL(objectUrl);
+}
+
+type TicketPdfApiResponse = TicketPdfData;
 
 export default function TicketPdfButton({
   ticket,
@@ -56,59 +70,65 @@ export default function TicketPdfButton({
   buttonLabel = "Download PDF",
   iconOnly = false,
 }: TicketPdfButtonProps) {
-  const [qrCode, setQrCode] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    let active = true;
-
-    async function createQr() {
-      const qr = await QRCode.toDataURL(buildTrackingUrl(trackingPath));
-
-      if (active) {
-        setQrCode(qr);
-      }
+  async function handleClick() {
+    if (loading) {
+      return;
     }
 
-    void createQr();
+    try {
+      setLoading(true);
 
-    return () => {
-      active = false;
-    };
-  }, [trackingPath]);
+      const [qrCode, pdfResponse] = await Promise.all([
+        QRCode.toDataURL(buildTrackingUrl(trackingPath)),
+        fetch(
+          `${process.env.NEXT_PUBLIC_API_URL ?? ""}/user/reports/track/${encodeURIComponent(ticket.trackingNo)}/pdf-data`,
+          {
+            cache: "no-store",
+          },
+        ),
+      ]);
 
-  if (!qrCode) {
-    return iconOnly ? (
-      <button disabled className="flex justify-center opacity-40">
-        <FileText size={18} />
-      </button>
-    ) : (
-      <button disabled>Preparing QR...</button>
-    );
+      if (!pdfResponse.ok) {
+        throw new Error(`Failed to load PDF data (${pdfResponse.status})`);
+      }
+
+      const pdfData = (await pdfResponse.json()) as TicketPdfApiResponse;
+      const blob = await pdf(
+        <TicketPdf
+          ticket={pdfData}
+          qrCode={qrCode}
+          logoSrc={buildAppUrl("/ProTechLogoFinal.png")}
+        />,
+      ).toBlob();
+
+      downloadBlob(blob, fileName ?? pdfData.documentFileName);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <PDFDownloadLink
-      document={
-        <TicketPdf
-          ticket={ticket}
-          qrCode={qrCode}
-          logoSrc={buildAppUrl("/ProTechLogoFinal.png")}
-        />
-      }
-      fileName={fileName ?? `${ticket.ticketNo}.pdf`}
+    <button
+      type="button"
+      onClick={() => {
+        void handleClick();
+      }}
+      disabled={loading}
+      className={iconOnly ? "flex justify-center" : undefined}
+      aria-label={buttonLabel}
+      title={buttonLabel}
     >
-      {({ loading }) => (
-        <button
-          disabled={loading}
-          className={iconOnly ? "flex justify-center" : undefined}
-          aria-label={buttonLabel}
-          title={buttonLabel}
-        >
-          {iconOnly ? (
-            <FileText size={18} />
-          ) : loading ? "Preparing PDF..." : buttonLabel}
-        </button>
+      {iconOnly ? (
+        <FileText size={18} />
+      ) : loading ? (
+        "Preparing PDF..."
+      ) : (
+        buttonLabel
       )}
-    </PDFDownloadLink>
+    </button>
   );
 }

@@ -1,5 +1,6 @@
 import {
   Document,
+  Font,
   Image,
   Page,
   StyleSheet,
@@ -7,10 +8,25 @@ import {
   View,
 } from "@react-pdf/renderer";
 
+const fontSrc = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/fonts/tahoma.ttf`;
+
+Font.register({
+  family: "TahomaPdf",
+  src: fontSrc,
+});
+
 export type TicketPdfData = {
-  ticketNo: string;
+  trackingNo: string;
   reporterName: string;
-  problem: string;
+  reporterEmail: string;
+  reporterPhone: string | null;
+  systemName: string | null;
+  problemTypeName: string | null;
+  problemTitle: string;
+  problemDetail: string;
+  issuedAt: string;
+  dueDate: string | null;
+  documentFileName: string;
 };
 
 type TicketPdfProps = {
@@ -19,22 +35,22 @@ type TicketPdfProps = {
   logoSrc: string;
 };
 
-function formatIssuedAt(): string {
-  return new Date().toLocaleString("en-GB", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+function formatValue(value: string | null | undefined): string {
+  if (!value) {
+    return "-";
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : "-";
 }
 
 const styles = StyleSheet.create({
   page: {
     padding: 28,
-    fontSize: 11,
+    fontSize: 10,
     color: "#1F2937",
     backgroundColor: "#FFFFFF",
+    fontFamily: "TahomaPdf",
   },
   header: {
     marginBottom: 18,
@@ -49,14 +65,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   brand: {
-    fontSize: 20,
-    fontWeight: 700,
+    fontSize: 18,
     color: "#20498F",
-    marginBottom: 4,
+    marginBottom: 3,
   },
   title: {
-    fontSize: 14,
-    fontWeight: 700,
+    fontSize: 13,
+    color: "#111827",
     marginBottom: 4,
   },
   subtitle: {
@@ -71,38 +86,34 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8FBFF",
   },
   sectionTitle: {
-    fontSize: 12,
-    fontWeight: 700,
+    fontSize: 11,
     color: "#20498F",
     marginBottom: 8,
   },
   row: {
     flexDirection: "row",
-    marginBottom: 6,
+    marginBottom: 7,
   },
   label: {
-    width: 118,
+    width: 112,
     fontSize: 10,
     color: "#6B7280",
   },
   value: {
     flex: 1,
-    fontSize: 11,
+    fontSize: 10,
+    color: "#111827",
   },
-  problemBox: {
-    padding: 10,
-    borderRadius: 4,
-    backgroundColor: "#FFFFFF",
-    border: "1px solid #D7E5FB",
-  },
-  problemText: {
-    fontSize: 11,
-    lineHeight: 1.5,
+  multilineValue: {
+    flex: 1,
+    fontSize: 10,
+    color: "#111827",
+    lineHeight: 1.45,
   },
   qrSection: {
     alignItems: "center",
     textAlign: "center",
-    paddingTop: 4,
+    paddingTop: 2,
   },
   qr: {
     width: 120,
@@ -110,37 +121,23 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   qrCaption: {
-    fontSize: 10,
+    fontSize: 9,
     color: "#4B5563",
-    marginBottom: 4,
-  },
-  noticeBox: {
-    padding: 10,
-    borderRadius: 4,
-    backgroundColor: "#FFFFFF",
-    border: "1px solid #D7E5FB",
-  },
-  noticeText: {
-    fontSize: 10,
-    color: "#374151",
-    lineHeight: 1.5,
+    marginBottom: 3,
   },
   footer: {
-    marginTop: 10,
+    marginTop: 4,
     paddingTop: 10,
     borderTop: "1px solid #D1D5DB",
   },
   footerText: {
-    fontSize: 9,
+    fontSize: 8,
     color: "#6B7280",
     textAlign: "center",
   },
 });
 
 export function TicketPdf({ ticket, qrCode, logoSrc }: TicketPdfProps) {
-  const issuedAt = formatIssuedAt();
-  const problemSummary = ticket.problem.trim().length > 0 ? ticket.problem : "-";
-
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -148,44 +145,65 @@ export function TicketPdf({ ticket, qrCode, logoSrc }: TicketPdfProps) {
           <Image src={logoSrc} style={styles.logo} />
           <Text style={styles.brand}>ProTech Support</Text>
           <Text style={styles.title}>Ticket Tracking Reference</Text>
-          <Text style={styles.subtitle}>Generated at {issuedAt}</Text>
+          <Text style={styles.subtitle}>
+            Generated at {formatValue(ticket.issuedAt)}
+          </Text>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Reference Information</Text>
 
           <View style={styles.row}>
-            <Text style={styles.label}>Ticket No</Text>
-            <Text style={styles.value}>{ticket.ticketNo}</Text>
+            <Text style={styles.label}>Tracking No</Text>
+            <Text style={styles.value}>{formatValue(ticket.trackingNo)}</Text>
           </View>
 
           <View style={styles.row}>
             <Text style={styles.label}>Reporter</Text>
-            <Text style={styles.value}>{ticket.reporterName}</Text>
+            <Text style={styles.value}>{formatValue(ticket.reporterName)}</Text>
           </View>
 
           <View style={styles.row}>
-            <Text style={styles.label}>Issued At</Text>
-            <Text style={styles.value}>{issuedAt}</Text>
+            <Text style={styles.label}>Email</Text>
+            <Text style={styles.value}>{formatValue(ticket.reporterEmail)}</Text>
           </View>
-        </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Document Notice</Text>
-          <View style={styles.noticeBox}>
-            <Text style={styles.noticeText}>
-              This PDF is generated once as a reference document.
+          <View style={styles.row}>
+            <Text style={styles.label}>Phone</Text>
+            <Text style={styles.value}>{formatValue(ticket.reporterPhone)}</Text>
+          </View>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>System</Text>
+            <Text style={styles.value}>{formatValue(ticket.systemName)}</Text>
+          </View>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>Problem Type</Text>
+            <Text style={styles.value}>
+              {formatValue(ticket.problemTypeName)}
             </Text>
-            <Text style={styles.noticeText}>
-              Use the QR code below to view the latest tracking status online.
-            </Text>
+          </View>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>Due Date</Text>
+            <Text style={styles.value}>{formatValue(ticket.dueDate)}</Text>
           </View>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Problem Summary</Text>
-          <View style={styles.problemBox}>
-            <Text style={styles.problemText}>{problemSummary}</Text>
+          <View style={styles.row}>
+            <Text style={styles.label}>Title</Text>
+            <Text style={styles.multilineValue}>
+              {formatValue(ticket.problemTitle)}
+            </Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Detail</Text>
+            <Text style={styles.multilineValue}>
+              {formatValue(ticket.problemDetail)}
+            </Text>
           </View>
         </View>
 
@@ -193,10 +211,7 @@ export function TicketPdf({ ticket, qrCode, logoSrc }: TicketPdfProps) {
           <Text style={styles.sectionTitle}>Online Tracking</Text>
           <View style={styles.qrSection}>
             <Image src={qrCode} style={styles.qr} />
-            <Text style={styles.qrCaption}>Scan to open the tracking page.</Text>
-            <Text style={styles.qrCaption}>
-              Use the QR code for the latest status update.
-            </Text>
+            
           </View>
         </View>
 
