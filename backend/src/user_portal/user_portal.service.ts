@@ -302,7 +302,9 @@ export class UserPortalService {
 
     return {
       trackingNo: row.report_no,
-      reporterName: [row.customer_name, row.customer_surname].filter(Boolean).join(' '),
+      reporterName: [row.customer_name, row.customer_surname]
+        .filter(Boolean)
+        .join(' '),
       reporterEmail: row.customer_email,
       reporterPhone: row.customer_phone,
       systemName: row.system_name,
@@ -312,7 +314,8 @@ export class UserPortalService {
       statusCode: row.report_status,
       issuedAt: formatDateTimeUtil(row.report_created_at) ?? '',
       dueDate: formatDateOnlyUtil(row.resolve_due_at),
-      documentFileName: row.document_file_name ?? `tracking-${row.report_no}.pdf`,
+      documentFileName:
+        row.document_file_name ?? `tracking-${row.report_no}.pdf`,
       documentGeneratedAt: formatDateTimeUtil(row.document_generated_at),
     };
   }
