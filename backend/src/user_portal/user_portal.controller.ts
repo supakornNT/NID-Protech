@@ -27,6 +27,11 @@ export class UserPortalController {
     return this.userPortalService.getReports(query);
   }
 
+  @Get('reports/track/:reportNo/pdf-data')
+  getReportPdfData(@Param('reportNo') reportNo: string) {
+    return this.userPortalService.getReportPdfData(reportNo);
+  }
+
   @Get('reports/track/:reportNo')
   getReportTrack(@Param('reportNo') reportNo: string) {
     return this.userPortalService.getReportTrack(reportNo);

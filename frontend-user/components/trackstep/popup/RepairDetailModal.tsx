@@ -27,6 +27,10 @@ export type RepairDetailModalProps = {
   onClose: () => void;
 };
 
+function formatDateTime(value: string): string {
+  return value.replace("T", " ");
+}
+
 export default function RepairDetailModal({
   open,
   data,
@@ -69,7 +73,7 @@ export default function RepairDetailModal({
         <div className="mt-3 flex flex-col gap-1 text-xs text-gray-500 sm:flex-row sm:items-center sm:justify-between">
           <p>วันที่ดำเนินการ</p>
 
-          <p>{data.repairedAt}</p>
+          <p>{formatDateTime(data.repairedAt)}</p>
         </div>
 
         {/* FILE TITLE */}
@@ -110,7 +114,7 @@ export default function RepairDetailModal({
                 <p className="text-xs text-gray-500">
                   {file.type.toUpperCase()} •{" "}
                   {file.size} •{" "}
-                  {file.uploadedAt}
+                  {formatDateTime(file.uploadedAt)}
                 </p>
               </div>
             </a>

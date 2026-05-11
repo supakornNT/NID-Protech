@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   Airplay,
   BadgeInfo,
@@ -11,10 +12,12 @@ import {
 } from "lucide-react";
 
 import { useDashboardSummary } from "@/hooks/use-dashboard-summary";
+import TicketPdfButton from "@/components/pdf/TicketPdfButton";
 
 import styles from "./home.module.css";
-
+import { ProTechButton } from "@/components/tables/protech-button";
 export default function HomePage() {
+  const router = useRouter();
   // Flow หน้านี้:
   // 1. mount หน้าแล้ว useDashboardSummary() จะเรียก GET /user/dashboard-summary
   // 2. API คืนค่าสรุปจาก reports ที่อยู่ใน customer tracking flow
@@ -24,25 +27,28 @@ export default function HomePage() {
   //    - inProgress <- reports.status IN ('assigned', 'in_progress')
   //    - completed <- reports.status = 'closed'
   // 3. หน้าเอา total/screening/inProgress/completed ไปแทนตัวเลขในการ์ดสรุป
-  const { summary, loading, error } =
-    useDashboardSummary();
+  const { summary, loading, error } = useDashboardSummary();
 
-  const totalValue = loading
-    ? "..."
-    : String(summary.total);
-  const screeningValue = loading
-    ? "..."
-    : String(summary.screening);
-  const inProgressValue = loading
-    ? "..."
-    : String(summary.inProgress);
-  const completedValue = loading
-    ? "..."
-    : String(summary.completed);
+  const totalValue = loading ? "..." : String(summary.total);
+  const screeningValue = loading ? "..." : String(summary.screening);
+  const inProgressValue = loading ? "..." : String(summary.inProgress);
+  const completedValue = loading ? "..." : String(summary.completed);
+  const sampleTicket = {
+    ticketNo: "TH001",
+    reporterName: "Demo User",
+    problem: "Unable to access the system dashboard.",
+  };
 
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
+        <div>
+          <TicketPdfButton
+            ticket={sampleTicket}
+            trackingPath="/track/TH001"
+            buttonLabel="Download Sample Ticket PDF"
+          />
+        </div>
         <Image
           src="/images/banner.png"
           alt="ProTech Support banner"
@@ -72,7 +78,9 @@ export default function HomePage() {
               <h3>แจ้งปัญหา</h3>
               <p>แจ้งปัญหาเกี่ยวกับระบบ</p>
 
-              <button className={styles.reportBtn}>แจ้งปัญหา</button>
+              <ProTechButton onClick={() => {router.push("/report/system")}}>
+                แจ้งปัญหา
+              </ProTechButton>
             </div>
 
             <div className={styles.reportOption}>
@@ -83,7 +91,9 @@ export default function HomePage() {
               <h3>แจ้งข้อร้องเรียน</h3>
               <p>ร้องเรียนการให้บริการหรือพฤติกรรมของเจ้าหน้าที่</p>
 
-              <button className={styles.reportBtn}>แจ้งข้อร้องเรียน</button>
+              <ProTechButton onClick={() => {router.push("/report/service")}}>
+                แจ้งข้อร้องเรียน
+              </ProTechButton>
             </div>
           </div>
         </div>

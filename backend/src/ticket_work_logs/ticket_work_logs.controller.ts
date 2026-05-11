@@ -12,7 +12,6 @@ import { CreateTicketWorkLogDto } from './dto/create-ticket-work-log.dto';
 import { UpdateTicketWorkLogDto } from './dto/update-ticket-work-log.dto';
 import { TicketWorkLogsService } from './ticket_work_logs.service';
 
-
 @Controller('admin/ticket-work-logs')
 export class TicketWorkLogsController {
   constructor(private readonly ticketWorkLog: TicketWorkLogsService) {}
@@ -33,7 +32,10 @@ export class TicketWorkLogsController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateTicketWorkLogDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateTicketWorkLogDto,
+  ) {
     return this.ticketWorkLog.update(id, body);
   }
 
@@ -41,5 +43,4 @@ export class TicketWorkLogsController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.ticketWorkLog.remove(id);
   }
-
 }

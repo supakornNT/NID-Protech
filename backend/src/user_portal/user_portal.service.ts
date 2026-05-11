@@ -10,7 +10,10 @@ import type {
   ResultSetHeader,
   RowDataPacket,
 } from 'mysql2/promise';
-import { formatDateOnly as formatDateOnlyUtil } from '../common/utils/date-time.util';
+import {
+  formatDateOnly as formatDateOnlyUtil,
+  formatDateTime as formatDateTimeUtil,
+} from '../common/utils/date-time.util';
 import { parsePositiveInteger as parsePositiveIntegerUtil } from '../common/utils/number.util';
 import { mapReportStatusLabel as mapReportStatusLabelUtil } from '../common/utils/report-status.util';
 import { ConfirmReportDto } from './dto/confirm-report.dto';
@@ -21,6 +24,7 @@ import {
   GetReportsQuery,
   PublicReportList,
 } from './interfaces/public-report-list.interface';
+import { PublicReportPdfData } from './interfaces/public-report-pdf.interface';
 import { PublicReportTrack } from './interfaces/public-report-track.interface';
 import { mapTrackResponse } from './mappers/report-track.mapper';
 import {
@@ -53,6 +57,23 @@ interface ReportIdentityRow extends RowDataPacket {
   report_no: string;
   customer_id: number;
   status: string;
+}
+
+interface PublicReportPdfRow extends RowDataPacket {
+  report_no: string;
+  report_status: string;
+  title: string;
+  detail: string;
+  report_created_at: Date | string;
+  resolve_due_at: Date | string | null;
+  customer_name: string;
+  customer_surname: string | null;
+  customer_email: string;
+  customer_phone: string | null;
+  system_name: string | null;
+  problem_type_name: string | null;
+  document_file_name: string | null;
+  document_generated_at: Date | string | null;
 }
 
 interface ExpiredWaitingConfirmRow extends RowDataPacket {
@@ -222,6 +243,78 @@ export class UserPortalService {
     );
 
     return mapTrackResponse(report, reportStatusLogs);
+  }
+
+  async getReportPdfData(reportNo: string): Promise<PublicReportPdfData> {
+    await this.syncExpiredWaitingConfirmReports();
+
+    const [rows] = await this.db.query<PublicReportPdfRow[]>(
+      `SELECT
+        r.report_no,
+        r.status AS report_status,
+        r.title,
+        r.detail,
+        r.created_at AS report_created_at,
+        r.resolve_due_at,
+        c.name AS customer_name,
+        c.surname AS customer_surname,
+        c.email AS customer_email,
+        c.phone AS customer_phone,
+        s.name AS system_name,
+        pt.name AS problem_type_name,
+        a.original_name AS document_file_name,
+        a.uploaded_at AS document_generated_at
+      FROM reports r
+      INNER JOIN customers c
+        ON c.id = r.customer_id
+      INNER JOIN problem_types pt
+        ON pt.id = r.problem_type_id
+      LEFT JOIN systems s
+        ON s.id = r.system_id
+      LEFT JOIN tickets t
+        ON t.id = (
+          SELECT t2.id
+          FROM tickets t2
+          WHERE t2.report_id = r.id
+          ORDER BY t2.id DESC
+          LIMIT 1
+        )
+      LEFT JOIN attachments a
+        ON a.id = (
+          SELECT a2.id
+          FROM attachments a2
+          WHERE a2.ticket_id = t.id
+            AND a2.attachment_type = 'customer_tracking_ticket'
+          ORDER BY a2.id DESC
+          LIMIT 1
+        )
+      WHERE r.report_no = ?
+        AND pt.report_type = 'issue'
+      LIMIT 1`,
+      [reportNo],
+    );
+
+    const row = rows[0];
+
+    if (!row) {
+      throw new NotFoundException(`Report ${reportNo} not found`);
+    }
+
+    return {
+      trackingNo: row.report_no,
+      reporterName: [row.customer_name, row.customer_surname].filter(Boolean).join(' '),
+      reporterEmail: row.customer_email,
+      reporterPhone: row.customer_phone,
+      systemName: row.system_name,
+      problemTypeName: row.problem_type_name,
+      problemTitle: row.title,
+      problemDetail: row.detail,
+      statusCode: row.report_status,
+      issuedAt: formatDateTimeUtil(row.report_created_at) ?? '',
+      dueDate: formatDateOnlyUtil(row.resolve_due_at),
+      documentFileName: row.document_file_name ?? `tracking-${row.report_no}.pdf`,
+      documentGeneratedAt: formatDateTimeUtil(row.document_generated_at),
+    };
   }
 
   async confirmReport(

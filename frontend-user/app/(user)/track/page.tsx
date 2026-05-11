@@ -3,7 +3,6 @@
 import Link from "next/link";
 
 import {
-  FileText,
   Info,
   Search,
 } from "lucide-react";
@@ -17,6 +16,7 @@ import {
 
 import { Column } from "@/types/table";
 import { ProTechTable } from "@/components/tables/protech-table";
+import TicketPdfButton from "@/components/pdf/TicketPdfButton";
 
 const columns: Column<ReportListItem>[] =
   [
@@ -40,16 +40,27 @@ const columns: Column<ReportListItem>[] =
       title: "ระยะเวลากำหนดการแก้ไข",
       className: "min-w-[240px]",
     },
-    {
-      key: "document",
-      title: "ออกเอกสาร",
-      className: "min-w-[140px]",
-      render: () => (
-        <div className="flex justify-center">
-          <FileText size={18} />
-        </div>
-      ),
-    },
+   
+  {
+    key: "document",
+    title: "ออกเอกสาร",
+    className: "min-w-[140px]",
+    render: (_, row) => (
+      <div className="flex justify-center">
+        <TicketPdfButton
+          ticket={{
+            ticketNo: row.trackingNo,
+            reporterName: "-",
+            problem: row.problem,
+          }}
+          trackingPath={`/track/${row.trackingNo}`}
+          fileName={`${row.trackingNo}.pdf`}
+          buttonLabel="Download PDF"
+          iconOnly
+        />
+      </div>
+    ),
+  },
     {
       key: "detail",
       title: "รายละเอียด",
