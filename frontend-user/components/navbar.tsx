@@ -43,6 +43,7 @@ export default function Navbar() {
             alt="ProTech Logo"
             width={148}
             height={42}
+            loading="eager"
             className={styles.logoImage}
           />
         </div>

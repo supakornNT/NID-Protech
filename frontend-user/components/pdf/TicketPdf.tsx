@@ -41,7 +41,7 @@ function formatValue(value: string | null | undefined): string {
   }
 
   const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : "-";
+  return trimmed.length > 0 ? trimmed.replace("T", " ") : "-";
 }
 
 const styles = StyleSheet.create({

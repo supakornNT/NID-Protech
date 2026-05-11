@@ -65,7 +65,7 @@ export default function HomePage() {
               <h3>แจ้งปัญหา</h3>
               <p>แจ้งปัญหาเกี่ยวกับระบบ</p>
 
-              <ProTechButton onClick={() => {router.push("/report/system")}}>
+              <ProTechButton onClick={() => {router.push("/report/external")}}>
                 แจ้งปัญหา
               </ProTechButton>
             </div>
