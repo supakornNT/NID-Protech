@@ -150,7 +150,7 @@ export class ReportsService {
     const [result] = await this.db.query<ResultSetHeader>(
       `INSERT INTO reports
       (report_no, customer_id, organization, system_id, problem_type_id, title, detail, status, resolve_due_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, 'screening', ?)`,
       [
         report_no,
         Number(dto.customer_id),
@@ -188,7 +188,7 @@ export class ReportsService {
     const [result] = await this.db.query<ResultSetHeader>(
       `INSERT INTO reports
       (report_no, customer_id, system_id, problem_type_id, title, detail, status, resolve_due_at)
-     VALUES (?, ?, ?, ?, ?, ?, 'pending', ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, 'screening', ?)`,
       [
         report_no,
         Number(dto.customer_id),
@@ -225,7 +225,7 @@ export class ReportsService {
     const [result] = await this.db.query<ResultSetHeader>(
       `INSERT INTO reports
       (report_no, customer_id, problem_type_id, title, detail, status, resolve_due_at)
-     VALUES (?, ?, ?, ?, ?, 'pending', ?)`,
+     VALUES (?, ?, ?, ?, ?, 'screening', ?)`,
       [
         report_no,
         dto.customer_id ? Number(dto.customer_id) : null,
