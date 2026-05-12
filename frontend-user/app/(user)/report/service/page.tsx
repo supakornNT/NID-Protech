@@ -35,6 +35,10 @@ export default function ReportServicePage() {
   });
 
   const handleSubmit = async () => {
+    if (!form.title) return alert("กรุณากรอกหัวข้อเรื่อง");
+    if (!form.problem_type_id) return alert("กรุณาเลือกหัวข้อเรื่องร้องเรียน");
+    if (!form.detail) return alert("กรุณากรอกรายละเอียด");
+
     const formData = new FormData();
     if (identity === "reveal") {
       formData.append("customer_id", String(CUSTOMER_ID));
