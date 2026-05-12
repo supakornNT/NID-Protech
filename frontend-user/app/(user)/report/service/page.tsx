@@ -13,6 +13,7 @@ import { useCustomer } from "@/hooks/useCustomer";
 import { useProblemTypes } from "@/hooks/useProblemTypes";
 import styles from "../report.module.css";
 import { useRouter } from "next/navigation";
+import { useSubmit } from "@/hooks/useSubmit";
 
 const CUSTOMER_ID = 1;
 
@@ -29,6 +30,9 @@ export default function ReportServicePage() {
   const { fullName } = useCustomer(identity === "reveal" ? CUSTOMER_ID : null);
   const { data: problemTypes, loading: problemTypesLoading } =
     useProblemTypes("complaint");
+  const { submit, loading, error } = useSubmit("/reports/service", () => {
+    alert("ส่งรายงานสำเร็จ");
+  });
 
   const handleSubmit = async () => {
     const formData = new FormData();
@@ -41,16 +45,7 @@ export default function ReportServicePage() {
     for (const file of files) {
       formData.append("files", file);
     }
-
-    const res = await fetch("http://localhost:4000/reports/service", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (res.ok) {
-      alert("ส่งรายงานสำเร็จ");
-      router.push("/home");
-    }
+    await submit(formData);
   };
 
   return (

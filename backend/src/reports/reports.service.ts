@@ -217,7 +217,7 @@ export class ReportsService {
       'SELECT COUNT(*) as total FROM reports WHERE DATE(created_at) = CURDATE()',
     );
     const seq = String((countRows[0].total as number) + 1).padStart(3, '0');
-    const report_no = `RPT-${dateStr}-${seq}`;
+    const report_no = `CP-${dateStr}-${seq}`;
     const [result] = await this.db.query<ResultSetHeader>(
       `INSERT INTO reports
       (report_no, customer_id, problem_type_id, title, detail, status, resolve_due_at)

@@ -43,7 +43,7 @@ export default function RegisterPage() {
     if (otp.length < 6) return "กรุณากรอก OTP ให้ครบ";
     return null;
   }
-
+  //ใช้เเค่ตอน submit ของ register
   async function handleSubmit() {
     const err = validate();
     if (err) { setError(err); return; }
