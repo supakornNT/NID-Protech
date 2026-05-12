@@ -7,12 +7,13 @@ import {
 } from "@/components/ui/popover";
 import { Paperclip, X } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { FormInput } from "@/components/ui/form-input";
 import { useCustomer } from "@/hooks/useCustomer";
 import { useProblemTypes } from "@/hooks/useProblemTypes";
 import styles from "../report.module.css";
-import { useRouter } from "next/navigation";
+import { SuccessDialog } from "@/components/ui/success-dialog";
 import { useSubmit } from "@/hooks/useSubmit";
 
 const CUSTOMER_ID = 1;
@@ -30,14 +31,17 @@ export default function ReportServicePage() {
   const { fullName } = useCustomer(identity === "reveal" ? CUSTOMER_ID : null);
   const { data: problemTypes, loading: problemTypesLoading } =
     useProblemTypes("complaint");
+  const [submitted, setSubmitted] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const { submit, loading, error } = useSubmit("/reports/service", () => {
-    alert("ส่งรายงานสำเร็จ");
+    setShowSuccess(true);
+    setForm({ title: "", problem_type_id: "", detail: "" });
+    setFiles([]);
   });
 
   const handleSubmit = async () => {
-    if (!form.title) return alert("กรุณากรอกหัวข้อเรื่อง");
-    if (!form.problem_type_id) return alert("กรุณาเลือกหัวข้อเรื่องร้องเรียน");
-    if (!form.detail) return alert("กรุณากรอกรายละเอียด");
+    setSubmitted(true);
+    if (!form.title || !form.problem_type_id || !form.detail) return;
 
     const formData = new FormData();
     if (identity === "reveal") {
@@ -100,7 +104,7 @@ export default function ReportServicePage() {
               label="หัวข้อเรื่อง"
               placeholder="กรุณาเขียนหัวข้อเรื่อง"
               className="flex-1"
-              inputClassName={styles.input}
+              inputClassName={`${styles.input} ${submitted && !form.title ? styles.inputError : ""}`}
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
             />
@@ -110,7 +114,7 @@ export default function ReportServicePage() {
                 หัวข้อเรื่องร้องเรียน
               </p>
               <select
-                className={`${styles.input} ${styles.select}`}
+                className={`${styles.input} ${styles.select} ${submitted && !form.problem_type_id ? styles.inputError : ""}`}
                 value={form.problem_type_id}
                 onChange={(e) =>
                   setForm({ ...form, problem_type_id: e.target.value })
@@ -129,7 +133,7 @@ export default function ReportServicePage() {
           <div className="flex flex-col gap-1">
             <p style={{ fontSize: 16, fontWeight: 500 }}>รายละเอียด</p>
             <textarea
-              className={`${styles.input} min-h-35 resize-none`}
+              className={`${styles.input} min-h-35 resize-none ${submitted && !form.detail ? styles.inputError : ""}`}
               placeholder="กรุณาอธิบายปัญหาที่พบ"
               value={form.detail}
               onChange={(e) => setForm({ ...form, detail: e.target.value })}
@@ -162,6 +166,7 @@ export default function ReportServicePage() {
                     <input
                       type="file"
                       multiple
+                      accept=".pdf,.png,.jpg,.jpeg"
                       className="hidden"
                       onChange={(e) =>
                         setFiles((prev) => [
@@ -206,6 +211,11 @@ export default function ReportServicePage() {
           </button>
         </div>
       </Card>
+
+      <SuccessDialog
+        open={showSuccess}
+        onClose={() => router.push("/home")}
+      />
     </div>
   );
 }

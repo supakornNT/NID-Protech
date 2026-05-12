@@ -10,6 +10,7 @@ import { OtpInput } from "@/components/ui/otp-input";
 import { Button } from "@/components/ui/button";
 import { useOrganizations } from "@/hooks/useOrganizations";
 import { fetchJson } from "@/lib/fetch";
+import { SuccessDialog } from "@/components/ui/success-dialog";
 
 type UserType = "person" | "company";
 
@@ -28,6 +29,8 @@ export default function RegisterPage() {
     organization_id: "",
   });
   const [otp, setOtp] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -38,6 +41,9 @@ export default function RegisterPage() {
     if (!form.phone) return "กรุณากรอกเบอร์โทร";
     if (!form.email) return "กรุณากรอกอีเมล";
     if (form.password.length < 8) return "รหัสผ่านต้องมีอย่างน้อย 8 ตัว";
+    if (!/[A-Z]/.test(form.password)) return "รหัสผ่านต้องมีตัวพิมพ์ใหญ่";
+    if (!/[a-z]/.test(form.password)) return "รหัสผ่านต้องมีตัวพิมพ์เล็ก";
+    if (!/[^A-Za-z0-9]/.test(form.password)) return "รหัสผ่านต้องมีอักษรพิเศษ";
     if (form.password !== form.confirm_password) return "รหัสผ่านไม่ตรงกัน";
     if (userType === "company" && !form.organization_id) return "กรุณาเลือกหน่วยงาน";
     if (otp.length < 6) return "กรุณากรอก OTP ให้ครบ";
@@ -45,6 +51,7 @@ export default function RegisterPage() {
   }
   //ใช้เเค่ตอน submit ของ register
   async function handleSubmit() {
+    setSubmitted(true);
     const err = validate();
     if (err) { setError(err); return; }
 
@@ -65,7 +72,7 @@ export default function RegisterPage() {
           organization_id: userType === "company" ? Number(form.organization_id) : null,
         }),
       });
-      router.push("/login");
+      setShowSuccess(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
     } finally {
@@ -135,7 +142,7 @@ export default function RegisterPage() {
             label="ชื่อ"
             placeholder="กรุณากรอกชื่อ"
             className="flex-1"
-            inputClassName={styles.input}
+            inputClassName={`${styles.input} ${submitted && !form.first_name ? "border-red-500" : ""}`}
             value={form.first_name}
             onChange={(e) => setForm({ ...form, first_name: e.target.value })}
           />
@@ -143,7 +150,7 @@ export default function RegisterPage() {
             label="นามสกุล"
             placeholder="กรุณากรอกนามสกุล"
             className="flex-1"
-            inputClassName={styles.input}
+            inputClassName={`${styles.input} ${submitted && !form.last_name ? "border-red-500" : ""}`}
             value={form.last_name}
             onChange={(e) => setForm({ ...form, last_name: e.target.value })}
           />
@@ -155,7 +162,7 @@ export default function RegisterPage() {
             label="เบอร์โทร"
             placeholder="กรุณากรอกเบอร์โทร"
             className="flex-1"
-            inputClassName={styles.input}
+            inputClassName={`${styles.input} ${submitted && !form.phone ? "border-red-500" : ""}`}
             value={form.phone}
             onChange={(e) => setForm({ ...form, phone: e.target.value })}
           />
@@ -163,7 +170,7 @@ export default function RegisterPage() {
             label="อีเมล"
             placeholder="กรุณากรอกอีเมล"
             className="flex-1"
-            inputClassName={styles.input}
+            inputClassName={`${styles.input} ${submitted && !form.email ? "border-red-500" : ""}`}
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
           />
@@ -178,6 +185,7 @@ export default function RegisterPage() {
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
             type={showPassword ? "text" : "password"}
+            inputClassName={submitted && !form.password ? "border-red-500" : ""}
             icon={<Lock size={16} className="text-gray-400" />}
             suffix={
               <button type="button" onClick={() => setShowPassword(!showPassword)}>
@@ -192,6 +200,7 @@ export default function RegisterPage() {
             value={form.confirm_password}
             onChange={(e) => setForm({ ...form, confirm_password: e.target.value })}
             type={showConfirmPassword ? "text" : "password"}
+            inputClassName={submitted && !form.confirm_password ? "border-red-500" : ""}
             icon={<Lock size={16} className="text-gray-400" />}
             suffix={
               <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
@@ -241,6 +250,12 @@ export default function RegisterPage() {
           </Button>
         </div>
       </div>
+      <SuccessDialog
+        open={showSuccess}
+        title="ลงทะเบียนสำเร็จ!"
+        description="บัญชีของคุณถูกสร้างแล้ว กรุณาเข้าสู่ระบบ"
+        onClose={() => router.push("/login")}
+      />
     </div>
   );
 }

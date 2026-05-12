@@ -1,4 +1,4 @@
-import AdminSidebar from "@/components/sidebar/admin-sidebar";
+import StaffSidebar from "@/components/sidebar/staff-sidebar";
 
 export default function AdminLayout({
   children,
@@ -8,7 +8,7 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen w-full bg-[#F3F4F6]">
       <div className="flex min-h-screen w-full bg-white">
-        <AdminSidebar />
+        <StaffSidebar />
 
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="flex h-20 items-center justify-between border-b border-[#E5E7EB] bg-[#E9EEF5] px-6 sm:px-8 lg:px-10">
@@ -22,9 +22,9 @@ export default function AdminLayout({
             <div className="flex items-center gap-4">
               <div className="hidden text-right sm:block">
                 <p className="text-sm font-semibold text-gray-700">
-                  Admin User
+                  Screener User
                 </p>
-                <p className="text-xs text-gray-400">ผู้ดูแลระบบ</p>
+                <p className="text-xs text-gray-400">ผู้คัดกรอง</p>
               </div>
 
               <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-sm font-bold text-[#2F66C5] shadow-sm">
@@ -33,7 +33,7 @@ export default function AdminLayout({
             </div>
           </header>
 
-          <main className="min-w-0 flex-1 bg-[#F8F9FC] px-6 py-8 sm:px-8 lg:px-12 lg:py-10">
+          <main className="min-w-0 flex-1 flex flex-col">
             {children}
           </main>
         </div>
