@@ -152,8 +152,14 @@ export class UserPortalService {
         r.report_no LIKE ?
         OR r.title LIKE ?
         OR COALESCE(s.name, '') LIKE ?
+        OR COALESCE(pt.name, '') LIKE ?
       )`);
-      params.push(likeSearch, likeSearch, likeSearch);
+      params.push(
+        likeSearch,
+        likeSearch,
+        likeSearch,
+        likeSearch,
+      );
     }
 
     if (status.length > 0) {
@@ -166,7 +172,9 @@ export class UserPortalService {
     }
 
     const whereSql =
-      whereClauses.length > 0 ? ` AND ${whereClauses.join(' AND ')}` : ``;
+      whereClauses.length > 0
+        ? ` WHERE ${whereClauses.join(' AND ')}`
+        : ``;
 
     const [countRows] = await this.db.query<
       Array<RowDataPacket & { total: number }>
