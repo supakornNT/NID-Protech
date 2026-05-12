@@ -13,11 +13,13 @@ type FilterConfig = {
   placeholder: string;
   options: string[];
 };
+
 type StatusBadgeProps = {
   label: string;
   tone?: "success" | "danger" | "neutral";
   onclick?: () => void;
 };
+
 type AdminTablePageProps<T extends Record<string, unknown>> = {
   title: string;
   subtitle: string;
@@ -29,6 +31,7 @@ type AdminTablePageProps<T extends Record<string, unknown>> = {
   deleteLabel?: string;
   showCreate?: boolean;
   showDelete?: boolean;
+  hideCreateButton?: boolean;
 };
 
 export function AdminTablePage<T extends Record<string, unknown>>({
@@ -42,12 +45,13 @@ export function AdminTablePage<T extends Record<string, unknown>>({
   deleteLabel = "ลบ",
   showCreate = true,
   showDelete = true,
+  hideCreateButton = false,
 }: AdminTablePageProps<T>) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [selectedFilters, setSelectedFilters] = useState<
-    Record<string, string>
-  >(Object.fromEntries(filters.map((filter) => [filter.key, "all"])));
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>(
+    Object.fromEntries(filters.map((filter) => [filter.key, "all"])),
+  );
 
   const filteredData = useMemo(() => {
     const searchValue = search.trim().toLowerCase();
@@ -76,13 +80,11 @@ export function AdminTablePage<T extends Record<string, unknown>>({
   const limit = 10;
   const totalPages = Math.max(1, Math.ceil(filteredData.length / limit));
   const safePage = Math.min(page, totalPages);
-  const pagedData = filteredData.slice(
-    (safePage - 1) * limit,
-    safePage * limit,
-  );
+  const pagedData = filteredData.slice((safePage - 1) * limit, safePage * limit);
+  const resolvedShowCreate = hideCreateButton ? false : showCreate;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 rounded-xl bg-white p-5 shadow-none transition-all duration-200 sm:p-6 lg:p-7">
       <div>
         <h1 className="text-[32px] font-bold leading-none text-[#111827]">
           {title}
@@ -144,7 +146,7 @@ export function AdminTablePage<T extends Record<string, unknown>>({
             </ProTechButton>
           )}
 
-          {showCreate && (
+          {resolvedShowCreate && (
             <ProTechButton
               variant="create"
               className="h-10 px-5 text-[16px]"
@@ -173,13 +175,11 @@ export function StatusBadge({
   label,
   tone = "success",
   onclick,
-}:
-  StatusBadgeProps
-) {
+}: StatusBadgeProps) {
   const toneClass = {
     success: "border-[#5AC56F] bg-white text-[#49A55B]",
     danger: "border-[#FF6B81] bg-white text-[#FF5D76]",
-    neutral: "border-[#A8B1C2] bg-white  text-[#64748B]",
+    neutral: "border-[#A8B1C2] bg-white text-[#64748B]",
   };
 
   return (

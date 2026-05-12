@@ -24,7 +24,7 @@ import {
 const menuItems = [
   {
     title: "หน้าหลัก",
-    href: "/home",
+    href: "/dashboard",
     icon: Home,
   },
   {

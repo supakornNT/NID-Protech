@@ -1,3 +1,5 @@
+"use client";
+
 import type { Column } from "@/types/table";
 import {
   ActionIcons,
@@ -24,7 +26,11 @@ const columns: Column<UserGroupRow>[] = [
       />
     ),
   },
-  { key: "actions", title: "จัดการ", render: () => <ActionIcons showInfo={false} /> },
+  {
+    key: "actions",
+    title: "จัดการ",
+    render: () => <ActionIcons showInfo={false} />,
+  },
 ];
 
 export default function UserGroupsPage() {
