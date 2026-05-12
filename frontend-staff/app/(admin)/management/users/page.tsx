@@ -36,7 +36,7 @@ export default function UsersPage() {
         data={userRows}
         searchPlaceholder="ค้นหาชื่อผู้ใช้งานหรืออีเมล"
         showDelete={false}
-        createLabel="เพิ่มผู้ใช้งาน"
+        createLabel="สร้าง"
       />
     </div>
   );

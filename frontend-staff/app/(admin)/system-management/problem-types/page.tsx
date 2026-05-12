@@ -34,7 +34,7 @@ export default function ProblemTypesPage() {
         data={problemTypeManagementRows}
         searchPlaceholder="ค้นหาชื่อประเภทประเด็น"
         showDelete={false}
-        createLabel="เพิ่มประเภทประเด็น"
+        createLabel="สร้าง"
       />
     </div>
   );

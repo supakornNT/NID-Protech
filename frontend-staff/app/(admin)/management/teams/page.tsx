@@ -35,7 +35,7 @@ export default function TeamsPage() {
         data={teamManagementRows}
         searchPlaceholder="ค้นหาชื่อทีมหรือหัวหน้าทีม"
         showDelete={false}
-        createLabel="เพิ่มทีม"
+        createLabel="สร้าง"
       />
     </div>
   );

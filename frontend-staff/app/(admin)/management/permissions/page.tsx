@@ -35,7 +35,7 @@ export default function PermissionsPage() {
         data={permissionManagementRows}
         searchPlaceholder="ค้นหาชื่อสิทธิ์หรือโมดูล"
         showDelete={false}
-        createLabel="เพิ่มสิทธิ์"
+        createLabel="สร้าง"
       />
     </div>
   );

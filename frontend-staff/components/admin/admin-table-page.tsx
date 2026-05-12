@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { ChevronDown, Edit3, Info, Plus, Trash2 } from "lucide-react";
 
+import { DeleteConfirmDialog } from "@/components/admin/delete-confirm-dialog";
 import { ProTechButton } from "@/components/tables/protech-button";
 import { ProTechSearch } from "@/components/tables/protech-search";
 import { ProTechTable } from "@/components/tables/protech-table";
@@ -32,6 +33,9 @@ type AdminTablePageProps<T extends Record<string, unknown>> = {
   showCreate?: boolean;
   showDelete?: boolean;
   hideCreateButton?: boolean;
+  onConfirmDelete?: () => void;
+  deleteConfirmTitle?: string;
+  deleteConfirmDescription?: string;
 };
 
 export function AdminTablePage<T extends Record<string, unknown>>({
@@ -46,6 +50,9 @@ export function AdminTablePage<T extends Record<string, unknown>>({
   showCreate = true,
   showDelete = true,
   hideCreateButton = false,
+  onConfirmDelete,
+  deleteConfirmTitle,
+  deleteConfirmDescription,
 }: AdminTablePageProps<T>) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -84,12 +91,10 @@ export function AdminTablePage<T extends Record<string, unknown>>({
   const resolvedShowCreate = hideCreateButton ? false : showCreate;
 
   return (
-    <div className="space-y-5 rounded-xl bg-white p-5 shadow-none transition-all duration-200 sm:p-6 lg:p-7">
+    <div className="space-y-5">
       <div>
-        <h1 className="text-[32px] font-bold leading-none text-[#111827]">
-          {title}
-        </h1>
-        <p className="mt-3 text-[16px] text-[#8B95A7]">{subtitle}</p>
+        <h1 className="text-[32px] font-bold leading-none text-[#111827]">{title}</h1>
+        <p className="mt-2 text-[16px] text-[#8B95A7]">{subtitle}</p>
       </div>
 
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
@@ -101,11 +106,14 @@ export function AdminTablePage<T extends Record<string, unknown>>({
               setPage(1);
             }}
             placeholder={searchPlaceholder}
-            className="w-[222px] flex-none"
-            inputClassName="h-10 rounded-md border border-[#A8B1C2] px-3 text-[16px]"
+            className="w-[220px] flex-none"
+            inputClassName="h-[31px] rounded-md border border-[#A8B1C2] px-3 text-[14px]"
           />
 
-          <ProTechButton variant="primary" className="h-10 px-6 text-[16px]">
+          <ProTechButton
+            variant="primary"
+            className="h-[31px] min-w-[74px] px-4 text-[14px]"
+          >
             ค้นหา
           </ProTechButton>
 
@@ -120,7 +128,7 @@ export function AdminTablePage<T extends Record<string, unknown>>({
                   }));
                   setPage(1);
                 }}
-                className="h-10 min-w-[132px] appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-[16px] text-[#6B7280] outline-none"
+                className="h-[31px] min-w-[132px] appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-[14px] text-[#6B7280] outline-none"
               >
                 <option value="all">{filter.placeholder}</option>
                 {filter.options.map((option) => (
@@ -137,20 +145,27 @@ export function AdminTablePage<T extends Record<string, unknown>>({
 
         <div className="flex items-center justify-end gap-3">
           {showDelete && (
-            <ProTechButton
-              variant="delete"
-              className="h-10 px-4 text-[16px]"
-              icon={<Trash2 size={18} />}
-            >
-              {deleteLabel}
-            </ProTechButton>
+            <DeleteConfirmDialog
+              title={deleteConfirmTitle}
+              description={deleteConfirmDescription}
+              onConfirm={onConfirmDelete}
+              trigger={
+                <ProTechButton
+                  variant="delete"
+                  className="h-[31px] px-4 text-[14px]"
+                  icon={<Trash2 size={16} />}
+                >
+                  {deleteLabel}
+                </ProTechButton>
+              }
+            />
           )}
 
           {resolvedShowCreate && (
             <ProTechButton
               variant="create"
-              className="h-10 px-5 text-[16px]"
-              icon={<Plus size={18} />}
+              className="h-[31px] px-4 text-[14px]"
+              icon={<Plus size={16} />}
             >
               {createLabel}
             </ProTechButton>

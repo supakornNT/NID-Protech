@@ -35,7 +35,7 @@ export default function OrganizationsPage() {
         data={organizationManagementRows}
         searchPlaceholder="ค้นหาชื่อองค์กร"
         showDelete={false}
-        createLabel="เพิ่มองค์กร"
+        createLabel="สร้าง"
       />
     </div>
   );

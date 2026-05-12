@@ -217,7 +217,7 @@ export function ProTechButton({
       type={type}
       disabled={disabled}
       onClick={onClick}
-      className={`inline-flex h-8 items-center justify-center   gap-2 rounded-md  px-5 text-sm  font-medium
+      className={`inline-flex h-[31px] items-center justify-center   gap-2 rounded-md  px-4 text-sm  font-medium
         whitespace-nowrap transition duration-150 disabled:cursor-not-allowed disabled:opacity-50
 
         ${

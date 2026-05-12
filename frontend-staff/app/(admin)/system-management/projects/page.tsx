@@ -35,7 +35,7 @@ export default function ProjectsPage() {
         data={projectManagementRows}
         searchPlaceholder="ค้นหาชื่อโครงการหรือองค์กร"
         showDelete={false}
-        createLabel="เพิ่มโครงการ"
+        createLabel="สร้าง"
       />
     </div>
   );
