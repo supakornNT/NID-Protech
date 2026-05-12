@@ -139,7 +139,7 @@ export class UserPortalService {
     );
     const search = query.search?.trim() ?? '';
     const status = query.status?.trim() ?? '';
-    const whereClauses: string[] = [];
+    const whereClauses: string[] = [`pt.report_type = 'issue'`];
     const params: Array<string | number> = [];
 
     // TODO:
@@ -154,12 +154,7 @@ export class UserPortalService {
         OR COALESCE(s.name, '') LIKE ?
         OR COALESCE(pt.name, '') LIKE ?
       )`);
-      params.push(
-        likeSearch,
-        likeSearch,
-        likeSearch,
-        likeSearch,
-      );
+      params.push(likeSearch, likeSearch, likeSearch, likeSearch);
     }
 
     if (status.length > 0) {
@@ -172,9 +167,7 @@ export class UserPortalService {
     }
 
     const whereSql =
-      whereClauses.length > 0
-        ? ` WHERE ${whereClauses.join(' AND ')}`
-        : ``;
+      whereClauses.length > 0 ? ` WHERE ${whereClauses.join(' AND ')}` : ``;
 
     const [countRows] = await this.db.query<
       Array<RowDataPacket & { total: number }>

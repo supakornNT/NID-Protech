@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { ChevronDown, Edit3, Info, Plus, Trash2 } from "lucide-react";
 
+import { DeleteConfirmDialog } from "@/components/admin/delete-confirm-dialog";
 import { ProTechButton } from "@/components/tables/protech-button";
 import { ProTechSearch } from "@/components/tables/protech-search";
 import { ProTechTable } from "@/components/tables/protech-table";
@@ -13,11 +14,13 @@ type FilterConfig = {
   placeholder: string;
   options: string[];
 };
+
 type StatusBadgeProps = {
   label: string;
   tone?: "success" | "danger" | "neutral";
-  onclick?: () => void;
+  onClick?: () => void;
 };
+
 type AdminTablePageProps<T extends Record<string, unknown>> = {
   title: string;
   subtitle: string;
@@ -29,6 +32,10 @@ type AdminTablePageProps<T extends Record<string, unknown>> = {
   deleteLabel?: string;
   showCreate?: boolean;
   showDelete?: boolean;
+  hideCreateButton?: boolean;
+  onConfirmDelete?: () => void;
+  deleteConfirmTitle?: string;
+  deleteConfirmDescription?: string;
 };
 
 export function AdminTablePage<T extends Record<string, unknown>>({
@@ -42,12 +49,16 @@ export function AdminTablePage<T extends Record<string, unknown>>({
   deleteLabel = "ลบ",
   showCreate = true,
   showDelete = true,
+  hideCreateButton = false,
+  onConfirmDelete,
+  deleteConfirmTitle,
+  deleteConfirmDescription,
 }: AdminTablePageProps<T>) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [selectedFilters, setSelectedFilters] = useState<
-    Record<string, string>
-  >(Object.fromEntries(filters.map((filter) => [filter.key, "all"])));
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>(
+    Object.fromEntries(filters.map((filter) => [filter.key, "all"])),
+  );
 
   const filteredData = useMemo(() => {
     const searchValue = search.trim().toLowerCase();
@@ -76,18 +87,14 @@ export function AdminTablePage<T extends Record<string, unknown>>({
   const limit = 10;
   const totalPages = Math.max(1, Math.ceil(filteredData.length / limit));
   const safePage = Math.min(page, totalPages);
-  const pagedData = filteredData.slice(
-    (safePage - 1) * limit,
-    safePage * limit,
-  );
+  const pagedData = filteredData.slice((safePage - 1) * limit, safePage * limit);
+  const resolvedShowCreate = hideCreateButton ? false : showCreate;
 
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-[32px] font-bold leading-none text-[#111827]">
-          {title}
-        </h1>
-        <p className="mt-3 text-[16px] text-[#8B95A7]">{subtitle}</p>
+        <h1 className="text-[32px] font-bold leading-none text-[#111827]">{title}</h1>
+        <p className="mt-2 text-[16px] text-[#8B95A7]">{subtitle}</p>
       </div>
 
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
@@ -99,11 +106,14 @@ export function AdminTablePage<T extends Record<string, unknown>>({
               setPage(1);
             }}
             placeholder={searchPlaceholder}
-            className="w-[222px] flex-none"
-            inputClassName="h-10 rounded-md border border-[#A8B1C2] px-3 text-[16px]"
+            className="w-[220px] flex-none"
+            inputClassName="h-[31px] rounded-md border border-[#A8B1C2] px-3 text-[14px]"
           />
 
-          <ProTechButton variant="primary" className="h-10 px-6 text-[16px]">
+          <ProTechButton
+            variant="primary"
+            className="h-[31px] min-w-[74px] px-4 text-[14px]"
+          >
             ค้นหา
           </ProTechButton>
 
@@ -118,7 +128,7 @@ export function AdminTablePage<T extends Record<string, unknown>>({
                   }));
                   setPage(1);
                 }}
-                className="h-10 min-w-[132px] appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-[16px] text-[#6B7280] outline-none"
+                className="h-[31px] min-w-[132px] appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-left text-[14px] text-[#6B7280] outline-none"
               >
                 <option value="all">{filter.placeholder}</option>
                 {filter.options.map((option) => (
@@ -135,20 +145,27 @@ export function AdminTablePage<T extends Record<string, unknown>>({
 
         <div className="flex items-center justify-end gap-3">
           {showDelete && (
-            <ProTechButton
-              variant="delete"
-              className="h-10 px-4 text-[16px]"
-              icon={<Trash2 size={18} />}
-            >
-              {deleteLabel}
-            </ProTechButton>
+            <DeleteConfirmDialog
+              title={deleteConfirmTitle}
+              description={deleteConfirmDescription}
+              onConfirm={onConfirmDelete}
+              trigger={
+                <ProTechButton
+                  variant="delete"
+                  className="h-[31px] px-4 text-[14px]"
+                  icon={<Trash2 size={16} />}
+                >
+                  {deleteLabel}
+                </ProTechButton>
+              }
+            />
           )}
 
-          {showCreate && (
+          {resolvedShowCreate && (
             <ProTechButton
               variant="create"
-              className="h-10 px-5 text-[16px]"
-              icon={<Plus size={18} />}
+              className="h-[31px] px-4 text-[14px]"
+              icon={<Plus size={16} />}
             >
               {createLabel}
             </ProTechButton>
@@ -172,35 +189,44 @@ export function AdminTablePage<T extends Record<string, unknown>>({
 export function StatusBadge({
   label,
   tone = "success",
-  onclick,
-}:
-  StatusBadgeProps
-) {
+  onClick,
+}: StatusBadgeProps) {
   const toneClass = {
     success: "border-[#5AC56F] bg-white text-[#49A55B]",
     danger: "border-[#FF6B81] bg-white text-[#FF5D76]",
-    neutral: "border-[#A8B1C2] bg-white  text-[#64748B]",
+    neutral: "border-[#A8B1C2] bg-white text-[#64748B]",
   };
 
   return (
-    <span
-      className={`inline-flex min-w-[62px] items-center justify-center rounded-md border px-2 py-1 text-[14px] leading-none ${toneClass[tone]}`}
-      onClick={onclick}
+    <button
+      type="button"
+      className={`inline-flex min-w-[62px] items-center justify-center rounded-md border px-2 py-1 text-[14px] leading-none transition-all duration-200 ${toneClass[tone]} ${
+        onClick ? "cursor-pointer hover:opacity-80 hover:shadow-sm" : "cursor-default"
+      }`}
+      onClick={onClick}
     >
       {label}
-    </span>
+    </button>
   );
 }
 
-export function ActionIcons({ showInfo = true }: { showInfo?: boolean }) {
+export function ActionIcons({
+  showInfo = true,
+  onEdit,
+  onInfo,
+}: {
+  showInfo?: boolean;
+  onEdit?: () => void;
+  onInfo?: () => void;
+}) {
   return (
     <div className="flex items-center justify-center gap-3 text-[#2F66C5]">
-      <button type="button" className="transition hover:opacity-75">
+      <button type="button" className="transition hover:opacity-75" onClick={onEdit}>
         <Edit3 size={20} />
       </button>
 
       {showInfo && (
-        <button type="button" className="transition hover:opacity-75">
+        <button type="button" className="transition hover:opacity-75" onClick={onInfo}>
           <Info size={20} />
         </button>
       )}
@@ -223,10 +249,26 @@ export function PermissionTags({ items }: { items: string[] }) {
   );
 }
 
-export function CheckCell() {
+export function CheckCell({
+  checked = false,
+  onClick,
+}: {
+  checked?: boolean;
+  onClick?: () => void;
+}) {
   return (
     <div className="flex items-center justify-center">
-      <div className="h-7 w-7 rounded-md border border-[#A8B1C2] bg-white" />
+      <button
+        type="button"
+        onClick={onClick}
+        className={`flex h-7 w-7 items-center justify-center rounded-md border transition-all duration-200 ${
+          checked
+            ? "border-[#3F73BB] bg-[#3F73BB] text-white"
+            : "border-[#A8B1C2] bg-white text-transparent hover:border-[#3F73BB] hover:bg-[#EEF4FF]"
+        } ${onClick ? "cursor-pointer" : "cursor-default"}`}
+      >
+        <span className="text-[14px] font-bold leading-none">✓</span>
+      </button>
     </div>
   );
 }

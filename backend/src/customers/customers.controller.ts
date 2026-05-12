@@ -7,9 +7,11 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
+import type { GetCustomersQuery } from './interfaces/admin.interface';
 import { CustomersService } from './customers.service';
 
 @Controller('customers')
@@ -19,6 +21,11 @@ export class CustomersController {
   @Get()
   findAll() {
     return this.customer.findAll();
+  }
+
+  @Get('unapproved')
+  findUnapproved(@Query() query: GetCustomersQuery) {
+    return this.customer.findUnapproved(query);
   }
 
   @Get(':id')
