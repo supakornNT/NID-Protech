@@ -1,8 +1,14 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { fetchJson } from "@/lib/fetch";
 
-export function OtpInput() {
-  const [otp, setOtp] = useState<string[]>(Array(5).fill(""));
+interface OtpInputProps {
+  email?: string;
+  onOtpChange?: (otp: string) => void;
+}
+
+export function OtpInput({ email, onOtpChange }: OtpInputProps) {
+  const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [countdown, setCountdown] = useState<number | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -13,8 +19,18 @@ export function OtpInput() {
     return () => clearTimeout(timer);
   }, [countdown]);
 
-  const handleSendOtp = () => {
-    setCountdown(60);
+  const handleSendOtp = async () => {
+    if (!email) return;
+    try {
+      await fetchJson("/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      setCountdown(60);
+    } catch {
+      alert("ไม่สามารถส่ง OTP ได้ กรุณาลองใหม่อีกครั้ง");
+    }
   };
 
   const handleChange = (index: number, value: string) => {
@@ -22,7 +38,8 @@ export function OtpInput() {
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
-    if (value && index < 4) inputRefs.current[index + 1]?.focus();
+    onOtpChange?.(newOtp.join(""));
+    if (value && index < 5) inputRefs.current[index + 1]?.focus();
   };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -66,10 +83,11 @@ export function OtpInput() {
         ))}
 
         <button
+          type="button"
           onClick={handleSendOtp}
-          disabled={isSending}
+          disabled={isSending || !email}
           style={{
-            background: isSending ? "#93c5fd" : "#366DBD",
+            background: isSending || !email ? "#93c5fd" : "#366DBD",
             borderRadius: 8,
             color: "#fff",
             fontSize: 16,

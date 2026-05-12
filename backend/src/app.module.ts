@@ -21,9 +21,10 @@ import { ReportStatusLogsModule } from './report_status_logs/report_status_logs.
 import { TicketStatusLogsModule } from './ticket_status_logs/ticket_status_logs.module';
 import { ReportConfirmationsModule } from './report_confirmations/report_confirmations.module';
 import { ScreeningsModule } from './screenings/screenings.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
-  imports: [DatabaseModule, CustomersModule, StaffsModule, TeamsModule, RolesModule, StaffTeamRolesModule, OrganizationsModule, SystemsModule, ProblemTypesModule, ReportsModule, LoginLogsModule, TicketsModule, TicketAssignmentsModule, TicketWorkLogsModule, TicketResolutionRequestsModule, AttachmentsModule, ReportStatusLogsModule, TicketStatusLogsModule, ReportConfirmationsModule, ScreeningsModule],
+  imports: [DatabaseModule, AuthModule, CustomersModule, StaffsModule, TeamsModule, RolesModule, StaffTeamRolesModule, OrganizationsModule, SystemsModule, ProblemTypesModule, ReportsModule, LoginLogsModule, TicketsModule, TicketAssignmentsModule, TicketWorkLogsModule, TicketResolutionRequestsModule, AttachmentsModule, ReportStatusLogsModule, TicketStatusLogsModule, ReportConfirmationsModule, ScreeningsModule],
   controllers: [AppController],
   providers: [AppService],
 })
