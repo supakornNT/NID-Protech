@@ -39,6 +39,7 @@ export default function RegisterPage() {
   function validate() {
     if (!form.first_name || !form.last_name) return "กรุณากรอกชื่อ-นามสกุล";
     if (!form.phone) return "กรุณากรอกเบอร์โทร";
+    if (!form.phone.startsWith("0")) return "กรุณากรอกเบอร์โทรที่เริ่มต้น 0"
     if (!form.email) return "กรุณากรอกอีเมล";
     if (form.password.length < 8) return "รหัสผ่านต้องมีอย่างน้อย 8 ตัว";
     if (!/[A-Z]/.test(form.password)) return "รหัสผ่านต้องมีตัวพิมพ์ใหญ่";
@@ -162,9 +163,14 @@ export default function RegisterPage() {
             label="เบอร์โทร"
             placeholder="กรุณากรอกเบอร์โทร"
             className="flex-1"
+            type="tel"
+            maxLength={10}
             inputClassName={`${styles.input} ${submitted && !form.phone ? "border-red-500" : ""}`}
             value={form.phone}
-            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            onChange={(e) => {
+              const val = e.target.value.replace(/\D/g, "");
+              setForm({ ...form, phone: val });
+            }}
           />
           <FormInput
             label="อีเมล"

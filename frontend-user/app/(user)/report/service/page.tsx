@@ -35,6 +35,7 @@ export default function ReportServicePage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const { submit, loading, error } = useSubmit("/reports/service", () => {
     setShowSuccess(true);
+    setSubmitted(false);
     setForm({ title: "", problem_type_id: "", detail: "" });
     setFiles([]);
   });

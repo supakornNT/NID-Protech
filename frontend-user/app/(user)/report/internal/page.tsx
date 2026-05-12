@@ -48,6 +48,7 @@ export default function ReportInternalPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const { submit, loading, error } = useSubmit("/reports/internal", () => {
     setShowSuccess(true);
+    setSubmitted(false);
     setForm({ title: "", problem_type_id: "", system_id: "", detail: "" });
     setDate(getDefaultDate());
     setFiles([]);

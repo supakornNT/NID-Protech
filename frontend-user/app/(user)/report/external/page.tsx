@@ -44,6 +44,7 @@ export default function ReportExternalPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const { submit, loading, error } = useSubmit("/reports/external", () => {
     setShowSuccess(true);
+    setSubmitted(false);
     setForm({ title: "", problem_type_id: "", system_id: "", detail: "" });
     setDate(getDefaultDate());
     setFiles([]);

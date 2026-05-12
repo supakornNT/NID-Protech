@@ -9,6 +9,8 @@ interface FormInputProps {
   inputClassName?: string;
   value?: string;
   disabled?: boolean;
+  maxLength?: number;
+  type?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
@@ -30,6 +32,8 @@ export function FormInput({
   inputClassName,
   value,
   disabled,
+  maxLength,
+  type,
   onChange,
 }: FormInputProps) {
   return (
@@ -39,6 +43,8 @@ export function FormInput({
         className={inputClassName}
         placeholder={placeholder}
         disabled={disabled}
+        maxLength={maxLength}
+        type={type}
         {...(value !== undefined
           ? { value, onChange: onChange ?? (() => {}) }
           : {})}
