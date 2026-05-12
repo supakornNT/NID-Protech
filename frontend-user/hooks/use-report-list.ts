@@ -56,10 +56,10 @@ function buildReportsPath(
 }
 
 export function useReportList() {
-  const [search, setSearch] =
-    React.useState("");
   const [appliedSearch, setAppliedSearch] =
     React.useState("");
+  const [searchRequestKey, setSearchRequestKey] =
+    React.useState(0);
   const [reports, setReports] =
     React.useState<ReportListItem[]>([]);
   const [page, setPage] =
@@ -151,16 +151,26 @@ export function useReportList() {
 
     return () =>
       controller.abort();
-  }, [appliedSearch, limit, page]);
+  }, [
+    appliedSearch,
+    limit,
+    page,
+    searchRequestKey,
+  ]);
 
-  function applySearch() {
+  function applySearch(
+    nextSearch: string,
+  ) {
     setPage(1);
-    setAppliedSearch(search);
+    setAppliedSearch(
+      nextSearch.trim(),
+    );
+    setSearchRequestKey(
+      (current) => current + 1,
+    );
   }
 
   return {
-    search,
-    setSearch,
     reports,
     pagination,
     loading,

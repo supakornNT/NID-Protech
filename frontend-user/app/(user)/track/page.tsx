@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 
 import {
@@ -82,6 +83,9 @@ const columns: Column<ReportListItem>[] =
   ];
 
 export default function Page() {
+  const [search, setSearch] =
+    React.useState("");
+
   // Flow หน้านี้:
   // 1. mount หน้าแล้ว useReportList() จะเรียก GET /user/reports?page=&limit=&search=
   // 2. API คืนรายการ report พร้อม pagination สำหรับหน้า table
@@ -99,8 +103,6 @@ export default function Page() {
   //    - systems.name
   // 5. เปลี่ยนหน้า -> setPage() -> ยิง API ใหม่ตาม page/limit
   const {
-    search,
-    setSearch,
     reports,
     pagination,
     loading,
@@ -128,7 +130,9 @@ export default function Page() {
 
         <ProTechButton
           className=" shrink-0 "
-          onClick={applySearch}
+          onClick={() =>
+            applySearch(search)
+          }
         >
           ค้นหา
         </ProTechButton>

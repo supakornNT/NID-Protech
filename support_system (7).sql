@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 11, 2026 at 04:58 AM
+-- Generation Time: May 12, 2026 at 04:43 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -49,7 +49,8 @@ INSERT INTO `attachments` (`id`, `report_id`, `ticket_id`, `attachment_type`, `o
 (5, NULL, 3, 'resolution_evidence', 'fixed-report-result.png', 'png', '2026-05-08 11:25:00'),
 (6, NULL, 4, 'resolution_evidence', 'service-followup.pdf', 'pdf', '2026-05-08 13:50:00'),
 (7, NULL, 5, 'customer_tracking_ticket', 'tracking-TCK-20260508-0005.pdf', 'pdf', '2026-05-08 09:46:00'),
-(8, NULL, 6, 'resolution_evidence', 'server-log-result.jpeg', 'jpeg', '2026-05-08 10:28:00');
+(8, NULL, 6, 'resolution_evidence', 'server-log-result.jpeg', 'jpeg', '2026-05-08 10:28:00'),
+(9, 9, 8, 'customer_tracking_ticket', 'tracking-REP-20260508-0009.pdf', 'pdf', '2026-05-11 11:49:39');
 
 -- --------------------------------------------------------
 
@@ -64,6 +65,7 @@ CREATE TABLE `customers` (
   `email` varchar(255) NOT NULL,
   `phone` varchar(50) DEFAULT NULL,
   `customer_type` enum('person','company') NOT NULL,
+  `organization_id` int(10) UNSIGNED DEFAULT NULL,
   `status` enum('pending','approved','rejected','inactive') DEFAULT 'pending',
   `password_hash` varchar(255) NOT NULL,
   `created_at` datetime DEFAULT current_timestamp(),
@@ -74,35 +76,13 @@ CREATE TABLE `customers` (
 -- Dumping data for table `customers`
 --
 
-INSERT INTO `customers` (`id`, `name`, `surname`, `email`, `phone`, `customer_type`, `status`, `password_hash`, `created_at`, `updated_at`) VALUES
-(1, 'สมชาย', 'ใจดี', 'somchai@example.com', '0811111111', 'person', 'approved', '$2b$10$mockhashcustomer1', '2026-05-01 10:00:00', '2026-05-01 10:00:00'),
-(2, 'วราภรณ์', 'มั่นคง', 'waraporn@example.com', '0822222222', 'person', 'approved', '$2b$10$mockhashcustomer2', '2026-05-01 10:05:00', '2026-05-01 10:05:00'),
-(3, 'บริษัท เอ็นไอดี', 'เทคโนโลยี', 'contact@nidtech.com', '023333333', 'company', 'approved', '$2b$10$mockhashcustomer3', '2026-05-01 10:10:00', '2026-05-01 10:10:00'),
-(4, 'ลูกค้าใหม่', 'รออนุมัติ', 'pending@example.com', '0844444444', 'person', 'pending', '$2b$10$mockhashcustomer4', '2026-05-01 10:15:00', '2026-05-01 10:15:00'),
-(5, 'ลูกค้าถูกปฏิเสธ', 'ทดสอบ', 'rejected@example.com', '0855555555', 'person', 'rejected', '$2b$10$mockhashcustomer5', '2026-05-01 10:20:00', '2026-05-01 10:20:00'),
-(6, 'ลูกค้าเก่า', 'ปิดใช้งาน', 'inactive@example.com', '0866666666', 'company', 'inactive', '$2b$10$mockhashcustomer6', '2026-05-01 10:25:00', '2026-05-01 10:25:00');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `customer_organizations`
---
-
-CREATE TABLE `customer_organizations` (
-  `id` int(10) UNSIGNED NOT NULL,
-  `customer_id` int(10) UNSIGNED NOT NULL,
-  `organization_id` int(10) UNSIGNED NOT NULL,
-  `created_at` datetime DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `customer_organizations`
---
-
-INSERT INTO `customer_organizations` (`id`, `customer_id`, `organization_id`, `created_at`) VALUES
-(1, 3, 1, '2026-05-01 10:30:00'),
-(2, 6, 3, '2026-05-01 10:35:00'),
-(3, 2, 2, '2026-05-01 10:40:00');
+INSERT INTO `customers` (`id`, `name`, `surname`, `email`, `phone`, `customer_type`, `organization_id`, `status`, `password_hash`, `created_at`, `updated_at`) VALUES
+(1, 'สมชาย', 'ใจดี', 'somchai@example.com', '0811111111', 'person', NULL, 'approved', '$2b$10$mockhashcustomer1', '2026-05-01 10:00:00', '2026-05-12 09:41:35'),
+(2, 'วราภรณ์', 'มั่นคง', 'waraporn@example.com', '0822222222', 'person', NULL, 'approved', '$2b$10$mockhashcustomer2', '2026-05-01 10:05:00', '2026-05-12 09:41:29'),
+(3, 'บริษัท เอ็นไอดี', 'เทคโนโลยี', 'contact@nidtech.com', '023333333', 'company', 1, 'approved', '$2b$10$mockhashcustomer3', '2026-05-01 10:10:00', '2026-05-12 09:41:23'),
+(4, 'ลูกค้าใหม่', 'รออนุมัติ', 'pending@example.com', '0844444444', 'person', NULL, 'pending', '$2b$10$mockhashcustomer4', '2026-05-01 10:15:00', '2026-05-01 10:15:00'),
+(5, 'ลูกค้าถูกปฏิเสธ', 'ทดสอบ', 'rejected@example.com', '0855555555', 'person', NULL, 'rejected', '$2b$10$mockhashcustomer5', '2026-05-01 10:20:00', '2026-05-01 10:20:00'),
+(6, 'ลูกค้าเก่า', 'ปิดใช้งาน', 'inactive@example.com', '0866666666', 'company', 1, 'inactive', '$2b$10$mockhashcustomer6', '2026-05-01 10:25:00', '2026-05-12 09:41:41');
 
 -- --------------------------------------------------------
 
@@ -219,7 +199,8 @@ INSERT INTO `problem_types` (`id`, `name`, `report_type`, `status`, `created_at`
 CREATE TABLE `reports` (
   `id` int(10) UNSIGNED NOT NULL,
   `report_no` varchar(50) NOT NULL,
-  `customer_id` int(10) UNSIGNED NOT NULL,
+  `customer_id` int(10) UNSIGNED DEFAULT NULL,
+  `organization` varchar(30) DEFAULT NULL,
   `system_id` int(10) UNSIGNED DEFAULT NULL,
   `problem_type_id` int(10) UNSIGNED DEFAULT NULL,
   `title` varchar(255) NOT NULL,
@@ -236,16 +217,16 @@ CREATE TABLE `reports` (
 -- Dumping data for table `reports`
 --
 
-INSERT INTO `reports` (`id`, `report_no`, `customer_id`, `system_id`, `problem_type_id`, `title`, `detail`, `status`, `score`, `reject_reason`, `created_at`, `resolve_due_at`, `closed_at`) VALUES
-(1, 'REP-20260508-0001', 1, 1, 1, 'เข้าสู่ระบบไม่ได้', 'ลูกค้าแจ้งว่า login แล้วขึ้นรหัสผ่านไม่ถูกต้อง ทั้งที่กรอกถูก', 'screening', NULL, NULL, '2026-05-08 08:00:00', '2026-05-10 08:00:00', NULL),
-(2, 'REP-20260508-0002', 1, 1, 2, 'ระบบโหลดช้ามาก', 'หน้า dashboard ใช้เวลานานกว่า 30 วินาที', 'assigned', NULL, NULL, '2026-05-08 08:15:00', '2026-05-10 08:15:00', NULL),
-(3, 'REP-20260508-0003', 2, 3, 3, 'ใช้งานเครือข่ายไม่ได้', 'เข้าใช้งานระบบ E-Service ผ่านเครือข่ายสำนักงานไม่ได้', 'in_progress', NULL, NULL, '2026-05-08 08:30:00', '2026-05-10 08:30:00', NULL),
-(4, 'REP-20260508-0004', 3, 1, 4, 'ข้อมูลในรายงานไม่ถูกต้อง', 'รายงานสถานะงานแสดงจำนวนไม่ตรงกับข้อมูลจริง', 'closed', NULL, NULL, '2026-05-08 08:45:00', '2026-05-10 08:45:00', '2026-05-08 13:36:46'),
-(5, 'REP-20260508-0005', 3, 1, 5, 'ร้องเรียนการให้บริการล่าช้า', 'รอเจ้าหน้าที่ติดต่อกลับนานเกินกำหนด', 'closed', 5, NULL, '2026-05-08 09:00:00', '2026-05-10 09:00:00', '2026-05-08 15:30:00'),
-(6, 'REP-20260508-0006', 2, 2, 6, 'ร้องเรียนเจ้าหน้าที่พูดจาไม่เหมาะสม', 'ลูกค้าระบุว่าได้รับการสื่อสารไม่สุภาพ', 'rejected', NULL, 'ข้อมูลไม่เพียงพอและไม่พบหลักฐานประกอบ', '2026-05-08 09:15:00', '2026-05-06 13:25:54', NULL),
-(7, 'REP-20260508-0007', 1, 1, 2, 'เปิดซ้ำหลังปิดงาน', 'ลูกค้ายืนยันว่าอาการเดิมกลับมาเกิดอีกครั้ง', 'in_progress', NULL, NULL, '2026-05-08 09:30:00', '2026-05-11 09:30:00', NULL),
-(8, 'REP-20260508-0008', 2, 3, 1, 'ต้องการข้อมูลเพิ่มก่อนคัดกรอง', 'รายละเอียดที่แจ้งมายังไม่ชัดเจน', 'screening', NULL, NULL, '2026-05-08 09:45:00', '2026-05-05 13:26:02', NULL),
-(9, 'REP-20260508-0009', 1, 1, 4, 'งานถูกยกเลิก', 'แจ้งผิดระบบ ลูกค้าขอยกเลิกรายการ', 'closed', 3, NULL, '2026-05-08 10:00:00', '2026-05-10 10:00:00', '2026-05-08 12:00:00');
+INSERT INTO `reports` (`id`, `report_no`, `customer_id`, `organization`, `system_id`, `problem_type_id`, `title`, `detail`, `status`, `score`, `reject_reason`, `created_at`, `resolve_due_at`, `closed_at`) VALUES
+(1, 'RP-2026-0001', 1, NULL, 1, 1, 'เข้าสู่ระบบไม่ได้', 'ลูกค้าแจ้งว่า login แล้วขึ้นรหัสผ่านไม่ถูกต้อง ทั้งที่กรอกถูก', 'screening', NULL, NULL, '2026-05-08 08:00:00', '2026-05-10 08:00:00', NULL),
+(2, 'RP-2026-0002', 1, NULL, 1, 2, 'ระบบโหลดช้ามาก', 'หน้า dashboard ใช้เวลานานกว่า 30 วินาที', 'assigned', NULL, NULL, '2026-05-08 08:15:00', '2026-05-10 08:15:00', NULL),
+(3, 'RP-2026-0003', 2, NULL, 3, 3, 'ใช้งานเครือข่ายไม่ได้', 'เข้าใช้งานระบบ E-Service ผ่านเครือข่ายสำนักงานไม่ได้', 'in_progress', NULL, NULL, '2026-05-08 08:30:00', '2026-05-10 08:30:00', NULL),
+(4, 'RP-2026-0004', 3, NULL, 1, 4, 'ข้อมูลในรายงานไม่ถูกต้อง', 'รายงานสถานะงานแสดงจำนวนไม่ตรงกับข้อมูลจริง', 'closed', NULL, NULL, '2026-05-08 08:45:00', '2026-05-10 08:45:00', '2026-05-08 13:36:46'),
+(5, 'RP-2026-0005', 3, NULL, 1, 5, 'ร้องเรียนการให้บริการล่าช้า', 'รอเจ้าหน้าที่ติดต่อกลับนานเกินกำหนด', 'closed', 5, NULL, '2026-05-08 09:00:00', '2026-05-10 09:00:00', '2026-05-08 15:30:00'),
+(6, 'RP-2026-0006', 2, NULL, 2, 6, 'ร้องเรียนเจ้าหน้าที่พูดจาไม่เหมาะสม', 'ลูกค้าระบุว่าได้รับการสื่อสารไม่สุภาพ', 'rejected', NULL, 'ข้อมูลไม่เพียงพอและไม่พบหลักฐานประกอบ', '2026-05-08 09:15:00', '2026-05-06 13:25:54', NULL),
+(7, 'RP-2026-0007', 1, NULL, 1, 2, 'เปิดซ้ำหลังปิดงาน', 'ลูกค้ายืนยันว่าอาการเดิมกลับมาเกิดอีกครั้ง', 'in_progress', NULL, NULL, '2026-05-08 09:30:00', '2026-05-11 09:30:00', NULL),
+(8, 'RP-2026-0008', 2, NULL, 3, 1, 'ต้องการข้อมูลเพิ่มก่อนคัดกรอง', 'รายละเอียดที่แจ้งมายังไม่ชัดเจน', 'assigned', NULL, NULL, '2026-05-08 09:45:00', '2026-05-05 13:26:02', NULL),
+(9, 'RP-2026-0009', 1, NULL, 1, 4, 'งานถูกยกเลิก', 'แจ้งผิดระบบ ลูกค้าขอยกเลิกรายการ', 'closed', 3, NULL, '2026-05-08 10:00:00', '2026-05-10 10:00:00', '2026-05-08 12:00:00');
 
 -- --------------------------------------------------------
 
@@ -270,7 +251,8 @@ CREATE TABLE `report_confirmations` (
 INSERT INTO `report_confirmations` (`id`, `report_id`, `customer_id`, `result`, `comment`, `score`, `confirmed_at`) VALUES
 (1, 5, 3, 'confirmed', 'เจ้าหน้าที่ติดต่อกลับและแก้ไขความล่าช้าเรียบร้อย', 5, '2026-05-08 15:30:00'),
 (2, 7, 1, 'reopened', 'ยังพบปัญหาเดิมหลังจากแจ้งว่าแก้ไขแล้ว', NULL, '2026-05-08 09:30:00'),
-(3, 9, 1, 'confirmed', 'แจ้งผิดระบบ ขอยกเลิกรายการ', 3, '2026-05-08 12:00:00');
+(3, 9, 1, 'confirmed', 'แจ้งผิดระบบ ขอยกเลิกรายการ', 3, '2026-05-08 12:00:00'),
+(4, 8, 2, 'reopened', 'ooooo', NULL, '2026-05-11 11:31:38');
 
 -- --------------------------------------------------------
 
@@ -317,7 +299,8 @@ INSERT INTO `report_status_logs` (`id`, `report_id`, `old_status`, `new_status`,
 (21, 8, NULL, 'screening', 'customer', 2, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 09:45:00'),
 (22, 9, NULL, 'screening', 'customer', 1, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 10:00:00'),
 (23, 9, 'screening', 'closed', 'customer', 1, 'ลูกค้าขอยกเลิกหลังแจ้งผิดระบบ', '2026-05-08 12:00:00'),
-(24, 4, 'waiting_confirm', 'closed', 'system', NULL, 'System auto-closed after customer confirmation deadline expired', '2026-05-08 13:36:46');
+(24, 4, 'waiting_confirm', 'closed', 'system', NULL, 'System auto-closed after customer confirmation deadline expired', '2026-05-08 13:36:46'),
+(25, 8, 'waiting_confirm', 'assigned', 'customer', 2, 'ooooo', '2026-05-11 11:31:38');
 
 -- --------------------------------------------------------
 
@@ -669,15 +652,8 @@ ALTER TABLE `attachments`
 ALTER TABLE `customers`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`),
-  ADD KEY `idx_customers_status_created` (`status`,`created_at`);
-
---
--- Indexes for table `customer_organizations`
---
-ALTER TABLE `customer_organizations`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `customer_organization_unique` (`customer_id`,`organization_id`),
-  ADD KEY `organization_id` (`organization_id`);
+  ADD KEY `idx_customers_status_created` (`status`,`created_at`),
+  ADD KEY `fk_customers_organization` (`organization_id`);
 
 --
 -- Indexes for table `login_logs`
@@ -841,19 +817,13 @@ ALTER TABLE `ticket_work_logs`
 -- AUTO_INCREMENT for table `attachments`
 --
 ALTER TABLE `attachments`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `customers`
 --
 ALTER TABLE `customers`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
-
---
--- AUTO_INCREMENT for table `customer_organizations`
---
-ALTER TABLE `customer_organizations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `login_logs`
@@ -883,19 +853,19 @@ ALTER TABLE `problem_types`
 -- AUTO_INCREMENT for table `reports`
 --
 ALTER TABLE `reports`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `report_confirmations`
 --
 ALTER TABLE `report_confirmations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `report_status_logs`
 --
 ALTER TABLE `report_status_logs`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `roles`
@@ -975,11 +945,10 @@ ALTER TABLE `attachments`
   ADD CONSTRAINT `attachments_ibfk_2` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `customer_organizations`
+-- Constraints for table `customers`
 --
-ALTER TABLE `customer_organizations`
-  ADD CONSTRAINT `customer_organizations_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`),
-  ADD CONSTRAINT `customer_organizations_ibfk_2` FOREIGN KEY (`organization_id`) REFERENCES `organizations` (`id`);
+ALTER TABLE `customers`
+  ADD CONSTRAINT `fk_customers_organization` FOREIGN KEY (`organization_id`) REFERENCES `organizations` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `reports`
