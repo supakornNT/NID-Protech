@@ -27,7 +27,7 @@ const columns: Column<PermissionManagementRow>[] = [
 
 export default function PermissionsPage() {
   return (
-    <div className="min-h-full rounded-xl bg-[#E9EEF5] p-4 sm:p-6 lg:p-8">
+    <div className="min-h-full rounded-xl  p-4 sm:p-6 lg:p-8">
       <AdminTablePage
         title="จัดการสิทธิ์"
         subtitle="จัดการข้อมูลสิทธิ์การเข้าถึงของผู้ใช้งานในระบบ"

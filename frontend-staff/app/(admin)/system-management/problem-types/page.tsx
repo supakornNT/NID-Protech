@@ -26,7 +26,7 @@ const columns: Column<ProblemTypeManagementRow>[] = [
 
 export default function ProblemTypesPage() {
   return (
-    <div className="min-h-full rounded-xl bg-[#E9EEF5] p-4 sm:p-6 lg:p-8">
+    <div className="min-h-full rounded-xl bg-[#ffffff] p-4 sm:p-6 lg:p-8">
       <AdminTablePage
         title="จัดการประเภทประเด็น"
         subtitle="จัดการประเภทประเด็นและคำร้องที่ใช้ในระบบ"

@@ -27,7 +27,7 @@ const columns: Column<ProjectManagementRow>[] = [
 
 export default function ProjectsPage() {
   return (
-    <div className="min-h-full rounded-xl bg-[#E9EEF5] p-4 sm:p-6 lg:p-8">
+    <div className="min-h-full rounded-xl bg-[#ffffff] p-4 sm:p-6 lg:p-8">
       <AdminTablePage
         title="จัดการโครงการ"
         subtitle="จัดการข้อมูลโครงการและความสัมพันธ์กับองค์กร"

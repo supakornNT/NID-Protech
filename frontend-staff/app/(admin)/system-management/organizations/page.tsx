@@ -27,7 +27,7 @@ const columns: Column<OrganizationManagementRow>[] = [
 
 export default function OrganizationsPage() {
   return (
-    <div className="min-h-full rounded-xl bg-[#E9EEF5] p-4 sm:p-6 lg:p-8">
+    <div className="min-h-full rounded-xl bg-[#ffffff] p-4 sm:p-6 lg:p-8">
       <AdminTablePage
         title="จัดการองค์กร"
         subtitle="จัดการข้อมูลองค์กรที่ใช้งานในระบบสนับสนุน"

@@ -33,7 +33,7 @@ export default function AdminLayout({
             </div>
           </header>
 
-          <main className="min-w-0 flex-1 bg-[#F8F9FC] px-6 py-8 sm:px-8 lg:px-12 lg:py-10">
+          <main className="min-w-0 flex-1 bg-[#ffffff] px-6 py-8 sm:px-8 lg:px-12 lg:py-10">
             {children}
           </main>
         </div>
