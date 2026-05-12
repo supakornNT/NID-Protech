@@ -39,14 +39,15 @@ export default function RegisterPage() {
   function validate() {
     if (!form.first_name || !form.last_name) return "กรุณากรอกชื่อ-นามสกุล";
     if (!form.phone) return "กรุณากรอกเบอร์โทร";
-    if (!form.phone.startsWith("0")) return "กรุณากรอกเบอร์โทรที่เริ่มต้น 0"
+    if (!form.phone.startsWith("0")) return "กรุณากรอกเบอร์โทรที่เริ่มต้น 0";
     if (!form.email) return "กรุณากรอกอีเมล";
     if (form.password.length < 8) return "รหัสผ่านต้องมีอย่างน้อย 8 ตัว";
     if (!/[A-Z]/.test(form.password)) return "รหัสผ่านต้องมีตัวพิมพ์ใหญ่";
     if (!/[a-z]/.test(form.password)) return "รหัสผ่านต้องมีตัวพิมพ์เล็ก";
     if (!/[^A-Za-z0-9]/.test(form.password)) return "รหัสผ่านต้องมีอักษรพิเศษ";
     if (form.password !== form.confirm_password) return "รหัสผ่านไม่ตรงกัน";
-    if (userType === "company" && !form.organization_id) return "กรุณาเลือกหน่วยงาน";
+    if (userType === "company" && !form.organization_id)
+      return "กรุณาเลือกหน่วยงาน";
     if (otp.length < 6) return "กรุณากรอก OTP ให้ครบ";
     return null;
   }
@@ -54,7 +55,10 @@ export default function RegisterPage() {
   async function handleSubmit() {
     setSubmitted(true);
     const err = validate();
-    if (err) { setError(err); return; }
+    if (err) {
+      setError(err);
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -70,12 +74,15 @@ export default function RegisterPage() {
           password: form.password,
           otp,
           customer_type: userType,
-          organization_id: userType === "company" ? Number(form.organization_id) : null,
+          organization_id:
+            userType === "company" ? Number(form.organization_id) : null,
         }),
       });
       setShowSuccess(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+      setError(
+        e instanceof Error ? e.message : "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
+      );
     } finally {
       setLoading(false);
     }
@@ -108,10 +115,24 @@ export default function RegisterPage() {
         >
           <div
             className="flex items-center justify-center"
-            style={{ width: 22, height: 21, border: "1px solid #000", borderRadius: 100, background: "#fff" }}
+            style={{
+              width: 22,
+              height: 21,
+              border: "1px solid #000",
+              borderRadius: 100,
+              background: "#fff",
+            }}
           >
             {userType === "person" && (
-              <div style={{ width: 15, height: 14, background: "#366DBD", border: "1px solid #366DBD", borderRadius: 100 }} />
+              <div
+                style={{
+                  width: 15,
+                  height: 14,
+                  background: "#366DBD",
+                  border: "1px solid #366DBD",
+                  borderRadius: 100,
+                }}
+              />
             )}
           </div>
           <span style={{ fontSize: 20, color: "#366DBD" }}>บุคคลทั่วไป</span>
@@ -123,10 +144,24 @@ export default function RegisterPage() {
         >
           <div
             className="flex items-center justify-center"
-            style={{ width: 22, height: 21, border: "1px solid #000", borderRadius: 100, background: "#fff" }}
+            style={{
+              width: 22,
+              height: 21,
+              border: "1px solid #000",
+              borderRadius: 100,
+              background: "#fff",
+            }}
           >
             {userType === "company" && (
-              <div style={{ width: 15, height: 14, background: "#366DBD", border: "1px solid #366DBD", borderRadius: 100 }} />
+              <div
+                style={{
+                  width: 15,
+                  height: 14,
+                  background: "#366DBD",
+                  border: "1px solid #366DBD",
+                  borderRadius: 100,
+                }}
+              />
             )}
           </div>
           <span style={{ fontSize: 20, color: "#366DBD" }}>ลูกค้าบริษัท</span>
@@ -135,9 +170,15 @@ export default function RegisterPage() {
 
       <div
         className="w-full max-w-5xl flex flex-col gap-5 px-4 sm:px-10 py-6 sm:py-8 mx-auto"
-        style={{ background: "#F1F6FD", boxShadow: "0px 4px 4px rgba(0,0,0,0.25)", borderRadius: 30 }}
+        style={{
+          background: "#F1F6FD",
+          boxShadow: "0px 4px 4px rgba(0,0,0,0.25)",
+          borderRadius: 30,
+        }}
       >
-        <p style={{ fontSize: 16, fontWeight: 1000, color: "#366DBD" }}>ข้อมูลส่วนตัว</p>
+        <p style={{ fontSize: 16, fontWeight: 1000, color: "#366DBD" }}>
+          ข้อมูลส่วนตัว
+        </p>
         <div className="flex flex-col sm:flex-row gap-6">
           <FormInput
             label="ชื่อ"
@@ -157,7 +198,9 @@ export default function RegisterPage() {
           />
         </div>
 
-        <p style={{ fontSize: 16, fontWeight: 1000, color: "#366DBD" }}>ช่องทางการติดต่อ</p>
+        <p style={{ fontSize: 16, fontWeight: 1000, color: "#366DBD" }}>
+          ช่องทางการติดต่อ
+        </p>
         <div className="flex flex-col sm:flex-row gap-6">
           <FormInput
             label="เบอร์โทร"
@@ -182,7 +225,9 @@ export default function RegisterPage() {
           />
         </div>
 
-        <p style={{ fontSize: 16, fontWeight: 1000, color: "#366DBD" }}>ตั้งค่าเข้าสู่ระบบ</p>
+        <p style={{ fontSize: 16, fontWeight: 1000, color: "#366DBD" }}>
+          ตั้งค่าเข้าสู่ระบบ
+        </p>
         <div className="flex flex-col sm:flex-row gap-6">
           <FormInputIcon
             label="รหัสผ่าน"
@@ -194,8 +239,15 @@ export default function RegisterPage() {
             inputClassName={submitted && !form.password ? "border-red-500" : ""}
             icon={<Lock size={16} className="text-gray-400" />}
             suffix={
-              <button type="button" onClick={() => setShowPassword(!showPassword)}>
-                {showPassword ? <EyeOff size={16} className="text-gray-400" /> : <Eye size={16} className="text-gray-400" />}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff size={16} className="text-gray-400" />
+                ) : (
+                  <Eye size={16} className="text-gray-400" />
+                )}
               </button>
             }
           />
@@ -204,33 +256,54 @@ export default function RegisterPage() {
             placeholder="กรุณากรอกรหัสผ่านอีกครั้ง"
             className="flex-1"
             value={form.confirm_password}
-            onChange={(e) => setForm({ ...form, confirm_password: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, confirm_password: e.target.value })
+            }
             type={showConfirmPassword ? "text" : "password"}
-            inputClassName={submitted && !form.confirm_password ? "border-red-500" : ""}
+            inputClassName={
+              submitted && !form.confirm_password ? "border-red-500" : ""
+            }
             icon={<Lock size={16} className="text-gray-400" />}
             suffix={
-              <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                {showConfirmPassword ? <EyeOff size={16} className="text-gray-400" /> : <Eye size={16} className="text-gray-400" />}
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff size={16} className="text-gray-400" />
+                ) : (
+                  <Eye size={16} className="text-gray-400" />
+                )}
               </button>
             }
           />
         </div>
+        <p className="text-sm text-gray-400">
+          รหัสผ่านต้องประกอบด้วย ตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก ตัวเลข และอักษรพิเศษ
+          อย่างน้อย 8 ตัว
+        </p>
 
         {userType === "company" && (
           <>
-            <p style={{ fontSize: 16, fontWeight: 1000, color: "#366DBD" }}>หน่วยงาน</p>
+            <p style={{ fontSize: 16, fontWeight: 1000, color: "#366DBD" }}>
+              หน่วยงาน
+            </p>
             <div className="flex flex-col sm:flex-row gap-6">
               <div className="flex flex-col gap-1 flex-1">
                 <p style={{ fontSize: 16, fontWeight: 500 }}>เลือกหน่วยงาน</p>
                 <select
                   className={styles.input}
                   value={form.organization_id}
-                  onChange={(e) => setForm({ ...form, organization_id: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, organization_id: e.target.value })
+                  }
                   disabled={orgsLoading}
                 >
                   <option value="">กรุณาเลือกหน่วยงาน</option>
                   {organizations.map((org) => (
-                    <option key={org.id} value={org.id}>{org.name}</option>
+                    <option key={org.id} value={org.id}>
+                      {org.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -240,7 +313,9 @@ export default function RegisterPage() {
         )}
 
         <div>
-          <p style={{ fontSize: 16, fontWeight: 1000, color: "#366DBD" }}>ยืนยันตัวตน</p>
+          <p style={{ fontSize: 16, fontWeight: 1000, color: "#366DBD" }}>
+            ยืนยันตัวตน
+          </p>
           <OtpInput email={form.email} onOtpChange={setOtp} />
         </div>
 
