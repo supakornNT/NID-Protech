@@ -42,7 +42,7 @@ export default function UserGroupsPage() {
             }
           />
         ),
-        className: "w-[72px]",
+        className: "w-[150px]",
         render: (_, row) => (
           <CheckCell
             checked={selectedGroupRows.includes(row.order)}
@@ -106,13 +106,27 @@ export default function UserGroupsPage() {
         key: "permissions",
         title: "กลุ่ม",
         render: (_, row) => (
-          <PermissionTags items={row.permissions.map((item) => item.replace("ITA", "IT"))} />
+          <PermissionTags
+            items={row.permissions.map((item) => item.replace("ITA", "IT"))}
+          />
         ),
       },
       {
         key: "status",
         title: "สถานะ",
-        render: (value) => <StatusBadge label={String(value)} tone="success" />,
+        render: (value) => {
+          const status = String(value);
+
+          if (status === "active") {
+            return <StatusBadge label="ใช้งาน" tone="success" />;
+          }
+
+          if (status === "inactive") {
+            return <StatusBadge label="ปิดใช้งาน" tone="danger" />;
+          }
+
+          return <StatusBadge label={status} tone="neutral" />;
+        },
       },
       {
         key: "actions",
@@ -126,8 +140,12 @@ export default function UserGroupsPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-[32px] font-bold leading-none text-[#111827]">จัดการกลุ่มผู้ใช้งาน</h1>
-        <p className="mt-2 text-[16px] text-[#8B95A7]">การจัดการแก้ไขข้อมูลกลุ่มผู้ใช้งาน</p>
+        <h1 className="text-[32px] font-bold leading-none text-[#111827]">
+          จัดการกลุ่มผู้ใช้งาน
+        </h1>
+        <p className="mt-2 text-[16px] text-[#8B95A7]">
+          การจัดการแก้ไขข้อมูลกลุ่มผู้ใช้งาน
+        </p>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -138,26 +156,40 @@ export default function UserGroupsPage() {
           className="w-[222px] flex-none"
           inputClassName="h-[31px] rounded-md border border-[#A8B1C2] px-3 text-[14px]"
         />
-        <ProTechButton variant="primary" className="h-[31px] min-w-[74px] px-4 text-[14px]">
+        <ProTechButton
+          variant="primary"
+          className="h-[31px] min-w-[74px] px-4 text-[14px]"
+        >
           ค้นหา
         </ProTechButton>
       </div>
 
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex items-end gap-8 border-b border-[#111827] px-3 pb-1">
+        <div className="relative inline-flex items-end gap-8 px-3 pb-2">
+          <span className="absolute inset-x-0 bottom-0 h-px bg-[#111827]" />
           <button
             type="button"
-            className={`text-[16px] ${tab === "groups" ? "text-[#3F73BB]" : "text-[#111827]"}`}
+            className={`relative z-10  px-1 pb-1 text-[16px] transition-all duration-200 ${
+              tab === "groups" ? "text-[#3F73BB]" : "text-[#111827] hover:text-[#3F73BB]"
+            }`}
             onClick={() => setTab("groups")}
           >
             กลุ่ม
+            {tab === "groups" && (
+              <span className="absolute bottom-[-2px] left-0 z-20 h-[2px] w-full bg-[#3F73BB]" />
+            )}
           </button>
           <button
             type="button"
-            className={`text-[16px] ${tab === "members" ? "text-[#3F73BB]" : "text-[#111827]"}`}
+            className={`relative z-10  px-1 pb-1 text-[16px] transition-all duration-200 ${
+              tab === "members" ? "text-[#3F73BB]" : "text-[#111827] hover:text-[#3F73BB]"
+            }`}
             onClick={() => setTab("members")}
           >
             จัดการคนในกลุ่ม
+            {tab === "members" && (
+              <span className="absolute bottom-[-2px] left-0 z-20 h-[2px] w-full bg-[#3F73BB]" />
+            )}
           </button>
         </div>
 
@@ -227,7 +259,10 @@ function GroupActionCell({ row }: { row: GroupRow }) {
             >
               ยกเลิก
             </ProTechButton>
-            <ProTechButton variant="primary" className="h-[33px] min-w-[86px] text-[14px]">
+            <ProTechButton
+              variant="primary"
+              className="h-[33px] min-w-[86px] text-[14px]"
+            >
               แก้ไข
             </ProTechButton>
           </div>
@@ -282,7 +317,10 @@ function MemberActionCell({ row }: { row: MemberRow }) {
             >
               ยกเลิก
             </ProTechButton>
-            <ProTechButton variant="primary" className="h-[33px] min-w-[86px] text-[14px]">
+            <ProTechButton
+              variant="primary"
+              className="h-[33px] min-w-[86px] text-[14px]"
+            >
               แก้ไข
             </ProTechButton>
           </div>
@@ -318,7 +356,10 @@ function CreateGroupModal({
           >
             ยกเลิก
           </ProTechButton>
-          <ProTechButton variant="primary" className="h-[33px] min-w-[86px] text-[14px]">
+          <ProTechButton
+            variant="primary"
+            className="h-[33px] min-w-[86px] text-[14px]"
+          >
             ยืนยัน
           </ProTechButton>
         </div>
