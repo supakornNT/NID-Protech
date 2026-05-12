@@ -61,7 +61,8 @@ export class AuthService {
       'SELECT id FROM customers WHERE email = ?',
       [dto.email],
     );
-    if (existing.length > 0) throw new BadRequestException('อีเมลนี้ถูกใช้งานแล้ว');
+    if (existing.length > 0)
+      throw new BadRequestException('อีเมลนี้ถูกใช้งานแล้ว');
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
