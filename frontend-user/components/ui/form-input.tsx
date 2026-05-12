@@ -66,7 +66,7 @@ export function FormInputIcon({
         <Input
           type={type}
           className={cn(
-            "border-0 shadow-none focus-visible:ring-0 p-0 h-full flex-1",
+            "border-0 shadow-none focus-visible:ring-0 p-0 h-full flex-1 [&::-ms-reveal]:hidden [&::-webkit-contacts-auto-fill-button]:hidden [&::-webkit-credentials-auto-fill-button]:hidden",
             inputClassName,
           )}
           placeholder={placeholder}
