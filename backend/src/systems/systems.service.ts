@@ -59,8 +59,8 @@ export class SystemsService {
   async findName(id: number): Promise<System | null> {
     const [rows] = await this.db.query<System[]>(
       `SELECT
-      system.id,
-      system.name
+      systems.id,
+      systems.name
       FROM systems
       LEFT JOIN organizations ON organizations.id = systems.organization_id
       WHERE systems.id = ?
@@ -73,7 +73,7 @@ export class SystemsService {
   async create(dto: CreateSystemDto): Promise<System | null> {
     const [result] = await this.db.query<ResultSetHeader>(
       'INSERT INTO systems (organization_id, name, status) VALUES (?, ?, ?)',
-      [dto.organization_id, dto.name, dto.status ?? 'active'],
+      [dto.organizationId ?? dto.organization_id, dto.name, dto.status ?? 'active'],
     );
 
     return this.findOne(result.insertId);
@@ -94,7 +94,7 @@ export class SystemsService {
         status = ?
       WHERE id = ?`,
       [
-        dto.organization_id ?? current.organization_id,
+        dto.organizationId ?? dto.organization_id ?? current.organization_id,
         dto.name ?? current.name,
         dto.status ?? current.status,
         id,

@@ -45,12 +45,7 @@ export class ScreeningsService {
   async create(dto: CreateScreeningDto): Promise<Screening | null> {
     const [result] = await this.db.query<ResultSetHeader>(
       'INSERT INTO screenings (report_id, screened_by, result, note) VALUES (?, ?, ?, ?)',
-      [
-        dto.report_id,
-        dto.screened_by,
-        dto.result,
-        dto.note,
-      ],
+      [dto.reportId, dto.screenedBy, dto.result, dto.note],
     );
 
     return this.findOne(result.insertId);
@@ -72,8 +67,8 @@ export class ScreeningsService {
         note = ?
       WHERE id = ?`,
       [
-        dto.report_id ?? current.report_id,
-        dto.screened_by ?? current.screened_by,
+        dto.reportId ?? current.report_id,
+        dto.screenedBy ?? current.screened_by,
         dto.result ?? current.result,
         dto.note ?? current.note,
         id,
@@ -91,6 +86,4 @@ export class ScreeningsService {
 
     return { message: 'deleted' };
   }
-
-
 }

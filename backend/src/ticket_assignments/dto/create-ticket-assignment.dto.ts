@@ -1,11 +1,11 @@
 export class CreateTicketAssignmentDto {
-  ticket_id: number;
+  ticketId!: number;
 
-  assigned_team_id?: number;
+  assignedTeamId?: number;
 
-  assigned_staff_id?: number;
+  assignedStaffId?: number;
 
-  assigned_by?: number;
+  assignedBy?: number;
 
   note?: string;
 }

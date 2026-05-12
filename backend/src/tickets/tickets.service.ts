@@ -74,17 +74,17 @@ export class TicketsService {
     const [result] = await this.db.query<ResultSetHeader>(
       'INSERT INTO tickets (ticket_no, report_id, parent_ticket_id, assigned_team_id, assigned_staff_id, assigned_by, title, description, status, resolved_at, closed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
-        dto.ticket_no,
-        dto.report_id,
-        dto.parent_ticket_id,
-        dto.assigned_team_id,
-        dto.assigned_staff_id,
-        dto.assigned_by,
+        dto.ticketNo,
+        dto.reportId,
+        dto.parentTicketId,
+        dto.assignedTeamId,
+        dto.assignedStaffId,
+        dto.assignedBy,
         dto.title,
         dto.description,
         dto.status,
-        dto.resolved_at,
-        dto.closed_at,
+        dto.resolvedAt,
+        dto.closedAt,
       ],
     );
 
@@ -114,17 +114,17 @@ export class TicketsService {
         closed_at = ?
       WHERE id = ?`,
       [
-        dto.ticket_no ?? current.ticket_no,
-        dto.report_id ?? current.report_id,
-        dto.parent_ticket_id ?? current.parent_ticket_id,
-        dto.assigned_team_id ?? current.assigned_team_id,
-        dto.assigned_staff_id ?? current.assigned_staff_id,
-        dto.assigned_by ?? current.assigned_by,
+        dto.ticketNo ?? current.ticket_no,
+        dto.reportId ?? current.report_id,
+        dto.parentTicketId ?? current.parent_ticket_id,
+        dto.assignedTeamId ?? current.assigned_team_id,
+        dto.assignedStaffId ?? current.assigned_staff_id,
+        dto.assignedBy ?? current.assigned_by,
         dto.title ?? current.title,
         dto.description ?? current.description,
         dto.status ?? current.status,
-        dto.resolved_at ?? current.resolved_at,
-        dto.closed_at ?? current.closed_at,
+        dto.resolvedAt ?? current.resolved_at,
+        dto.closedAt ?? current.closed_at,
         id,
       ],
     );
@@ -140,6 +140,4 @@ export class TicketsService {
 
     return this.findOne(id);
   }
-
-
 }

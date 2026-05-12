@@ -1,12 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { Pool, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
+import { extname } from 'path';
 import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
 import type { Report } from './interfaces/report.interface';
 import { CreateReportInternalDto } from './dto/create-report-internal.dto';
 import { CreateReportExternalDto } from './dto/create-report-external.dto';
 import { CreateReportServiceDto } from './dto/create-report-service.dto';
-import { extname } from 'path';
+
 @Injectable()
 export class ReportsService {
   constructor(@Inject('DB') private readonly db: Pool) {}
@@ -17,6 +18,7 @@ export class ReportsService {
       reports.id,
       reports.report_no,
       CONCAT(customers.name, ' ', customers.surname) AS customer_name,
+      reports.organization,
       systems.name AS system_name,
       problem_types.name AS problem_type_name,
       reports.title,
@@ -40,6 +42,7 @@ export class ReportsService {
       reports.id,
       reports.report_no,
       CONCAT(customers.name, ' ', customers.surname) AS customer_name,
+      reports.organization,
       systems.name AS system_name,
       problem_types.name AS problem_type_name,
       reports.title,
@@ -64,18 +67,18 @@ export class ReportsService {
     const [result] = await this.db.query<ResultSetHeader>(
       'INSERT INTO reports (report_no, customer_id, organization, system_id, problem_type_id, title, detail, status, score, reject_reason, resolve_due_at, closed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
-        dto.report_no,
-        dto.customer_id,
-        dto.organization,
-        dto.system_id,
-        dto.problem_type_id,
+        dto.reportNo ?? dto.report_no,
+        dto.customerId ?? dto.customer_id,
+        dto.organization ?? null,
+        dto.systemId ?? dto.system_id ?? null,
+        dto.problemTypeId ?? dto.problem_type_id,
         dto.title,
         dto.detail,
         dto.status,
-        dto.score,
-        dto.reject_reason,
-        dto.resolve_due_at,
-        dto.closed_at,
+        dto.score ?? null,
+        dto.rejectReason ?? dto.reject_reason ?? null,
+        dto.resolveDueAt ?? dto.resolve_due_at ?? null,
+        dto.closedAt ?? dto.closed_at ?? null,
       ],
     );
 
@@ -208,6 +211,7 @@ export class ReportsService {
 
     return this.findOne(reportId);
   }
+
   async createReportService(
     dto: CreateReportServiceDto,
     files: Express.Multer.File[],

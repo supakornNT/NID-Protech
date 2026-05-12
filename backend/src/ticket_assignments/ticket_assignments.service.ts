@@ -44,14 +44,16 @@ export class TicketAssignmentsService {
     return rows[0] ?? null;
   }
 
-  async create(dto: CreateTicketAssignmentDto): Promise<TicketAssignment | null> {
+  async create(
+    dto: CreateTicketAssignmentDto,
+  ): Promise<TicketAssignment | null> {
     const [result] = await this.db.query<ResultSetHeader>(
       'INSERT INTO ticket_assignments (ticket_id, assigned_team_id, assigned_staff_id, assigned_by, note) VALUES (?, ?, ?, ?, ?)',
       [
-        dto.ticket_id,
-        dto.assigned_team_id,
-        dto.assigned_staff_id,
-        dto.assigned_by,
+        dto.ticketId,
+        dto.assignedTeamId,
+        dto.assignedStaffId,
+        dto.assignedBy,
         dto.note,
       ],
     );
@@ -59,7 +61,10 @@ export class TicketAssignmentsService {
     return this.findOne(result.insertId);
   }
 
-  async update(id: number, dto: UpdateTicketAssignmentDto): Promise<TicketAssignment | null> {
+  async update(
+    id: number,
+    dto: UpdateTicketAssignmentDto,
+  ): Promise<TicketAssignment | null> {
     const current = await this.findOne(id);
 
     if (!current) {
@@ -76,10 +81,10 @@ export class TicketAssignmentsService {
         note = ?
       WHERE id = ?`,
       [
-        dto.ticket_id ?? current.ticket_id,
-        dto.assigned_team_id ?? current.assigned_team_id,
-        dto.assigned_staff_id ?? current.assigned_staff_id,
-        dto.assigned_by ?? current.assigned_by,
+        dto.ticketId ?? current.ticket_id,
+        dto.assignedTeamId ?? current.assigned_team_id,
+        dto.assignedStaffId ?? current.assigned_staff_id,
+        dto.assignedBy ?? current.assigned_by,
         dto.note ?? current.note,
         id,
       ],
@@ -96,6 +101,4 @@ export class TicketAssignmentsService {
 
     return { message: 'deleted' };
   }
-
-
 }

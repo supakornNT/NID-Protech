@@ -1,9 +1,9 @@
 export class CreateTicketWorkLogDto {
-  ticket_id: number;
+  ticketId!: number;
 
-  staff_id: number;
+  staffId!: number;
 
-  work_detail: string;
+  workDetail!: string;
 
-  work_status: string;
+  workStatus!: string;
 }

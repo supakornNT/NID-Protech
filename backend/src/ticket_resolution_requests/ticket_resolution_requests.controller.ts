@@ -12,10 +12,11 @@ import { CreateTicketResolutionRequestDto } from './dto/create-ticket-resolution
 import { UpdateTicketResolutionRequestDto } from './dto/update-ticket-resolution-request.dto';
 import { TicketResolutionRequestsService } from './ticket_resolution_requests.service';
 
-
 @Controller('admin/ticket-resolution-requests')
 export class TicketResolutionRequestsController {
-  constructor(private readonly ticketResolutionRequest: TicketResolutionRequestsService) {}
+  constructor(
+    private readonly ticketResolutionRequest: TicketResolutionRequestsService,
+  ) {}
 
   @Get()
   findAll() {
@@ -33,7 +34,10 @@ export class TicketResolutionRequestsController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateTicketResolutionRequestDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateTicketResolutionRequestDto,
+  ) {
     return this.ticketResolutionRequest.update(id, body);
   }
 
@@ -41,5 +45,4 @@ export class TicketResolutionRequestsController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.ticketResolutionRequest.remove(id);
   }
-
 }

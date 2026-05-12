@@ -1,11 +1,11 @@
 export class CreateAttachmentDto {
-  report_id?: number;
+  reportId?: number;
 
-  ticket_id?: number;
+  ticketId?: number;
 
-  attachment_type: string;
+  attachmentType!: string;
 
-  original_name: string;
+  originalName!: string;
 
-  file_ext: string;
+  fileExt!: string;
 }

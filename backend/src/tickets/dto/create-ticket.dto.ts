@@ -1,23 +1,23 @@
 export class CreateTicketDto {
-  ticket_no: string;
+  ticketNo!: string;
 
-  report_id: number;
+  reportId!: number;
 
-  parent_ticket_id?: number;
+  parentTicketId?: number;
 
-  assigned_team_id?: number;
+  assignedTeamId?: number;
 
-  assigned_staff_id?: number;
+  assignedStaffId?: number;
 
-  assigned_by?: number;
+  assignedBy?: number;
 
-  title: string;
+  title!: string;
 
-  description: string;
+  description!: string;
 
-  status: string;
+  status!: string;
 
-  resolved_at?: string;
+  resolvedAt?: string;
 
-  closed_at?: string;
+  closedAt?: string;
 }

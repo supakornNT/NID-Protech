@@ -1,0 +1,16 @@
+export type Column<T> = {
+  key: keyof T | string;
+  title: string;
+  className?: string;
+  render?: (value: unknown, row: T, index: number) => React.ReactNode;
+};
+
+export type ProTechTableProps<T> = {
+  columns: Column<T>[];
+  data: T[];
+  limit?: number;
+  page?: number;
+  totalPages?: number;
+  totalItems?: number;
+  onPageChange?: (page: number) => void;
+};

@@ -1,12 +1,11 @@
 "use client";
 
-import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon, Paperclip, X } from "lucide-react";
+import { Paperclip, X } from "lucide-react";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FormInput } from "@/components/ui/form-input";
@@ -22,7 +21,7 @@ const ORGANIZATION_ID = 1;
 
 export default function ReportExternalPage() {
   const router = useRouter();
-  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [date, setDate] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [form, setForm] = useState({
     title: "",
@@ -46,7 +45,7 @@ export default function ReportExternalPage() {
     formData.append("problem_type_id", form.problem_type_id);
     formData.append("system_id", form.system_id);
     formData.append("detail", form.detail);
-    if (date) formData.append("resolve_due_at", date.toISOString());
+    if (date) formData.append("resolve_due_at", date);
     for (const file of files) {
       formData.append("files", file);
     }
@@ -57,14 +56,14 @@ export default function ReportExternalPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4 sm:p-6">
       <Card className={styles.card}>
-        <div className="px-4 sm:px-8 pt-6 pb-2 border-b">
+        <div className="border-b px-4 pt-6 pb-2 sm:px-8">
           <h1 className="text-2xl font-bold">
             รายงานปัญหาเกี่ยวกับระบบสาธารณะ
           </h1>
         </div>
 
-        <div className="px-4 sm:px-8 py-6 flex flex-col gap-5">
-          <div className="flex flex-col sm:flex-row gap-6">
+        <div className="flex flex-col gap-5 px-4 py-6 sm:px-8">
+          <div className="flex flex-col gap-6 sm:flex-row">
             <FormInput
               label="ผู้แจ้ง"
               placeholder="กำลังโหลด..."
@@ -83,8 +82,8 @@ export default function ReportExternalPage() {
             onChange={(e) => setForm({ ...form, title: e.target.value })}
           />
 
-          <div className="flex flex-col sm:flex-row gap-6">
-            <div className="flex flex-col gap-1 flex-1">
+          <div className="flex flex-col gap-6 sm:flex-row">
+            <div className="flex flex-1 flex-col gap-1">
               <p style={{ fontSize: 16, fontWeight: 500 }}>ประเภทปัญหา</p>
               <select
                 className={`${styles.input} ${styles.select}`}
@@ -103,7 +102,7 @@ export default function ReportExternalPage() {
               </select>
             </div>
 
-            <div className="flex flex-col gap-1 flex-1">
+            <div className="flex flex-1 flex-col gap-1">
               <p style={{ fontSize: 16, fontWeight: 500 }}>ระบบ</p>
               <select
                 className={`${styles.input} ${styles.select}`}
@@ -121,29 +120,14 @@ export default function ReportExternalPage() {
               </select>
             </div>
 
-            <div className="flex flex-col gap-1 flex-1">
+            <div className="flex flex-1 flex-col gap-1">
               <p style={{ fontSize: 16, fontWeight: 500 }}>ระยะเวลา</p>
-              <Popover>
-                <PopoverTrigger
-                  className={`${styles.input} flex items-center gap-2 w-full`}
-                >
-                  <CalendarIcon size={14} className="text-gray-400" />
-                  <span className={date ? "text-black" : "text-gray-400"}>
-                    {date
-                      ? date.toLocaleDateString("th-TH")
-                      : "กรุณาเลือกวันที่"}
-                  </span>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    className="rounded-lg border"
-                    captionLayout="dropdown"
-                  />
-                </PopoverContent>
-              </Popover>
+              <input
+                type="date"
+                className={styles.input}
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
             </div>
           </div>
 
@@ -160,11 +144,11 @@ export default function ReportExternalPage() {
           <div className="flex flex-col gap-2">
             <p style={{ fontSize: 16, fontWeight: 500 }}>แนบไฟล์</p>
             <Popover>
-              <PopoverTrigger className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:bg-gray-50 w-fit">
+              <PopoverTrigger className="flex w-fit items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-2 text-sm text-gray-500 hover:bg-gray-50">
                 <Paperclip size={14} />
                 แนบไฟล์{" "}
                 {files.length > 0 && (
-                  <span className="bg-blue-100 text-blue-600 text-xs px-1.5 py-0.5 rounded-full">
+                  <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-xs text-blue-600">
                     {files.length}
                   </span>
                 )}
@@ -172,11 +156,9 @@ export default function ReportExternalPage() {
               <PopoverContent className="w-72">
                 <div className="flex flex-col gap-3">
                   <p className="text-sm font-medium">เลือกไฟล์ที่ต้องการแนบ</p>
-                  <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-lg p-5 cursor-pointer hover:bg-gray-50 transition">
-                    <Paperclip size={24} className="text-gray-400 mb-1" />
-                    <span className="text-sm text-gray-500">
-                      คลิกเพื่อเลือกไฟล์
-                    </span>
+                  <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 p-5 transition hover:bg-gray-50">
+                    <Paperclip size={24} className="mb-1 text-gray-400" />
+                    <span className="text-sm text-gray-500">คลิกเพื่อเลือกไฟล์</span>
                     <span className="text-xs text-gray-400">
                       หรือลากไฟล์มาวางที่นี่
                     </span>
@@ -197,14 +179,14 @@ export default function ReportExternalPage() {
                       {files.map((file, i) => (
                         <li
                           key={i}
-                          className="flex items-center justify-between text-xs text-gray-600 bg-gray-50 px-2 py-1.5 rounded"
+                          className="flex items-center justify-between rounded bg-gray-50 px-2 py-1.5 text-xs text-gray-600"
                         >
-                          <span className="truncate">📄 {file.name}</span>
+                          <span className="truncate">{file.name}</span>
                           <button
                             onClick={() =>
                               setFiles((prev) => prev.filter((_, j) => j !== i))
                             }
-                            className="text-gray-400 hover:text-red-500 ml-2 shrink-0"
+                            className="ml-2 shrink-0 text-gray-400 hover:text-red-500"
                           >
                             <X size={12} />
                           </button>

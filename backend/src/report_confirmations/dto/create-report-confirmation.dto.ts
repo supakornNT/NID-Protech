@@ -1,7 +1,7 @@
 export class CreateReportConfirmationDto {
-  report_id?: number;
+  reportId?: number;
 
-  customer_id?: number;
+  customerId?: number;
 
   result!: string;
 

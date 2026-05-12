@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { fetchJson } from '@/lib/fetch';
+import { fetchJson } from '@/lib/api';
 
 export interface Organization {
   id: number;

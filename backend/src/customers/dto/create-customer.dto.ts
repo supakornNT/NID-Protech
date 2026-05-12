@@ -3,7 +3,9 @@ export class CreateCustomerDto {
   surname!: string;
   email!: string;
   phone!: string;
-  customer_type!: string;
+  customerType?: string;
+  customer_type?: string;
+  organizationId?: number;
   organization_id?: number;
   status?: string;
 }

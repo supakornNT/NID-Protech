@@ -1,7 +1,7 @@
 export class CreateStaffTeamRoleDto {
-  staff_id: number;
+  staffId!: number;
 
-  team_id: number;
+  teamId!: number;
 
-  role_id: number;
+  roleId!: number;
 }

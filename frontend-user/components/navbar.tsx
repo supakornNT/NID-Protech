@@ -1,13 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import Image from "next/image";
-import {
-  ChevronDown,
-  Menu,
-  UserRound,
-  X,
-} from "lucide-react";
+
+import { ChevronDown, Menu, UserRound, X } from "lucide-react";
 
 import styles from "./navbar.module.css";
 
@@ -15,19 +12,12 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState(false);
 
-
   useEffect(() => {
-    if (typeof document === "undefined") {
-      return;
-    }
+    if (!mobileMenuOpen) return;
 
     const previousOverflow = document.body.style.overflow;
 
-    if (mobileMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = previousOverflow;
-    }
+    document.body.style.overflow = "hidden";
 
     return () => {
       document.body.style.overflow = previousOverflow;
@@ -53,27 +43,35 @@ export default function Navbar() {
             alt="ProTech Logo"
             width={148}
             height={42}
+            loading="eager"
             className={styles.logoImage}
           />
         </div>
 
         <div className={styles.desktopLink}>
-          <a href="/home">หน้าหลัก</a>
+          <Link href="/home">หน้าหลัก</Link>
         </div>
 
         <div className={styles.desktopDropdown}>
           <div className={styles.desktopDropdownTrigger}>
             แจ้งปัญหา <ChevronDown size={16} />
           </div>
+
           <div className={styles.desktopDropdownMenu}>
-            <a href="/report/internal">รายงานปัญหาเกี่ยวกับระบบภายในองค์กร</a>
-            <a href="/report/external">รายงานปัญหาเกี่ยวกับระบบสาธารณะ</a>
-            <a href="/report/service">เเจ้งข้อร้องเรียนการให้บริการ</a>
+            <Link href="/report/internal">
+              รายงานปัญหาเกี่ยวกับระบบภายในองค์กร
+            </Link>
+            <Link href="/report/external">
+              รายงานปัญหาเกี่ยวกับระบบสาธารณะ
+            </Link>
+            <Link href="/report/service">
+              แจ้งข้อร้องเรียนการให้บริการ
+            </Link>
           </div>
         </div>
 
         <div className={styles.desktopLink}>
-          <a href="/track">การติดตาม</a>
+          <Link href="/track">การติดตาม</Link>
         </div>
 
         <div className={styles.desktopUser}>
@@ -103,9 +101,13 @@ export default function Navbar() {
           mobileMenuOpen ? styles.mobilePanelOpen : ""
         }`}
       >
-        <a href="/home" className={styles.mobileItem}>
+        <Link
+          href="/home"
+          className={styles.mobileItem}
+          onClick={() => setMobileMenuOpen(false)}
+        >
           <span className={styles.mobileItemLeft}>หน้าหลัก</span>
-        </a>
+        </Link>
 
         <button
           type="button"
@@ -114,6 +116,7 @@ export default function Navbar() {
           aria-expanded={mobileSubmenuOpen}
         >
           <span className={styles.mobileItemLeft}>แจ้งปัญหา</span>
+
           <ChevronDown
             size={18}
             className={`${styles.submenuChevron} ${
@@ -127,17 +130,38 @@ export default function Navbar() {
             mobileSubmenuOpen ? styles.mobileSubmenuOpen : ""
           }`}
         >
-          <a href="/report/system" className={styles.mobileSubmenuItem}>
-            แจ้งปัญหา
-          </a>
-          <a href="/report/service" className={styles.mobileSubmenuItem}>
-            แจ้งข้อร้องเรียน
-          </a>
+          <Link
+            href="/report/internal"
+            className={styles.mobileSubmenuItem}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            รายงานปัญหาเกี่ยวกับระบบภายในองค์กร
+          </Link>
+
+          <Link
+            href="/report/external"
+            className={styles.mobileSubmenuItem}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            รายงานปัญหาเกี่ยวกับระบบสาธารณะ
+          </Link>
+
+          <Link
+            href="/report/service"
+            className={styles.mobileSubmenuItem}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            แจ้งข้อร้องเรียนการให้บริการ
+          </Link>
         </div>
 
-        <a href="/track" className={styles.mobileItem}>
+        <Link
+          href="/track"
+          className={styles.mobileItem}
+          onClick={() => setMobileMenuOpen(false)}
+        >
           <span className={styles.mobileItemLeft}>การติดตาม</span>
-        </a>
+        </Link>
       </div>
     </>
   );

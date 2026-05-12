@@ -48,24 +48,29 @@ export class TicketResolutionRequestsService {
     return rows[0] ?? null;
   }
 
-  async create(dto: CreateTicketResolutionRequestDto): Promise<TicketResolutionRequest | null> {
+  async create(
+    dto: CreateTicketResolutionRequestDto,
+  ): Promise<TicketResolutionRequest | null> {
     const [result] = await this.db.query<ResultSetHeader>(
       'INSERT INTO ticket_resolution_requests (ticket_id, requested_by, summary, status, reviewed_by, reviewed_at, reject_reason) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [
-        dto.ticket_id,
-        dto.requested_by,
+        dto.ticketId,
+        dto.requestedBy,
         dto.summary,
         dto.status,
-        dto.reviewed_by,
-        dto.reviewed_at,
-        dto.reject_reason,
+        dto.reviewedBy,
+        dto.reviewedAt,
+        dto.rejectReason,
       ],
     );
 
     return this.findOne(result.insertId);
   }
 
-  async update(id: number, dto: UpdateTicketResolutionRequestDto): Promise<TicketResolutionRequest | null> {
+  async update(
+    id: number,
+    dto: UpdateTicketResolutionRequestDto,
+  ): Promise<TicketResolutionRequest | null> {
     const current = await this.findOne(id);
 
     if (!current) {
@@ -84,13 +89,13 @@ export class TicketResolutionRequestsService {
         reject_reason = ?
       WHERE id = ?`,
       [
-        dto.ticket_id ?? current.ticket_id,
-        dto.requested_by ?? current.requested_by,
+        dto.ticketId ?? current.ticket_id,
+        dto.requestedBy ?? current.requested_by,
         dto.summary ?? current.summary,
         dto.status ?? current.status,
-        dto.reviewed_by ?? current.reviewed_by,
-        dto.reviewed_at ?? current.reviewed_at,
-        dto.reject_reason ?? current.reject_reason,
+        dto.reviewedBy ?? current.reviewed_by,
+        dto.reviewedAt ?? current.reviewed_at,
+        dto.rejectReason ?? current.reject_reason,
         id,
       ],
     );
@@ -106,6 +111,4 @@ export class TicketResolutionRequestsService {
 
     return this.findOne(id);
   }
-
-
 }

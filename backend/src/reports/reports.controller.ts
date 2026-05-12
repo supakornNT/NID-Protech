@@ -11,8 +11,9 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { mkdirSync } from 'fs';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { extname, resolve } from 'path';
 import { CreateReportDto } from './dto/create-report.dto';
 import { CreateReportInternalDto } from './dto/create-report-internal.dto';
 import { CreateReportExternalDto } from './dto/create-report-external.dto';
@@ -20,8 +21,12 @@ import { CreateReportServiceDto } from './dto/create-report-service.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
 import { ReportsService } from './reports.service';
 
+const reportsUploadDir = resolve(process.cwd(), '..', 'uploads', 'reports');
+
+mkdirSync(reportsUploadDir, { recursive: true });
+
 const internalStorage = diskStorage({
-  destination: 'C:/Users/deadc/NID-Protech/uploads/reports',
+  destination: reportsUploadDir,
   filename(_req, file, cb) {
     const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
     cb(null, unique + extname(file.originalname));

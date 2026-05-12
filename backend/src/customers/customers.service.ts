@@ -75,8 +75,8 @@ export class CustomersService {
         dto.surname,
         dto.email,
         dto.phone,
-        dto.customer_type,
-        dto.organization_id ?? null,
+        dto.customerType ?? dto.customer_type,
+        dto.organizationId ?? dto.organization_id ?? null,
         dto.status ?? 'pending',
       ],
     );
@@ -99,6 +99,7 @@ export class CustomersService {
         email = ?,
         phone = ?,
         customer_type = ?,
+        organization_id = ?,
         status = ?
       WHERE id = ?`,
       [
@@ -106,7 +107,8 @@ export class CustomersService {
         dto.surname ?? current.surname,
         dto.email ?? current.email,
         dto.phone ?? current.phone,
-        dto.customer_type ?? current.customer_type,
+        dto.customerType ?? dto.customer_type ?? current.customer_type,
+        dto.organizationId ?? dto.organization_id ?? current.organization_id,
         dto.status ?? current.status,
         id,
       ],
