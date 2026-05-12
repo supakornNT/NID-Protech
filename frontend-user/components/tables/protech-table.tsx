@@ -115,7 +115,7 @@ export function ProTechTable<T>({
                 {columns.map((column, index) => (
                   <TableHead
                     key={index}
-                    className={`h-15 border-r border-[#7FA7E8] px-4 text-center text-sm font-normal text-[#3A6FCF] last:border-r-0 ${
+                    className={`h-15 border-r border-[#7FA7E8] px-4 text-center text-sm font-normal text-[#000000] last:border-r-0 ${
                       column.className || ""
                     }`}
                   >
@@ -146,7 +146,7 @@ export function ProTechTable<T>({
                           return (
                             <TableCell
                               key={colIndex}
-                              className="h-12 border-r border-[#7FA7E8] px-4 py-3 text-center text-sm text-[#3A6FCF] last:border-r-0"
+                              className="h-12 border-r border-[#7FA7E8] px-4 py-3 text-center text-sm text-[#000000] last:border-r-0"
                             >
                               {column.render
                                 ? column.render(
