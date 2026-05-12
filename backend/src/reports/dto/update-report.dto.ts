@@ -17,8 +17,6 @@ export class UpdateReportDto {
 
   score?: number;
 
-  reject_reason?: string;
-
   resolve_due_at?: string;
 
   closed_at?: string;

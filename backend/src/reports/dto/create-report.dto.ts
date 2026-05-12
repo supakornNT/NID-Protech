@@ -12,8 +12,6 @@ export class CreateReportDto {
   detail!: string;
   status!: string;
   score?: number;
-  rejectReason?: string;
-  reject_reason?: string;
   resolveDueAt?: string;
   resolve_due_at?: string;
   closedAt?: string;

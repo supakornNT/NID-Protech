@@ -47,7 +47,7 @@ const columns: Column<ReportListItem>[] =
     title: "ออกเอกสาร",
     className: "min-w-[140px]",
     render: (_, row) => (
-      <div className="flex justify-center">
+      <div className="flex justify-center text-[#3A6FCF]">
         <TicketPdfButton
           ticket={{ trackingNo: row.trackingNo }}
           trackingPath={`/track/${row.trackingNo}`}

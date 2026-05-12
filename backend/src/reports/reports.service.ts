@@ -65,7 +65,7 @@ export class ReportsService {
 
   async create(dto: CreateReportDto): Promise<Report | null> {
     const [result] = await this.db.query<ResultSetHeader>(
-      'INSERT INTO reports (report_no, customer_id, organization, system_id, problem_type_id, title, detail, status, score, reject_reason, resolve_due_at, closed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO reports (report_no, customer_id, organization, system_id, problem_type_id, title, detail, status, score, resolve_due_at, closed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         dto.reportNo ?? dto.report_no,
         dto.customerId ?? dto.customer_id,
@@ -76,7 +76,6 @@ export class ReportsService {
         dto.detail,
         dto.status,
         dto.score ?? null,
-        dto.rejectReason ?? dto.reject_reason ?? null,
         dto.resolveDueAt ?? dto.resolve_due_at ?? null,
         dto.closedAt ?? dto.closed_at ?? null,
       ],
@@ -104,7 +103,6 @@ export class ReportsService {
         detail = ?,
         status = ?,
         score = ?,
-        reject_reason = ?,
         resolve_due_at = ?,
         closed_at = ?
       WHERE id = ?`,
@@ -118,7 +116,6 @@ export class ReportsService {
         dto.detail ?? current.detail,
         dto.status ?? current.status,
         dto.score ?? current.score,
-        dto.reject_reason ?? current.reject_reason,
         dto.resolve_due_at ?? current.resolve_due_at,
         dto.closed_at ?? current.closed_at,
         id,
