@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 12, 2026 at 04:43 AM
+-- Generation Time: May 12, 2026 at 09:48 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -50,7 +50,8 @@ INSERT INTO `attachments` (`id`, `report_id`, `ticket_id`, `attachment_type`, `o
 (6, NULL, 4, 'resolution_evidence', 'service-followup.pdf', 'pdf', '2026-05-08 13:50:00'),
 (7, NULL, 5, 'customer_tracking_ticket', 'tracking-TCK-20260508-0005.pdf', 'pdf', '2026-05-08 09:46:00'),
 (8, NULL, 6, 'resolution_evidence', 'server-log-result.jpeg', 'jpeg', '2026-05-08 10:28:00'),
-(9, 9, 8, 'customer_tracking_ticket', 'tracking-REP-20260508-0009.pdf', 'pdf', '2026-05-11 11:49:39');
+(9, 9, 8, 'customer_tracking_ticket', 'tracking-REP-20260508-0009.pdf', 'pdf', '2026-05-11 11:49:39'),
+(10, 15, NULL, '', 'support_system (7).sql', '', '2026-05-12 13:04:21');
 
 -- --------------------------------------------------------
 
@@ -60,6 +61,8 @@ INSERT INTO `attachments` (`id`, `report_id`, `ticket_id`, `attachment_type`, `o
 
 CREATE TABLE `customers` (
   `id` int(10) UNSIGNED NOT NULL,
+  `prefix_id` int(10) UNSIGNED DEFAULT NULL,
+  `citizen_id` varchar(13) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `surname` varchar(255) DEFAULT NULL,
   `email` varchar(255) NOT NULL,
@@ -76,13 +79,13 @@ CREATE TABLE `customers` (
 -- Dumping data for table `customers`
 --
 
-INSERT INTO `customers` (`id`, `name`, `surname`, `email`, `phone`, `customer_type`, `organization_id`, `status`, `password_hash`, `created_at`, `updated_at`) VALUES
-(1, 'สมชาย', 'ใจดี', 'somchai@example.com', '0811111111', 'person', NULL, 'approved', '$2b$10$mockhashcustomer1', '2026-05-01 10:00:00', '2026-05-12 09:41:35'),
-(2, 'วราภรณ์', 'มั่นคง', 'waraporn@example.com', '0822222222', 'person', NULL, 'approved', '$2b$10$mockhashcustomer2', '2026-05-01 10:05:00', '2026-05-12 09:41:29'),
-(3, 'บริษัท เอ็นไอดี', 'เทคโนโลยี', 'contact@nidtech.com', '023333333', 'company', 1, 'approved', '$2b$10$mockhashcustomer3', '2026-05-01 10:10:00', '2026-05-12 09:41:23'),
-(4, 'ลูกค้าใหม่', 'รออนุมัติ', 'pending@example.com', '0844444444', 'person', NULL, 'pending', '$2b$10$mockhashcustomer4', '2026-05-01 10:15:00', '2026-05-01 10:15:00'),
-(5, 'ลูกค้าถูกปฏิเสธ', 'ทดสอบ', 'rejected@example.com', '0855555555', 'person', NULL, 'rejected', '$2b$10$mockhashcustomer5', '2026-05-01 10:20:00', '2026-05-01 10:20:00'),
-(6, 'ลูกค้าเก่า', 'ปิดใช้งาน', 'inactive@example.com', '0866666666', 'company', 1, 'inactive', '$2b$10$mockhashcustomer6', '2026-05-01 10:25:00', '2026-05-12 09:41:41');
+INSERT INTO `customers` (`id`, `prefix_id`, `citizen_id`, `name`, `surname`, `email`, `phone`, `customer_type`, `organization_id`, `status`, `password_hash`, `created_at`, `updated_at`) VALUES
+(1, NULL, NULL, 'สมชาย', 'ใจดี', 'somchai@example.com', '0811111111', 'company', 1, 'approved', '$2b$10$mockhashcustomer1', '2026-05-01 10:00:00', '2026-05-12 13:01:08'),
+(2, NULL, NULL, 'วราภรณ์', 'มั่นคง', 'waraporn@example.com', '0822222222', 'person', NULL, 'approved', '$2b$10$mockhashcustomer2', '2026-05-01 10:05:00', '2026-05-12 09:41:29'),
+(3, NULL, NULL, 'บริษัท เอ็นไอดี', 'เทคโนโลยี', 'contact@nidtech.com', '023333333', 'company', 1, 'approved', '$2b$10$mockhashcustomer3', '2026-05-01 10:10:00', '2026-05-12 09:41:23'),
+(4, NULL, NULL, 'ลูกค้าใหม่', 'รออนุมัติ', 'pending@example.com', '0844444444', 'person', NULL, 'pending', '$2b$10$mockhashcustomer4', '2026-05-01 10:15:00', '2026-05-01 10:15:00'),
+(5, NULL, NULL, 'ลูกค้าถูกปฏิเสธ', 'ทดสอบ', 'rejected@example.com', '0855555555', 'person', NULL, 'rejected', '$2b$10$mockhashcustomer5', '2026-05-01 10:20:00', '2026-05-01 10:20:00'),
+(6, NULL, NULL, 'ลูกค้าเก่า', 'ปิดใช้งาน', 'inactive@example.com', '0866666666', 'company', 1, 'inactive', '$2b$10$mockhashcustomer6', '2026-05-01 10:25:00', '2026-05-12 09:41:41');
 
 -- --------------------------------------------------------
 
@@ -165,6 +168,114 @@ INSERT INTO `password_logs` (`id`, `user_type`, `user_id`, `password_hash`, `cha
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `prefixes`
+--
+
+CREATE TABLE `prefixes` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `created_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `prefixes`
+--
+
+INSERT INTO `prefixes` (`id`, `name`, `created_at`) VALUES
+(1, 'เด็กชาย', '2026-05-12 14:42:17'),
+(2, 'เด็กหญิง', '2026-05-12 14:42:17'),
+(3, 'นาย', '2026-05-12 14:42:17'),
+(4, 'นาง', '2026-05-12 14:42:17'),
+(5, 'นางสาว', '2026-05-12 14:42:17'),
+(6, 'ว่าที่ ร.ต.', '2026-05-12 14:42:17'),
+(7, 'ว่าที่ ร.ท.', '2026-05-12 14:42:17'),
+(8, 'ว่าที่ ร.อ.', '2026-05-12 14:42:17'),
+(9, 'ร.ต.', '2026-05-12 14:42:17'),
+(10, 'ร.ท.', '2026-05-12 14:42:17'),
+(11, 'ร.อ.', '2026-05-12 14:42:17'),
+(12, 'พ.ต.', '2026-05-12 14:42:17'),
+(13, 'พ.ท.', '2026-05-12 14:42:17'),
+(14, 'พ.อ.', '2026-05-12 14:42:17'),
+(15, 'พล.ต.', '2026-05-12 14:42:17'),
+(16, 'พล.ท.', '2026-05-12 14:42:17'),
+(17, 'พล.อ.', '2026-05-12 14:42:17'),
+(18, 'ร.ต.ต.', '2026-05-12 14:42:17'),
+(19, 'ร.ต.ท.', '2026-05-12 14:42:17'),
+(20, 'ร.ต.อ.', '2026-05-12 14:42:17'),
+(21, 'พ.ต.ต.', '2026-05-12 14:42:17'),
+(22, 'พ.ต.ท.', '2026-05-12 14:42:17'),
+(23, 'พ.ต.อ.', '2026-05-12 14:42:17'),
+(24, 'พล.ต.ต.', '2026-05-12 14:42:17'),
+(25, 'พล.ต.ท.', '2026-05-12 14:42:17'),
+(26, 'พล.ต.อ.', '2026-05-12 14:42:17'),
+(27, 'พล.ต.อ.พิเศษ', '2026-05-12 14:42:17'),
+(28, 'น.ต.', '2026-05-12 14:42:17'),
+(29, 'น.ท.', '2026-05-12 14:42:17'),
+(30, 'น.อ.', '2026-05-12 14:42:17'),
+(31, 'พล.ร.ต.', '2026-05-12 14:42:17'),
+(32, 'พล.ร.ท.', '2026-05-12 14:42:17'),
+(33, 'พล.ร.อ.', '2026-05-12 14:42:17'),
+(34, 'น.ต.ต.', '2026-05-12 14:42:17'),
+(35, 'น.ต.ท.', '2026-05-12 14:42:17'),
+(36, 'น.ต.อ.', '2026-05-12 14:42:17'),
+(37, 'เรืออากาศตรี', '2026-05-12 14:42:17'),
+(38, 'เรืออากาศโท', '2026-05-12 14:42:17'),
+(39, 'เรืออากาศเอก', '2026-05-12 14:42:17'),
+(40, 'นาวาอากาศตรี', '2026-05-12 14:42:17'),
+(41, 'นาวาอากาศโท', '2026-05-12 14:42:17'),
+(42, 'นาวาอากาศเอก', '2026-05-12 14:42:17'),
+(43, 'พลอากาศตรี', '2026-05-12 14:42:17'),
+(44, 'พลอากาศโท', '2026-05-12 14:42:17'),
+(45, 'พลอากาศเอก', '2026-05-12 14:42:17'),
+(46, 'จ.ต.', '2026-05-12 14:42:17'),
+(47, 'จ.อ.', '2026-05-12 14:42:17'),
+(48, 'ส.อ.', '2026-05-12 14:42:17'),
+(49, 'ส.ท.', '2026-05-12 14:42:17'),
+(50, 'ส.ต.', '2026-05-12 14:42:17'),
+(51, 'ด.ต.', '2026-05-12 14:42:17'),
+(52, 'จ.ส.ต.', '2026-05-12 14:42:17'),
+(53, 'จ.ส.ท.', '2026-05-12 14:42:17'),
+(54, 'จ.ส.อ.', '2026-05-12 14:42:17'),
+(55, 'สิบตรี', '2026-05-12 14:42:17'),
+(56, 'สิบโท', '2026-05-12 14:42:17'),
+(57, 'สิบเอก', '2026-05-12 14:42:17'),
+(58, 'สิบตำรวจตรี', '2026-05-12 14:42:17'),
+(59, 'สิบตำรวจโท', '2026-05-12 14:42:17'),
+(60, 'สิบตำรวจเอก', '2026-05-12 14:42:17'),
+(61, 'พันจ่าอากาศตรี', '2026-05-12 14:42:17'),
+(62, 'พันจ่าอากาศโท', '2026-05-12 14:42:17'),
+(63, 'พันจ่าอากาศเอก', '2026-05-12 14:42:17'),
+(64, 'ม.จ.', '2026-05-12 14:42:17'),
+(65, 'ม.ร.ว.', '2026-05-12 14:42:17'),
+(66, 'ม.ล.', '2026-05-12 14:42:17'),
+(67, 'หม่อมเจ้า', '2026-05-12 14:42:17'),
+(68, 'หม่อมราชวงศ์', '2026-05-12 14:42:17'),
+(69, 'หม่อมหลวง', '2026-05-12 14:42:17'),
+(70, 'นพ.', '2026-05-12 14:42:17'),
+(71, 'พญ.', '2026-05-12 14:42:17'),
+(72, 'ทพ.', '2026-05-12 14:42:17'),
+(73, 'ทพญ.', '2026-05-12 14:42:17'),
+(74, 'ภญ.', '2026-05-12 14:42:17'),
+(75, 'สพ.', '2026-05-12 14:42:17'),
+(76, 'สพญ.', '2026-05-12 14:42:17'),
+(77, 'ดร.', '2026-05-12 14:42:17'),
+(78, 'ศ.ดร.', '2026-05-12 14:42:17'),
+(79, 'รศ.ดร.', '2026-05-12 14:42:17'),
+(80, 'ผศ.ดร.', '2026-05-12 14:42:17'),
+(81, 'ผศ.', '2026-05-12 14:42:17'),
+(82, 'รศ.', '2026-05-12 14:42:17'),
+(83, 'ศ.', '2026-05-12 14:42:17'),
+(84, 'พระ', '2026-05-12 14:42:17'),
+(85, 'พระมหา', '2026-05-12 14:42:17'),
+(86, 'พระครู', '2026-05-12 14:42:17'),
+(87, 'พระราช', '2026-05-12 14:42:17'),
+(88, 'พระเทพ', '2026-05-12 14:42:17'),
+(89, 'สามเณร', '2026-05-12 14:42:17'),
+(90, 'แม่ชี', '2026-05-12 14:42:17');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `problem_types`
 --
 
@@ -207,7 +318,6 @@ CREATE TABLE `reports` (
   `detail` text NOT NULL,
   `status` enum('screening','assigned','in_progress','waiting_confirm','closed','rejected') DEFAULT 'screening',
   `score` tinyint(3) UNSIGNED DEFAULT NULL,
-  `reject_reason` varchar(255) DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp(),
   `resolve_due_at` datetime DEFAULT NULL,
   `closed_at` datetime DEFAULT NULL
@@ -217,16 +327,19 @@ CREATE TABLE `reports` (
 -- Dumping data for table `reports`
 --
 
-INSERT INTO `reports` (`id`, `report_no`, `customer_id`, `organization`, `system_id`, `problem_type_id`, `title`, `detail`, `status`, `score`, `reject_reason`, `created_at`, `resolve_due_at`, `closed_at`) VALUES
-(1, 'RP-2026-0001', 1, NULL, 1, 1, 'เข้าสู่ระบบไม่ได้', 'ลูกค้าแจ้งว่า login แล้วขึ้นรหัสผ่านไม่ถูกต้อง ทั้งที่กรอกถูก', 'screening', NULL, NULL, '2026-05-08 08:00:00', '2026-05-10 08:00:00', NULL),
-(2, 'RP-2026-0002', 1, NULL, 1, 2, 'ระบบโหลดช้ามาก', 'หน้า dashboard ใช้เวลานานกว่า 30 วินาที', 'assigned', NULL, NULL, '2026-05-08 08:15:00', '2026-05-10 08:15:00', NULL),
-(3, 'RP-2026-0003', 2, NULL, 3, 3, 'ใช้งานเครือข่ายไม่ได้', 'เข้าใช้งานระบบ E-Service ผ่านเครือข่ายสำนักงานไม่ได้', 'in_progress', NULL, NULL, '2026-05-08 08:30:00', '2026-05-10 08:30:00', NULL),
-(4, 'RP-2026-0004', 3, NULL, 1, 4, 'ข้อมูลในรายงานไม่ถูกต้อง', 'รายงานสถานะงานแสดงจำนวนไม่ตรงกับข้อมูลจริง', 'closed', NULL, NULL, '2026-05-08 08:45:00', '2026-05-10 08:45:00', '2026-05-08 13:36:46'),
-(5, 'RP-2026-0005', 3, NULL, 1, 5, 'ร้องเรียนการให้บริการล่าช้า', 'รอเจ้าหน้าที่ติดต่อกลับนานเกินกำหนด', 'closed', 5, NULL, '2026-05-08 09:00:00', '2026-05-10 09:00:00', '2026-05-08 15:30:00'),
-(6, 'RP-2026-0006', 2, NULL, 2, 6, 'ร้องเรียนเจ้าหน้าที่พูดจาไม่เหมาะสม', 'ลูกค้าระบุว่าได้รับการสื่อสารไม่สุภาพ', 'rejected', NULL, 'ข้อมูลไม่เพียงพอและไม่พบหลักฐานประกอบ', '2026-05-08 09:15:00', '2026-05-06 13:25:54', NULL),
-(7, 'RP-2026-0007', 1, NULL, 1, 2, 'เปิดซ้ำหลังปิดงาน', 'ลูกค้ายืนยันว่าอาการเดิมกลับมาเกิดอีกครั้ง', 'in_progress', NULL, NULL, '2026-05-08 09:30:00', '2026-05-11 09:30:00', NULL),
-(8, 'RP-2026-0008', 2, NULL, 3, 1, 'ต้องการข้อมูลเพิ่มก่อนคัดกรอง', 'รายละเอียดที่แจ้งมายังไม่ชัดเจน', 'assigned', NULL, NULL, '2026-05-08 09:45:00', '2026-05-05 13:26:02', NULL),
-(9, 'RP-2026-0009', 1, NULL, 1, 4, 'งานถูกยกเลิก', 'แจ้งผิดระบบ ลูกค้าขอยกเลิกรายการ', 'closed', 3, NULL, '2026-05-08 10:00:00', '2026-05-10 10:00:00', '2026-05-08 12:00:00');
+INSERT INTO `reports` (`id`, `report_no`, `customer_id`, `organization`, `system_id`, `problem_type_id`, `title`, `detail`, `status`, `score`, `created_at`, `resolve_due_at`, `closed_at`) VALUES
+(1, 'RP-2026-0001', 1, NULL, 1, 1, 'เข้าสู่ระบบไม่ได้', 'ลูกค้าแจ้งว่า login แล้วขึ้นรหัสผ่านไม่ถูกต้อง ทั้งที่กรอกถูก', 'screening', NULL, '2026-05-08 08:00:00', '2026-05-10 08:00:00', NULL),
+(2, 'RP-2026-0002', 1, NULL, 1, 2, 'ระบบโหลดช้ามาก', 'หน้า dashboard ใช้เวลานานกว่า 30 วินาที', 'assigned', NULL, '2026-05-08 08:15:00', '2026-05-10 08:15:00', NULL),
+(3, 'RP-2026-0003', 2, NULL, 3, 3, 'ใช้งานเครือข่ายไม่ได้', 'เข้าใช้งานระบบ E-Service ผ่านเครือข่ายสำนักงานไม่ได้', 'in_progress', NULL, '2026-05-08 08:30:00', '2026-05-10 08:30:00', NULL),
+(4, 'RP-2026-0004', 3, NULL, 1, 4, 'ข้อมูลในรายงานไม่ถูกต้อง', 'รายงานสถานะงานแสดงจำนวนไม่ตรงกับข้อมูลจริง', 'closed', NULL, '2026-05-08 08:45:00', '2026-05-10 08:45:00', '2026-05-08 13:36:46'),
+(5, 'RP-2026-0005', 3, NULL, 1, 5, 'ร้องเรียนการให้บริการล่าช้า', 'รอเจ้าหน้าที่ติดต่อกลับนานเกินกำหนด', 'closed', 5, '2026-05-08 09:00:00', '2026-05-10 09:00:00', '2026-05-08 15:30:00'),
+(6, 'RP-2026-0006', 2, NULL, 2, 6, 'ร้องเรียนเจ้าหน้าที่พูดจาไม่เหมาะสม', 'ลูกค้าระบุว่าได้รับการสื่อสารไม่สุภาพ', 'rejected', NULL, '2026-05-08 09:15:00', '2026-05-06 13:25:54', NULL),
+(7, 'RP-2026-0007', 1, NULL, 1, 2, 'เปิดซ้ำหลังปิดงาน', 'ลูกค้ายืนยันว่าอาการเดิมกลับมาเกิดอีกครั้ง', 'in_progress', NULL, '2026-05-08 09:30:00', '2026-05-11 09:30:00', NULL),
+(8, 'RP-2026-0008', 2, NULL, 3, 1, 'ต้องการข้อมูลเพิ่มก่อนคัดกรอง', 'รายละเอียดที่แจ้งมายังไม่ชัดเจน', 'assigned', NULL, '2026-05-08 09:45:00', '2026-05-05 13:26:02', NULL),
+(9, 'RP-2026-0009', 1, NULL, 1, 4, 'งานถูกยกเลิก', 'แจ้งผิดระบบ ลูกค้าขอยกเลิกรายการ', 'closed', 3, '2026-05-08 10:00:00', '2026-05-10 10:00:00', '2026-05-08 12:00:00'),
+(15, 'RPT-20260512-001', 1, 'NID Technology Co., Ltd.', 2, 2, 'โหลดไม่ได้', 'ไม่รู้เเหทือรนกัน', 'screening', NULL, '2026-05-12 13:04:21', '2026-05-15 13:58:04', NULL),
+(16, 'RPT-20260512-002', 1, 'NID Technology Co., Ltd.', 1, 1, 'พพพ', 'พพพ', 'screening', NULL, '2026-05-12 13:04:39', '2026-05-15 13:58:07', NULL),
+(17, 'RPT-20260512-003', 1, 'NID Technology Co., Ltd.', 1, 1, 'วสส', '', 'waiting_confirm', NULL, '2026-05-12 13:05:44', '2025-03-05 00:00:00', NULL);
 
 -- --------------------------------------------------------
 
@@ -652,8 +765,10 @@ ALTER TABLE `attachments`
 ALTER TABLE `customers`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`),
+  ADD UNIQUE KEY `uk_customers_citizen_id` (`citizen_id`),
   ADD KEY `idx_customers_status_created` (`status`,`created_at`),
-  ADD KEY `fk_customers_organization` (`organization_id`);
+  ADD KEY `fk_customers_organization` (`organization_id`),
+  ADD KEY `fk_customers_prefix` (`prefix_id`);
 
 --
 -- Indexes for table `login_logs`
@@ -672,6 +787,13 @@ ALTER TABLE `organizations`
 --
 ALTER TABLE `password_logs`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `prefixes`
+--
+ALTER TABLE `prefixes`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uk_prefix_name` (`name`);
 
 --
 -- Indexes for table `problem_types`
@@ -817,7 +939,7 @@ ALTER TABLE `ticket_work_logs`
 -- AUTO_INCREMENT for table `attachments`
 --
 ALTER TABLE `attachments`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `customers`
@@ -844,6 +966,12 @@ ALTER TABLE `password_logs`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
+-- AUTO_INCREMENT for table `prefixes`
+--
+ALTER TABLE `prefixes`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=91;
+
+--
 -- AUTO_INCREMENT for table `problem_types`
 --
 ALTER TABLE `problem_types`
@@ -853,7 +981,7 @@ ALTER TABLE `problem_types`
 -- AUTO_INCREMENT for table `reports`
 --
 ALTER TABLE `reports`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `report_confirmations`
@@ -948,7 +1076,8 @@ ALTER TABLE `attachments`
 -- Constraints for table `customers`
 --
 ALTER TABLE `customers`
-  ADD CONSTRAINT `fk_customers_organization` FOREIGN KEY (`organization_id`) REFERENCES `organizations` (`id`) ON DELETE SET NULL;
+  ADD CONSTRAINT `fk_customers_organization` FOREIGN KEY (`organization_id`) REFERENCES `organizations` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_customers_prefix` FOREIGN KEY (`prefix_id`) REFERENCES `prefixes` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `reports`

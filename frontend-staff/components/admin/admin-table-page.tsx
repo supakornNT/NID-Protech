@@ -56,9 +56,9 @@ export function AdminTablePage<T extends Record<string, unknown>>({
 }: AdminTablePageProps<T>) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>(
-    Object.fromEntries(filters.map((filter) => [filter.key, "all"])),
-  );
+  const [selectedFilters, setSelectedFilters] = useState<
+    Record<string, string>
+  >(Object.fromEntries(filters.map((filter) => [filter.key, "all"])));
 
   const filteredData = useMemo(() => {
     const searchValue = search.trim().toLowerCase();
@@ -87,13 +87,18 @@ export function AdminTablePage<T extends Record<string, unknown>>({
   const limit = 10;
   const totalPages = Math.max(1, Math.ceil(filteredData.length / limit));
   const safePage = Math.min(page, totalPages);
-  const pagedData = filteredData.slice((safePage - 1) * limit, safePage * limit);
+  const pagedData = filteredData.slice(
+    (safePage - 1) * limit,
+    safePage * limit,
+  );
   const resolvedShowCreate = hideCreateButton ? false : showCreate;
 
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-[32px] font-bold leading-none text-[#111827]">{title}</h1>
+        <h1 className="text-[32px] font-bold leading-none text-[#111827]">
+          {title}
+        </h1>
         <p className="mt-2 text-[16px] text-[#8B95A7]">{subtitle}</p>
       </div>
 
@@ -201,7 +206,9 @@ export function StatusBadge({
     <button
       type="button"
       className={`inline-flex min-w-[62px] items-center justify-center rounded-md border px-2 py-1 text-[14px] leading-none transition-all duration-200 ${toneClass[tone]} ${
-        onClick ? "cursor-pointer hover:opacity-80 hover:shadow-sm" : "cursor-default"
+        onClick
+          ? "cursor-pointer hover:opacity-80 hover:shadow-sm"
+          : "cursor-default"
       }`}
       onClick={onClick}
     >
@@ -221,12 +228,20 @@ export function ActionIcons({
 }) {
   return (
     <div className="flex items-center justify-center gap-3 text-[#2F66C5]">
-      <button type="button" className="transition hover:opacity-75" onClick={onEdit}>
+      <button
+        type="button"
+        className="transition hover:opacity-75"
+        onClick={onEdit}
+      >
         <Edit3 size={20} />
       </button>
 
       {showInfo && (
-        <button type="button" className="transition hover:opacity-75" onClick={onInfo}>
+        <button
+          type="button"
+          className="transition hover:opacity-75"
+          onClick={onInfo}
+        >
           <Info size={20} />
         </button>
       )}
