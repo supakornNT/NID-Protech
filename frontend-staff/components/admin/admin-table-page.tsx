@@ -18,7 +18,7 @@ type FilterConfig = {
 type StatusBadgeProps = {
   label: string;
   tone?: "success" | "danger" | "neutral";
-  onclick?: () => void;
+  onClick?: () => void;
 };
 
 type AdminTablePageProps<T extends Record<string, unknown>> = {
@@ -128,7 +128,7 @@ export function AdminTablePage<T extends Record<string, unknown>>({
                   }));
                   setPage(1);
                 }}
-                className="h-[31px] min-w-[132px] appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-[14px] text-[#6B7280] outline-none"
+                className="h-[31px] min-w-[132px] appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-left text-[14px] text-[#6B7280] outline-none"
               >
                 <option value="all">{filter.placeholder}</option>
                 {filter.options.map((option) => (
@@ -189,7 +189,7 @@ export function AdminTablePage<T extends Record<string, unknown>>({
 export function StatusBadge({
   label,
   tone = "success",
-  onclick,
+  onClick,
 }: StatusBadgeProps) {
   const toneClass = {
     success: "border-[#5AC56F] bg-white text-[#49A55B]",
@@ -198,24 +198,35 @@ export function StatusBadge({
   };
 
   return (
-    <span
-      className={`inline-flex min-w-[62px] items-center justify-center rounded-md border px-2 py-1 text-[14px] leading-none ${toneClass[tone]}`}
-      onClick={onclick}
+    <button
+      type="button"
+      className={`inline-flex min-w-[62px] items-center justify-center rounded-md border px-2 py-1 text-[14px] leading-none transition-all duration-200 ${toneClass[tone]} ${
+        onClick ? "cursor-pointer hover:opacity-80 hover:shadow-sm" : "cursor-default"
+      }`}
+      onClick={onClick}
     >
       {label}
-    </span>
+    </button>
   );
 }
 
-export function ActionIcons({ showInfo = true }: { showInfo?: boolean }) {
+export function ActionIcons({
+  showInfo = true,
+  onEdit,
+  onInfo,
+}: {
+  showInfo?: boolean;
+  onEdit?: () => void;
+  onInfo?: () => void;
+}) {
   return (
     <div className="flex items-center justify-center gap-3 text-[#2F66C5]">
-      <button type="button" className="transition hover:opacity-75">
+      <button type="button" className="transition hover:opacity-75" onClick={onEdit}>
         <Edit3 size={20} />
       </button>
 
       {showInfo && (
-        <button type="button" className="transition hover:opacity-75">
+        <button type="button" className="transition hover:opacity-75" onClick={onInfo}>
           <Info size={20} />
         </button>
       )}
@@ -238,10 +249,26 @@ export function PermissionTags({ items }: { items: string[] }) {
   );
 }
 
-export function CheckCell() {
+export function CheckCell({
+  checked = false,
+  onClick,
+}: {
+  checked?: boolean;
+  onClick?: () => void;
+}) {
   return (
     <div className="flex items-center justify-center">
-      <div className="h-7 w-7 rounded-md border border-[#A8B1C2] bg-white" />
+      <button
+        type="button"
+        onClick={onClick}
+        className={`flex h-7 w-7 items-center justify-center rounded-md border transition-all duration-200 ${
+          checked
+            ? "border-[#3F73BB] bg-[#3F73BB] text-white"
+            : "border-[#A8B1C2] bg-white text-transparent hover:border-[#3F73BB] hover:bg-[#EEF4FF]"
+        } ${onClick ? "cursor-pointer" : "cursor-default"}`}
+      >
+        <span className="text-[14px] font-bold leading-none">✓</span>
+      </button>
     </div>
   );
 }
