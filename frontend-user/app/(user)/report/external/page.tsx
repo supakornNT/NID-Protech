@@ -12,6 +12,7 @@ import { FormInput } from "@/components/ui/form-input";
 import { useProblemTypes } from "@/hooks/useProblemTypes";
 import { useCustomer } from "@/hooks/useCustomer";
 import { useSystems } from "@/hooks/useSystems";
+import { useSubmit } from "@/hooks/useSubmit";
 import styles from "../report.module.css";
 import { useRouter } from "next/navigation";
 
@@ -33,6 +34,9 @@ export default function ReportExternalPage() {
   const { data: problemTypes, loading: problemTypesLoading } =
     useProblemTypes("issue");
   const { data: systems } = useSystems(ORGANIZATION_ID);
+  const { submit, loading, error } = useSubmit("/reports/external", () => {
+    alert("ส่งรายงานสำเร็จ");
+  });
 
   const handleSubmit = async () => {
     const formData = new FormData();
@@ -46,15 +50,7 @@ export default function ReportExternalPage() {
       formData.append("files", file);
     }
 
-    const res = await fetch("http://localhost:4000/reports/external", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (res.ok) {
-      alert("ส่งรายงานสำเร็จ");
-      router.push("/home");
-    }
+    await submit(formData);
   };
 
   return (
@@ -111,7 +107,9 @@ export default function ReportExternalPage() {
               <select
                 className={`${styles.input} ${styles.select}`}
                 value={form.system_id}
-                onChange={(e) => setForm({ ...form, system_id: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, system_id: e.target.value })
+                }
               >
                 <option value="">กรุณาเลือกระบบ</option>
                 {systems.map((s) => (

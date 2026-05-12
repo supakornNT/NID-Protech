@@ -21,11 +21,14 @@ import { ReportStatusLogsModule } from './report_status_logs/report_status_logs.
 import { TicketStatusLogsModule } from './ticket_status_logs/ticket_status_logs.module';
 import { ReportConfirmationsModule } from './report_confirmations/report_confirmations.module';
 import { ScreeningsModule } from './screenings/screenings.module';
+import { AuthModule } from './auth/auth.module';
 import { UserPortalModule } from './user_portal/user_portal.module';
 
 @Module({
   imports: [
     DatabaseModule,
+    AuthModule,
+    UserPortalModule,
     CustomersModule,
     StaffsModule,
     TeamsModule,
@@ -45,7 +48,6 @@ import { UserPortalModule } from './user_portal/user_portal.module';
     TicketStatusLogsModule,
     ReportConfirmationsModule,
     ScreeningsModule,
-    UserPortalModule,
   ],
   controllers: [AppController],
   providers: [AppService],

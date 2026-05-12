@@ -15,6 +15,7 @@ import { useOrganizations } from "@/hooks/useOrganizations";
 import { useSystems } from "@/hooks/useSystems";
 import styles from "../report.module.css";
 import { useRouter } from "next/navigation";
+import { useSubmit } from "@/hooks/useSubmit";
 
 const CUSTOMER_ID = 1;
 
@@ -34,8 +35,12 @@ export default function ReportInternalPage() {
     useProblemTypes("issue");
   const { data: organizations } = useOrganizations();
   const { data: systems } = useSystems(customer?.organization_id ?? null);
-
-  const currentOrg = organizations.find((o) => o.id === customer?.organization_id);
+  const currentOrg = organizations.find(
+    (o) => o.id === customer?.organization_id,
+  );
+  const { submit, loading, error } = useSubmit("/reports/internal", () => {
+    alert("ส่งรายงานสำเร็จ");
+  });
 
   const handleSubmit = async () => {
     const formData = new FormData();
@@ -50,15 +55,7 @@ export default function ReportInternalPage() {
       formData.append("files", file);
     }
 
-    const res = await fetch("http://localhost:4000/reports/internal", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (res.ok) {
-      alert("ส่งรายงานสำเร็จ");
-      router.push("/home");
-    }
+    await submit(formData);
   };
 
   return (
@@ -125,11 +122,15 @@ export default function ReportInternalPage() {
               <select
                 className={`${styles.input} ${styles.select}`}
                 value={form.system_id}
-                onChange={(e) => setForm({ ...form, system_id: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, system_id: e.target.value })
+                }
                 disabled={!customer?.organization_id}
               >
                 <option value="">
-                  {customer?.organization_id ? "กรุณาเลือกระบบ" : "กำลังโหลด..."}
+                  {customer?.organization_id
+                    ? "กรุณาเลือกระบบ"
+                    : "กำลังโหลด..."}
                 </option>
                 {systems.map((s) => (
                   <option key={s.id} value={s.id}>
