@@ -1,6 +1,6 @@
 "use client";
 
-
+import HomeIllustration from "@/public/home-illustration.png"
 
 export default function HomePage() {
   return (

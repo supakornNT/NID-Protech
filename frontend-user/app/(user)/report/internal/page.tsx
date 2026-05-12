@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/popover";
 import { Paperclip, X } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { FormInput } from "@/components/ui/form-input";
 import { useProblemTypes } from "@/hooks/useProblemTypes";
@@ -14,14 +15,19 @@ import { useCustomer } from "@/hooks/useCustomer";
 import { useOrganizations } from "@/hooks/useOrganizations";
 import { useSystems } from "@/hooks/useSystems";
 import styles from "../report.module.css";
-import { useRouter } from "next/navigation";
+import { SuccessDialog } from "@/components/ui/success-dialog";
 import { useSubmit } from "@/hooks/useSubmit";
 
 const CUSTOMER_ID = 1;
 
 export default function ReportInternalPage() {
   const router = useRouter();
-  const [date, setDate] = useState("");
+  const getDefaultDate = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + 3);
+    return d.toISOString().split("T")[0];
+  };
+  const [date, setDate] = useState(getDefaultDate);
   const [files, setFiles] = useState<File[]>([]);
   const [form, setForm] = useState({
     title: "",
@@ -38,11 +44,18 @@ export default function ReportInternalPage() {
   const currentOrg = organizations.find(
     (o) => o.id === customer?.organization_id,
   );
+  const [submitted, setSubmitted] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const { submit, loading, error } = useSubmit("/reports/internal", () => {
-    alert("ส่งรายงานสำเร็จ");
+    setShowSuccess(true);
+    setForm({ title: "", problem_type_id: "", system_id: "", detail: "" });
+    setDate(getDefaultDate());
+    setFiles([]);
   });
 
   const handleSubmit = async () => {
+    setSubmitted(true);
+    if (!form.title || !form.problem_type_id || !form.system_id || !form.detail) return;
     const formData = new FormData();
     formData.append("customer_id", "1");
     formData.append("organization", currentOrg?.name ?? "");
@@ -91,7 +104,7 @@ export default function ReportInternalPage() {
               label="หัวข้อเรื่อง"
               placeholder="กรุณาเขียนหัวข้อเรื่อง"
               className="flex-1"
-              inputClassName={styles.input}
+              inputClassName={`${styles.input} ${submitted && !form.title ? styles.inputError : ""}`}
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
             />
@@ -101,7 +114,7 @@ export default function ReportInternalPage() {
             <div className="flex flex-1 flex-col gap-1">
               <p style={{ fontSize: 16, fontWeight: 500 }}>ประเภทปัญหา</p>
               <select
-                className={`${styles.input} ${styles.select}`}
+                className={`${styles.input} ${styles.select} ${submitted && !form.problem_type_id ? styles.inputError : ""}`}
                 value={form.problem_type_id}
                 onChange={(e) =>
                   setForm({ ...form, problem_type_id: e.target.value })
@@ -120,7 +133,7 @@ export default function ReportInternalPage() {
             <div className="flex flex-1 flex-col gap-1">
               <p style={{ fontSize: 16, fontWeight: 500 }}>ระบบ</p>
               <select
-                className={`${styles.input} ${styles.select}`}
+                className={`${styles.input} ${styles.select} ${submitted && !form.system_id ? styles.inputError : ""}`}
                 value={form.system_id}
                 onChange={(e) =>
                   setForm({ ...form, system_id: e.target.value })
@@ -146,7 +159,12 @@ export default function ReportInternalPage() {
                 type="date"
                 className={styles.input}
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
+                min={new Date().toISOString().split("T")[0]}
+                onChange={(e) => {
+                  const today = new Date().toISOString().split("T")[0];
+                  if (e.target.value < today) return;
+                  setDate(e.target.value);
+                }}
               />
             </div>
           </div>
@@ -154,7 +172,7 @@ export default function ReportInternalPage() {
           <div className="flex flex-col gap-1">
             <p style={{ fontSize: 16, fontWeight: 500 }}>รายละเอียด</p>
             <textarea
-              className={`${styles.input} min-h-35 resize-none`}
+              className={`${styles.input} min-h-35 resize-none ${submitted && !form.detail ? styles.inputError : ""}`}
               placeholder="กรุณาอธิบายปัญหาที่พบ"
               value={form.detail}
               onChange={(e) => setForm({ ...form, detail: e.target.value })}
@@ -185,6 +203,7 @@ export default function ReportInternalPage() {
                     <input
                       type="file"
                       multiple
+                      accept=".pdf,.png,.jpg,.jpeg"
                       className="hidden"
                       onChange={(e) =>
                         setFiles((prev) => [
@@ -229,6 +248,11 @@ export default function ReportInternalPage() {
           </button>
         </div>
       </Card>
+
+      <SuccessDialog
+        open={showSuccess}
+        onClose={() => router.push("/home")}
+      />
     </div>
   );
 }
