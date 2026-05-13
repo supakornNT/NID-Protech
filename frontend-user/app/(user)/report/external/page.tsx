@@ -81,7 +81,7 @@ export default function ReportExternalPage() {
             <FormInput
               label="ผู้แจ้ง"
               placeholder="กำลังโหลด..."
-              className="w-1/2"
+              className="flex-1"
               inputClassName={`${styles.input} bg-gray-50 cursor-not-allowed`}
               value={fullName}
               disabled

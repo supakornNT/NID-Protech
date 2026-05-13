@@ -36,45 +36,128 @@ const menuItems = [
     children: [
       {
         title: "ประเด็นปัญหา",
-        href: "/management/customers",
+        href: "/screening/issues",
         icon: ShieldAlert,
       },
       {
         title: "ข้อร้องเรียน",
-        href: "/management/user-groups",
+        href: "/screening/complaints",
         icon: Siren,
       },
     ],
   },
   {
-    title: "รายงานสรุปผล",
+    title: "การพิจารณา",
+    icon: List,
+    children: [
+      {
+        title: "พิจารณาออกใบงาน",
+        href: "/consideration/issue-work",
+        icon: Rss,
+      },
+      {
+        title: "พิจารณาปิดงาน",
+        href: "/consideration/close-work",
+        icon: Rss,
+      },
+    ],
+  },
+  {
+    title: "การติดตาม",
+    icon: List,
+    children: [
+      {
+        title: "ติดตามสถานะการดำเนินการ",
+        href: "/tracking/status",
+        icon: Rss,
+      },
+    ],
+  },
+  {
+    title: "การปฎิบัติงาน",
+    icon: List,
+    children: [
+      {
+        title: "ผลการปฎิบัติงาน",
+        href: "/operations/results",
+        icon: Rss,
+      },
+    ],
+  },
+  {
+    title: "รายงาน",
     icon: FileText,
     children: [
       {
         title: "สำหรับผู้บริหาร",
-        href: "/system-management/organizations",
+        href: "/reports/executive",
         icon: ChartBar,
       },
       {
         title: "การปฎิบัติงาน",
-        href: "/system-management/projects",
+        href: "/reports/operations",
+        icon: ChartPie,
+      },
+      {
+        title: "ประวัติการเเก้ไข",
+        href: "/reports/edit-history",
+        icon: ChartPie,
+      },
+      {
+        title: "ประวัติการเข้าสู่ระบบ",
+        href: "/reports/login-history",
         icon: ChartPie,
       },
     ],
   },
   {
-    title: "การจัดการงาน",
-    icon: List,
+    title: "จัดการ",
+    icon: FileText,
     children: [
       {
-        title: "ติดตามสถานะการดำเนินการ",
-        href: "/system-management/organizations",
-        icon: Rss,
+        title: "ข้อมูลองค์กร",
+        href: "/management/organizations",
+        icon: ChartBar,
       },
       {
-        title: "ประวัติการเเก้ไข",
-        href: "/system-management/projects",
-        icon: ClipboardClock,
+        title: "ระบบงาน",
+        href: "/management/systems",
+        icon: ChartPie,
+      },
+      {
+        title: "ข้อมูลลงทะเบียนผู้เเจ้งประเด็น",
+        href: "/management/reporters",
+        icon: ChartPie,
+      },
+      {
+        title: "ข้อมูลลงทะเบียนทีมเเก้ไข",
+        href: "/management/teams",
+        icon: ChartPie,
+      },
+      {
+        title: "กลุ่มผู้ใช้งาน",
+        href: "/management/user-groups",
+        icon: ChartPie,
+      },
+      {
+        title: "สิทธิผู้ใช้งาน",
+        href: "/management/permissions",
+        icon: ChartPie,
+      },
+      {
+        title: "ข้อมูลผู้ใช้งาน",
+        href: "/management/users",
+        icon: ChartPie,
+      },
+      {
+        title: "รูปเเบบประเด็น",
+        href: "/management/issue-types",
+        icon: ChartPie,
+      },
+      {
+        title: "รูปเเบบข้อร้องเรียน",
+        href: "/management/complaint-types",
+        icon: ChartPie,
       },
     ],
   },

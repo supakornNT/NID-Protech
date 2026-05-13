@@ -281,7 +281,7 @@ export default function RegisterPage() {
         <p className="text-sm text-gray-400">
           รหัสผ่านต้องประกอบด้วย ตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก ตัวเลข และอักษรพิเศษ
           อย่างน้อย 8 ตัว
-        </p>
+        </p> 
 
         {userType === "company" && (
           <>

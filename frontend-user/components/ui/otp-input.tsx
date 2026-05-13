@@ -59,7 +59,7 @@ export function OtpInput({ email, onOtpChange }: OtpInputProps) {
   return (
     <div className="flex flex-col gap-2">
       <p style={{ fontSize: 16, fontWeight: 500 }}>OTP</p>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {otp.map((val, i) => (
           <input
             key={i}
@@ -69,16 +69,7 @@ export function OtpInput({ email, onOtpChange }: OtpInputProps) {
             value={val}
             onChange={(e) => handleChange(i, e.target.value)}
             onKeyDown={(e) => handleKeyDown(i, e)}
-            style={{
-              width: 40,
-              height: 40,
-              border: "1px solid #d1d5db",
-              borderRadius: 8,
-              background: "#fff",
-              textAlign: "center",
-              fontSize: 18,
-              outline: "none",
-            }}
+            className="w-8 h-8 sm:w-10 sm:h-10 text-center text-base sm:text-lg border border-gray-300 rounded-lg bg-white outline-none"
           />
         ))}
 
