@@ -1,5 +1,5 @@
 export class CreateAttachmentDto {
-  reportId?: number;
+  requestId?: number;
 
   ticketId?: number;
 

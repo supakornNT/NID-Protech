@@ -13,7 +13,7 @@ export class ProblemTypesService {
       `SELECT
       problem_types.id,
       problem_types.name,
-      problem_types.report_type,
+      problem_types.request_type,
       problem_types.status,
       problem_types.created_at,
       problem_types.updated_at
@@ -29,7 +29,7 @@ export class ProblemTypesService {
       `SELECT
       problem_types.id,
       problem_types.name,
-      problem_types.report_type,
+      problem_types.request_type,
       problem_types.status,
       problem_types.created_at,
       problem_types.updated_at
@@ -44,8 +44,8 @@ export class ProblemTypesService {
 
   async create(dto: CreateProblemTypeDto): Promise<ProblemType | null> {
     const [result] = await this.db.query<ResultSetHeader>(
-      'INSERT INTO problem_types (name, report_type, status) VALUES (?, ?, ?)',
-      [dto.name, dto.reportType ?? dto.report_type, dto.status ?? 'active'],
+      'INSERT INTO problem_types (name, request_type, status) VALUES (?, ?, ?)',
+      [dto.name, dto.requestType ?? dto.request_type, dto.status ?? 'active'],
     );
 
     return this.findOne(result.insertId);
@@ -65,12 +65,12 @@ export class ProblemTypesService {
       `UPDATE problem_types
       SET
         name = ?,
-        report_type = ?,
+        request_type = ?,
         status = ?
       WHERE id = ?`,
       [
         dto.name ?? current.name,
-        dto.reportType ?? dto.report_type ?? current.report_type,
+        dto.requestType ?? dto.request_type ?? current.request_type,
         dto.status ?? current.status,
         id,
       ],
@@ -88,11 +88,11 @@ export class ProblemTypesService {
     return this.findOne(id);
   }
 
-  async findByReportType(type: string): Promise<ProblemType[]> {
+  async findByRequestType(type: string): Promise<ProblemType[]> {
     const [rows] = await this.db.query<ProblemType[]>(
-      `SELECT id, name, report_type
+      `SELECT id, name, request_type
        FROM problem_types
-       WHERE report_type = ? AND status = 'active'`,
+       WHERE request_type = ? AND status = 'active'`,
       [type],
     );
 

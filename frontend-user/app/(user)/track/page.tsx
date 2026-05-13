@@ -2,46 +2,31 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { Info, Search } from "lucide-react";
 
-import {
-  Info,
-  Search,
-} from "lucide-react";
-
-import { ProTechSearch } from "@/components/tables/protech-search";
-import { ProTechButton } from "@/components/tables/protech-button";
-import {
-  RequestListItem,
-  useRequestList,
-} from "@/hooks/use-report-list";
-
-import { Column } from "@/types/table";
-import { ProTechTable } from "@/components/tables/protech-table";
 import TicketPdfButton from "@/components/pdf/TicketPdfButton";
+import { ProTechButton } from "@/components/tables/protech-button";
+import { ProTechSearch } from "@/components/tables/protech-search";
+import { ProTechTable } from "@/components/tables/protech-table";
+import { RequestListItem, useRequestList } from "@/hooks/use-report-list";
+import { Column } from "@/types/table";
 
-const columns: Column<RequestListItem>[] =
-  [
-    {
-      key: "trackingNo",
-      title: "หมายเลขการติดตาม",
-      className: "min-w-[220px]",
-    },
-    {
-      key: "system",
-      title: "ระบบ",
-      className: "min-w-[120px]",
-    },
-     {
-      key: "problem",
-      title: "ปัญหา/ข้อร้องเรียน",
-      className: "min-w-[120px]",
-    },
-    {
-      key: "dueDate",
-      title: "ระยะเวลากำหนดการแก้ไข",
-      className: "min-w-[240px]",
-    },
-   
+const columns: Column<RequestListItem>[] = [
+  {
+    key: "trackingNo",
+    title: "หมายเลขการติดตาม",
+    className: "min-w-[220px]",
+  },
+  {
+    key: "system",
+    title: "ระบบ",
+    className: "min-w-[120px]",
+  },
+  {
+    key: "problem",
+    title: "ปัญหา/ข้อร้องเรียน",
+    className: "min-w-[160px]",
+  },
   {
     key: "document",
     title: "ออกเอกสาร",
@@ -58,50 +43,31 @@ const columns: Column<RequestListItem>[] =
       </div>
     ),
   },
-    {
-      key: "detail",
-      title: "รายละเอียด",
-      className: "min-w-[140px]",
-      render: (_, row) => (
-        <div className="flex justify-center">
-          <Link
-            href={`/track/${row.trackingNo}`}
-          >
-            <Info
-              size={18}
-              className="cursor-pointer text-[#3A6FCF] hover:opacity-70"
-            />
-          </Link>
-        </div>
-      ),
-    },
-    {
-      key: "status",
-      title: "สถานะ",
-      className: "min-w-[160px]",
-    },
-  ];
+  {
+    key: "detail",
+    title: "รายละเอียด",
+    className: "min-w-[140px]",
+    render: (_, row) => (
+      <div className="flex justify-center">
+        <Link href={`/track/${row.trackingNo}`}>
+          <Info
+            size={18}
+            className="cursor-pointer text-[#3A6FCF] hover:opacity-70"
+          />
+        </Link>
+      </div>
+    ),
+  },
+  {
+    key: "status",
+    title: "สถานะ",
+    className: "min-w-[160px]",
+  },
+];
 
 export default function Page() {
-  const [search, setSearch] =
-    React.useState("");
+  const [search, setSearch] = React.useState("");
 
-  // Flow หน้านี้:
-  // 1. mount หน้าแล้ว useReportList() จะเรียก GET /user/reports?page=&limit=&search=
-  // 2. API คืนรายการ report พร้อม pagination สำหรับหน้า table
-  // 3. ตารางใช้ fields หลักคือ trackingNo, system, dueDate, document, status
-  //    โดย field หลักมาจาก:
-  //    - trackingNo <- reports.report_no
-  //    - system <- systems.name (join ด้วย reports.system_id)
-  //    - dueDate <- reports.resolve_due_at
-  //    - status <- reports.status แล้ว backend map เป็น label ไทย
-  //    - document <- ค่าที่ frontend ประกอบเพื่อใช้แสดงในตาราง
-  // 4. กดค้นหา -> applySearch() -> ยิง API ใหม่พร้อม search
-  //    search ตอนนี้ค้นจาก:
-  //    - reports.report_no
-  //    - reports.title
-  //    - systems.name
-  // 5. เปลี่ยนหน้า -> setPage() -> ยิง API ใหม่ตาม page/limit
   const {
     reports: requests,
     pagination,
@@ -120,39 +86,22 @@ export default function Page() {
       <div className="mb-5 flex min-w-0 items-center gap-3">
         <ProTechSearch
           value={search}
-          onChange={(e) =>
-            setSearch(
-              e.target.value,
-            )
-          }
+          onChange={(e) => setSearch(e.target.value)}
           icon={<Search size={22} />}
         />
 
-        <ProTechButton
-          className=" shrink-0 "
-          onClick={() =>
-            applySearch(search)
-          }
-        >
+        <ProTechButton className="shrink-0" onClick={() => applySearch(search)}>
           ค้นหา
         </ProTechButton>
       </div>
 
       {loading ? (
-        <p className="mb-4 text-sm text-[#3A6FCF]">
-          กำลังโหลดข้อมูล...
-        </p>
+        <p className="mb-4 text-sm text-[#3A6FCF]">กำลังโหลดข้อมูล...</p>
       ) : null}
 
-      {error ? (
-        <p className="mb-4 text-sm text-red-600">
-          {error}
-        </p>
-      ) : null}
+      {error ? <p className="mb-4 text-sm text-red-600">{error}</p> : null}
 
       <div className="w-full">
-        {/* กดรายละเอียดของแต่ละแถวจะไปหน้า /track/:trackingNo
-            เพื่อเรียก detail API ของ report รายการนั้น */}
         <ProTechTable
           columns={columns}
           data={requests}
@@ -163,9 +112,7 @@ export default function Page() {
           onPageChange={setPage}
         />
 
-        <div className="mt-4 flex justify-end">
-          {/* pagination component */}
-        </div>
+        <div className="mt-4 flex justify-end" />
       </div>
     </div>
   );

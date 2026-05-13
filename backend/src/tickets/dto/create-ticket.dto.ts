@@ -1,7 +1,7 @@
 export class CreateTicketDto {
   ticketNo!: string;
 
-  reportId!: number;
+  requestId!: number;
 
   parentTicketId?: number;
 

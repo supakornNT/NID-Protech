@@ -163,17 +163,17 @@ export class RequestsService {
         dto.detail,
       ],
     );
-    const reportId = result.insertId;
+    const requestId = result.insertId;
 
     for (const file of files) {
       await this.db.query<ResultSetHeader>(
-        `INSERT INTO attachments (report_id, attachment_type, original_name, file_ext)
-       VALUES (?, 'report_evidence', ?, ?)`,
-        [reportId, file.originalname, extname(file.originalname).replace('.', '')],
+        `INSERT INTO attachments (request_id, attachment_type, original_name, file_ext)
+       VALUES (?, 'request_evidence', ?, ?)`,
+        [requestId, file.originalname, extname(file.originalname).replace('.', '')],
       );
     }
 
-    return this.findOne(reportId);
+    return this.findOne(requestId);
   }
 
   async createReportExternal(
@@ -199,17 +199,17 @@ export class RequestsService {
         dto.detail,
       ],
     );
-    const reportId = result.insertId;
+    const requestId = result.insertId;
 
     for (const file of files) {
       await this.db.query<ResultSetHeader>(
-        `INSERT INTO attachments (report_id, attachment_type, original_name, file_ext)
-       VALUES (?, 'report_evidence', ?, ?)`,
-        [reportId, file.originalname, extname(file.originalname).replace('.', '')],
+        `INSERT INTO attachments (request_id, attachment_type, original_name, file_ext)
+       VALUES (?, 'request_evidence', ?, ?)`,
+        [requestId, file.originalname, extname(file.originalname).replace('.', '')],
       );
     }
 
-    return this.findOne(reportId);
+    return this.findOne(requestId);
   }
 
   async createReportService(
@@ -234,16 +234,16 @@ export class RequestsService {
         dto.detail,
       ],
     );
-    const reportId = result.insertId;
+    const requestId = result.insertId;
 
     for (const file of files) {
       await this.db.query<ResultSetHeader>(
-        `INSERT INTO attachments (report_id, attachment_type, original_name, file_ext)
-       VALUES (?, 'report_evidence', ?, ?)`,
-        [reportId, file.originalname, extname(file.originalname).replace('.', '')],
+        `INSERT INTO attachments (request_id, attachment_type, original_name, file_ext)
+       VALUES (?, 'request_evidence', ?, ?)`,
+        [requestId, file.originalname, extname(file.originalname).replace('.', '')],
       );
     }
 
-    return this.findOne(reportId);
+    return this.findOne(requestId);
   }
 }

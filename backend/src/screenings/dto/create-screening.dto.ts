@@ -1,5 +1,5 @@
 export class CreateScreeningDto {
-  reportId?: number;
+  requestId?: number;
 
   screenedBy?: number;
 

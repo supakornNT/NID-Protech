@@ -1,5 +1,5 @@
 export class CreateRequestStatusLogDto {
-  reportId!: number;
+  requestId!: number;
 
   oldStatus!: string;
 

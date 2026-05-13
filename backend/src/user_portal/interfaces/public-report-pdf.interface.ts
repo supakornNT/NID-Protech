@@ -9,7 +9,6 @@ export interface PublicRequestPdfData {
   problemDetail: string;
   statusCode: string;
   issuedAt: string;
-  dueDate: string | null;
   documentFileName: string;
   documentGeneratedAt: string | null;
 }

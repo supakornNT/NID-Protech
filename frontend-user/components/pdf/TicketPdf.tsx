@@ -25,7 +25,6 @@ export type TicketPdfData = {
   problemTitle: string;
   problemDetail: string;
   issuedAt: string;
-  dueDate: string | null;
   documentFileName: string;
 };
 
@@ -185,10 +184,6 @@ export function TicketPdf({ ticket, qrCode, logoSrc }: TicketPdfProps) {
             </Text>
           </View>
 
-          <View style={styles.row}>
-            <Text style={styles.label}>Due Date</Text>
-            <Text style={styles.value}>{formatValue(ticket.dueDate)}</Text>
-          </View>
         </View>
 
         <View style={styles.section}>

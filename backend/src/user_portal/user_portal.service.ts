@@ -45,7 +45,6 @@ interface PublicRequestRow extends RowDataPacket {
   request_no: string;
   system_name: string | null;
   problem_name: string | null;
-  resolve_due_at: Date | string | null;
   status: string;
 }
 
@@ -62,7 +61,6 @@ interface PublicRequestPdfRow extends RowDataPacket {
   title: string;
   detail: string;
   request_created_at: Date | string;
-  resolve_due_at: Date | string | null;
   customer_name: string;
   customer_surname: string | null;
   customer_email: string;
@@ -136,7 +134,7 @@ export class UserPortalService {
     );
     const search = query.search?.trim() ?? '';
     const status = query.status?.trim() ?? '';
-    const whereClauses: string[] = [`pt.report_type = 'issue'`];
+    const whereClauses: string[] = [];
     const params: Array<string | number> = [];
 
     // TODO:
@@ -189,7 +187,6 @@ export class UserPortalService {
         r.request_no,
         s.name AS system_name,
         pt.name AS problem_name,
-        NULL AS resolve_due_at,
         r.status
       FROM requests r
       INNER JOIN problem_types pt
@@ -208,7 +205,6 @@ export class UserPortalService {
         trackingNo: row.request_no,
         system: row.system_name ?? '-',
         problem: row.problem_name ?? '-',
-        dueDate: formatDateOnlyUtil(row.resolve_due_at),
         document: `tracking-${row.request_no}.pdf`,
         status: mapReportStatusLabelUtil(row.status),
       })),
@@ -235,7 +231,7 @@ export class UserPortalService {
     const [requestStatusLogs] = await this.db.query<StatusLogRow[]>(
       `SELECT new_status, created_at
       FROM request_status_logs
-      WHERE report_id = ?
+      WHERE request_id = ?
       ORDER BY created_at ASC, id ASC`,
       [request.id],
     );
@@ -253,7 +249,6 @@ export class UserPortalService {
         r.title,
         r.detail,
         r.created_at AS request_created_at,
-        NULL AS resolve_due_at,
         c.name AS customer_name,
         c.surname AS customer_surname,
         c.email AS customer_email,
@@ -310,7 +305,6 @@ export class UserPortalService {
       problemDetail: row.detail,
       statusCode: row.request_status,
       issuedAt: formatDateTimeUtil(row.request_created_at) ?? '',
-      dueDate: formatDateOnlyUtil(row.resolve_due_at),
       documentFileName:
         row.document_file_name ?? `tracking-${row.request_no}.pdf`,
       documentGeneratedAt: formatDateTimeUtil(row.document_generated_at),
@@ -342,7 +336,7 @@ export class UserPortalService {
 
       await connection.query<ResultSetHeader>(
         `INSERT INTO request_confirmations (
-          report_id,
+          request_id,
           customer_id,
           result,
           comment,
@@ -378,7 +372,7 @@ export class UserPortalService {
 
       await connection.query<ResultSetHeader>(
         `INSERT INTO request_status_logs (
-          report_id,
+          request_id,
           old_status,
           new_status,
           changed_by_type,
@@ -447,7 +441,7 @@ export class UserPortalService {
       >(
         `SELECT id
         FROM request_confirmations
-        WHERE report_id = ?
+        WHERE request_id = ?
           AND result = 'confirmed'
         ORDER BY id DESC
         LIMIT 1`,
@@ -511,7 +505,7 @@ export class UserPortalService {
 
       await connection.query<ResultSetHeader>(
         `INSERT INTO request_confirmations (
-          report_id,
+          request_id,
           customer_id,
           result,
           comment,
@@ -551,7 +545,7 @@ export class UserPortalService {
 
       await connection.query<ResultSetHeader>(
         `INSERT INTO request_status_logs (
-          report_id,
+          request_id,
           old_status,
           new_status,
           changed_by_type,
@@ -597,7 +591,7 @@ export class UserPortalService {
     const [requestStatusLogs] = await this.db.query<StatusLogRow[]>(
       `SELECT new_status, created_at
       FROM request_status_logs
-      WHERE report_id = ?
+      WHERE request_id = ?
       ORDER BY created_at ASC, id ASC`,
       [updated.id],
     );
@@ -621,7 +615,7 @@ export class UserPortalService {
           (
             SELECT rsl.created_at
             FROM request_status_logs rsl
-            WHERE rsl.report_id = r.id
+            WHERE rsl.request_id = r.id
               AND rsl.new_status = 'waiting_confirm'
             ORDER BY rsl.id DESC
             LIMIT 1
@@ -640,7 +634,7 @@ export class UserPortalService {
           AND (
             SELECT rsl.created_at
             FROM request_status_logs rsl
-            WHERE rsl.report_id = r.id
+            WHERE rsl.request_id = r.id
               AND rsl.new_status = 'waiting_confirm'
             ORDER BY rsl.id DESC
             LIMIT 1
@@ -649,7 +643,7 @@ export class UserPortalService {
             (
               SELECT rsl.created_at
               FROM request_status_logs rsl
-              WHERE rsl.report_id = r.id
+              WHERE rsl.request_id = r.id
                 AND rsl.new_status = 'waiting_confirm'
               ORDER BY rsl.id DESC
               LIMIT 1
@@ -677,7 +671,7 @@ export class UserPortalService {
 
         await connection.query<ResultSetHeader>(
           `INSERT INTO request_status_logs (
-            report_id,
+            request_id,
             old_status,
             new_status,
             changed_by_type,
@@ -748,7 +742,6 @@ export class UserPortalService {
       LEFT JOIN staffs staff
         ON staff.id = COALESCE(t.assigned_staff_id, trr.requested_by)
       WHERE r.request_no = ?
-        AND pt.report_type = 'issue'
       LIMIT 1`,
       [requestNo],
     );
@@ -796,7 +789,6 @@ export class UserPortalService {
       LEFT JOIN staffs staff
         ON staff.id = COALESCE(t.assigned_staff_id, trr.requested_by)
       WHERE r.id = ?
-        AND pt.report_type = 'issue'
       LIMIT 1`,
       [id],
     );
@@ -814,7 +806,6 @@ export class UserPortalService {
       INNER JOIN problem_types pt
         ON pt.id = requests.problem_type_id
       WHERE requests.id = ?
-        AND pt.report_type = 'issue'
       LIMIT 1`,
       [id],
     );

@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Paperclip, X } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -33,7 +29,7 @@ export default function ReportServicePage() {
     useProblemTypes("complaint");
   const [submitted, setSubmitted] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const { submit, loading, error } = useSubmit("/requests/service", () => {
+  const { submit } = useSubmit("/requests/service", () => {
     setShowSuccess(true);
     setForm({ title: "", problem_type_id: "", detail: "" });
     setFiles([]);
@@ -41,7 +37,9 @@ export default function ReportServicePage() {
 
   const handleSubmit = async () => {
     setSubmitted(true);
-    if (!form.title || !form.problem_type_id || !form.detail) return;
+    if (!form.title || !form.problem_type_id || !form.detail) {
+      return;
+    }
 
     const formData = new FormData();
     if (identity === "reveal") {
@@ -53,30 +51,31 @@ export default function ReportServicePage() {
     for (const file of files) {
       formData.append("files", file);
     }
+
     await submit(formData);
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4 sm:p-6">
       <Card className={styles.card}>
-        <div className="px-4 sm:px-8 pt-6 pb-2 border-b">
+        <div className="border-b px-4 pb-2 pt-6 sm:px-8">
           <h1 className="text-2xl font-bold">รายงานปัญหาเกี่ยวกับการบริการ</h1>
         </div>
 
-        <div className="px-4 sm:px-8 py-6 flex flex-col gap-5">
-          <div className="flex flex-col sm:flex-row gap-6">
+        <div className="flex flex-col gap-5 px-4 py-6 sm:px-8">
+          <div className="flex flex-col gap-6 sm:flex-row">
             <FormInput
               label="ผู้แจ้ง"
               placeholder="กำลังโหลด..."
               className="flex-1"
-              inputClassName={`${styles.input} bg-gray-50 cursor-not-allowed`}
+              inputClassName={`${styles.input} cursor-not-allowed bg-gray-50`}
               value={fullName}
               disabled
             />
-            <div className="flex flex-col gap-1 flex-1">
-              <p style={{ fontSize: 16, fontWeight: 500 }}>การเปิดเผยตน</p>
-              <div className="flex items-center gap-4 h-9">
-                <label className="flex items-center gap-2 cursor-pointer text-sm">
+            <div className="flex flex-1 flex-col gap-1">
+              <p style={{ fontSize: 16, fontWeight: 500 }}>การเปิดเผยตัวตน</p>
+              <div className="flex h-9 items-center gap-4">
+                <label className="flex cursor-pointer items-center gap-2 text-sm">
                   <input
                     type="radio"
                     name="identity"
@@ -86,7 +85,7 @@ export default function ReportServicePage() {
                   />
                   ระบุตัวตน
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer text-sm">
+                <label className="flex cursor-pointer items-center gap-2 text-sm">
                   <input
                     type="radio"
                     name="identity"
@@ -99,7 +98,8 @@ export default function ReportServicePage() {
               </div>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-6">
+
+          <div className="flex flex-col gap-6 sm:flex-row">
             <FormInput
               label="หัวข้อเรื่อง"
               placeholder="กรุณาเขียนหัวข้อเรื่อง"
@@ -109,16 +109,12 @@ export default function ReportServicePage() {
               onChange={(e) => setForm({ ...form, title: e.target.value })}
             />
 
-            <div className="flex flex-col gap-1 flex-1">
-              <p style={{ fontSize: 16, fontWeight: 500 }}>
-                หัวข้อเรื่องร้องเรียน
-              </p>
+            <div className="flex flex-1 flex-col gap-1">
+              <p style={{ fontSize: 16, fontWeight: 500 }}>หัวข้อเรื่องร้องเรียน</p>
               <select
                 className={`${styles.input} ${styles.select} ${submitted && !form.problem_type_id ? styles.inputError : ""}`}
                 value={form.problem_type_id}
-                onChange={(e) =>
-                  setForm({ ...form, problem_type_id: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, problem_type_id: e.target.value })}
                 disabled={problemTypesLoading}
               >
                 <option value="">กรุณาเลือกหัวข้อเรื่องร้องเรียน</option>
@@ -130,6 +126,7 @@ export default function ReportServicePage() {
               </select>
             </div>
           </div>
+
           <div className="flex flex-col gap-1">
             <p style={{ fontSize: 16, fontWeight: 500 }}>รายละเอียด</p>
             <textarea
@@ -143,11 +140,11 @@ export default function ReportServicePage() {
           <div className="flex flex-col gap-2">
             <p style={{ fontSize: 16, fontWeight: 500 }}>แนบไฟล์</p>
             <Popover>
-              <PopoverTrigger className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:bg-gray-50 w-fit">
+              <PopoverTrigger className="flex w-fit items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-2 text-sm text-gray-500 hover:bg-gray-50">
                 <Paperclip size={14} />
                 แนบไฟล์{" "}
                 {files.length > 0 && (
-                  <span className="bg-blue-100 text-blue-600 text-xs px-1.5 py-0.5 rounded-full">
+                  <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-xs text-blue-600">
                     {files.length}
                   </span>
                 )}
@@ -155,11 +152,9 @@ export default function ReportServicePage() {
               <PopoverContent className="w-72">
                 <div className="flex flex-col gap-3">
                   <p className="text-sm font-medium">เลือกไฟล์ที่ต้องการแนบ</p>
-                  <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-lg p-5 cursor-pointer hover:bg-gray-50 transition">
-                    <Paperclip size={24} className="text-gray-400 mb-1" />
-                    <span className="text-sm text-gray-500">
-                      คลิกเพื่อเลือกไฟล์
-                    </span>
+                  <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 p-5 transition hover:bg-gray-50">
+                    <Paperclip size={24} className="mb-1 text-gray-400" />
+                    <span className="text-sm text-gray-500">คลิกเพื่อเลือกไฟล์</span>
                     <span className="text-xs text-gray-400">
                       หรือลากไฟล์มาวางที่นี่
                     </span>
@@ -169,10 +164,7 @@ export default function ReportServicePage() {
                       accept=".pdf,.png,.jpg,.jpeg"
                       className="hidden"
                       onChange={(e) =>
-                        setFiles((prev) => [
-                          ...prev,
-                          ...Array.from(e.target.files ?? []),
-                        ])
+                        setFiles((prev) => [...prev, ...Array.from(e.target.files ?? [])])
                       }
                     />
                   </label>
@@ -181,14 +173,14 @@ export default function ReportServicePage() {
                       {files.map((file, i) => (
                         <li
                           key={i}
-                          className="flex items-center justify-between text-xs text-gray-600 bg-gray-50 px-2 py-1.5 rounded"
+                          className="flex items-center justify-between rounded bg-gray-50 px-2 py-1.5 text-xs text-gray-600"
                         >
-                          <span className="truncate">📄 {file.name}</span>
+                          <span className="truncate">{file.name}</span>
                           <button
                             onClick={() =>
                               setFiles((prev) => prev.filter((_, j) => j !== i))
                             }
-                            className="text-gray-400 hover:text-red-500 ml-2 shrink-0"
+                            className="ml-2 shrink-0 text-gray-400 hover:text-red-500"
                           >
                             <X size={12} />
                           </button>
@@ -212,10 +204,7 @@ export default function ReportServicePage() {
         </div>
       </Card>
 
-      <SuccessDialog
-        open={showSuccess}
-        onClose={() => router.push("/home")}
-      />
+      <SuccessDialog open={showSuccess} onClose={() => router.push("/home")} />
     </div>
   );
 }

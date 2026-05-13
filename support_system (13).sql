@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 13, 2026 at 04:53 AM
+-- Generation Time: May 13, 2026 at 05:52 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -29,9 +29,9 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `attachments` (
   `id` int(10) UNSIGNED NOT NULL,
-  `report_id` int(10) UNSIGNED DEFAULT NULL,
+  `request_id` int(10) UNSIGNED DEFAULT NULL,
   `ticket_id` int(10) UNSIGNED DEFAULT NULL,
-  `attachment_type` enum('report_evidence','customer_tracking_ticket','assignment_ticket','resolution_evidence') NOT NULL,
+  `attachment_type` enum('request_evidence','customer_tracking_ticket','assignment_ticket','resolution_evidence') NOT NULL,
   `original_name` varchar(255) NOT NULL,
   `file_ext` enum('pdf','jpg','jpeg','png') NOT NULL,
   `uploaded_at` datetime DEFAULT current_timestamp()
@@ -41,10 +41,10 @@ CREATE TABLE `attachments` (
 -- Dumping data for table `attachments`
 --
 
-INSERT INTO `attachments` (`id`, `report_id`, `ticket_id`, `attachment_type`, `original_name`, `file_ext`, `uploaded_at`) VALUES
-(1, 1, NULL, 'report_evidence', 'login-error-screen.png', 'png', '2026-05-08 08:01:00'),
-(2, 3, NULL, 'report_evidence', 'network-error.jpg', 'jpg', '2026-05-08 08:31:00'),
-(3, 5, NULL, 'report_evidence', 'complaint-detail.pdf', 'pdf', '2026-05-08 09:01:00'),
+INSERT INTO `attachments` (`id`, `request_id`, `ticket_id`, `attachment_type`, `original_name`, `file_ext`, `uploaded_at`) VALUES
+(1, 1, NULL, '', 'login-error-screen.png', 'png', '2026-05-08 08:01:00'),
+(2, 3, NULL, '', 'network-error.jpg', 'jpg', '2026-05-08 08:31:00'),
+(3, 5, NULL, '', 'complaint-detail.pdf', 'pdf', '2026-05-08 09:01:00'),
 (4, NULL, 1, 'assignment_ticket', 'assignment-TCK-20260508-0001.pdf', 'pdf', '2026-05-08 08:26:00'),
 (5, NULL, 3, 'resolution_evidence', 'fixed-report-result.png', 'png', '2026-05-08 11:25:00'),
 (6, NULL, 4, 'resolution_evidence', 'service-followup.pdf', 'pdf', '2026-05-08 13:50:00'),
@@ -298,7 +298,7 @@ CREATE TABLE `problem_types` (
   `id` int(10) UNSIGNED NOT NULL,
   `code` varchar(10) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
-  `report_type` enum('issue','complaint') NOT NULL,
+  `request_type` enum('issue','complaint') NOT NULL,
   `status` enum('active','inactive') DEFAULT 'active',
   `created_at` datetime DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
@@ -308,7 +308,7 @@ CREATE TABLE `problem_types` (
 -- Dumping data for table `problem_types`
 --
 
-INSERT INTO `problem_types` (`id`, `code`, `name`, `report_type`, `status`, `created_at`, `updated_at`) VALUES
+INSERT INTO `problem_types` (`id`, `code`, `name`, `request_type`, `status`, `created_at`, `updated_at`) VALUES
 (1, NULL, 'เข้าสู่ระบบไม่ได้', 'issue', 'active', '2026-05-01 13:30:00', '2026-05-01 13:30:00'),
 (2, NULL, 'ระบบช้า/โหลดไม่ขึ้น', 'issue', 'active', '2026-05-01 13:31:00', '2026-05-01 13:31:00'),
 (3, NULL, 'เครือข่ายใช้งานไม่ได้', 'issue', 'active', '2026-05-01 13:32:00', '2026-05-01 13:32:00'),
@@ -364,7 +364,7 @@ INSERT INTO `requests` (`id`, `request_no`, `customer_id`, `organization`, `syst
 
 CREATE TABLE `request_confirmations` (
   `id` int(10) UNSIGNED NOT NULL,
-  `report_id` int(10) UNSIGNED NOT NULL,
+  `request_id` int(10) UNSIGNED NOT NULL,
   `customer_id` int(10) UNSIGNED NOT NULL,
   `result` enum('confirmed','reopened') NOT NULL,
   `comment` text DEFAULT NULL,
@@ -376,7 +376,7 @@ CREATE TABLE `request_confirmations` (
 -- Dumping data for table `request_confirmations`
 --
 
-INSERT INTO `request_confirmations` (`id`, `report_id`, `customer_id`, `result`, `comment`, `score`, `confirmed_at`) VALUES
+INSERT INTO `request_confirmations` (`id`, `request_id`, `customer_id`, `result`, `comment`, `score`, `confirmed_at`) VALUES
 (1, 5, 3, 'confirmed', 'เจ้าหน้าที่ติดต่อกลับและแก้ไขความล่าช้าเรียบร้อย', 5, '2026-05-08 15:30:00'),
 (2, 7, 1, 'reopened', 'ยังพบปัญหาเดิมหลังจากแจ้งว่าแก้ไขแล้ว', NULL, '2026-05-08 09:30:00'),
 (3, 9, 1, 'confirmed', 'แจ้งผิดระบบ ขอยกเลิกรายการ', 3, '2026-05-08 12:00:00'),
@@ -390,7 +390,7 @@ INSERT INTO `request_confirmations` (`id`, `report_id`, `customer_id`, `result`,
 
 CREATE TABLE `request_status_logs` (
   `id` int(10) UNSIGNED NOT NULL,
-  `report_id` int(10) UNSIGNED NOT NULL,
+  `request_id` int(10) UNSIGNED NOT NULL,
   `old_status` varchar(50) DEFAULT NULL,
   `new_status` varchar(50) NOT NULL,
   `changed_by_type` enum('customer','staff','system') NOT NULL,
@@ -403,7 +403,7 @@ CREATE TABLE `request_status_logs` (
 -- Dumping data for table `request_status_logs`
 --
 
-INSERT INTO `request_status_logs` (`id`, `report_id`, `old_status`, `new_status`, `changed_by_type`, `changed_by_id`, `note`, `created_at`) VALUES
+INSERT INTO `request_status_logs` (`id`, `request_id`, `old_status`, `new_status`, `changed_by_type`, `changed_by_id`, `note`, `created_at`) VALUES
 (1, 1, NULL, 'screening', 'customer', 1, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 08:00:00'),
 (2, 2, NULL, 'screening', 'customer', 1, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 08:15:00'),
 (3, 2, 'screening', 'assigned', 'staff', 2, 'คัดกรองผ่านและส่งมอบหมายงาน', '2026-05-08 08:20:00'),
@@ -460,7 +460,7 @@ INSERT INTO `roles` (`id`, `name`, `created_at`) VALUES
 
 CREATE TABLE `screenings` (
   `id` int(10) UNSIGNED NOT NULL,
-  `report_id` int(10) UNSIGNED NOT NULL,
+  `request_id` int(10) UNSIGNED NOT NULL,
   `screened_by` int(10) UNSIGNED NOT NULL,
   `result` enum('accepted','rejected','need_more_info') NOT NULL,
   `note` text DEFAULT NULL,
@@ -471,7 +471,7 @@ CREATE TABLE `screenings` (
 -- Dumping data for table `screenings`
 --
 
-INSERT INTO `screenings` (`id`, `report_id`, `screened_by`, `result`, `note`, `screened_at`) VALUES
+INSERT INTO `screenings` (`id`, `request_id`, `screened_by`, `result`, `note`, `screened_at`) VALUES
 (1, 1, 2, 'need_more_info', 'ขอภาพหน้าจอ error เพิ่มเติม', '2026-05-08 08:05:00'),
 (2, 2, 2, 'accepted', 'รับเรื่องและส่งต่อให้ผู้มอบหมายงาน', '2026-05-08 08:20:00'),
 (3, 3, 2, 'accepted', 'เป็นปัญหาเครือข่าย ส่งทีม Network', '2026-05-08 08:35:00'),
@@ -786,7 +786,7 @@ INSERT INTO `ticket_work_logs` (`id`, `ticket_id`, `staff_id`, `work_detail`, `w
 --
 ALTER TABLE `attachments`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `report_id` (`report_id`),
+  ADD KEY `report_id` (`request_id`),
   ADD KEY `ticket_id` (`ticket_id`);
 
 --
@@ -837,7 +837,7 @@ ALTER TABLE `prefixes`
 --
 ALTER TABLE `problem_types`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_problem_types_type_status` (`report_type`,`status`);
+  ADD KEY `idx_problem_types_type_status` (`request_type`,`status`);
 
 --
 -- Indexes for table `requests`
@@ -857,7 +857,7 @@ ALTER TABLE `requests`
 --
 ALTER TABLE `request_confirmations`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `report_id` (`report_id`),
+  ADD KEY `report_id` (`request_id`),
   ADD KEY `customer_id` (`customer_id`);
 
 --
@@ -865,8 +865,8 @@ ALTER TABLE `request_confirmations`
 --
 ALTER TABLE `request_status_logs`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `report_id` (`report_id`),
-  ADD KEY `idx_report_status_logs_report_created` (`report_id`,`created_at`);
+  ADD KEY `report_id` (`request_id`),
+  ADD KEY `idx_report_status_logs_report_created` (`request_id`,`created_at`);
 
 --
 -- Indexes for table `roles`
@@ -880,7 +880,7 @@ ALTER TABLE `roles`
 --
 ALTER TABLE `screenings`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `report_id` (`report_id`),
+  ADD KEY `report_id` (`request_id`),
   ADD KEY `screened_by` (`screened_by`);
 
 --
@@ -1126,7 +1126,7 @@ ALTER TABLE `ticket_work_logs`
 -- Constraints for table `attachments`
 --
 ALTER TABLE `attachments`
-  ADD CONSTRAINT `attachments_ibfk_1` FOREIGN KEY (`report_id`) REFERENCES `requests` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `attachments_ibfk_1` FOREIGN KEY (`request_id`) REFERENCES `requests` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `attachments_ibfk_2` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
@@ -1148,20 +1148,20 @@ ALTER TABLE `requests`
 -- Constraints for table `request_confirmations`
 --
 ALTER TABLE `request_confirmations`
-  ADD CONSTRAINT `request_confirmations_ibfk_1` FOREIGN KEY (`report_id`) REFERENCES `requests` (`id`),
+  ADD CONSTRAINT `request_confirmations_ibfk_1` FOREIGN KEY (`request_id`) REFERENCES `requests` (`id`),
   ADD CONSTRAINT `request_confirmations_ibfk_2` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`);
 
 --
 -- Constraints for table `request_status_logs`
 --
 ALTER TABLE `request_status_logs`
-  ADD CONSTRAINT `request_status_logs_ibfk_1` FOREIGN KEY (`report_id`) REFERENCES `requests` (`id`);
+  ADD CONSTRAINT `request_status_logs_ibfk_1` FOREIGN KEY (`request_id`) REFERENCES `requests` (`id`);
 
 --
 -- Constraints for table `screenings`
 --
 ALTER TABLE `screenings`
-  ADD CONSTRAINT `screenings_ibfk_1` FOREIGN KEY (`report_id`) REFERENCES `requests` (`id`),
+  ADD CONSTRAINT `screenings_ibfk_1` FOREIGN KEY (`request_id`) REFERENCES `requests` (`id`),
   ADD CONSTRAINT `screenings_ibfk_2` FOREIGN KEY (`screened_by`) REFERENCES `staffs` (`id`);
 
 --

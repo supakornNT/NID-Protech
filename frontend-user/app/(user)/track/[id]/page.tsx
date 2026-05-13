@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-
 import { ClipboardPlus, FileWarning, Info, Wrench } from "lucide-react";
 
 import ConfirmCloseModal from "@/components/trackstep/popup/ConfirmCloseModal";
@@ -39,21 +38,15 @@ export default function Page({ params }: Props) {
   } = useTrackingDetail(id);
 
   if (loading) {
-    return <div className="p-6">เธเธณเธฅเธฑเธเนเธซเธฅเธ”...</div>;
+    return <div className="p-6">กำลังโหลด...</div>;
   }
 
   if (error || !request) {
-    return <div className="p-6 text-red-600">{error ?? "เนเธกเนเธเธเธเนเธญเธกเธนเธฅ"}</div>;
+    return <div className="p-6 text-red-600">{error ?? "ไม่พบข้อมูล"}</div>;
   }
 
   async function handleOpenRepairDetail() {
-    const currentRequest = request;
-
-    if (!currentRequest) {
-      return;
-    }
-
-    setRepairDetail(buildRepairDetail(currentRequest));
+    setRepairDetail(buildRepairDetail(request));
     setShowRepairDetail(true);
   }
 
@@ -78,8 +71,7 @@ export default function Page({ params }: Props) {
 
   const canReview = request.statusCode === "waiting_confirm";
   const canRate =
-    request.statusCode === "closed" &&
-    request.ratingStatus !== "เธเธฃเธฐเน€เธกเธดเธเนเธฅเนเธง";
+    request.statusCode === "closed" && request.ratingStatus !== "ประเมินแล้ว";
   const canViewRepairDetail =
     request.statusCode === "waiting_confirm" ||
     request.statusCode === "closed";
@@ -106,17 +98,16 @@ export default function Page({ params }: Props) {
               </div>
 
               <div>
-                <p className="font-semibold text-[#20498F]">
-                  {request.status}
+                <p className="font-semibold text-[#20498F]">{request.status}</p>
+                <p className="text-xs text-[#315FAF]">
+                  ระบบติดตามการดำเนินงาน
                 </p>
-
-                <p className="text-xs text-[#315FAF]">เธฃเธฐเธเธเธ•เธดเธ”เธ•เธฒเธกเธเธฒเธฃเธ”เธณเน€เธเธดเธเธเธฒเธ</p>
               </div>
             </div>
 
             {canReview ? (
               <p className="text-[14px] font-medium text-[#315FAF] sm:text-[15px]">
-                เน€เธซเธฅเธทเธญ {countdown}
+                เหลือเวลา {countdown}
               </p>
             ) : null}
           </div>
@@ -125,7 +116,7 @@ export default function Page({ params }: Props) {
             <div className="flex flex-col gap-2 border-b py-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <FileWarning size={22} className="shrink-0 text-gray-500" />
-                <p className="text-[14px] sm:text-[15px]">เธเธฑเธเธซเธฒเธ—เธตเนเธเธ</p>
+                <p className="text-[14px] sm:text-[15px]">ปัญหาที่พบ</p>
               </div>
 
               <p className="text-[14px] text-gray-700 sm:text-[15px] sm:text-right">
@@ -136,7 +127,9 @@ export default function Page({ params }: Props) {
             <div className="flex flex-col gap-2 border-b py-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <Info size={22} className="shrink-0 text-gray-500" />
-                <p className="text-[14px] sm:text-[15px]">เธชเธ–เธฒเธเธฐเธเธฒเธฃเธ”เธณเน€เธเธดเธเธเธฒเธ</p>
+                <p className="text-[14px] sm:text-[15px]">
+                  สถานะการดำเนินงาน
+                </p>
               </div>
 
               <p className="text-[14px] text-gray-700 sm:text-[15px] sm:text-right">
@@ -147,7 +140,7 @@ export default function Page({ params }: Props) {
             <div className="flex flex-col gap-2 border-b py-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <Wrench size={22} className="shrink-0 text-gray-500" />
-                <p className="text-[14px] sm:text-[15px]">เธ”เธณเน€เธเธดเธเธเธฒเธฃเนเธ”เธข</p>
+                <p className="text-[14px] sm:text-[15px]">ดำเนินการโดย</p>
               </div>
 
               <div className="sm:flex sm:min-w-[220px] sm:items-center sm:justify-end">
@@ -161,16 +154,17 @@ export default function Page({ params }: Props) {
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <Info size={22} className="shrink-0 text-gray-500" />
-
-                  <p className="text-[14px] sm:text-[15px]">เธงเธดเธเธตเธเธฒเธฃเนเธเนเนเธ</p>
+                  <p className="text-[14px] sm:text-[15px]">วิธีการแก้ไข</p>
                 </div>
 
                 <ProTechButton
-                  onClick={canViewRepairDetail ? handleOpenRepairDetail : undefined}
+                  onClick={
+                    canViewRepairDetail ? handleOpenRepairDetail : undefined
+                  }
                   variant="detail"
                   disabled={!canViewRepairDetail}
                 >
-                  เธฃเธฒเธขเธฅเธฐเน€เธญเธตเธขเธ”
+                  รายละเอียด
                 </ProTechButton>
               </div>
             </div>
@@ -181,14 +175,14 @@ export default function Page({ params }: Props) {
                   onClick={() => setShowRejectWork(true)}
                   variant="outline"
                 >
-                  เนเธกเนเธญเธเธธเธกเธฑเธ•เธด
+                  ไม่อนุมัติ
                 </ProTechButton>
 
                 <ProTechButton
                   onClick={() => setShowConfirmClose(true)}
                   variant="primary"
                 >
-                  เธญเธเธธเธกเธฑเธ•เธด
+                  อนุมัติ
                 </ProTechButton>
               </div>
             ) : null}
@@ -196,7 +190,7 @@ export default function Page({ params }: Props) {
             {canRate ? (
               <div className="flex justify-end py-4">
                 <ProTechButton onClick={() => setShowRating(true)}>
-                  เธเธฃเธฐเน€เธกเธดเธ
+                  ประเมิน
                 </ProTechButton>
               </div>
             ) : null}
@@ -206,11 +200,11 @@ export default function Page({ params }: Props) {
 
       <ConfirmCloseModal
         open={showConfirmClose}
-        title="เธขเธทเธเธขเธฑเธเธเธดเธ”เธเธฒเธ"
-        description="เธเธธเธ“เธ•เนเธญเธเธเธฒเธฃเธขเธทเธเธขเธฑเธเธเธดเธ”เธเธฒเธเนเธเนเธซเธฃเธทเธญเนเธกเน"
-        subDescription="เธซเธฅเธฑเธเธเธฒเธเธขเธทเธเธขเธฑเธเนเธฅเนเธง เธฃเธฐเธเธเธเธฐเธ–เธทเธญเธงเนเธฒเธเธฒเธเน€เธชเธฃเนเธเธชเธกเธเธนเธฃเธ“เน"
-        confirmText="เธขเธทเธเธขเธฑเธ"
-        cancelText="เธขเธเน€เธฅเธดเธ"
+        title="ยืนยันปิดงาน"
+        description="คุณต้องการยืนยันปิดงานใช่หรือไม่"
+        subDescription="หลังจากยืนยันแล้ว ระบบจะถือว่างานเสร็จสมบูรณ์"
+        confirmText="ยืนยัน"
+        cancelText="ยกเลิก"
         onClose={() => setShowConfirmClose(false)}
         onConfirm={() => {
           void handleConfirmDone();

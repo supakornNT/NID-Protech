@@ -1,5 +1,5 @@
 export class CreateRequestConfirmationDto {
-  reportId?: number;
+  requestId?: number;
 
   customerId?: number;
 

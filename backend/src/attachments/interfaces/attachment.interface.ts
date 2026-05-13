@@ -2,7 +2,7 @@ import type { RowDataPacket } from 'mysql2/promise';
 
 export interface Attachment extends RowDataPacket {
   id: number;
-  report_id: number;
+  request_id: number | null;
   ticket_id: number;
   attachment_type: string;
   original_name: string;

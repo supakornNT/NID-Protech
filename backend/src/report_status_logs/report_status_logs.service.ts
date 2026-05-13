@@ -12,7 +12,7 @@ export class RequestStatusLogsService {
     const [rows] = await this.db.query<RequestStatusLog[]>(
       `SELECT
       request_status_logs.id,
-      request_status_logs.report_id,
+      request_status_logs.request_id,
       request_status_logs.old_status,
       request_status_logs.new_status,
       request_status_logs.changed_by_type,
@@ -30,7 +30,7 @@ export class RequestStatusLogsService {
     const [rows] = await this.db.query<RequestStatusLog[]>(
       `SELECT
       request_status_logs.id,
-      request_status_logs.report_id,
+      request_status_logs.request_id,
       request_status_logs.old_status,
       request_status_logs.new_status,
       request_status_logs.changed_by_type,
@@ -48,9 +48,9 @@ export class RequestStatusLogsService {
 
   async create(dto: CreateRequestStatusLogDto): Promise<RequestStatusLog | null> {
     const [result] = await this.db.query<ResultSetHeader>(
-      'INSERT INTO request_status_logs (report_id, old_status, new_status, changed_by_type, changed_by_id, note) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO request_status_logs (request_id, old_status, new_status, changed_by_type, changed_by_id, note) VALUES (?, ?, ?, ?, ?, ?)',
       [
-        dto.reportId,
+        dto.requestId,
         dto.oldStatus,
         dto.newStatus,
         dto.changedByType,
@@ -75,7 +75,7 @@ export class RequestStatusLogsService {
     await this.db.query<ResultSetHeader>(
       `UPDATE request_status_logs
       SET
-        report_id = ?,
+        request_id = ?,
         old_status = ?,
         new_status = ?,
         changed_by_type = ?,
@@ -83,7 +83,7 @@ export class RequestStatusLogsService {
         note = ?
       WHERE id = ?`,
       [
-        dto.reportId ?? current.report_id,
+        dto.requestId ?? current.request_id,
         dto.oldStatus ?? current.old_status,
         dto.newStatus ?? current.new_status,
         dto.changedByType ?? current.changed_by_type,

@@ -12,7 +12,7 @@ export class RequestConfirmationsService {
     const [rows] = await this.db.query<RequestConfirmation[]>(
       `SELECT
       request_confirmations.id,
-      request_confirmations.report_id,
+      request_confirmations.request_id,
       request_confirmations.customer_id,
       request_confirmations.result,
       request_confirmations.comment,
@@ -29,7 +29,7 @@ export class RequestConfirmationsService {
     const [rows] = await this.db.query<RequestConfirmation[]>(
       `SELECT
       request_confirmations.id,
-      request_confirmations.report_id,
+      request_confirmations.request_id,
       request_confirmations.customer_id,
       request_confirmations.result,
       request_confirmations.comment,
@@ -48,8 +48,8 @@ export class RequestConfirmationsService {
     dto: CreateRequestConfirmationDto,
   ): Promise<RequestConfirmation | null> {
     const [result] = await this.db.query<ResultSetHeader>(
-      'INSERT INTO request_confirmations (report_id, customer_id, result, comment, score) VALUES (?, ?, ?, ?, ?)',
-      [dto.reportId, dto.customerId, dto.result, dto.comment, dto.score],
+      'INSERT INTO request_confirmations (request_id, customer_id, result, comment, score) VALUES (?, ?, ?, ?, ?)',
+      [dto.requestId, dto.customerId, dto.result, dto.comment, dto.score],
     );
 
     return this.findOne(result.insertId);
@@ -68,14 +68,14 @@ export class RequestConfirmationsService {
     await this.db.query<ResultSetHeader>(
       `UPDATE request_confirmations
       SET
-        report_id = ?,
+        request_id = ?,
         customer_id = ?,
         result = ?,
         comment = ?,
         score = ?
       WHERE id = ?`,
       [
-        dto.reportId ?? current.report_id,
+        dto.requestId ?? current.request_id,
         dto.customerId ?? current.customer_id,
         dto.result ?? current.result,
         dto.comment ?? current.comment,

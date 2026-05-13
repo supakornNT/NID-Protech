@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Paperclip, X } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -22,12 +18,6 @@ const ORGANIZATION_ID = 1;
 
 export default function ReportExternalPage() {
   const router = useRouter();
-  const getDefaultDate = () => {
-    const d = new Date();
-    d.setDate(d.getDate() + 3);
-    return d.toISOString().split("T")[0];
-  };
-  const [date, setDate] = useState(getDefaultDate);
   const [files, setFiles] = useState<File[]>([]);
   const [form, setForm] = useState({
     title: "",
@@ -42,23 +32,24 @@ export default function ReportExternalPage() {
   const { data: systems } = useSystems(ORGANIZATION_ID);
   const [submitted, setSubmitted] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const { submit, loading, error } = useSubmit("/requests/external", () => {
+  const { submit } = useSubmit("/requests/external", () => {
     setShowSuccess(true);
     setForm({ title: "", problem_type_id: "", system_id: "", detail: "" });
-    setDate(getDefaultDate());
     setFiles([]);
   });
 
   const handleSubmit = async () => {
     setSubmitted(true);
-    if (!form.title || !form.problem_type_id || !form.system_id || !form.detail) return;
+    if (!form.title || !form.problem_type_id || !form.system_id || !form.detail) {
+      return;
+    }
+
     const formData = new FormData();
     formData.append("customer_id", String(CUSTOMER_ID));
     formData.append("title", form.title);
     formData.append("problem_type_id", form.problem_type_id);
     formData.append("system_id", form.system_id);
     formData.append("detail", form.detail);
-    if (date) formData.append("resolve_due_at", date);
     for (const file of files) {
       formData.append("files", file);
     }
@@ -69,10 +60,8 @@ export default function ReportExternalPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4 sm:p-6">
       <Card className={styles.card}>
-        <div className="border-b px-4 pt-6 pb-2 sm:px-8">
-          <h1 className="text-2xl font-bold">
-            รายงานปัญหาเกี่ยวกับระบบสาธารณะ
-          </h1>
+        <div className="border-b px-4 pb-2 pt-6 sm:px-8">
+          <h1 className="text-2xl font-bold">รายงานปัญหาเกี่ยวกับระบบสาธารณะ</h1>
         </div>
 
         <div className="flex flex-col gap-5 px-4 py-6 sm:px-8">
@@ -81,7 +70,7 @@ export default function ReportExternalPage() {
               label="ผู้แจ้ง"
               placeholder="กำลังโหลด..."
               className="w-1/2"
-              inputClassName={`${styles.input} bg-gray-50 cursor-not-allowed`}
+              inputClassName={`${styles.input} cursor-not-allowed bg-gray-50`}
               value={fullName}
               disabled
             />
@@ -101,9 +90,7 @@ export default function ReportExternalPage() {
               <select
                 className={`${styles.input} ${styles.select} ${submitted && !form.problem_type_id ? styles.inputError : ""}`}
                 value={form.problem_type_id}
-                onChange={(e) =>
-                  setForm({ ...form, problem_type_id: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, problem_type_id: e.target.value })}
                 disabled={problemTypesLoading}
               >
                 <option value="">กรุณาเลือกประเภทปัญหา</option>
@@ -120,9 +107,7 @@ export default function ReportExternalPage() {
               <select
                 className={`${styles.input} ${styles.select} ${submitted && !form.system_id ? styles.inputError : ""}`}
                 value={form.system_id}
-                onChange={(e) =>
-                  setForm({ ...form, system_id: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, system_id: e.target.value })}
               >
                 <option value="">กรุณาเลือกระบบ</option>
                 {systems.map((s) => (
@@ -131,21 +116,6 @@ export default function ReportExternalPage() {
                   </option>
                 ))}
               </select>
-            </div>
-
-            <div className="flex flex-1 flex-col gap-1">
-              <p style={{ fontSize: 16, fontWeight: 500 }}>ระยะเวลา</p>
-              <input
-                type="date"
-                className={styles.input}
-                value={date}
-                min={new Date().toISOString().split("T")[0]}
-                onChange={(e) => {
-                  const today = new Date().toISOString().split("T")[0];
-                  if (e.target.value < today) return;
-                  setDate(e.target.value);
-                }}
-              />
             </div>
           </div>
 
@@ -186,10 +156,7 @@ export default function ReportExternalPage() {
                       accept=".pdf,.png,.jpg,.jpeg"
                       className="hidden"
                       onChange={(e) =>
-                        setFiles((prev) => [
-                          ...prev,
-                          ...Array.from(e.target.files ?? []),
-                        ])
+                        setFiles((prev) => [...prev, ...Array.from(e.target.files ?? [])])
                       }
                     />
                   </label>
@@ -229,10 +196,7 @@ export default function ReportExternalPage() {
         </div>
       </Card>
 
-      <SuccessDialog
-        open={showSuccess}
-        onClose={() => router.push("/home")}
-      />
+      <SuccessDialog open={showSuccess} onClose={() => router.push("/home")} />
     </div>
   );
 }

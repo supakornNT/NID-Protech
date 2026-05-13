@@ -83,7 +83,7 @@ export class TicketsService {
       'INSERT INTO tickets (ticket_no, request_id, parent_ticket_id, assigned_team_id, assigned_staff_id, assigned_by, title, description, status, resolved_at, closed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         dto.ticketNo,
-        dto.reportId,
+        dto.requestId,
         dto.parentTicketId,
         dto.assignedTeamId,
         dto.assignedStaffId,
@@ -123,7 +123,7 @@ export class TicketsService {
       WHERE id = ?`,
       [
         dto.ticketNo ?? current.ticket_no,
-        dto.reportId ?? current.request_id,
+        dto.requestId ?? current.request_id,
         dto.parentTicketId ?? current.parent_ticket_id,
         dto.assignedTeamId ?? current.assigned_team_id,
         dto.assignedStaffId ?? current.assigned_staff_id,
