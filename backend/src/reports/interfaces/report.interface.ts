@@ -1,8 +1,12 @@
 import type { RowDataPacket } from 'mysql2/promise';
 
-export interface Report extends RowDataPacket {
+export interface RequestRecord extends RowDataPacket {
   id: number;
-  report_no: string;
+  request_no: string;
+  customer_id: number | null;
+  system_id: number | null;
+  problem_type_id: number | null;
+  detail: string;
   customer_name: string;
   organization: string | null;
   system_name: string;

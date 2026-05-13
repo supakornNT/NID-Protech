@@ -1,4 +1,4 @@
-export class CreateReportStatusLogDto {
+export class CreateRequestStatusLogDto {
   reportId!: number;
 
   oldStatus!: string;

@@ -1,44 +1,44 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { Pool, ResultSetHeader } from 'mysql2/promise';
-import { CreateReportStatusLogDto } from './dto/create-report-status-log.dto';
-import { UpdateReportStatusLogDto } from './dto/update-report-status-log.dto';
-import type { ReportStatusLog } from './interfaces/report-status-log.interface';
+import { CreateRequestStatusLogDto } from './dto/create-report-status-log.dto';
+import { UpdateRequestStatusLogDto } from './dto/update-report-status-log.dto';
+import type { RequestStatusLog } from './interfaces/report-status-log.interface';
 
 @Injectable()
-export class ReportStatusLogsService {
+export class RequestStatusLogsService {
   constructor(@Inject('DB') private readonly db: Pool) {}
 
-  async findAll(): Promise<ReportStatusLog[]> {
-    const [rows] = await this.db.query<ReportStatusLog[]>(
+  async findAll(): Promise<RequestStatusLog[]> {
+    const [rows] = await this.db.query<RequestStatusLog[]>(
       `SELECT
-      report_status_logs.id,
-      report_status_logs.report_id,
-      report_status_logs.old_status,
-      report_status_logs.new_status,
-      report_status_logs.changed_by_type,
-      report_status_logs.changed_by_id,
-      report_status_logs.note,
-      report_status_logs.created_at
-      FROM report_status_logs
+      request_status_logs.id,
+      request_status_logs.report_id,
+      request_status_logs.old_status,
+      request_status_logs.new_status,
+      request_status_logs.changed_by_type,
+      request_status_logs.changed_by_id,
+      request_status_logs.note,
+      request_status_logs.created_at
+      FROM request_status_logs
       `,
     );
 
     return rows;
   }
 
-  async findOne(id: number): Promise<ReportStatusLog | null> {
-    const [rows] = await this.db.query<ReportStatusLog[]>(
+  async findOne(id: number): Promise<RequestStatusLog | null> {
+    const [rows] = await this.db.query<RequestStatusLog[]>(
       `SELECT
-      report_status_logs.id,
-      report_status_logs.report_id,
-      report_status_logs.old_status,
-      report_status_logs.new_status,
-      report_status_logs.changed_by_type,
-      report_status_logs.changed_by_id,
-      report_status_logs.note,
-      report_status_logs.created_at
-      FROM report_status_logs
-      WHERE report_status_logs.id = ?
+      request_status_logs.id,
+      request_status_logs.report_id,
+      request_status_logs.old_status,
+      request_status_logs.new_status,
+      request_status_logs.changed_by_type,
+      request_status_logs.changed_by_id,
+      request_status_logs.note,
+      request_status_logs.created_at
+      FROM request_status_logs
+      WHERE request_status_logs.id = ?
       `,
       [id],
     );
@@ -46,9 +46,9 @@ export class ReportStatusLogsService {
     return rows[0] ?? null;
   }
 
-  async create(dto: CreateReportStatusLogDto): Promise<ReportStatusLog | null> {
+  async create(dto: CreateRequestStatusLogDto): Promise<RequestStatusLog | null> {
     const [result] = await this.db.query<ResultSetHeader>(
-      'INSERT INTO report_status_logs (report_id, old_status, new_status, changed_by_type, changed_by_id, note) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO request_status_logs (report_id, old_status, new_status, changed_by_type, changed_by_id, note) VALUES (?, ?, ?, ?, ?, ?)',
       [
         dto.reportId,
         dto.oldStatus,
@@ -64,8 +64,8 @@ export class ReportStatusLogsService {
 
   async update(
     id: number,
-    dto: UpdateReportStatusLogDto,
-  ): Promise<ReportStatusLog | null> {
+    dto: UpdateRequestStatusLogDto,
+  ): Promise<RequestStatusLog | null> {
     const current = await this.findOne(id);
 
     if (!current) {
@@ -73,7 +73,7 @@ export class ReportStatusLogsService {
     }
 
     await this.db.query<ResultSetHeader>(
-      `UPDATE report_status_logs
+      `UPDATE request_status_logs
       SET
         report_id = ?,
         old_status = ?,
@@ -98,7 +98,7 @@ export class ReportStatusLogsService {
 
   async remove(id: number) {
     await this.db.query<ResultSetHeader>(
-      'DELETE FROM report_status_logs WHERE id = ?',
+      'DELETE FROM request_status_logs WHERE id = ?',
       [id],
     );
 

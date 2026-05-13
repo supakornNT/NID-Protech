@@ -1,11 +1,11 @@
-export interface PublicReportTrackTimeline {
+export interface PublicRequestTrackTimeline {
   label: string;
   status: 'completed' | 'active' | 'pending';
   date?: string;
   time?: string;
 }
 
-export interface PublicReportTrack {
+export interface PublicRequestTrack {
   id: number;
   trackingNo: string;
   problem: string;
@@ -14,7 +14,7 @@ export interface PublicReportTrack {
   repairStatus: string;
   repairedBy: string;
   ratingStatus: string;
-  timeline: PublicReportTrackTimeline[];
+  timeline: PublicRequestTrackTimeline[];
   solution: string;
   repairedAt: string | null;
   customerConfirmDueAt: string | null;

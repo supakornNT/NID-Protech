@@ -26,75 +26,44 @@ export default function Page({ params }: Props) {
   );
 
   const {
-    report,
+    request,
     loading,
     error,
     ratingSubmitting,
     countdown,
     activeStep,
     buildRepairDetail,
-    rejectReport,
-    confirmReport,
-    rateReport,
+    rejectRequest,
+    confirmRequest,
+    rateRequest,
   } = useTrackingDetail(id);
 
-  // Flow หน้านี้:
-  // 1. ใช้ params.id เป็น reportNo แล้วเรียก GET /user/reports/track/:reportNo
-  // 2. API คืน detail ของ report เช่น statusCode, problem, repairStatus,
-  //    repairedBy, timeline, solution และ customerConfirmDueAt
-  //    โดยข้อมูลหลักมาจาก:
-  //    -report. id <- reports.id
-  //    - trackingNo <- reports.report_no
-  //    - problem <- reports.title
-  //    - statusCode <- reports.status
-  //    - status <- reports.status แล้ว backend map เป็น label ไทย
-  //    - repairStatus <- tickets.status / ticket_resolution_requests.status
-  //      แล้ว backend map เป็นข้อความแสดงผล
-  //    - repairedBy <- staffs.name + staffs.surname
-  //      (อ้างจาก ticket ผู้รับผิดชอบล่าสุด)
-  //    - solution <- ticket_resolution_requests.summary
-  //    - timeline <- report_status_logs ของ report นี้
-  //    - customerConfirmDueAt <- derive จาก report_status_logs.created_at
-  //      ตอน new_status = 'waiting_confirm' แล้วบวก 3 วัน
-  // 3. statusCode เป็นตัวคุมการแสดงผล:
-  //    - waiting_confirm: แสดง countdown และปุ่มอนุมัติ/ไม่อนุมัติ
-  //    - closed: แสดงปุ่มประเมินเมื่อยังไม่เคยให้คะแนน
-  //    - rejected: แสดงกากบาทที่ step คัดกรอง
-  // 4. action ในหน้านี้:
-  //    - confirmReport() -> POST /user/reports/:id/confirm
-  //    - rejectReport(reason) -> POST /user/reports/:id/reject
-  //    - rateReport(...) -> POST /user/reports/:id/rating
-
   if (loading) {
-    return <div className="p-6">กำลังโหลด...</div>;
+    return <div className="p-6">เธเธณเธฅเธฑเธเนเธซเธฅเธ”...</div>;
   }
 
-  if (error || !report) {
-    return <div className="p-6 text-red-600">{error ?? "ไม่พบข้อมูล"}</div>;
+  if (error || !request) {
+    return <div className="p-6 text-red-600">{error ?? "เนเธกเนเธเธเธเนเธญเธกเธนเธฅ"}</div>;
   }
 
   async function handleOpenRepairDetail() {
-    const currentReport = report;
+    const currentRequest = request;
 
-    if (!currentReport) {
+    if (!currentRequest) {
       return;
     }
 
-    // modal นี้ใช้ข้อมูลที่ได้มาจาก detail API เดิม
-    // ไม่ได้ยิง API เพิ่มตอนเปิดรายละเอียดการแก้ไข
-    setRepairDetail(buildRepairDetail(currentReport));
+    setRepairDetail(buildRepairDetail(currentRequest));
     setShowRepairDetail(true);
   }
 
   async function handleConfirmDone() {
-    // ยืนยันผลการแก้ไข -> backend ปิด report/ticket แล้วส่งสถานะล่าสุดกลับมา
-    await confirmReport();
+    await confirmRequest();
     setShowConfirmClose(false);
   }
 
   async function handleRejectWork() {
-    // ไม่อนุมัติ -> ส่ง reason เพื่อ reopen งานกลับไป assigned
-    await rejectReport(rejectReason);
+    await rejectRequest(rejectReason);
     setShowRejectWork(false);
     setRejectReason("");
   }
@@ -103,16 +72,17 @@ export default function Page({ params }: Props) {
     rating: number;
     comment: string;
   }) {
-    // ให้คะแนนหลังงาน closed แล้วเท่านั้น
-    await rateReport(payload);
+    await rateRequest(payload);
     setShowRating(false);
   }
 
-  const canReview = report.statusCode === "waiting_confirm";
+  const canReview = request.statusCode === "waiting_confirm";
   const canRate =
-    report.statusCode === "closed" && report.ratingStatus !== "ประเมินแล้ว";
+    request.statusCode === "closed" &&
+    request.ratingStatus !== "เธเธฃเธฐเน€เธกเธดเธเนเธฅเนเธง";
   const canViewRepairDetail =
-    report.statusCode === "waiting_confirm" || report.statusCode === "closed";
+    request.statusCode === "waiting_confirm" ||
+    request.statusCode === "closed";
 
   return (
     <>
@@ -122,10 +92,10 @@ export default function Page({ params }: Props) {
         ) : null}
 
         <StepProgress
-          steps={report.timeline}
+          steps={request.timeline}
           activeStep={activeStep}
-          isCompleted={report.statusCode === "closed"}
-          rejectedStep={report.statusCode === "rejected" ? 2 : undefined}
+          isCompleted={request.statusCode === "closed"}
+          rejectedStep={request.statusCode === "rejected" ? 2 : undefined}
         />
 
         <section className="mt-10 w-full max-w-3xl overflow-hidden rounded-[28px] border border-[#2F66C5] bg-white shadow-sm sm:mt-16">
@@ -136,15 +106,17 @@ export default function Page({ params }: Props) {
               </div>
 
               <div>
-                <p className="font-semibold text-[#20498F]">{report.status}</p>
+                <p className="font-semibold text-[#20498F]">
+                  {request.status}
+                </p>
 
-                <p className="text-xs text-[#315FAF]">ระบบติดตามการดำเนินงาน</p>
+                <p className="text-xs text-[#315FAF]">เธฃเธฐเธเธเธ•เธดเธ”เธ•เธฒเธกเธเธฒเธฃเธ”เธณเน€เธเธดเธเธเธฒเธ</p>
               </div>
             </div>
 
             {canReview ? (
               <p className="text-[14px] font-medium text-[#315FAF] sm:text-[15px]">
-                เหลือ {countdown}
+                เน€เธซเธฅเธทเธญ {countdown}
               </p>
             ) : null}
           </div>
@@ -153,34 +125,34 @@ export default function Page({ params }: Props) {
             <div className="flex flex-col gap-2 border-b py-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <FileWarning size={22} className="shrink-0 text-gray-500" />
-                <p className="text-[14px] sm:text-[15px]">ปัญหาที่พบ</p>
+                <p className="text-[14px] sm:text-[15px]">เธเธฑเธเธซเธฒเธ—เธตเนเธเธ</p>
               </div>
 
               <p className="text-[14px] text-gray-700 sm:text-[15px] sm:text-right">
-                {report.problem}
+                {request.problem}
               </p>
             </div>
 
             <div className="flex flex-col gap-2 border-b py-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <Info size={22} className="shrink-0 text-gray-500" />
-                <p className="text-[14px] sm:text-[15px]">สถานะการดำเนินงาน</p>
+                <p className="text-[14px] sm:text-[15px]">เธชเธ–เธฒเธเธฐเธเธฒเธฃเธ”เธณเน€เธเธดเธเธเธฒเธ</p>
               </div>
 
               <p className="text-[14px] text-gray-700 sm:text-[15px] sm:text-right">
-                {report.repairStatus}
+                {request.repairStatus}
               </p>
             </div>
 
             <div className="flex flex-col gap-2 border-b py-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <Wrench size={22} className="shrink-0 text-gray-500" />
-                <p className="text-[14px] sm:text-[15px]">ดำเนินการโดย</p>
+                <p className="text-[14px] sm:text-[15px]">เธ”เธณเน€เธเธดเธเธเธฒเธฃเนเธ”เธข</p>
               </div>
 
               <div className="sm:flex sm:min-w-[220px] sm:items-center sm:justify-end">
                 <p className="text-[14px] text-gray-700 sm:text-[15px] sm:text-right">
-                  {report.repairedBy ?? "-"}
+                  {request.repairedBy ?? "-"}
                 </p>
               </div>
             </div>
@@ -190,7 +162,7 @@ export default function Page({ params }: Props) {
                 <div className="flex items-center gap-3">
                   <Info size={22} className="shrink-0 text-gray-500" />
 
-                  <p className="text-[14px] sm:text-[15px]">วิธีการแก้ไข</p>
+                  <p className="text-[14px] sm:text-[15px]">เธงเธดเธเธตเธเธฒเธฃเนเธเนเนเธ</p>
                 </div>
 
                 <ProTechButton
@@ -198,7 +170,7 @@ export default function Page({ params }: Props) {
                   variant="detail"
                   disabled={!canViewRepairDetail}
                 >
-                  รายละเอียด
+                  เธฃเธฒเธขเธฅเธฐเน€เธญเธตเธขเธ”
                 </ProTechButton>
               </div>
             </div>
@@ -209,14 +181,14 @@ export default function Page({ params }: Props) {
                   onClick={() => setShowRejectWork(true)}
                   variant="outline"
                 >
-                  ไม่อนุมัติ
+                  เนเธกเนเธญเธเธธเธกเธฑเธ•เธด
                 </ProTechButton>
 
                 <ProTechButton
                   onClick={() => setShowConfirmClose(true)}
                   variant="primary"
                 >
-                  อนุมัติ
+                  เธญเธเธธเธกเธฑเธ•เธด
                 </ProTechButton>
               </div>
             ) : null}
@@ -224,7 +196,7 @@ export default function Page({ params }: Props) {
             {canRate ? (
               <div className="flex justify-end py-4">
                 <ProTechButton onClick={() => setShowRating(true)}>
-                  ประเมิน
+                  เธเธฃเธฐเน€เธกเธดเธ
                 </ProTechButton>
               </div>
             ) : null}
@@ -234,11 +206,11 @@ export default function Page({ params }: Props) {
 
       <ConfirmCloseModal
         open={showConfirmClose}
-        title="ยืนยันปิดงาน"
-        description="คุณต้องการยืนยันปิดงานใช่หรือไม่"
-        subDescription="หลังจากยืนยันแล้ว ระบบจะถือว่างานเสร็จสมบูรณ์"
-        confirmText="ยืนยัน"
-        cancelText="ยกเลิก"
+        title="เธขเธทเธเธขเธฑเธเธเธดเธ”เธเธฒเธ"
+        description="เธเธธเธ“เธ•เนเธญเธเธเธฒเธฃเธขเธทเธเธขเธฑเธเธเธดเธ”เธเธฒเธเนเธเนเธซเธฃเธทเธญเนเธกเน"
+        subDescription="เธซเธฅเธฑเธเธเธฒเธเธขเธทเธเธขเธฑเธเนเธฅเนเธง เธฃเธฐเธเธเธเธฐเธ–เธทเธญเธงเนเธฒเธเธฒเธเน€เธชเธฃเนเธเธชเธกเธเธนเธฃเธ“เน"
+        confirmText="เธขเธทเธเธขเธฑเธ"
+        cancelText="เธขเธเน€เธฅเธดเธ"
         onClose={() => setShowConfirmClose(false)}
         onConfirm={() => {
           void handleConfirmDone();

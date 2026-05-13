@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 12, 2026 at 09:48 AM
+-- Generation Time: May 13, 2026 at 04:53 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -85,7 +85,8 @@ INSERT INTO `customers` (`id`, `prefix_id`, `citizen_id`, `name`, `surname`, `em
 (3, NULL, NULL, 'บริษัท เอ็นไอดี', 'เทคโนโลยี', 'contact@nidtech.com', '023333333', 'company', 1, 'approved', '$2b$10$mockhashcustomer3', '2026-05-01 10:10:00', '2026-05-12 09:41:23'),
 (4, NULL, NULL, 'ลูกค้าใหม่', 'รออนุมัติ', 'pending@example.com', '0844444444', 'person', NULL, 'pending', '$2b$10$mockhashcustomer4', '2026-05-01 10:15:00', '2026-05-01 10:15:00'),
 (5, NULL, NULL, 'ลูกค้าถูกปฏิเสธ', 'ทดสอบ', 'rejected@example.com', '0855555555', 'person', NULL, 'rejected', '$2b$10$mockhashcustomer5', '2026-05-01 10:20:00', '2026-05-01 10:20:00'),
-(6, NULL, NULL, 'ลูกค้าเก่า', 'ปิดใช้งาน', 'inactive@example.com', '0866666666', 'company', 1, 'inactive', '$2b$10$mockhashcustomer6', '2026-05-01 10:25:00', '2026-05-12 09:41:41');
+(6, NULL, NULL, 'ลูกค้าเก่า', 'ปิดใช้งาน', 'inactive@example.com', '0866666666', 'company', 1, 'inactive', '$2b$10$mockhashcustomer6', '2026-05-01 10:25:00', '2026-05-12 09:41:41'),
+(7, NULL, NULL, 'ggg', 'ggg', 'test16@gmail.com', '0000000000', 'person', NULL, 'pending', '$2b$10$tivq7REfkaWiwHn50Uu14u437v2FFYrrTs.tzDa5aaPW3n0gEW.c6', '2026-05-12 15:06:43', '2026-05-12 15:06:43');
 
 -- --------------------------------------------------------
 
@@ -164,6 +165,20 @@ INSERT INTO `password_logs` (`id`, `user_type`, `user_id`, `password_hash`, `cha
 (2, 'customer', 1, '$2b$10$newcustomerhash1', '2026-05-07 18:00:00'),
 (3, 'staff', 1, '$2b$10$oldstaffhash1', '2026-05-01 11:00:00'),
 (4, 'staff', 4, '$2b$10$newstaffhash4', '2026-05-06 09:00:00');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `permissions`
+--
+
+CREATE TABLE `permissions` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `code` varchar(100) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `module` varchar(100) NOT NULL,
+  `created_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -281,6 +296,7 @@ INSERT INTO `prefixes` (`id`, `name`, `created_at`) VALUES
 
 CREATE TABLE `problem_types` (
   `id` int(10) UNSIGNED NOT NULL,
+  `code` varchar(10) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `report_type` enum('issue','complaint') NOT NULL,
   `status` enum('active','inactive') DEFAULT 'active',
@@ -292,24 +308,24 @@ CREATE TABLE `problem_types` (
 -- Dumping data for table `problem_types`
 --
 
-INSERT INTO `problem_types` (`id`, `name`, `report_type`, `status`, `created_at`, `updated_at`) VALUES
-(1, 'เข้าสู่ระบบไม่ได้', 'issue', 'active', '2026-05-01 13:30:00', '2026-05-01 13:30:00'),
-(2, 'ระบบช้า/โหลดไม่ขึ้น', 'issue', 'active', '2026-05-01 13:31:00', '2026-05-01 13:31:00'),
-(3, 'เครือข่ายใช้งานไม่ได้', 'issue', 'active', '2026-05-01 13:32:00', '2026-05-01 13:32:00'),
-(4, 'ข้อมูลแสดงผลผิดพลาด', 'issue', 'active', '2026-05-01 13:33:00', '2026-05-01 13:33:00'),
-(5, 'ร้องเรียนการให้บริการล่าช้า', 'complaint', 'active', '2026-05-01 13:34:00', '2026-05-01 13:34:00'),
-(6, 'ร้องเรียนพฤติกรรมเจ้าหน้าที่', 'complaint', 'active', '2026-05-01 13:35:00', '2026-05-01 13:35:00'),
-(7, 'ประเภทปัญหาเก่า', 'issue', 'inactive', '2026-05-01 13:36:00', '2026-05-01 13:36:00');
+INSERT INTO `problem_types` (`id`, `code`, `name`, `report_type`, `status`, `created_at`, `updated_at`) VALUES
+(1, NULL, 'เข้าสู่ระบบไม่ได้', 'issue', 'active', '2026-05-01 13:30:00', '2026-05-01 13:30:00'),
+(2, NULL, 'ระบบช้า/โหลดไม่ขึ้น', 'issue', 'active', '2026-05-01 13:31:00', '2026-05-01 13:31:00'),
+(3, NULL, 'เครือข่ายใช้งานไม่ได้', 'issue', 'active', '2026-05-01 13:32:00', '2026-05-01 13:32:00'),
+(4, NULL, 'ข้อมูลแสดงผลผิดพลาด', 'issue', 'active', '2026-05-01 13:33:00', '2026-05-01 13:33:00'),
+(5, NULL, 'ร้องเรียนการให้บริการล่าช้า', 'complaint', 'active', '2026-05-01 13:34:00', '2026-05-01 13:34:00'),
+(6, NULL, 'ร้องเรียนพฤติกรรมเจ้าหน้าที่', 'complaint', 'active', '2026-05-01 13:35:00', '2026-05-01 13:35:00'),
+(7, NULL, 'ประเภทปัญหาเก่า', 'issue', 'inactive', '2026-05-01 13:36:00', '2026-05-01 13:36:00');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `reports`
+-- Table structure for table `requests`
 --
 
-CREATE TABLE `reports` (
+CREATE TABLE `requests` (
   `id` int(10) UNSIGNED NOT NULL,
-  `report_no` varchar(50) NOT NULL,
+  `request_no` varchar(50) NOT NULL,
   `customer_id` int(10) UNSIGNED DEFAULT NULL,
   `organization` varchar(30) DEFAULT NULL,
   `system_id` int(10) UNSIGNED DEFAULT NULL,
@@ -319,35 +335,34 @@ CREATE TABLE `reports` (
   `status` enum('screening','assigned','in_progress','waiting_confirm','closed','rejected') DEFAULT 'screening',
   `score` tinyint(3) UNSIGNED DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp(),
-  `resolve_due_at` datetime DEFAULT NULL,
   `closed_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Dumping data for table `reports`
+-- Dumping data for table `requests`
 --
 
-INSERT INTO `reports` (`id`, `report_no`, `customer_id`, `organization`, `system_id`, `problem_type_id`, `title`, `detail`, `status`, `score`, `created_at`, `resolve_due_at`, `closed_at`) VALUES
-(1, 'RP-2026-0001', 1, NULL, 1, 1, 'เข้าสู่ระบบไม่ได้', 'ลูกค้าแจ้งว่า login แล้วขึ้นรหัสผ่านไม่ถูกต้อง ทั้งที่กรอกถูก', 'screening', NULL, '2026-05-08 08:00:00', '2026-05-10 08:00:00', NULL),
-(2, 'RP-2026-0002', 1, NULL, 1, 2, 'ระบบโหลดช้ามาก', 'หน้า dashboard ใช้เวลานานกว่า 30 วินาที', 'assigned', NULL, '2026-05-08 08:15:00', '2026-05-10 08:15:00', NULL),
-(3, 'RP-2026-0003', 2, NULL, 3, 3, 'ใช้งานเครือข่ายไม่ได้', 'เข้าใช้งานระบบ E-Service ผ่านเครือข่ายสำนักงานไม่ได้', 'in_progress', NULL, '2026-05-08 08:30:00', '2026-05-10 08:30:00', NULL),
-(4, 'RP-2026-0004', 3, NULL, 1, 4, 'ข้อมูลในรายงานไม่ถูกต้อง', 'รายงานสถานะงานแสดงจำนวนไม่ตรงกับข้อมูลจริง', 'closed', NULL, '2026-05-08 08:45:00', '2026-05-10 08:45:00', '2026-05-08 13:36:46'),
-(5, 'RP-2026-0005', 3, NULL, 1, 5, 'ร้องเรียนการให้บริการล่าช้า', 'รอเจ้าหน้าที่ติดต่อกลับนานเกินกำหนด', 'closed', 5, '2026-05-08 09:00:00', '2026-05-10 09:00:00', '2026-05-08 15:30:00'),
-(6, 'RP-2026-0006', 2, NULL, 2, 6, 'ร้องเรียนเจ้าหน้าที่พูดจาไม่เหมาะสม', 'ลูกค้าระบุว่าได้รับการสื่อสารไม่สุภาพ', 'rejected', NULL, '2026-05-08 09:15:00', '2026-05-06 13:25:54', NULL),
-(7, 'RP-2026-0007', 1, NULL, 1, 2, 'เปิดซ้ำหลังปิดงาน', 'ลูกค้ายืนยันว่าอาการเดิมกลับมาเกิดอีกครั้ง', 'in_progress', NULL, '2026-05-08 09:30:00', '2026-05-11 09:30:00', NULL),
-(8, 'RP-2026-0008', 2, NULL, 3, 1, 'ต้องการข้อมูลเพิ่มก่อนคัดกรอง', 'รายละเอียดที่แจ้งมายังไม่ชัดเจน', 'assigned', NULL, '2026-05-08 09:45:00', '2026-05-05 13:26:02', NULL),
-(9, 'RP-2026-0009', 1, NULL, 1, 4, 'งานถูกยกเลิก', 'แจ้งผิดระบบ ลูกค้าขอยกเลิกรายการ', 'closed', 3, '2026-05-08 10:00:00', '2026-05-10 10:00:00', '2026-05-08 12:00:00'),
-(15, 'RPT-20260512-001', 1, 'NID Technology Co., Ltd.', 2, 2, 'โหลดไม่ได้', 'ไม่รู้เเหทือรนกัน', 'screening', NULL, '2026-05-12 13:04:21', '2026-05-15 13:58:04', NULL),
-(16, 'RPT-20260512-002', 1, 'NID Technology Co., Ltd.', 1, 1, 'พพพ', 'พพพ', 'screening', NULL, '2026-05-12 13:04:39', '2026-05-15 13:58:07', NULL),
-(17, 'RPT-20260512-003', 1, 'NID Technology Co., Ltd.', 1, 1, 'วสส', '', 'waiting_confirm', NULL, '2026-05-12 13:05:44', '2025-03-05 00:00:00', NULL);
+INSERT INTO `requests` (`id`, `request_no`, `customer_id`, `organization`, `system_id`, `problem_type_id`, `title`, `detail`, `status`, `score`, `created_at`, `closed_at`) VALUES
+(1, 'RP-2026-0001', 1, NULL, 1, 1, 'เข้าสู่ระบบไม่ได้', 'ลูกค้าแจ้งว่า login แล้วขึ้นรหัสผ่านไม่ถูกต้อง ทั้งที่กรอกถูก', 'screening', NULL, '2026-05-08 08:00:00', NULL),
+(2, 'RP-2026-0002', 1, NULL, 1, 2, 'ระบบโหลดช้ามาก', 'หน้า dashboard ใช้เวลานานกว่า 30 วินาที', 'assigned', NULL, '2026-05-08 08:15:00', NULL),
+(3, 'RP-2026-0003', 2, NULL, 3, 3, 'ใช้งานเครือข่ายไม่ได้', 'เข้าใช้งานระบบ E-Service ผ่านเครือข่ายสำนักงานไม่ได้', 'in_progress', NULL, '2026-05-08 08:30:00', NULL),
+(4, 'RP-2026-0004', 3, NULL, 1, 4, 'ข้อมูลในรายงานไม่ถูกต้อง', 'รายงานสถานะงานแสดงจำนวนไม่ตรงกับข้อมูลจริง', 'closed', NULL, '2026-05-08 08:45:00', '2026-05-08 13:36:46'),
+(5, 'RP-2026-0005', 3, NULL, 1, 5, 'ร้องเรียนการให้บริการล่าช้า', 'รอเจ้าหน้าที่ติดต่อกลับนานเกินกำหนด', 'closed', 5, '2026-05-08 09:00:00', '2026-05-08 15:30:00'),
+(6, 'RP-2026-0006', 2, NULL, 2, 6, 'ร้องเรียนเจ้าหน้าที่พูดจาไม่เหมาะสม', 'ลูกค้าระบุว่าได้รับการสื่อสารไม่สุภาพ', 'rejected', NULL, '2026-05-08 09:15:00', NULL),
+(7, 'RP-2026-0007', 1, NULL, 1, 2, 'เปิดซ้ำหลังปิดงาน', 'ลูกค้ายืนยันว่าอาการเดิมกลับมาเกิดอีกครั้ง', 'in_progress', NULL, '2026-05-08 09:30:00', NULL),
+(8, 'RP-2026-0008', 2, NULL, 3, 1, 'ต้องการข้อมูลเพิ่มก่อนคัดกรอง', 'รายละเอียดที่แจ้งมายังไม่ชัดเจน', 'assigned', NULL, '2026-05-08 09:45:00', NULL),
+(9, 'RP-2026-0009', 1, NULL, 1, 4, 'งานถูกยกเลิก', 'แจ้งผิดระบบ ลูกค้าขอยกเลิกรายการ', 'closed', 3, '2026-05-08 10:00:00', '2026-05-08 12:00:00'),
+(15, 'RPT-20260512-001', 1, 'NID Technology Co., Ltd.', 2, 2, 'โหลดไม่ได้', 'ไม่รู้เเหทือรนกัน', 'screening', NULL, '2026-05-12 13:04:21', NULL),
+(16, 'RPT-20260512-002', 1, 'NID Technology Co., Ltd.', 1, 1, 'พพพ', 'พพพ', 'screening', NULL, '2026-05-12 13:04:39', NULL),
+(17, 'RPT-20260512-003', 1, 'NID Technology Co., Ltd.', 1, 1, 'วสส', '', 'waiting_confirm', NULL, '2026-05-12 13:05:44', NULL);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `report_confirmations`
+-- Table structure for table `request_confirmations`
 --
 
-CREATE TABLE `report_confirmations` (
+CREATE TABLE `request_confirmations` (
   `id` int(10) UNSIGNED NOT NULL,
   `report_id` int(10) UNSIGNED NOT NULL,
   `customer_id` int(10) UNSIGNED NOT NULL,
@@ -358,10 +373,10 @@ CREATE TABLE `report_confirmations` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Dumping data for table `report_confirmations`
+-- Dumping data for table `request_confirmations`
 --
 
-INSERT INTO `report_confirmations` (`id`, `report_id`, `customer_id`, `result`, `comment`, `score`, `confirmed_at`) VALUES
+INSERT INTO `request_confirmations` (`id`, `report_id`, `customer_id`, `result`, `comment`, `score`, `confirmed_at`) VALUES
 (1, 5, 3, 'confirmed', 'เจ้าหน้าที่ติดต่อกลับและแก้ไขความล่าช้าเรียบร้อย', 5, '2026-05-08 15:30:00'),
 (2, 7, 1, 'reopened', 'ยังพบปัญหาเดิมหลังจากแจ้งว่าแก้ไขแล้ว', NULL, '2026-05-08 09:30:00'),
 (3, 9, 1, 'confirmed', 'แจ้งผิดระบบ ขอยกเลิกรายการ', 3, '2026-05-08 12:00:00'),
@@ -370,10 +385,10 @@ INSERT INTO `report_confirmations` (`id`, `report_id`, `customer_id`, `result`, 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `report_status_logs`
+-- Table structure for table `request_status_logs`
 --
 
-CREATE TABLE `report_status_logs` (
+CREATE TABLE `request_status_logs` (
   `id` int(10) UNSIGNED NOT NULL,
   `report_id` int(10) UNSIGNED NOT NULL,
   `old_status` varchar(50) DEFAULT NULL,
@@ -385,10 +400,10 @@ CREATE TABLE `report_status_logs` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Dumping data for table `report_status_logs`
+-- Dumping data for table `request_status_logs`
 --
 
-INSERT INTO `report_status_logs` (`id`, `report_id`, `old_status`, `new_status`, `changed_by_type`, `changed_by_id`, `note`, `created_at`) VALUES
+INSERT INTO `request_status_logs` (`id`, `report_id`, `old_status`, `new_status`, `changed_by_type`, `changed_by_id`, `note`, `created_at`) VALUES
 (1, 1, NULL, 'screening', 'customer', 1, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 08:00:00'),
 (2, 2, NULL, 'screening', 'customer', 1, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 08:15:00'),
 (3, 2, 'screening', 'assigned', 'staff', 2, 'คัดกรองผ่านและส่งมอบหมายงาน', '2026-05-08 08:20:00'),
@@ -582,17 +597,32 @@ INSERT INTO `teams` (`id`, `name`, `status`, `created_at`, `updated_at`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `team_permissions`
+--
+
+CREATE TABLE `team_permissions` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `team_id` int(10) UNSIGNED NOT NULL,
+  `permission_id` int(10) UNSIGNED NOT NULL,
+  `created_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tickets`
 --
 
 CREATE TABLE `tickets` (
   `id` int(10) UNSIGNED NOT NULL,
   `ticket_no` varchar(50) NOT NULL,
-  `report_id` int(10) UNSIGNED NOT NULL,
+  `request_id` int(10) UNSIGNED NOT NULL,
   `parent_ticket_id` int(10) UNSIGNED DEFAULT NULL,
   `assigned_team_id` int(10) UNSIGNED DEFAULT NULL,
   `assigned_staff_id` int(10) UNSIGNED DEFAULT NULL,
   `assigned_by` int(10) UNSIGNED DEFAULT NULL,
+  `due_at` datetime DEFAULT NULL,
+  `assigned_note` text DEFAULT NULL,
   `title` varchar(255) DEFAULT NULL,
   `description` text DEFAULT NULL,
   `status` enum('assigned','in_progress','resolved','waiting_confirm','closed','rejected','cancelled') DEFAULT 'assigned',
@@ -606,15 +636,15 @@ CREATE TABLE `tickets` (
 -- Dumping data for table `tickets`
 --
 
-INSERT INTO `tickets` (`id`, `ticket_no`, `report_id`, `parent_ticket_id`, `assigned_team_id`, `assigned_staff_id`, `assigned_by`, `title`, `description`, `status`, `created_at`, `resolved_at`, `customer_confirm_due_at`, `closed_at`) VALUES
-(1, 'TCK-20260508-0001', 2, NULL, 1, NULL, 3, 'ตรวจสอบระบบโหลดช้า', 'งานหลักสำหรับตรวจสอบ performance', 'assigned', '2026-05-08 08:25:00', NULL, NULL, NULL),
-(2, 'TCK-20260508-0002', 3, NULL, 2, 5, 3, 'ตรวจสอบเครือข่ายสำนักงาน', 'ตรวจสอบ connectivity และ DNS', 'in_progress', '2026-05-08 08:40:00', NULL, NULL, NULL),
-(3, 'TCK-20260508-0003', 4, NULL, 3, 7, 3, 'แก้ข้อมูลรายงานผิดพลาด', 'งานหลักทีม Application', 'closed', '2026-05-08 08:55:00', '2026-05-08 11:30:00', '2026-05-11 11:30:00', '2026-05-08 13:36:46'),
-(4, 'TCK-20260508-0004', 5, NULL, 4, 6, 3, 'ตรวจสอบข้อร้องเรียนบริการล่าช้า', 'ติดต่อกลับลูกค้าและสรุปผล', 'closed', '2026-05-08 09:10:00', '2026-05-08 14:00:00', '2026-05-11 14:00:00', '2026-05-08 15:30:00'),
-(5, 'TCK-20260508-0005', 7, NULL, 1, 4, 7, 'แก้ไขอาการเปิดซ้ำ', 'งานเปิดซ้ำหลังลูกค้าปฏิเสธการปิดงาน', 'in_progress', '2026-05-08 09:45:00', NULL, NULL, NULL),
-(6, 'TCK-20260508-0006', 2, 1, 1, 4, 3, 'Sub-task: ตรวจสอบ server log', 'ตรวจสอบ error log ของ backend', 'resolved', '2026-05-08 08:30:00', '2026-05-08 10:30:00', NULL, NULL),
-(7, 'TCK-20260508-0007', 2, 1, 2, 5, 3, 'Sub-task: ตรวจสอบ network latency', 'ตรวจสอบ latency ระหว่าง client และ server', 'rejected', '2026-05-08 08:32:00', NULL, NULL, NULL),
-(8, 'TCK-20260508-0008', 9, NULL, 1, 4, 3, 'งานที่ถูกยกเลิก', 'ลูกค้าแจ้งผิดระบบและขอยกเลิก', 'cancelled', '2026-05-08 10:10:00', NULL, NULL, '2026-05-08 12:00:00');
+INSERT INTO `tickets` (`id`, `ticket_no`, `request_id`, `parent_ticket_id`, `assigned_team_id`, `assigned_staff_id`, `assigned_by`, `due_at`, `assigned_note`, `title`, `description`, `status`, `created_at`, `resolved_at`, `customer_confirm_due_at`, `closed_at`) VALUES
+(1, 'TCK-20260508-0001', 2, NULL, 1, NULL, 3, NULL, NULL, 'ตรวจสอบระบบโหลดช้า', 'งานหลักสำหรับตรวจสอบ performance', 'assigned', '2026-05-08 08:25:00', NULL, NULL, NULL),
+(2, 'TCK-20260508-0002', 3, NULL, 2, 5, 3, NULL, NULL, 'ตรวจสอบเครือข่ายสำนักงาน', 'ตรวจสอบ connectivity และ DNS', 'in_progress', '2026-05-08 08:40:00', NULL, NULL, NULL),
+(3, 'TCK-20260508-0003', 4, NULL, 3, 7, 3, NULL, NULL, 'แก้ข้อมูลรายงานผิดพลาด', 'งานหลักทีม Application', 'closed', '2026-05-08 08:55:00', '2026-05-08 11:30:00', '2026-05-11 11:30:00', '2026-05-08 13:36:46'),
+(4, 'TCK-20260508-0004', 5, NULL, 4, 6, 3, NULL, NULL, 'ตรวจสอบข้อร้องเรียนบริการล่าช้า', 'ติดต่อกลับลูกค้าและสรุปผล', 'closed', '2026-05-08 09:10:00', '2026-05-08 14:00:00', '2026-05-11 14:00:00', '2026-05-08 15:30:00'),
+(5, 'TCK-20260508-0005', 7, NULL, 1, 4, 7, NULL, NULL, 'แก้ไขอาการเปิดซ้ำ', 'งานเปิดซ้ำหลังลูกค้าปฏิเสธการปิดงาน', 'in_progress', '2026-05-08 09:45:00', NULL, NULL, NULL),
+(6, 'TCK-20260508-0006', 2, 1, 1, 4, 3, NULL, NULL, 'Sub-task: ตรวจสอบ server log', 'ตรวจสอบ error log ของ backend', 'resolved', '2026-05-08 08:30:00', '2026-05-08 10:30:00', NULL, NULL),
+(7, 'TCK-20260508-0007', 2, 1, 2, 5, 3, NULL, NULL, 'Sub-task: ตรวจสอบ network latency', 'ตรวจสอบ latency ระหว่าง client และ server', 'rejected', '2026-05-08 08:32:00', NULL, NULL, NULL),
+(8, 'TCK-20260508-0008', 9, NULL, 1, 4, 3, NULL, NULL, 'งานที่ถูกยกเลิก', 'ลูกค้าแจ้งผิดระบบและขอยกเลิก', 'cancelled', '2026-05-08 10:10:00', NULL, NULL, '2026-05-08 12:00:00');
 
 -- --------------------------------------------------------
 
@@ -789,6 +819,13 @@ ALTER TABLE `password_logs`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `permissions`
+--
+ALTER TABLE `permissions`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `code` (`code`);
+
+--
 -- Indexes for table `prefixes`
 --
 ALTER TABLE `prefixes`
@@ -803,11 +840,11 @@ ALTER TABLE `problem_types`
   ADD KEY `idx_problem_types_type_status` (`report_type`,`status`);
 
 --
--- Indexes for table `reports`
+-- Indexes for table `requests`
 --
-ALTER TABLE `reports`
+ALTER TABLE `requests`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `report_no` (`report_no`),
+  ADD UNIQUE KEY `report_no` (`request_no`),
   ADD KEY `customer_id` (`customer_id`),
   ADD KEY `system_id` (`system_id`),
   ADD KEY `problem_type_id` (`problem_type_id`),
@@ -816,17 +853,17 @@ ALTER TABLE `reports`
   ADD KEY `idx_reports_problem_status` (`problem_type_id`,`status`);
 
 --
--- Indexes for table `report_confirmations`
+-- Indexes for table `request_confirmations`
 --
-ALTER TABLE `report_confirmations`
+ALTER TABLE `request_confirmations`
   ADD PRIMARY KEY (`id`),
   ADD KEY `report_id` (`report_id`),
   ADD KEY `customer_id` (`customer_id`);
 
 --
--- Indexes for table `report_status_logs`
+-- Indexes for table `request_status_logs`
 --
-ALTER TABLE `report_status_logs`
+ALTER TABLE `request_status_logs`
   ADD PRIMARY KEY (`id`),
   ADD KEY `report_id` (`report_id`),
   ADD KEY `idx_report_status_logs_report_created` (`report_id`,`created_at`);
@@ -878,12 +915,20 @@ ALTER TABLE `teams`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `team_permissions`
+--
+ALTER TABLE `team_permissions`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uk_team_permission` (`team_id`,`permission_id`),
+  ADD KEY `permission_id` (`permission_id`);
+
+--
 -- Indexes for table `tickets`
 --
 ALTER TABLE `tickets`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `ticket_no` (`ticket_no`),
-  ADD KEY `report_id` (`report_id`),
+  ADD KEY `report_id` (`request_id`),
   ADD KEY `parent_ticket_id` (`parent_ticket_id`),
   ADD KEY `assigned_team_id` (`assigned_team_id`),
   ADD KEY `assigned_staff_id` (`assigned_staff_id`),
@@ -945,7 +990,7 @@ ALTER TABLE `attachments`
 -- AUTO_INCREMENT for table `customers`
 --
 ALTER TABLE `customers`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `login_logs`
@@ -966,6 +1011,12 @@ ALTER TABLE `password_logs`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
+-- AUTO_INCREMENT for table `permissions`
+--
+ALTER TABLE `permissions`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `prefixes`
 --
 ALTER TABLE `prefixes`
@@ -978,21 +1029,21 @@ ALTER TABLE `problem_types`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
--- AUTO_INCREMENT for table `reports`
+-- AUTO_INCREMENT for table `requests`
 --
-ALTER TABLE `reports`
+ALTER TABLE `requests`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
--- AUTO_INCREMENT for table `report_confirmations`
+-- AUTO_INCREMENT for table `request_confirmations`
 --
-ALTER TABLE `report_confirmations`
+ALTER TABLE `request_confirmations`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- AUTO_INCREMENT for table `report_status_logs`
+-- AUTO_INCREMENT for table `request_status_logs`
 --
-ALTER TABLE `report_status_logs`
+ALTER TABLE `request_status_logs`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
@@ -1032,6 +1083,12 @@ ALTER TABLE `teams`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
+-- AUTO_INCREMENT for table `team_permissions`
+--
+ALTER TABLE `team_permissions`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `tickets`
 --
 ALTER TABLE `tickets`
@@ -1069,7 +1126,7 @@ ALTER TABLE `ticket_work_logs`
 -- Constraints for table `attachments`
 --
 ALTER TABLE `attachments`
-  ADD CONSTRAINT `attachments_ibfk_1` FOREIGN KEY (`report_id`) REFERENCES `reports` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `attachments_ibfk_1` FOREIGN KEY (`report_id`) REFERENCES `requests` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `attachments_ibfk_2` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
@@ -1080,31 +1137,31 @@ ALTER TABLE `customers`
   ADD CONSTRAINT `fk_customers_prefix` FOREIGN KEY (`prefix_id`) REFERENCES `prefixes` (`id`) ON DELETE SET NULL;
 
 --
--- Constraints for table `reports`
+-- Constraints for table `requests`
 --
-ALTER TABLE `reports`
-  ADD CONSTRAINT `reports_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`),
-  ADD CONSTRAINT `reports_ibfk_2` FOREIGN KEY (`system_id`) REFERENCES `systems` (`id`),
-  ADD CONSTRAINT `reports_ibfk_3` FOREIGN KEY (`problem_type_id`) REFERENCES `problem_types` (`id`);
+ALTER TABLE `requests`
+  ADD CONSTRAINT `requests_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`),
+  ADD CONSTRAINT `requests_ibfk_2` FOREIGN KEY (`system_id`) REFERENCES `systems` (`id`),
+  ADD CONSTRAINT `requests_ibfk_3` FOREIGN KEY (`problem_type_id`) REFERENCES `problem_types` (`id`);
 
 --
--- Constraints for table `report_confirmations`
+-- Constraints for table `request_confirmations`
 --
-ALTER TABLE `report_confirmations`
-  ADD CONSTRAINT `report_confirmations_ibfk_1` FOREIGN KEY (`report_id`) REFERENCES `reports` (`id`),
-  ADD CONSTRAINT `report_confirmations_ibfk_2` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`);
+ALTER TABLE `request_confirmations`
+  ADD CONSTRAINT `request_confirmations_ibfk_1` FOREIGN KEY (`report_id`) REFERENCES `requests` (`id`),
+  ADD CONSTRAINT `request_confirmations_ibfk_2` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`);
 
 --
--- Constraints for table `report_status_logs`
+-- Constraints for table `request_status_logs`
 --
-ALTER TABLE `report_status_logs`
-  ADD CONSTRAINT `report_status_logs_ibfk_1` FOREIGN KEY (`report_id`) REFERENCES `reports` (`id`);
+ALTER TABLE `request_status_logs`
+  ADD CONSTRAINT `request_status_logs_ibfk_1` FOREIGN KEY (`report_id`) REFERENCES `requests` (`id`);
 
 --
 -- Constraints for table `screenings`
 --
 ALTER TABLE `screenings`
-  ADD CONSTRAINT `screenings_ibfk_1` FOREIGN KEY (`report_id`) REFERENCES `reports` (`id`),
+  ADD CONSTRAINT `screenings_ibfk_1` FOREIGN KEY (`report_id`) REFERENCES `requests` (`id`),
   ADD CONSTRAINT `screenings_ibfk_2` FOREIGN KEY (`screened_by`) REFERENCES `staffs` (`id`);
 
 --
@@ -1122,13 +1179,20 @@ ALTER TABLE `systems`
   ADD CONSTRAINT `fk_systems_organization` FOREIGN KEY (`organization_id`) REFERENCES `organizations` (`id`) ON DELETE SET NULL;
 
 --
+-- Constraints for table `team_permissions`
+--
+ALTER TABLE `team_permissions`
+  ADD CONSTRAINT `team_permissions_ibfk_1` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `team_permissions_ibfk_2` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `tickets`
 --
 ALTER TABLE `tickets`
   ADD CONSTRAINT `fk_ticket_assigner` FOREIGN KEY (`assigned_by`) REFERENCES `staffs` (`id`),
   ADD CONSTRAINT `fk_ticket_staff` FOREIGN KEY (`assigned_staff_id`) REFERENCES `staffs` (`id`),
   ADD CONSTRAINT `fk_ticket_team` FOREIGN KEY (`assigned_team_id`) REFERENCES `teams` (`id`),
-  ADD CONSTRAINT `tickets_ibfk_1` FOREIGN KEY (`report_id`) REFERENCES `reports` (`id`),
+  ADD CONSTRAINT `tickets_ibfk_1` FOREIGN KEY (`request_id`) REFERENCES `requests` (`id`),
   ADD CONSTRAINT `tickets_ibfk_2` FOREIGN KEY (`parent_ticket_id`) REFERENCES `tickets` (`id`);
 
 --

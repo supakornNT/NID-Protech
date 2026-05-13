@@ -42,7 +42,7 @@ export default function ReportExternalPage() {
   const { data: systems } = useSystems(ORGANIZATION_ID);
   const [submitted, setSubmitted] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const { submit, loading, error } = useSubmit("/reports/external", () => {
+  const { submit, loading, error } = useSubmit("/requests/external", () => {
     setShowSuccess(true);
     setForm({ title: "", problem_type_id: "", system_id: "", detail: "" });
     setDate(getDefaultDate());

@@ -1,4 +1,4 @@
-export class CreateReportInternalDto {
+export class CreateInternalRequestDto {
   customer_id!: string;
   organization!: string;
   title!: string;

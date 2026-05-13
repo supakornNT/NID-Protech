@@ -8,38 +8,38 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { CreateReportConfirmationDto } from './dto/create-report-confirmation.dto';
-import { UpdateReportConfirmationDto } from './dto/update-report-confirmation.dto';
-import { ReportConfirmationsService } from './report_confirmations.service';
+import { CreateRequestConfirmationDto } from './dto/create-report-confirmation.dto';
+import { UpdateRequestConfirmationDto } from './dto/update-report-confirmation.dto';
+import { RequestConfirmationsService } from './report_confirmations.service';
 
 
-@Controller('admin/report-confirmations')
-export class ReportConfirmationsController {
-  constructor(private readonly reportConfirmation: ReportConfirmationsService) {}
+@Controller('admin/request-confirmations')
+export class RequestConfirmationsController {
+  constructor(private readonly requestConfirmation: RequestConfirmationsService) {}
 
   @Get()
   findAll() {
-    return this.reportConfirmation.findAll();
+    return this.requestConfirmation.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.reportConfirmation.findOne(id);
+    return this.requestConfirmation.findOne(id);
   }
 
   @Post()
-  create(@Body() body: CreateReportConfirmationDto) {
-    return this.reportConfirmation.create(body);
+  create(@Body() body: CreateRequestConfirmationDto) {
+    return this.requestConfirmation.create(body);
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateReportConfirmationDto) {
-    return this.reportConfirmation.update(id, body);
+  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateRequestConfirmationDto) {
+    return this.requestConfirmation.update(id, body);
   }
 
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
-    return this.reportConfirmation.remove(id);
+    return this.requestConfirmation.remove(id);
   }
 
 }

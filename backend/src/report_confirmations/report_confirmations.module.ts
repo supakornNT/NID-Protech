@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { ReportConfirmationsController } from './report_confirmations.controller';
-import { ReportConfirmationsService } from './report_confirmations.service';
+import { RequestConfirmationsController } from './report_confirmations.controller';
+import { RequestConfirmationsService } from './report_confirmations.service';
 
 @Module({
-  controllers: [ReportConfirmationsController],
-  providers: [ReportConfirmationsService],
-  exports: [ReportConfirmationsService],
+  controllers: [RequestConfirmationsController],
+  providers: [RequestConfirmationsService],
+  exports: [RequestConfirmationsService],
 })
-export class ReportConfirmationsModule {}
+export class RequestConfirmationsModule {}

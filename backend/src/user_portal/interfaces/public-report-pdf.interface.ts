@@ -1,4 +1,4 @@
-export interface PublicReportPdfData {
+export interface PublicRequestPdfData {
   trackingNo: string;
   reporterName: string;
   reporterEmail: string;

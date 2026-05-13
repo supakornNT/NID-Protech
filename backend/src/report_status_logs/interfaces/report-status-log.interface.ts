@@ -1,6 +1,6 @@
 import type { RowDataPacket } from 'mysql2/promise';
 
-export interface ReportStatusLog extends RowDataPacket {
+export interface RequestStatusLog extends RowDataPacket {
   id: number;
   report_id: number;
   old_status: string;

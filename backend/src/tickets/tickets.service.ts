@@ -13,8 +13,12 @@ export class TicketsService {
       `SELECT
       tickets.id,
       tickets.ticket_no,
-      tickets.report_id,
-      reports.report_no,
+      tickets.request_id,
+      tickets.parent_ticket_id,
+      tickets.assigned_note,
+      tickets.due_at,
+      tickets.customer_confirm_due_at,
+      requests.request_no,
       tickets.assigned_team_id,
       teams.name AS assigned_team_name,
       tickets.assigned_staff_id,
@@ -28,7 +32,7 @@ export class TicketsService {
       tickets.resolved_at,
       tickets.closed_at
       FROM tickets
-      LEFT JOIN reports ON reports.id = tickets.report_id
+      LEFT JOIN requests ON requests.id = tickets.request_id
       LEFT JOIN teams ON teams.id = tickets.assigned_team_id
       LEFT JOIN staffs AS assigned_staff ON assigned_staff.id = tickets.assigned_staff_id
       LEFT JOIN staffs AS assigned_by_staff ON assigned_by_staff.id = tickets.assigned_by
@@ -43,8 +47,12 @@ export class TicketsService {
       `SELECT
       tickets.id,
       tickets.ticket_no,
-      tickets.report_id,
-      reports.report_no,
+      tickets.request_id,
+      tickets.parent_ticket_id,
+      tickets.assigned_note,
+      tickets.due_at,
+      tickets.customer_confirm_due_at,
+      requests.request_no,
       tickets.assigned_team_id,
       teams.name AS assigned_team_name,
       tickets.assigned_staff_id,
@@ -58,7 +66,7 @@ export class TicketsService {
       tickets.resolved_at,
       tickets.closed_at
       FROM tickets
-      LEFT JOIN reports ON reports.id = tickets.report_id
+      LEFT JOIN requests ON requests.id = tickets.request_id
       LEFT JOIN teams ON teams.id = tickets.assigned_team_id
       LEFT JOIN staffs AS assigned_staff ON assigned_staff.id = tickets.assigned_staff_id
       LEFT JOIN staffs AS assigned_by_staff ON assigned_by_staff.id = tickets.assigned_by
@@ -72,7 +80,7 @@ export class TicketsService {
 
   async create(dto: CreateTicketDto): Promise<Ticket | null> {
     const [result] = await this.db.query<ResultSetHeader>(
-      'INSERT INTO tickets (ticket_no, report_id, parent_ticket_id, assigned_team_id, assigned_staff_id, assigned_by, title, description, status, resolved_at, closed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO tickets (ticket_no, request_id, parent_ticket_id, assigned_team_id, assigned_staff_id, assigned_by, title, description, status, resolved_at, closed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         dto.ticketNo,
         dto.reportId,
@@ -102,7 +110,7 @@ export class TicketsService {
       `UPDATE tickets
       SET
         ticket_no = ?,
-        report_id = ?,
+        request_id = ?,
         parent_ticket_id = ?,
         assigned_team_id = ?,
         assigned_staff_id = ?,
@@ -115,7 +123,7 @@ export class TicketsService {
       WHERE id = ?`,
       [
         dto.ticketNo ?? current.ticket_no,
-        dto.reportId ?? current.report_id,
+        dto.reportId ?? current.request_id,
         dto.parentTicketId ?? current.parent_ticket_id,
         dto.assignedTeamId ?? current.assigned_team_id,
         dto.assignedStaffId ?? current.assigned_staff_id,
@@ -133,11 +141,10 @@ export class TicketsService {
   }
 
   async remove(id: number) {
-    await this.db.query<ResultSetHeader>(
-      'UPDATE tickets SET status = ? WHERE id = ?',
-      ['inactive', id],
-    );
+    await this.db.query<ResultSetHeader>('DELETE FROM tickets WHERE id = ?', [
+      id,
+    ]);
 
-    return this.findOne(id);
+    return { message: 'deleted' };
   }
 }

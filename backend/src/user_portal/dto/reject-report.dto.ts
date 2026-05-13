@@ -1,3 +1,3 @@
-export class RejectReportDto {
+export class RejectRequestDto {
   reason!: string;
 }

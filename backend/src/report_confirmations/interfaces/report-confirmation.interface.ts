@@ -1,6 +1,6 @@
 import type { RowDataPacket } from 'mysql2/promise';
 
-export interface ReportConfirmation extends RowDataPacket {
+export interface RequestConfirmation extends RowDataPacket {
   id: number;
   report_id: number;
   customer_id: number;

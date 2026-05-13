@@ -11,15 +11,15 @@ import {
 import { ProTechSearch } from "@/components/tables/protech-search";
 import { ProTechButton } from "@/components/tables/protech-button";
 import {
-  ReportListItem,
-  useReportList,
+  RequestListItem,
+  useRequestList,
 } from "@/hooks/use-report-list";
 
 import { Column } from "@/types/table";
 import { ProTechTable } from "@/components/tables/protech-table";
 import TicketPdfButton from "@/components/pdf/TicketPdfButton";
 
-const columns: Column<ReportListItem>[] =
+const columns: Column<RequestListItem>[] =
   [
     {
       key: "trackingNo",
@@ -103,13 +103,13 @@ export default function Page() {
   //    - systems.name
   // 5. เปลี่ยนหน้า -> setPage() -> ยิง API ใหม่ตาม page/limit
   const {
-    reports,
+    reports: requests,
     pagination,
     loading,
     error,
     setPage,
     applySearch,
-  } = useReportList();
+  } = useRequestList();
 
   return (
     <div className="mx-auto h-full w-full min-w-0 max-w-[90rem] px-4 pt-6 sm:px-6 lg:px-10">
@@ -155,7 +155,7 @@ export default function Page() {
             เพื่อเรียก detail API ของ report รายการนั้น */}
         <ProTechTable
           columns={columns}
-          data={reports}
+          data={requests}
           limit={pagination.limit}
           page={pagination.page}
           totalPages={pagination.totalPages}

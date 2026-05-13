@@ -1,4 +1,4 @@
-export class RateReportDto {
+export class RateRequestDto {
   score!: number;
   comment?: string;
 }

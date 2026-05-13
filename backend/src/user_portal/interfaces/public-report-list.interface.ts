@@ -1,4 +1,4 @@
-import { PublicReport } from './public-report.interface';
+import { PublicRequest } from './public-report.interface';
 
 export interface PaginationMeta {
   page: number;
@@ -9,12 +9,12 @@ export interface PaginationMeta {
   hasPrevious: boolean;
 }
 
-export interface PublicReportList {
-  items: PublicReport[];
+export interface PublicRequestList {
+  items: PublicRequest[];
   pagination: PaginationMeta;
 }
 
-export interface GetReportsQuery {
+export interface GetRequestsQuery {
   page?: string;
   limit?: string;
   search?: string;

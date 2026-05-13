@@ -1,4 +1,4 @@
-export interface PublicReport {
+export interface PublicRequest {
   trackingNo: string;
   system: string;
   dueDate: string | null;

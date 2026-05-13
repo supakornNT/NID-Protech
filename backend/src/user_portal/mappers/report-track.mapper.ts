@@ -11,19 +11,19 @@ import {
   mapRepairStatus as mapRepairStatusHelper,
 } from '../helpers/report-track.helper';
 import {
-  PublicReportTrack,
-  PublicReportTrackTimeline,
+  PublicRequestTrack,
+  PublicRequestTrackTimeline,
 } from '../interfaces/public-report-track.interface';
 import {
-  ReportTrackRow,
+  RequestTrackRow,
   StatusLogRow,
 } from '../interfaces/report-track-row.interface';
 
 export function mapTrackResponse(
-  report: ReportTrackRow,
+  report: RequestTrackRow,
   reportStatusLogs: StatusLogRow[],
-): PublicReportTrack {
-  const currentStep = getCurrentStepHelper(report.report_status);
+): PublicRequestTrack {
+  const currentStep = getCurrentStepHelper(report.request_status);
   const firstInProgressLog = reportStatusLogs.find(
     (log) => log.new_status === 'assigned' || log.new_status === 'in_progress',
   );
@@ -34,7 +34,7 @@ export function mapTrackResponse(
     (log) => log.new_status === 'screening',
   );
 
-  const reportedAt = toDateTimePartsUtil(report.report_created_at);
+  const reportedAt = toDateTimePartsUtil(report.request_created_at);
   const screeningAt = toDateTimePartsUtil(screeningLog?.created_at);
   const inProgressAt = toDateTimePartsUtil(firstInProgressLog?.created_at);
   const waitingConfirmAt = toDateTimePartsUtil(waitingConfirmLog?.created_at);
@@ -42,28 +42,28 @@ export function mapTrackResponse(
     waitingConfirmLog?.created_at,
   );
 
-  const timeline: PublicReportTrackTimeline[] = [
+  const timeline: PublicRequestTrackTimeline[] = [
     {
       label: 'แจ้งปัญหา',
-      status: getTimelineStatusHelper(1, currentStep, report.report_status),
+      status: getTimelineStatusHelper(1, currentStep, report.request_status),
       date: reportedAt.date,
       time: reportedAt.time,
     },
     {
       label: 'คัดกรอง',
-      status: getTimelineStatusHelper(2, currentStep, report.report_status),
+      status: getTimelineStatusHelper(2, currentStep, report.request_status),
       date: screeningAt.date,
       time: screeningAt.time,
     },
     {
       label: 'ดำเนินการ',
-      status: getTimelineStatusHelper(3, currentStep, report.report_status),
+      status: getTimelineStatusHelper(3, currentStep, report.request_status),
       date: inProgressAt.date,
       time: inProgressAt.time,
     },
     {
       label: 'รอตรวจสอบโดยลูกค้า',
-      status: getTimelineStatusHelper(4, currentStep, report.report_status),
+      status: getTimelineStatusHelper(4, currentStep, report.request_status),
       date: waitingConfirmAt.date,
       time: waitingConfirmAt.time,
     },
@@ -71,12 +71,12 @@ export function mapTrackResponse(
 
   return {
     id: report.id,
-    trackingNo: report.report_no,
+    trackingNo: report.request_no,
     problem: report.title,
-    statusCode: report.report_status,
-    status: mapReportStatusLabelUtil(report.report_status),
+    statusCode: report.request_status,
+    status: mapReportStatusLabelUtil(report.request_status),
     repairStatus: mapRepairStatusHelper(
-      report.report_status,
+      report.request_status,
       report.resolution_request_status,
     ),
     repairedBy: getStaffFullNameUtil(

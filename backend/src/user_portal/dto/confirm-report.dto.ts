@@ -1,3 +1,3 @@
-export class ConfirmReportDto {
+export class ConfirmRequestDto {
   comment?: string;
 }

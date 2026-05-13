@@ -16,25 +16,22 @@ import {
 } from '../common/utils/date-time.util';
 import { parsePositiveInteger as parsePositiveIntegerUtil } from '../common/utils/number.util';
 import { mapReportStatusLabel as mapReportStatusLabelUtil } from '../common/utils/report-status.util';
-import { ConfirmReportDto } from './dto/confirm-report.dto';
-import { RateReportDto } from './dto/rate-report.dto';
-import { RejectReportDto } from './dto/reject-report.dto';
+import { ConfirmRequestDto } from './dto/confirm-report.dto';
+import { RateRequestDto } from './dto/rate-report.dto';
+import { RejectRequestDto } from './dto/reject-report.dto';
 import { DashboardSummary } from './interfaces/dashboard-summary.interface';
 import {
-  GetReportsQuery,
-  PublicReportList,
+  GetRequestsQuery,
+  PublicRequestList,
 } from './interfaces/public-report-list.interface';
-import { PublicReportPdfData } from './interfaces/public-report-pdf.interface';
-import { PublicReportTrack } from './interfaces/public-report-track.interface';
+import { PublicRequestPdfData } from './interfaces/public-report-pdf.interface';
+import { PublicRequestTrack } from './interfaces/public-report-track.interface';
 import { mapTrackResponse } from './mappers/report-track.mapper';
+import { RequestTrackRow, StatusLogRow } from './interfaces/report-track-row.interface';
 import {
-  ReportTrackRow,
-  StatusLogRow,
-} from './interfaces/report-track-row.interface';
-import {
-  validateConfirmReportDto,
-  validateRateReportDto,
-  validateRejectReportDto,
+  validateConfirmRequestDto,
+  validateRateRequestDto,
+  validateRejectRequestDto,
 } from './validation/user-portal.validation';
 
 interface DashboardSummaryRow extends RowDataPacket {
@@ -44,8 +41,8 @@ interface DashboardSummaryRow extends RowDataPacket {
   completed: number;
 }
 
-interface PublicReportRow extends RowDataPacket {
-  report_no: string;
+interface PublicRequestRow extends RowDataPacket {
+  request_no: string;
   system_name: string | null;
   problem_name: string | null;
   resolve_due_at: Date | string | null;
@@ -54,17 +51,17 @@ interface PublicReportRow extends RowDataPacket {
 
 interface ReportIdentityRow extends RowDataPacket {
   id: number;
-  report_no: string;
+  request_no: string;
   customer_id: number;
   status: string;
 }
 
-interface PublicReportPdfRow extends RowDataPacket {
-  report_no: string;
-  report_status: string;
+interface PublicRequestPdfRow extends RowDataPacket {
+  request_no: string;
+  request_status: string;
   title: string;
   detail: string;
-  report_created_at: Date | string;
+  request_created_at: Date | string;
   resolve_due_at: Date | string | null;
   customer_name: string;
   customer_surname: string | null;
@@ -77,9 +74,9 @@ interface PublicReportPdfRow extends RowDataPacket {
 }
 
 interface ExpiredWaitingConfirmRow extends RowDataPacket {
-  report_id: number;
+  request_id: number;
   customer_id: number;
-  report_status: string;
+  request_status: string;
   ticket_id: number;
   ticket_status: string;
   waiting_confirm_at: Date | string;
@@ -113,7 +110,7 @@ export class UserPortalService {
         SUM(CASE WHEN r.status = 'screening' THEN 1 ELSE 0 END) AS screening,
         SUM(CASE WHEN r.status IN ('assigned', 'in_progress') THEN 1 ELSE 0 END) AS in_progress,
         SUM(CASE WHEN r.status = 'closed' THEN 1 ELSE 0 END) AS completed
-      FROM reports r
+      FROM requests r
       INNER JOIN problem_types pt
         ON pt.id = r.problem_type_id
      `,
@@ -129,7 +126,7 @@ export class UserPortalService {
     };
   }
 
-  async getReports(query: GetReportsQuery): Promise<PublicReportList> {
+  async getRequests(query: GetRequestsQuery): Promise<PublicRequestList> {
     await this.syncExpiredWaitingConfirmReports();
 
     const page = parsePositiveIntegerUtil(query.page, 1, 'page');
@@ -149,7 +146,7 @@ export class UserPortalService {
     if (search.length > 0) {
       const likeSearch = `%${search}%`;
       whereClauses.push(`(
-        r.report_no LIKE ?
+        r.request_no LIKE ?
         OR r.title LIKE ?
         OR COALESCE(s.name, '') LIKE ?
         OR COALESCE(pt.name, '') LIKE ?
@@ -173,7 +170,7 @@ export class UserPortalService {
       Array<RowDataPacket & { total: number }>
     >(
       `SELECT COUNT(*) AS total
-      FROM reports r
+      FROM requests r
       INNER JOIN problem_types pt
         ON pt.id = r.problem_type_id
       LEFT JOIN systems s
@@ -187,14 +184,14 @@ export class UserPortalService {
     const safePage = Math.min(page, totalPages);
     const offset = (safePage - 1) * limit;
 
-    const [rows] = await this.db.query<PublicReportRow[]>(
+    const [rows] = await this.db.query<PublicRequestRow[]>(
       `SELECT
-        r.report_no,
+        r.request_no,
         s.name AS system_name,
         pt.name AS problem_name,
-        r.resolve_due_at,
+        NULL AS resolve_due_at,
         r.status
-      FROM reports r
+      FROM requests r
       INNER JOIN problem_types pt
         ON pt.id = r.problem_type_id
       LEFT JOIN systems s
@@ -208,11 +205,11 @@ export class UserPortalService {
 
     return {
       items: rows.map((row) => ({
-        trackingNo: row.report_no,
+        trackingNo: row.request_no,
         system: row.system_name ?? '-',
         problem: row.problem_name ?? '-',
         dueDate: formatDateOnlyUtil(row.resolve_due_at),
-        document: `tracking-${row.report_no}.pdf`,
+        document: `tracking-${row.request_no}.pdf`,
         status: mapReportStatusLabelUtil(row.status),
       })),
       pagination: {
@@ -226,37 +223,37 @@ export class UserPortalService {
     };
   }
 
-  async getReportTrack(reportNo: string): Promise<PublicReportTrack> {
+  async getRequestTrack(requestNo: string): Promise<PublicRequestTrack> {
     await this.syncExpiredWaitingConfirmReports();
 
-    const report = await this.findReportTrackRowByReportNo(reportNo);
+    const request = await this.findRequestTrackRowByRequestNo(requestNo);
 
-    if (!report) {
-      throw new NotFoundException(`Report ${reportNo} not found`);
+    if (!request) {
+      throw new NotFoundException(`Request ${requestNo} not found`);
     }
 
-    const [reportStatusLogs] = await this.db.query<StatusLogRow[]>(
+    const [requestStatusLogs] = await this.db.query<StatusLogRow[]>(
       `SELECT new_status, created_at
-      FROM report_status_logs
+      FROM request_status_logs
       WHERE report_id = ?
       ORDER BY created_at ASC, id ASC`,
-      [report.id],
+      [request.id],
     );
 
-    return mapTrackResponse(report, reportStatusLogs);
+    return mapTrackResponse(request, requestStatusLogs);
   }
 
-  async getReportPdfData(reportNo: string): Promise<PublicReportPdfData> {
+  async getRequestPdfData(requestNo: string): Promise<PublicRequestPdfData> {
     await this.syncExpiredWaitingConfirmReports();
 
-    const [rows] = await this.db.query<PublicReportPdfRow[]>(
+    const [rows] = await this.db.query<PublicRequestPdfRow[]>(
       `SELECT
-        r.report_no,
-        r.status AS report_status,
+        r.request_no,
+        r.status AS request_status,
         r.title,
         r.detail,
-        r.created_at AS report_created_at,
-        r.resolve_due_at,
+        r.created_at AS request_created_at,
+        NULL AS resolve_due_at,
         c.name AS customer_name,
         c.surname AS customer_surname,
         c.email AS customer_email,
@@ -265,7 +262,7 @@ export class UserPortalService {
         pt.name AS problem_type_name,
         a.original_name AS document_file_name,
         a.uploaded_at AS document_generated_at
-      FROM reports r
+      FROM requests r
       INNER JOIN customers c
         ON c.id = r.customer_id
       INNER JOIN problem_types pt
@@ -276,7 +273,7 @@ export class UserPortalService {
         ON t.id = (
           SELECT t2.id
           FROM tickets t2
-          WHERE t2.report_id = r.id
+          WHERE t2.request_id = r.id
           ORDER BY t2.id DESC
           LIMIT 1
         )
@@ -289,19 +286,19 @@ export class UserPortalService {
           ORDER BY a2.id DESC
           LIMIT 1
         )
-      WHERE r.report_no = ?
+      WHERE r.request_no = ?
       LIMIT 1`,
-      [reportNo],
+      [requestNo],
     );
 
     const row = rows[0];
 
     if (!row) {
-      throw new NotFoundException(`Report ${reportNo} not found`);
+      throw new NotFoundException(`Request ${requestNo} not found`);
     }
 
     return {
-      trackingNo: row.report_no,
+      trackingNo: row.request_no,
       reporterName: [row.customer_name, row.customer_surname]
         .filter(Boolean)
         .join(' '),
@@ -311,40 +308,40 @@ export class UserPortalService {
       problemTypeName: row.problem_type_name,
       problemTitle: row.title,
       problemDetail: row.detail,
-      statusCode: row.report_status,
-      issuedAt: formatDateTimeUtil(row.report_created_at) ?? '',
+      statusCode: row.request_status,
+      issuedAt: formatDateTimeUtil(row.request_created_at) ?? '',
       dueDate: formatDateOnlyUtil(row.resolve_due_at),
       documentFileName:
-        row.document_file_name ?? `tracking-${row.report_no}.pdf`,
+        row.document_file_name ?? `tracking-${row.request_no}.pdf`,
       documentGeneratedAt: formatDateTimeUtil(row.document_generated_at),
     };
   }
 
-  async confirmReport(
+  async confirmRequest(
     id: number,
-    dto: ConfirmReportDto,
-  ): Promise<PublicReportTrack> {
-    validateConfirmReportDto(dto);
+    dto: ConfirmRequestDto,
+  ): Promise<PublicRequestTrack> {
+    validateConfirmRequestDto(dto);
 
     const connection = await this.db.getConnection();
 
     try {
       await connection.beginTransaction();
 
-      const identity = await this.findReportIdentityById(connection, id);
+      const identity = await this.findRequestIdentityById(connection, id);
 
       if (!identity) {
-        throw new NotFoundException(`Report ${id} not found`);
+        throw new NotFoundException(`Request ${id} not found`);
       }
 
       if (identity.status !== 'waiting_confirm') {
         throw new BadRequestException(
-          'report is not waiting for customer confirmation',
+          'request is not waiting for customer confirmation',
         );
       }
 
       await connection.query<ResultSetHeader>(
-        `INSERT INTO report_confirmations (
+        `INSERT INTO request_confirmations (
           report_id,
           customer_id,
           result,
@@ -355,7 +352,7 @@ export class UserPortalService {
       );
 
       await connection.query<ResultSetHeader>(
-        `UPDATE reports
+        `UPDATE requests
         SET status = 'closed',
             closed_at = NOW()
         WHERE id = ?`,
@@ -367,7 +364,7 @@ export class UserPortalService {
       >(
         `SELECT id, status
         FROM tickets
-        WHERE report_id = ?`,
+        WHERE request_id = ?`,
         [identity.id],
       );
 
@@ -375,12 +372,12 @@ export class UserPortalService {
         `UPDATE tickets
         SET status = 'closed',
             closed_at = NOW()
-        WHERE report_id = ?`,
+        WHERE request_id = ?`,
         [identity.id],
       );
 
       await connection.query<ResultSetHeader>(
-        `INSERT INTO report_status_logs (
+        `INSERT INTO request_status_logs (
           report_id,
           old_status,
           new_status,
@@ -421,32 +418,35 @@ export class UserPortalService {
       connection.release();
     }
 
-    return this.getReportTrackByIdAfterMutation(id);
+      return this.getRequestTrackByIdAfterMutation(id);
   }
 
-  async rateReport(id: number, dto: RateReportDto): Promise<PublicReportTrack> {
-    validateRateReportDto(dto);
+  async rateRequest(
+    id: number,
+    dto: RateRequestDto,
+  ): Promise<PublicRequestTrack> {
+    validateRateRequestDto(dto);
 
     const connection = await this.db.getConnection();
 
     try {
       await connection.beginTransaction();
 
-      const identity = await this.findReportIdentityById(connection, id);
+      const identity = await this.findRequestIdentityById(connection, id);
 
       if (!identity) {
-        throw new NotFoundException(`Report ${id} not found`);
+        throw new NotFoundException(`Request ${id} not found`);
       }
 
       if (identity.status !== 'closed') {
-        throw new BadRequestException('report is not closed');
+        throw new BadRequestException('request is not closed');
       }
 
       const [confirmationRows] = await connection.query<
         Array<RowDataPacket & { id: number }>
       >(
         `SELECT id
-        FROM report_confirmations
+        FROM request_confirmations
         WHERE report_id = ?
           AND result = 'confirmed'
         ORDER BY id DESC
@@ -457,18 +457,18 @@ export class UserPortalService {
       const confirmationId = Number(confirmationRows[0]?.id ?? 0);
 
       if (confirmationId <= 0) {
-        throw new NotFoundException(`Confirmation for report ${id} not found`);
+        throw new NotFoundException(`Confirmation for request ${id} not found`);
       }
 
       await connection.query<ResultSetHeader>(
-        `UPDATE reports
+        `UPDATE requests
         SET score = ?
         WHERE id = ?`,
         [dto.score, identity.id],
       );
 
       await connection.query<ResultSetHeader>(
-        `UPDATE report_confirmations
+        `UPDATE request_confirmations
         SET score = ?,
             comment = ?
         WHERE id = ?`,
@@ -483,34 +483,34 @@ export class UserPortalService {
       connection.release();
     }
 
-    return this.getReportTrackByIdAfterMutation(id);
+    return this.getRequestTrackByIdAfterMutation(id);
   }
 
-  async rejectReport(
+  async rejectRequest(
     id: number,
-    dto: RejectReportDto,
-  ): Promise<PublicReportTrack> {
-    validateRejectReportDto(dto);
+    dto: RejectRequestDto,
+  ): Promise<PublicRequestTrack> {
+    validateRejectRequestDto(dto);
 
     const connection = await this.db.getConnection();
 
     try {
       await connection.beginTransaction();
 
-      const identity = await this.findReportIdentityById(connection, id);
+      const identity = await this.findRequestIdentityById(connection, id);
 
       if (!identity) {
-        throw new NotFoundException(`Report ${id} not found`);
+        throw new NotFoundException(`Request ${id} not found`);
       }
 
       if (identity.status !== 'waiting_confirm') {
         throw new BadRequestException(
-          'report is not waiting for customer confirmation',
+          'request is not waiting for customer confirmation',
         );
       }
 
       await connection.query<ResultSetHeader>(
-        `INSERT INTO report_confirmations (
+        `INSERT INTO request_confirmations (
           report_id,
           customer_id,
           result,
@@ -521,7 +521,7 @@ export class UserPortalService {
       );
 
       await connection.query<ResultSetHeader>(
-        `UPDATE reports
+        `UPDATE requests
         SET status = 'assigned',
             closed_at = NULL
         WHERE id = ?`,
@@ -533,7 +533,7 @@ export class UserPortalService {
       >(
         `SELECT id, status
         FROM tickets
-        WHERE report_id = ?
+        WHERE request_id = ?
           AND status IN ('resolved', 'waiting_confirm')`,
         [identity.id],
       );
@@ -543,14 +543,14 @@ export class UserPortalService {
           `UPDATE tickets
           SET status = 'assigned',
               closed_at = NULL
-          WHERE report_id = ?
+          WHERE request_id = ?
             AND status IN ('resolved', 'waiting_confirm')`,
           [identity.id],
         );
       }
 
       await connection.query<ResultSetHeader>(
-        `INSERT INTO report_status_logs (
+        `INSERT INTO request_status_logs (
           report_id,
           old_status,
           new_status,
@@ -582,27 +582,27 @@ export class UserPortalService {
       connection.release();
     }
 
-    return this.getReportTrackByIdAfterMutation(id);
+    return this.getRequestTrackByIdAfterMutation(id);
   }
 
-  private async getReportTrackByIdAfterMutation(
+  private async getRequestTrackByIdAfterMutation(
     id: number,
-  ): Promise<PublicReportTrack> {
-    const updated = await this.findReportTrackRowById(id);
+  ): Promise<PublicRequestTrack> {
+    const updated = await this.findRequestTrackRowById(id);
 
     if (!updated) {
-      throw new NotFoundException(`Report ${id} not found after update`);
+      throw new NotFoundException(`Request ${id} not found after update`);
     }
 
-    const [reportStatusLogs] = await this.db.query<StatusLogRow[]>(
+    const [requestStatusLogs] = await this.db.query<StatusLogRow[]>(
       `SELECT new_status, created_at
-      FROM report_status_logs
+      FROM request_status_logs
       WHERE report_id = ?
       ORDER BY created_at ASC, id ASC`,
       [updated.id],
     );
 
-    return mapTrackResponse(updated, reportStatusLogs);
+    return mapTrackResponse(updated, requestStatusLogs);
   }
 
   private async syncExpiredWaitingConfirmReports(): Promise<void> {
@@ -613,25 +613,25 @@ export class UserPortalService {
 
       const [expiredRows] = await connection.query<ExpiredWaitingConfirmRow[]>(
         `SELECT
-          r.id AS report_id,
+          r.id AS request_id,
           r.customer_id,
-          r.status AS report_status,
+          r.status AS request_status,
           t.id AS ticket_id,
           t.status AS ticket_status,
           (
             SELECT rsl.created_at
-            FROM report_status_logs rsl
+            FROM request_status_logs rsl
             WHERE rsl.report_id = r.id
               AND rsl.new_status = 'waiting_confirm'
             ORDER BY rsl.id DESC
             LIMIT 1
           ) AS waiting_confirm_at
-        FROM reports r
+        FROM requests r
         INNER JOIN tickets t
           ON t.id = (
             SELECT t2.id
             FROM tickets t2
-            WHERE t2.report_id = r.id
+            WHERE t2.request_id = r.id
             ORDER BY t2.id DESC
             LIMIT 1
           )
@@ -639,7 +639,7 @@ export class UserPortalService {
           AND t.status = 'waiting_confirm'
           AND (
             SELECT rsl.created_at
-            FROM report_status_logs rsl
+            FROM request_status_logs rsl
             WHERE rsl.report_id = r.id
               AND rsl.new_status = 'waiting_confirm'
             ORDER BY rsl.id DESC
@@ -648,7 +648,7 @@ export class UserPortalService {
           AND DATE_ADD(
             (
               SELECT rsl.created_at
-              FROM report_status_logs rsl
+              FROM request_status_logs rsl
               WHERE rsl.report_id = r.id
                 AND rsl.new_status = 'waiting_confirm'
               ORDER BY rsl.id DESC
@@ -660,11 +660,11 @@ export class UserPortalService {
 
       for (const row of expiredRows) {
         await connection.query<ResultSetHeader>(
-          `UPDATE reports
+          `UPDATE requests
           SET status = 'closed',
               closed_at = NOW()
           WHERE id = ?`,
-          [row.report_id],
+          [row.request_id],
         );
 
         await connection.query<ResultSetHeader>(
@@ -676,7 +676,7 @@ export class UserPortalService {
         );
 
         await connection.query<ResultSetHeader>(
-          `INSERT INTO report_status_logs (
+          `INSERT INTO request_status_logs (
             report_id,
             old_status,
             new_status,
@@ -684,7 +684,7 @@ export class UserPortalService {
             changed_by_id,
             note
           ) VALUES (?, ?, 'closed', 'system', NULL, ?)`,
-          [row.report_id, row.report_status, AUTO_CLOSE_NOTE],
+          [row.request_id, row.request_status, AUTO_CLOSE_NOTE],
         );
 
         await connection.query<ResultSetHeader>(
@@ -708,32 +708,32 @@ export class UserPortalService {
     }
   }
 
-  private async findReportTrackRowByReportNo(
-    reportNo: string,
-  ): Promise<ReportTrackRow | null> {
-    const [rows] = await this.db.query<ReportTrackRow[]>(
+  private async findRequestTrackRowByRequestNo(
+    requestNo: string,
+  ): Promise<RequestTrackRow | null> {
+    const [rows] = await this.db.query<RequestTrackRow[]>(
       `SELECT
         r.id,
-        r.report_no,
+        r.request_no,
         r.title,
         r.detail,
         r.score,
         r.customer_id,
-        r.status AS report_status,
-        r.created_at AS report_created_at,
+        r.status AS request_status,
+        r.created_at AS request_created_at,
         trr.status AS resolution_request_status,
         trr.summary AS resolution_summary,
         trr.reviewed_at,
         staff.name AS repaired_by_name,
         staff.surname AS repaired_by_surname
-      FROM reports r
+      FROM requests r
       INNER JOIN problem_types pt
         ON pt.id = r.problem_type_id
       LEFT JOIN tickets t
         ON t.id = (
           SELECT t2.id
           FROM tickets t2
-          WHERE t2.report_id = r.id
+          WHERE t2.request_id = r.id
           ORDER BY t2.id DESC
           LIMIT 1
         )
@@ -747,41 +747,41 @@ export class UserPortalService {
         )
       LEFT JOIN staffs staff
         ON staff.id = COALESCE(t.assigned_staff_id, trr.requested_by)
-      WHERE r.report_no = ?
+      WHERE r.request_no = ?
         AND pt.report_type = 'issue'
       LIMIT 1`,
-      [reportNo],
+      [requestNo],
     );
 
     return rows[0] ?? null;
   }
 
-  private async findReportTrackRowById(
+  private async findRequestTrackRowById(
     id: number,
-  ): Promise<ReportTrackRow | null> {
-    const [rows] = await this.db.query<ReportTrackRow[]>(
+  ): Promise<RequestTrackRow | null> {
+    const [rows] = await this.db.query<RequestTrackRow[]>(
       `SELECT
         r.id,
-        r.report_no,
+        r.request_no,
         r.title,
         r.detail,
         r.score,
         r.customer_id,
-        r.status AS report_status,
-        r.created_at AS report_created_at,
+        r.status AS request_status,
+        r.created_at AS request_created_at,
         trr.status AS resolution_request_status,
         trr.summary AS resolution_summary,
         trr.reviewed_at,
         staff.name AS repaired_by_name,
         staff.surname AS repaired_by_surname
-      FROM reports r
+      FROM requests r
       INNER JOIN problem_types pt
         ON pt.id = r.problem_type_id
       LEFT JOIN tickets t
         ON t.id = (
           SELECT t2.id
           FROM tickets t2
-          WHERE t2.report_id = r.id
+          WHERE t2.request_id = r.id
           ORDER BY t2.id DESC
           LIMIT 1
         )
@@ -804,16 +804,16 @@ export class UserPortalService {
     return rows[0] ?? null;
   }
 
-  private async findReportIdentityById(
+  private async findRequestIdentityById(
     connection: PoolConnection,
     id: number,
   ): Promise<ReportIdentityRow | null> {
     const [rows] = await connection.query<ReportIdentityRow[]>(
-      `SELECT reports.id, reports.report_no, reports.customer_id, reports.status
-      FROM reports
+      `SELECT requests.id, requests.request_no, requests.customer_id, requests.status
+      FROM requests
       INNER JOIN problem_types pt
-        ON pt.id = reports.problem_type_id
-      WHERE reports.id = ?
+        ON pt.id = requests.problem_type_id
+      WHERE requests.id = ?
         AND pt.report_type = 'issue'
       LIMIT 1`,
       [id],

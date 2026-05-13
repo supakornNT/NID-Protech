@@ -46,7 +46,7 @@ export default function ReportInternalPage() {
   );
   const [submitted, setSubmitted] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const { submit, loading, error } = useSubmit("/reports/internal", () => {
+  const { submit, loading, error } = useSubmit("/requests/internal", () => {
     setShowSuccess(true);
     setForm({ title: "", problem_type_id: "", system_id: "", detail: "" });
     setDate(getDefaultDate());

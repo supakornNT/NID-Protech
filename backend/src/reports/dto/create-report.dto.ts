@@ -1,4 +1,4 @@
-export class CreateReportDto {
+export class CreateRequestDto {
   reportNo?: string;
   report_no?: string;
   customerId?: number;

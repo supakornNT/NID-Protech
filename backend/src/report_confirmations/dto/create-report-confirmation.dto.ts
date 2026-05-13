@@ -1,4 +1,4 @@
-export class CreateReportConfirmationDto {
+export class CreateRequestConfirmationDto {
   reportId?: number;
 
   customerId?: number;

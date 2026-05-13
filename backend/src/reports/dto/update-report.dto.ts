@@ -1,4 +1,4 @@
-export class UpdateReportDto {
+export class UpdateRequestDto {
   report_no?: string;
 
   customer_id?: number;

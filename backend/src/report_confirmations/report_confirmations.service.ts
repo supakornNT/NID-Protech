@@ -1,42 +1,42 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { Pool, ResultSetHeader } from 'mysql2/promise';
-import { CreateReportConfirmationDto } from './dto/create-report-confirmation.dto';
-import { UpdateReportConfirmationDto } from './dto/update-report-confirmation.dto';
-import type { ReportConfirmation } from './interfaces/report-confirmation.interface';
+import { CreateRequestConfirmationDto } from './dto/create-report-confirmation.dto';
+import { UpdateRequestConfirmationDto } from './dto/update-report-confirmation.dto';
+import type { RequestConfirmation } from './interfaces/report-confirmation.interface';
 
 @Injectable()
-export class ReportConfirmationsService {
+export class RequestConfirmationsService {
   constructor(@Inject('DB') private readonly db: Pool) {}
 
-  async findAll(): Promise<ReportConfirmation[]> {
-    const [rows] = await this.db.query<ReportConfirmation[]>(
+  async findAll(): Promise<RequestConfirmation[]> {
+    const [rows] = await this.db.query<RequestConfirmation[]>(
       `SELECT
-      report_confirmations.id,
-      report_confirmations.report_id,
-      report_confirmations.customer_id,
-      report_confirmations.result,
-      report_confirmations.comment,
-      report_confirmations.score,
-      report_confirmations.confirmed_at
-      FROM report_confirmations
+      request_confirmations.id,
+      request_confirmations.report_id,
+      request_confirmations.customer_id,
+      request_confirmations.result,
+      request_confirmations.comment,
+      request_confirmations.score,
+      request_confirmations.confirmed_at
+      FROM request_confirmations
       `,
     );
 
     return rows;
   }
 
-  async findOne(id: number): Promise<ReportConfirmation | null> {
-    const [rows] = await this.db.query<ReportConfirmation[]>(
+  async findOne(id: number): Promise<RequestConfirmation | null> {
+    const [rows] = await this.db.query<RequestConfirmation[]>(
       `SELECT
-      report_confirmations.id,
-      report_confirmations.report_id,
-      report_confirmations.customer_id,
-      report_confirmations.result,
-      report_confirmations.comment,
-      report_confirmations.score,
-      report_confirmations.confirmed_at
-      FROM report_confirmations
-      WHERE report_confirmations.id = ?
+      request_confirmations.id,
+      request_confirmations.report_id,
+      request_confirmations.customer_id,
+      request_confirmations.result,
+      request_confirmations.comment,
+      request_confirmations.score,
+      request_confirmations.confirmed_at
+      FROM request_confirmations
+      WHERE request_confirmations.id = ?
       `,
       [id],
     );
@@ -45,10 +45,10 @@ export class ReportConfirmationsService {
   }
 
   async create(
-    dto: CreateReportConfirmationDto,
-  ): Promise<ReportConfirmation | null> {
+    dto: CreateRequestConfirmationDto,
+  ): Promise<RequestConfirmation | null> {
     const [result] = await this.db.query<ResultSetHeader>(
-      'INSERT INTO report_confirmations (report_id, customer_id, result, comment, score) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO request_confirmations (report_id, customer_id, result, comment, score) VALUES (?, ?, ?, ?, ?)',
       [dto.reportId, dto.customerId, dto.result, dto.comment, dto.score],
     );
 
@@ -57,8 +57,8 @@ export class ReportConfirmationsService {
 
   async update(
     id: number,
-    dto: UpdateReportConfirmationDto,
-  ): Promise<ReportConfirmation | null> {
+    dto: UpdateRequestConfirmationDto,
+  ): Promise<RequestConfirmation | null> {
     const current = await this.findOne(id);
 
     if (!current) {
@@ -66,7 +66,7 @@ export class ReportConfirmationsService {
     }
 
     await this.db.query<ResultSetHeader>(
-      `UPDATE report_confirmations
+      `UPDATE request_confirmations
       SET
         report_id = ?,
         customer_id = ?,
@@ -89,7 +89,7 @@ export class ReportConfirmationsService {
 
   async remove(id: number) {
     await this.db.query<ResultSetHeader>(
-      'DELETE FROM report_confirmations WHERE id = ?',
+      'DELETE FROM request_confirmations WHERE id = ?',
       [id],
     );
 

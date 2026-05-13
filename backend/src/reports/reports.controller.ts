@@ -14,78 +14,78 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { mkdirSync } from 'fs';
 import { diskStorage } from 'multer';
 import { extname, resolve } from 'path';
-import { CreateReportDto } from './dto/create-report.dto';
-import { CreateReportInternalDto } from './dto/create-report-internal.dto';
-import { CreateReportExternalDto } from './dto/create-report-external.dto';
-import { CreateReportServiceDto } from './dto/create-report-service.dto';
-import { UpdateReportDto } from './dto/update-report.dto';
-import { ReportsService } from './reports.service';
+import { CreateRequestDto } from './dto/create-report.dto';
+import { CreateInternalRequestDto } from './dto/create-report-internal.dto';
+import { CreateExternalRequestDto } from './dto/create-report-external.dto';
+import { CreateServiceRequestDto } from './dto/create-report-service.dto';
+import { UpdateRequestDto } from './dto/update-report.dto';
+import { RequestsService } from './reports.service';
 
-const reportsUploadDir = resolve(process.cwd(), '..', 'uploads', 'reports');
+const requestsUploadDir = resolve(process.cwd(), '..', 'uploads', 'requests');
 
-mkdirSync(reportsUploadDir, { recursive: true });
+mkdirSync(requestsUploadDir, { recursive: true });
 
 const internalStorage = diskStorage({
-  destination: reportsUploadDir,
+  destination: requestsUploadDir,
   filename(_req, file, cb) {
     const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
     cb(null, unique + extname(file.originalname));
   },
 });
 
-@Controller('reports')
-export class ReportsController {
-  constructor(private readonly report: ReportsService) {}
+@Controller('requests')
+export class RequestsController {
+  constructor(private readonly request: RequestsService) {}
 
   @Get()
   findAll() {
-    return this.report.findAll();
+    return this.request.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.report.findOne(id);
+    return this.request.findOne(id);
   }
 
   @Post()
-  create(@Body() body: CreateReportDto) {
-    return this.report.create(body);
+  create(@Body() body: CreateRequestDto) {
+    return this.request.create(body);
   }
 
   @Post('internal')
   @UseInterceptors(FilesInterceptor('files', 10, { storage: internalStorage }))
   createInternal(
-    @Body() body: CreateReportInternalDto,
+    @Body() body: CreateInternalRequestDto,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    return this.report.createReportInternal(body, files ?? []);
+    return this.request.createReportInternal(body, files ?? []);
   }
 
   @Post('external')
   @UseInterceptors(FilesInterceptor('files', 10, { storage: internalStorage }))
   createExternal(
-    @Body() body: CreateReportExternalDto,
+    @Body() body: CreateExternalRequestDto,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    return this.report.createReportExternal(body, files ?? []);
+    return this.request.createReportExternal(body, files ?? []);
   }
 
   @Post('service')
   @UseInterceptors(FilesInterceptor('files', 10, { storage: internalStorage }))
   createService(
-    @Body() body: CreateReportServiceDto,
+    @Body() body: CreateServiceRequestDto,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    return this.report.createReportService(body, files ?? []);
+    return this.request.createReportService(body, files ?? []);
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateReportDto) {
-    return this.report.update(id, body);
+  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateRequestDto) {
+    return this.request.update(id, body);
   }
 
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
-    return this.report.remove(id);
+    return this.request.remove(id);
   }
 }

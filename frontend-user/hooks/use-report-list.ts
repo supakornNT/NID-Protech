@@ -5,7 +5,7 @@ import * as React from "react";
 import { fetchJson } from "@/lib/fetch";
 import { TrackingRow } from "@/types/tracking";
 
-export interface ReportListItem
+export interface RequestListItem
   extends TrackingRow {
   document: string;
 }
@@ -20,7 +20,7 @@ export interface PaginationMeta {
 }
 
 interface ReportListResponse {
-  items: ReportListItem[];
+  items: RequestListItem[];
   pagination: PaginationMeta;
 }
 
@@ -34,7 +34,7 @@ const DEFAULT_PAGINATION: PaginationMeta =
     hasPrevious: false,
   };
 
-function buildReportsPath(
+function buildRequestsPath(
   page: number,
   limit: number,
   search: string,
@@ -52,16 +52,16 @@ function buildReportsPath(
     );
   }
 
-  return `/user/reports?${searchParams.toString()}`;
+  return `/user/requests?${searchParams.toString()}`;
 }
 
-export function useReportList() {
+export function useRequestList() {
   const [appliedSearch, setAppliedSearch] =
     React.useState("");
   const [searchRequestKey, setSearchRequestKey] =
     React.useState(0);
   const [reports, setReports] =
-    React.useState<ReportListItem[]>([]);
+    React.useState<RequestListItem[]>([]);
   const [page, setPage] =
     React.useState(1);
   const [limit, setLimit] =
@@ -111,7 +111,7 @@ export function useReportList() {
 
         const data =
           await fetchJson<ReportListResponse>(
-            buildReportsPath(
+            buildRequestsPath(
               page,
               limit,
               appliedSearch,

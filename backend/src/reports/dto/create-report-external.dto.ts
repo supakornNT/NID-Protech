@@ -1,4 +1,4 @@
-export class CreateReportExternalDto {
+export class CreateExternalRequestDto {
   customer_id!: string;
   title!: string;
   problem_type_id!: string;

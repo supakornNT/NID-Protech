@@ -8,38 +8,38 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { CreateReportStatusLogDto } from './dto/create-report-status-log.dto';
-import { UpdateReportStatusLogDto } from './dto/update-report-status-log.dto';
-import { ReportStatusLogsService } from './report_status_logs.service';
+import { CreateRequestStatusLogDto } from './dto/create-report-status-log.dto';
+import { UpdateRequestStatusLogDto } from './dto/update-report-status-log.dto';
+import { RequestStatusLogsService } from './report_status_logs.service';
 
 
-@Controller('admin/report-status-logs')
-export class ReportStatusLogsController {
-  constructor(private readonly reportStatusLog: ReportStatusLogsService) {}
+@Controller('admin/request-status-logs')
+export class RequestStatusLogsController {
+  constructor(private readonly requestStatusLog: RequestStatusLogsService) {}
 
   @Get()
   findAll() {
-    return this.reportStatusLog.findAll();
+    return this.requestStatusLog.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.reportStatusLog.findOne(id);
+    return this.requestStatusLog.findOne(id);
   }
 
   @Post()
-  create(@Body() body: CreateReportStatusLogDto) {
-    return this.reportStatusLog.create(body);
+  create(@Body() body: CreateRequestStatusLogDto) {
+    return this.requestStatusLog.create(body);
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateReportStatusLogDto) {
-    return this.reportStatusLog.update(id, body);
+  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateRequestStatusLogDto) {
+    return this.requestStatusLog.update(id, body);
   }
 
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
-    return this.reportStatusLog.remove(id);
+    return this.requestStatusLog.remove(id);
   }
 
 }
