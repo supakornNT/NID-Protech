@@ -72,16 +72,16 @@ export function ProTechTable<T>({
   }
 
   return (
-    <div className="min-w-0 w-full max-w-full space-y-3">
-      <div className="min-w-0 w-full max-w-full overflow-hidden rounded-xl border border-[#7FA7E8] bg-white transition-all duration-200">
+    <div className="min-w-0 w-full max-w-full space-y-4">
+      <div className="min-w-0 w-full max-w-full overflow-hidden rounded-[14px] border border-[#7FA7E8] bg-white transition-all duration-200">
         <div className="w-full overflow-x-auto">
-          <Table className="min-w-[760px]">
+          <Table className="min-w-[700px]">
             <TableHeader className="bg-[#DCE9FF]">
               <TableRow className="border-[#7FA7E8] hover:bg-[#DCE9FF]">
                 {columns.map((column, index) => (
                   <TableHead
                     key={index}
-                    className={`h-15 px-4 text-center text-sm font-normal text-black ${
+                    className={`h-15 px-4 text-center text-sm font-normal tracking-normal normal-case text-black ${
                       column.className || ""
                     }`}
                   >
@@ -104,7 +104,7 @@ export function ProTechTable<T>({
                       return (
                         <TableCell
                           key={colIndex}
-                          className="h-12 border-r border-[#7FA7E8] px-4 py-3 text-center text-sm text-black last:border-r-0"
+                          className="h-12 border-r border-[#7FA7E8] px-3 py-3 text-center text-sm text-black last:border-r-0"
                         >
                           {column.render
                             ? column.render(value, row, startIndex + rowIndex)
@@ -129,7 +129,7 @@ export function ProTechTable<T>({
         </div>
       </div>
 
-      <div className="flex w-full flex-wrap items-center justify-between gap-2 px-1 text-sm text-gray-600">
+      <div className="flex w-full flex-wrap items-center justify-between gap-2 px-1 pt-3 text-sm text-gray-600">
         <div className="text-xs sm:text-sm">
           แสดง {resolvedTotalItems === 0 ? 0 : startIndex + 1}-
           {Math.min(startIndex + currentData.length, resolvedTotalItems)} จาก{" "}

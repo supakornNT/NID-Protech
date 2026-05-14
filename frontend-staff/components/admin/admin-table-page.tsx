@@ -5,7 +5,7 @@ import { ChevronDown, Edit3, Info, Plus, Trash2 } from "lucide-react";
 
 import { DeleteConfirmDialog } from "@/components/admin/delete-confirm-dialog";
 import { ProTechButton } from "@/components/tables/protech-button";
-import { ProTechSearch } from "@/components/tables/protech-search";
+import { ProTechSearchBar } from "@/components/tables/protech-search";
 import { ProTechTable } from "@/components/tables/protech-table";
 import type { Column } from "@/types/table";
 
@@ -33,6 +33,8 @@ type AdminTablePageProps<T extends Record<string, unknown>> = {
   showCreate?: boolean;
   showDelete?: boolean;
   hideCreateButton?: boolean;
+  onSearchClick?: (value: string) => void;
+  onCreateClick?: () => void;
   onConfirmDelete?: () => void;
   deleteConfirmTitle?: string;
   deleteConfirmDescription?: string;
@@ -50,6 +52,8 @@ export function AdminTablePage<T extends Record<string, unknown>>({
   showCreate = true,
   showDelete = true,
   hideCreateButton = false,
+  onSearchClick,
+  onCreateClick,
   onConfirmDelete,
   deleteConfirmTitle,
   deleteConfirmDescription,
@@ -104,24 +108,20 @@ export function AdminTablePage<T extends Record<string, unknown>>({
 
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex flex-1 flex-wrap items-center gap-3">
-          <ProTechSearch
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value);
-              setPage(1);
-            }}
+          <ProTechSearchBar
             placeholder={searchPlaceholder}
-            className="w-[220px] flex-none"
+            className="flex-none"
             inputClassName="h-[31px] rounded-md border border-[#A8B1C2] px-3 text-[14px]"
+            onSearch={(value) => {
+              setSearch(value);
+              setPage(1);
+              onSearchClick?.(value);
+            }}
           />
+          {/* 
 
-          <ProTechButton
-            variant="primary"
-            className="h-[31px] min-w-[74px] px-4 text-[14px]"
-          >
             ค้นหา
-          </ProTechButton>
-
+          */}
           {filters.map((filter) => (
             <div key={filter.key} className="relative">
               <select
@@ -133,7 +133,7 @@ export function AdminTablePage<T extends Record<string, unknown>>({
                   }));
                   setPage(1);
                 }}
-                className="h-[31px] min-w-[132px] appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-left text-[14px] text-[#6B7280] outline-none"
+                className="h-[31px] min-w-[124px] appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-left text-[14px] text-[#6B7280] outline-none"
               >
                 <option value="all">{filter.placeholder}</option>
                 {filter.options.map((option) => (
@@ -171,6 +171,7 @@ export function AdminTablePage<T extends Record<string, unknown>>({
               variant="create"
               className="h-[31px] px-4 text-[14px]"
               icon={<Plus size={16} />}
+              onClick={onCreateClick}
             >
               {createLabel}
             </ProTechButton>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { AdminTablePage, StatusBadge } from "@/components/admin/admin-table-page";
 import { ProTechButton } from "@/components/tables/protech-button";
@@ -11,29 +11,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  useUnapprovedCustomers,
+  type CustomerApiItem,
+} from "@/hooks/customers/use-unapproved-customers";
+import { formatPhoneNumber } from "@/lib/utils";
 import type { Column } from "@/types/table";
-
-type CustomerApiItem = {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  customerType: string;
-  organizationName: string | null;
-  status: string;
-  createdAt: string | null;
-  updatedAt: string | null;
-};
-
-type CustomerListResponse = {
-  items: CustomerApiItem[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-};
 
 type CustomerRow = {
   id: number;
@@ -51,8 +34,6 @@ type PendingAction = {
   action: "approve" | "reject";
   name: string;
 } | null;
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 function formatThaiDateTime(value: string | null): string {
   if (!value) {
@@ -93,77 +74,17 @@ function mapCustomerRow(item: CustomerApiItem): CustomerRow {
     role: mapCustomerTypeLabel(item.customerType),
     organizationName: item.organizationName || "-",
     email: item.email,
-    phone: item.phone || "-",
+    phone: formatPhoneNumber(item.phone),
     status: item.status,
   };
 }
 
 export default function CustomersPage() {
-  const [rows, setRows] = useState<CustomerRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [activeId, setActiveId] = useState<number | null>(null);
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
+  const { items, loading, error, activeId, updateCustomerStatus } =
+    useUnapprovedCustomers();
 
-  async function fetchCustomers() {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/customers/unapproved?page=1&limit=100`,
-        { cache: "no-store" },
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to load customers (${response.status})`);
-      }
-
-      const result = (await response.json()) as CustomerListResponse;
-      setRows(result.items.map(mapCustomerRow));
-      setError(null);
-    } catch (fetchError) {
-      console.error(fetchError);
-      setError("ไม่สามารถโหลดข้อมูลผู้ใช้งานได้");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    void (async () => {
-      await fetchCustomers();
-    })();
-  }, []);
-
-  async function updateCustomerStatus(
-    id: number,
-    action: "approve" | "reject",
-  ) {
-    if (activeId !== null) {
-      return;
-    }
-
-    try {
-      setActiveId(id);
-      setError(null);
-
-      const response = await fetch(`${API_BASE_URL}/customers/${id}/${action}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to ${action} customer (${response.status})`);
-      }
-
-      await fetchCustomers();
-    } catch (updateError) {
-      console.error(updateError);
-      setError("ไม่สามารถอัปเดตสถานะผู้ใช้งานได้");
-    } finally {
-      setActiveId(null);
-    }
-  }
+  const rows = items.map(mapCustomerRow);
 
   function openConfirmDialog(
     id: number,
@@ -188,7 +109,7 @@ export default function CustomersPage() {
   }
 
   const columns: Column<CustomerRow>[] = [
-    { key: "date", title: "วันที่/เวลา" },
+    { key: "date", title: "วันที/เวลา" },
     { key: "name", title: "ชื่อ-นามสกุล" },
     { key: "role", title: "ประเภท" },
     { key: "organizationName", title: "บริษัท" },
@@ -227,7 +148,7 @@ export default function CustomersPage() {
   ];
 
   return (
-    <div className="min-h-full rounded-xl p-4 sm:p-6 lg:p-8">
+    <div className="min-h-full w-full rounded-xl px-5 py-7 sm:px-6 sm:py-8 lg:px-8 lg:py-9">
       {error ? (
         <p className="mb-4 rounded-md border border-[#FFB4C0] bg-[#FFF5F7] px-4 py-3 text-sm text-[#D1435B]">
           {error}
@@ -239,7 +160,7 @@ export default function CustomersPage() {
         subtitle="ตรวจสอบและอนุมัติการลงทะเบียนของผู้ใช้งานที่รอการยืนยัน"
         columns={columns}
         data={rows}
-        searchPlaceholder="ค้นหาชื่อ อีเมล หรือเบอร์โทร"
+        searchPlaceholder="ค้นหาชื่อ อีเมล เบอร์โทร"
         showDelete={false}
         showCreate={false}
       />
@@ -258,7 +179,7 @@ export default function CustomersPage() {
       >
         <DialogContent
           showCloseButton={false}
-          className="max-w-[420px] rounded-[32px] bg-white p-0 shadow-xl ring-0"
+          className="max-w-105 rounded-[32px] bg-white p-0 shadow-xl ring-0"
         >
           <div className="space-y-6 px-7 py-7">
             <DialogHeader className="space-y-2 text-center">
@@ -281,7 +202,7 @@ export default function CustomersPage() {
             <div className="flex items-center justify-center gap-3 pt-1">
               <ProTechButton
                 variant="delete"
-                className="h-10 min-w-[104px] rounded-full text-[16px]"
+                className="h-10 min-w-26 rounded-full text-[16px]"
                 onClick={() => {
                   setPendingAction(null);
                 }}
@@ -291,7 +212,7 @@ export default function CustomersPage() {
 
               <ProTechButton
                 variant="primary"
-                className="h-10 min-w-[104px] rounded-full text-[16px]"
+                className="h-10 min-w-26 rounded-full text-[16px]"
                 onClick={() => {
                   void confirmPendingAction();
                 }}

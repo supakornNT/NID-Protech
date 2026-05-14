@@ -150,15 +150,11 @@ const menuItems = [
         icon: ChartPie,
       },
       {
-        title: "รูปเเบบประเด็น",
-        href: "/management/issue-types",
+        title: "รูปเเบบประเด็นเเละข้อร้องเรียน",
+        href: "/management/issue-and-complaint-types",
         icon: ChartPie,
       },
-      {
-        title: "รูปเเบบข้อร้องเรียน",
-        href: "/management/complaint-types",
-        icon: ChartPie,
-      },
+      
     ],
   },
 ];
@@ -167,20 +163,20 @@ export default function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="sticky top-0 h-screen w-[240px] shrink-0 overflow-y-auto bg-[#3670BF] text-white">
-      <div className="flex min-h-full flex-col px-5 py-8">
-        <div className="mb-10 flex items-center gap-3 px-2">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20">
-            <ShieldCheck size={26} />
+    <aside className="sticky top-0 h-screen w-[244px] shrink-0 overflow-y-auto bg-[#3D71BC] text-white">
+      <div className="flex min-h-full flex-col px-4 py-8">
+        <div className="mb-8 flex items-center gap-3 px-2">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/18">
+            <ShieldCheck size={24} />
           </div>
 
           <div className="leading-tight">
-            <p className="text-lg font-bold">ProTech</p>
-            <p className="text-lg font-bold">Support</p>
+            <p className="text-[18px] font-bold">ProTech</p>
+            <p className="text-[18px] font-bold">Support</p>
           </div>
         </div>
 
-        <nav className="space-y-3 text-sm font-semibold">
+        <nav className="space-y-2.5 text-[13px] font-semibold">
           {menuItems.map((item) => {
             const Icon = item.icon;
 
@@ -194,20 +190,20 @@ export default function AdminSidebar() {
                   <CollapsibleTrigger asChild>
                     <button
                       type="button"
-                      className={`flex min-h-11 w-full items-center justify-between rounded-xl px-3 py-2 text-left transition ${
+                      className={`flex min-h-10 w-full items-center justify-between rounded-xl px-3 py-2 text-left transition ${
                         isOpen ? "bg-white/20" : "hover:bg-white/15"
                       }`}
                     >
                       <span className="flex items-center gap-2">
-                        <Icon size={18} />
+                        <Icon size={17} />
                         {item.title}
                       </span>
 
-                      <ChevronDown size={16} />
+                      <ChevronDown size={15} />
                     </button>
                   </CollapsibleTrigger>
 
-                  <CollapsibleContent className="mt-2 space-y-2 pl-4">
+                  <CollapsibleContent className="mt-2 space-y-1.5 pl-3">
                     {item.children.map((child) => {
                       const ChildIcon = child.icon;
                       const active = pathname === child.href;
@@ -216,13 +212,13 @@ export default function AdminSidebar() {
                         <Link
                           key={child.href}
                           href={child.href}
-                          className={`flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 text-xs leading-snug transition ${
+                          className={`flex min-h-9 items-center gap-2 rounded-xl px-3 py-2 text-[12px] leading-snug transition ${
                             active
                               ? "bg-white/30 text-white"
                               : "hover:bg-white/15"
                           }`}
                         >
-                          <ChildIcon size={15} />
+                          <ChildIcon size={14} />
                           <span>{child.title}</span>
                         </Link>
                       );
@@ -238,11 +234,11 @@ export default function AdminSidebar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex min-h-11 items-center gap-2 rounded-xl px-3 py-2 transition ${
+                className={`flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 transition ${
                   active ? "bg-white/20" : "hover:bg-white/15"
                 }`}
               >
-                <Icon size={18} />
+                <Icon size={17} />
                 {item.title}
               </Link>
             );

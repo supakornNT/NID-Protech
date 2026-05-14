@@ -4,7 +4,8 @@ import { ProTechButton } from "@/components/tables/protech-button";
 
 export default function OrganizationsPage() {
   return (
-    <div className="space-y-5">
+    <div className="min-h-full w-full rounded-xl px-5 py-7 sm:px-6 sm:py-8 lg:px-8 lg:py-9">
+      <div className="space-y-5">
       <div>
         <h1 className="text-[32px] font-bold leading-none text-[#111827]">
           จัดการข้อมูลองค์กร
@@ -50,6 +51,7 @@ export default function OrganizationsPage() {
             </ProTechButton>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
