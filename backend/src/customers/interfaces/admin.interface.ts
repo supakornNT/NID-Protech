@@ -1,4 +1,4 @@
-import { PaginationMeta } from '@/user_portal/interfaces/public-report-list.interface';
+import { PaginationMeta } from '@/user_portal/interfaces/public-request-list.interface';
 import { RowDataPacket } from 'mysql2';
 
 export interface AdminCustomer extends RowDataPacket {
@@ -7,7 +7,7 @@ export interface AdminCustomer extends RowDataPacket {
   email: string;
   phone: string;
   customerType: string;
-  organizationId: number | null;
+  organizationName: string | null;
   status: string;
   createdAt: Date | null;
   updatedAt: Date | null;

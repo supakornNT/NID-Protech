@@ -1,7 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
-import { ConfirmRequestDto } from '../dto/confirm-report.dto';
-import { RateRequestDto } from '../dto/rate-report.dto';
-import { RejectRequestDto } from '../dto/reject-report.dto';
+import { ConfirmRequestDto } from '../dto/confirm-request.dto';
+import { RateRequestDto } from '../dto/rate-request.dto';
+import { RejectRequestDto } from '../dto/reject-request.dto';
 
 export function validateConfirmRequestDto(dto: ConfirmRequestDto): void {
   if (dto.comment !== undefined && typeof dto.comment !== 'string') {

@@ -17,9 +17,9 @@ Font.register({
 
 export type TicketPdfData = {
   trackingNo: string;
-  reporterName: string;
-  reporterEmail: string;
-  reporterPhone: string | null;
+  requesterName: string;
+  requesterEmail: string;
+  requesterPhone: string | null;
   systemName: string | null;
   problemTypeName: string | null;
   problemTitle: string;
@@ -158,18 +158,18 @@ export function TicketPdf({ ticket, qrCode, logoSrc }: TicketPdfProps) {
           </View>
 
           <View style={styles.row}>
-            <Text style={styles.label}>Reporter</Text>
-            <Text style={styles.value}>{formatValue(ticket.reporterName)}</Text>
+            <Text style={styles.label}>Requester</Text>
+            <Text style={styles.value}>{formatValue(ticket.requesterName)}</Text>
           </View>
 
           <View style={styles.row}>
             <Text style={styles.label}>Email</Text>
-            <Text style={styles.value}>{formatValue(ticket.reporterEmail)}</Text>
+            <Text style={styles.value}>{formatValue(ticket.requesterEmail)}</Text>
           </View>
 
           <View style={styles.row}>
             <Text style={styles.label}>Phone</Text>
-            <Text style={styles.value}>{formatValue(ticket.reporterPhone)}</Text>
+            <Text style={styles.value}>{formatValue(ticket.requesterPhone)}</Text>
           </View>
 
           <View style={styles.row}>

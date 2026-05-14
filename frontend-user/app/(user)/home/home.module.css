@@ -40,7 +40,7 @@
 
 /* ================= LEFT ================= */
 
-.reportCard {
+.requestCard {
   background: #f2f7ff;
 
   padding: clamp(18px, 2vw, 34px);
@@ -72,7 +72,7 @@
   color: #8a8f98;
 }
 
-.reportOptions {
+.requestOptions {
   margin-top: clamp(16px, 2vw, 26px);
 
   display: grid;
@@ -81,7 +81,7 @@
   gap: clamp(14px, 2vw, 28px);
 }
 
-.reportOption {
+.requestOption {
   border: 1.5px solid #2f66c5;
   border-radius: 18px;
 
@@ -116,7 +116,7 @@
   margin-bottom: 14px;
 }
 
-.reportOption h3 {
+.requestOption h3 {
   margin: 0;
 
   font-size: clamp(16px, 1.5vw, 18px);
@@ -125,7 +125,7 @@
   color: #2f66c5;
 }
 
-.reportOption p {
+.requestOption p {
   margin: 10px 0 18px;
 
   max-width: 220px;
@@ -136,7 +136,7 @@
   color: #111827;
 }
 
-.reportBtn {
+.requestBtn {
   border: none;
   border-radius: 8px;
 
@@ -292,12 +292,12 @@
     padding: 16px 12px 28px;
   }
 
-  .reportOptions {
+  .requestOptions {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
 
-  .reportOption {
+  .requestOption {
     min-height: 170px;
 
     padding: 14px 10px;
@@ -310,17 +310,17 @@
     margin-bottom: 10px;
   }
 
-  .reportOption h3 {
+  .requestOption h3 {
     font-size: 14px;
   }
 
-  .reportOption p {
+  .requestOption p {
     font-size: 10px;
 
     margin: 6px 0 12px;
   }
 
-  .reportBtn {
+  .requestBtn {
     min-width: 78px;
     height: 28px;
 
@@ -357,11 +357,11 @@
 /* ================= SMALL MOBILE ================= */
 
 @media (max-width: 420px) {
-  .reportOptions {
+  .requestOptions {
     gap: 8px;
   }
 
-  .reportOption {
+  .requestOption {
     min-height: 155px;
 
     padding: 12px 8px;
@@ -372,15 +372,15 @@
     height: 46px;
   }
 
-  .reportOption h3 {
+  .requestOption h3 {
     font-size: 13px;
   }
 
-  .reportOption p {
+  .requestOption p {
     font-size: 9px;
   }
 
-  .reportBtn {
+  .requestBtn {
     min-width: 70px;
     height: 26px;
 

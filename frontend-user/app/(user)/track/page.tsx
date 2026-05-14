@@ -8,7 +8,7 @@ import TicketPdfButton from "@/components/pdf/TicketPdfButton";
 import { ProTechButton } from "@/components/tables/protech-button";
 import { ProTechSearch } from "@/components/tables/protech-search";
 import { ProTechTable } from "@/components/tables/protech-table";
-import { RequestListItem, useRequestList } from "@/hooks/use-report-list";
+import { RequestListItem, useRequestList } from "@/hooks/use-request-list";
 import { Column } from "@/types/table";
 
 const columns: Column<RequestListItem>[] = [
@@ -69,7 +69,7 @@ export default function Page() {
   const [search, setSearch] = React.useState("");
 
   const {
-    reports: requests,
+    requests: requests,
     pagination,
     loading,
     error,

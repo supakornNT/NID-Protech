@@ -46,6 +46,10 @@ export default function Page({ params }: Props) {
   }
 
   async function handleOpenRepairDetail() {
+    if (!request) {
+      return;
+    }
+
     setRepairDetail(buildRepairDetail(request));
     setShowRepairDetail(true);
   }

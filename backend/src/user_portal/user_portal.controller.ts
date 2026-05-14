@@ -7,10 +7,10 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { ConfirmRequestDto } from './dto/confirm-report.dto';
-import { RateRequestDto } from './dto/rate-report.dto';
-import { RejectRequestDto } from './dto/reject-report.dto';
-import type { GetRequestsQuery } from './interfaces/public-report-list.interface';
+import { ConfirmRequestDto } from './dto/confirm-request.dto';
+import { RateRequestDto } from './dto/rate-request.dto';
+import { RejectRequestDto } from './dto/reject-request.dto';
+import type { GetRequestsQuery } from './interfaces/public-request-list.interface';
 import { UserPortalService } from './user_portal.service';
 
 @Controller('user')

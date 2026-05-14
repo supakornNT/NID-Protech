@@ -112,11 +112,13 @@ export class CustomersService {
           customers.email,
           customers.phone,
           customers.customer_type AS customerType,
-          customers.organization_id AS organizationId,
+          organizations.name AS organizationName,
           customers.status,
           customers.created_at AS createdAt,
           customers.updated_at AS updatedAt
         FROM customers
+        LEFT JOIN organizations
+          ON organizations.id = customers.organization_id
         WHERE ${whereSql}
         ORDER BY customers.created_at DESC
         LIMIT ? OFFSET ?
@@ -133,8 +135,6 @@ export class CustomersService {
         limit,
         total,
         totalPages: Math.ceil(total / limit),
-        hasNext: page * limit < total,
-        hasPrevious: page > 1,
       },
     };
   }

@@ -10,24 +10,24 @@ import type {
   ResultSetHeader,
   RowDataPacket,
 } from 'mysql2/promise';
-import {
-  formatDateOnly as formatDateOnlyUtil,
-  formatDateTime as formatDateTimeUtil,
-} from '../common/utils/date-time.util';
+import { formatDateTime as formatDateTimeUtil } from '../common/utils/date-time.util';
 import { parsePositiveInteger as parsePositiveIntegerUtil } from '../common/utils/number.util';
-import { mapReportStatusLabel as mapReportStatusLabelUtil } from '../common/utils/report-status.util';
-import { ConfirmRequestDto } from './dto/confirm-report.dto';
-import { RateRequestDto } from './dto/rate-report.dto';
-import { RejectRequestDto } from './dto/reject-report.dto';
+import { mapRequestStatusLabel as mapRequestStatusLabelUtil } from '../common/utils/request-status.util';
+import { ConfirmRequestDto } from './dto/confirm-request.dto';
+import { RateRequestDto } from './dto/rate-request.dto';
+import { RejectRequestDto } from './dto/reject-request.dto';
 import { DashboardSummary } from './interfaces/dashboard-summary.interface';
 import {
   GetRequestsQuery,
   PublicRequestList,
-} from './interfaces/public-report-list.interface';
-import { PublicRequestPdfData } from './interfaces/public-report-pdf.interface';
-import { PublicRequestTrack } from './interfaces/public-report-track.interface';
-import { mapTrackResponse } from './mappers/report-track.mapper';
-import { RequestTrackRow, StatusLogRow } from './interfaces/report-track-row.interface';
+} from './interfaces/public-request-list.interface';
+import { PublicRequestPdfData } from './interfaces/public-request-pdf.interface';
+import { PublicRequestTrack } from './interfaces/public-request-track.interface';
+import { mapTrackResponse } from './mappers/request-track.mapper';
+import {
+  RequestTrackRow,
+  StatusLogRow,
+} from './interfaces/request-track-row.interface';
 import {
   validateConfirmRequestDto,
   validateRateRequestDto,
@@ -48,7 +48,7 @@ interface PublicRequestRow extends RowDataPacket {
   status: string;
 }
 
-interface ReportIdentityRow extends RowDataPacket {
+interface RequestIdentityRow extends RowDataPacket {
   id: number;
   request_no: string;
   customer_id: number;
@@ -80,7 +80,7 @@ interface ExpiredWaitingConfirmRow extends RowDataPacket {
   waiting_confirm_at: Date | string;
 }
 
-const REPORT_STATUS_VALUES = new Set([
+const REQUEST_STATUS_VALUES = new Set([
   'screening',
   'assigned',
   'in_progress',
@@ -100,7 +100,7 @@ export class UserPortalService {
   ) {}
 
   async getDashboardSummary(): Promise<DashboardSummary> {
-    await this.syncExpiredWaitingConfirmReports();
+    await this.syncExpiredWaitingConfirmRequests();
 
     const [rows] = await this.db.query<DashboardSummaryRow[]>(
       `SELECT
@@ -125,7 +125,7 @@ export class UserPortalService {
   }
 
   async getRequests(query: GetRequestsQuery): Promise<PublicRequestList> {
-    await this.syncExpiredWaitingConfirmReports();
+    await this.syncExpiredWaitingConfirmRequests();
 
     const page = parsePositiveIntegerUtil(query.page, 1, 'page');
     const limit = Math.min(
@@ -153,7 +153,7 @@ export class UserPortalService {
     }
 
     if (status.length > 0) {
-      if (!REPORT_STATUS_VALUES.has(status)) {
+      if (!REQUEST_STATUS_VALUES.has(status)) {
         throw new BadRequestException('status is invalid');
       }
 
@@ -206,21 +206,19 @@ export class UserPortalService {
         system: row.system_name ?? '-',
         problem: row.problem_name ?? '-',
         document: `tracking-${row.request_no}.pdf`,
-        status: mapReportStatusLabelUtil(row.status),
+        status: mapRequestStatusLabelUtil(row.status),
       })),
       pagination: {
         page: safePage,
         limit,
         total,
         totalPages,
-        hasNext: safePage < totalPages,
-        hasPrevious: safePage > 1,
       },
     };
   }
 
   async getRequestTrack(requestNo: string): Promise<PublicRequestTrack> {
-    await this.syncExpiredWaitingConfirmReports();
+    await this.syncExpiredWaitingConfirmRequests();
 
     const request = await this.findRequestTrackRowByRequestNo(requestNo);
 
@@ -240,7 +238,7 @@ export class UserPortalService {
   }
 
   async getRequestPdfData(requestNo: string): Promise<PublicRequestPdfData> {
-    await this.syncExpiredWaitingConfirmReports();
+    await this.syncExpiredWaitingConfirmRequests();
 
     const [rows] = await this.db.query<PublicRequestPdfRow[]>(
       `SELECT
@@ -294,11 +292,11 @@ export class UserPortalService {
 
     return {
       trackingNo: row.request_no,
-      reporterName: [row.customer_name, row.customer_surname]
+      requesterName: [row.customer_name, row.customer_surname]
         .filter(Boolean)
         .join(' '),
-      reporterEmail: row.customer_email,
-      reporterPhone: row.customer_phone,
+      requesterEmail: row.customer_email,
+      requesterPhone: row.customer_phone,
       systemName: row.system_name,
       problemTypeName: row.problem_type_name,
       problemTitle: row.title,
@@ -412,7 +410,7 @@ export class UserPortalService {
       connection.release();
     }
 
-      return this.getRequestTrackByIdAfterMutation(id);
+    return this.getRequestTrackByIdAfterMutation(id);
   }
 
   async rateRequest(
@@ -599,7 +597,7 @@ export class UserPortalService {
     return mapTrackResponse(updated, requestStatusLogs);
   }
 
-  private async syncExpiredWaitingConfirmReports(): Promise<void> {
+  private async syncExpiredWaitingConfirmRequests(): Promise<void> {
     const connection = await this.db.getConnection();
 
     try {
@@ -799,8 +797,8 @@ export class UserPortalService {
   private async findRequestIdentityById(
     connection: PoolConnection,
     id: number,
-  ): Promise<ReportIdentityRow | null> {
-    const [rows] = await connection.query<ReportIdentityRow[]>(
+  ): Promise<RequestIdentityRow | null> {
+    const [rows] = await connection.query<RequestIdentityRow[]>(
       `SELECT requests.id, requests.request_no, requests.customer_id, requests.status
       FROM requests
       INNER JOIN problem_types pt
