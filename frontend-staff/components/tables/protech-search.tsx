@@ -14,6 +14,7 @@ type ProTechSearchProps = {
 
 type ProTechSearchBarProps = {
   defaultValue?: string;
+  value?: string;
   placeholder?: string;
   icon?: React.ReactNode;
   className?: string;
@@ -44,17 +45,18 @@ export function ProTechSearch({
         `}
       />
 
-      {icon && (
+      {icon ? (
         <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center text-black">
           {icon}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
 
 export function ProTechSearchBar({
   defaultValue = "",
+  value,
   placeholder = "",
   icon,
   className = "",
@@ -63,13 +65,24 @@ export function ProTechSearchBar({
   buttonLabel = "ค้นหา",
   onSearch,
 }: ProTechSearchBarProps) {
-  const [value, setValue] = React.useState(defaultValue);
+  const [internalValue, setInternalValue] = React.useState(defaultValue);
+  const resolvedValue = value ?? internalValue;
+
+  React.useEffect(() => {
+    if (value === undefined) {
+      setInternalValue(defaultValue);
+    }
+  }, [defaultValue, value]);
 
   return (
     <div className={`flex flex-wrap items-center gap-3 ${className}`}>
       <ProTechSearch
-        value={value}
-        onChange={(event) => setValue(event.target.value)}
+        value={resolvedValue}
+        onChange={(event) => {
+          if (value === undefined) {
+            setInternalValue(event.target.value);
+          }
+        }}
         placeholder={placeholder}
         icon={icon}
         className="w-[200px] flex-none"
@@ -78,7 +91,7 @@ export function ProTechSearchBar({
       <ProTechButton
         variant="primary"
         className={`h-[31px] min-w-[74px] px-4 text-[14px] ${buttonClassName}`}
-        onClick={() => onSearch?.(value)}
+        onClick={() => onSearch?.(resolvedValue)}
       >
         {buttonLabel}
       </ProTechButton>

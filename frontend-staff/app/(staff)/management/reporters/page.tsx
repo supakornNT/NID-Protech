@@ -57,9 +57,9 @@ function formatThaiDateTime(value: string | null): string {
 
 function mapCustomerTypeLabel(type: string): string {
   switch (type) {
-    case "individual":
+    case "person":
       return "บุคคลทั่วไป";
-    case "organization":
+    case "company":
       return "นิติบุคคล";
     default:
       return type || "-";

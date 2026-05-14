@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { fetchJson } from "@/lib/api";
+import { fetchJson } from "@/lib/fetch";
 import { RepairDetail, TrackingDetail } from "@/types/tracking";
 
 interface TrackingTimelineApiItem {

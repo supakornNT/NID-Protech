@@ -23,7 +23,7 @@ export function mapTrackResponse(
   request: RequestTrackRow,
   requestStatusLogs: StatusLogRow[],
 ): PublicRequestTrack {
-  const currentStep = getCurrentStepHelper(request.request_status);
+  const currentStep = getCurrentStepHelper(request.requestStatus);
   const firstInProgressLog = requestStatusLogs.find(
     (log) => log.new_status === 'assigned' || log.new_status === 'in_progress',
   );
@@ -34,7 +34,7 @@ export function mapTrackResponse(
     (log) => log.new_status === 'screening',
   );
 
-  const requestedAt = toDateTimePartsUtil(request.request_created_at);
+  const requestedAt = toDateTimePartsUtil(request.requestCreatedAt);
   const screeningAt = toDateTimePartsUtil(screeningLog?.created_at);
   const inProgressAt = toDateTimePartsUtil(firstInProgressLog?.created_at);
   const waitingConfirmAt = toDateTimePartsUtil(waitingConfirmLog?.created_at);
@@ -45,25 +45,25 @@ export function mapTrackResponse(
   const timeline: PublicRequestTrackTimeline[] = [
     {
       label: 'แจ้งปัญหา',
-      status: getTimelineStatusHelper(1, currentStep, request.request_status),
+      status: getTimelineStatusHelper(1, currentStep, request.requestStatus),
       date: requestedAt.date,
       time: requestedAt.time,
     },
     {
       label: 'คัดกรอง',
-      status: getTimelineStatusHelper(2, currentStep, request.request_status),
+      status: getTimelineStatusHelper(2, currentStep, request.requestStatus),
       date: screeningAt.date,
       time: screeningAt.time,
     },
     {
       label: 'ดำเนินการ',
-      status: getTimelineStatusHelper(3, currentStep, request.request_status),
+      status: getTimelineStatusHelper(3, currentStep, request.requestStatus),
       date: inProgressAt.date,
       time: inProgressAt.time,
     },
     {
       label: 'รอตรวจสอบโดยลูกค้า',
-      status: getTimelineStatusHelper(4, currentStep, request.request_status),
+      status: getTimelineStatusHelper(4, currentStep, request.requestStatus),
       date: waitingConfirmAt.date,
       time: waitingConfirmAt.time,
     },
@@ -71,22 +71,22 @@ export function mapTrackResponse(
 
   return {
     id: request.id,
-    trackingNo: request.request_no,
+    trackingNo: request.requestNo,
     problem: request.title,
-    statusCode: request.request_status,
-    status: mapRequestStatusLabelUtil(request.request_status),
+    statusCode: request.requestStatus,
+    status: mapRequestStatusLabelUtil(request.requestStatus),
     repairStatus: mapRepairStatusHelper(
-      request.request_status,
-      request.resolution_request_status,
+      request.requestStatus,
+      request.resolutionRequestStatus,
     ),
     repairedBy: getStaffFullNameUtil(
-      request.repaired_by_name,
-      request.repaired_by_surname,
+      request.repairedByName,
+      request.repairedBySurname,
     ),
     ratingStatus: request.score === null ? 'ยังไม่ประเมิน' : 'ประเมินแล้ว',
     timeline,
-    solution: request.resolution_summary ?? request.detail,
-    repairedAt: formatDateTimeUtil(request.reviewed_at),
+    solution: request.resolutionSummary ?? request.detail,
+    repairedAt: formatDateTimeUtil(request.reviewedAt),
     customerConfirmDueAt,
   };
 }
