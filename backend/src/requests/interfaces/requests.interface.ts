@@ -12,10 +12,21 @@ export interface RequestsScreening extends RowDataPacket {
 export interface RequestsDetail extends RowDataPacket {
   id: number;
   customerName: string;
-  organizationName: string;
+  organizationName: string | null;
   systemName: string;
   problemName: string;
   title: string;
   detail: string;
-  closedAt: Date;
+  closedAt: Date | null;
+}
+
+export interface RequestsAssign extends RowDataPacket {
+  id: number;
+  systemName: string;
+  title: string;
+  customerName: string;
+  customerSurname: string;
+  screennerName: string;
+  probleTypeName: string;
+  probleName: string;
 }

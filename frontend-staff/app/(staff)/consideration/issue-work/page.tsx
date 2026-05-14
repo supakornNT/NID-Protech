@@ -1,49 +1,43 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-
-type WorkItem = {
-  id: number;
-  title: string;
-  user: string;
-  system: string;
-  category: string;
-  type: string;
-  screenedBy: string;
-};
-
-const mockData: WorkItem[] = Array.from({ length: 20 }, (_, i) => ({
-  id: i + 1,
-  title: "ไม่สามารถเพิ่มรายชื่อนักเรียนได้",
-  user: "นายสมชาย ตอนเจดีย์",
-  system: "นักเรียน",
-  category: "ปัญหา",
-  type: "บัค",
-  screenedBy: "สมชาย ตอนเจดีย์",
-}));
+import { useRouter } from "next/navigation";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { useIssueWork } from "@/hooks/use-issue-work";
 
 const LIMIT = 4;
 
 export default function IssueWorkPage() {
+  const router = useRouter();
+  const { rows, loading } = useIssueWork();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
-  const filtered = mockData.filter(
+  const filtered = rows.filter(
     (item) =>
       search === "" ||
       item.title.includes(search) ||
-      item.system.includes(search),
+      item.systemName.includes(search) ||
+      item.customerName.includes(search) ||
+      item.customerSurname.includes(search),
   );
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / LIMIT));
   const paged = filtered.slice((page - 1) * LIMIT, page * LIMIT);
 
   function getVisiblePages() {
-    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    if (totalPages <= 5)
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
     const start = Math.max(1, Math.min(page - 1, totalPages - 4));
     return Array.from({ length: Math.min(3, totalPages) }, (_, i) => start + i);
   }
+
+  if (loading)
+    return (
+      <div className="flex flex-1 items-center justify-center p-8 text-gray-500">
+        กำลังโหลด...
+      </div>
+    );
 
   return (
     <div className="flex flex-1 flex-col gap-6 bg-white p-8">
@@ -55,26 +49,29 @@ export default function IssueWorkPage() {
 
       {/* Toolbar */}
       <div className="flex items-center gap-3">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          className="h-[33px] w-[222px] rounded-md border border-[#929396] bg-white px-3 text-sm outline-none"
-        />
-        <button type="button" className="h-[31px] w-[74px] rounded-md bg-[#366DBD] text-[13px] font-bold text-white">
-          ค้นหา
-        </button>
-
-        <div className="ml-auto flex items-center gap-2">
-          {["ประเภททั้งหมด", "ระบบทั้งหมด", "เวลา"].map((label) => (
-            <button
-              key={label}
-              type="button"
-              className="flex h-[33px] items-center gap-1 rounded-md border border-[#929396] bg-white px-3 text-[14px] text-gray-600"
-            >
-              {label} <span className="text-xs">∧</span>
-            </button>
-          ))}
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search
+              size={15}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              placeholder="ค้นหาระบบ..."
+              className="h-9 w-56 rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-[14px] outline-none focus:border-[#366DBD] focus:ring-2 focus:ring-[#366DBD]/10"
+            />
+          </div>
+          <button
+            type="button"
+            className="h-9 rounded-lg bg-[#366DBD] px-5 text-[14px] font-semibold text-white transition hover:bg-[#2d5da3]"
+          >
+            ค้นหา
+          </button>
         </div>
       </div>
 
@@ -87,25 +84,34 @@ export default function IssueWorkPage() {
           >
             {/* Left */}
             <div className="flex flex-col gap-1.5">
-              <p className="text-[17px] font-bold text-gray-900">{item.title}</p>
-              <p className="text-[14px] text-gray-500">
-                ผู้ใช้งานภายในองค์กร : {item.user}
+              <p className="text-[17px] font-bold text-gray-900">
+                {item.title}
               </p>
-              <p className="text-[14px] text-gray-500">ระบบ : {item.system}</p>
+              <p className="text-[14px] text-gray-500">
+                ผู้แจ้ง : {item.customerName} {item.customerSurname}
+              </p>
+              <p className="text-[14px] text-gray-500">
+                ระบบ : {item.systemName}
+              </p>
               <span className="mt-1 inline-flex w-fit rounded-md border border-[#F4A0A0] bg-[#FFF0F0] px-3 py-0.5 text-[13px] text-[#D9534F]">
-                {item.category}
+                {item.problemName}
               </span>
             </div>
 
             {/* Right */}
             <div className="flex flex-col items-end gap-2">
               <p className="text-[14px]">
-                ประเภท : <span className="font-bold text-[#D9534F]">{item.type}</span>
+                ประเภท :{" "}
+                <span
+                  className={`font-bold ${item.probleTypeName === "issue" ? "text-[#D9534F]" : "text-[#D4A017]"}`}
+                >
+                  {item.probleTypeName === "issue" ? "ปัญหา" : "ร้องเรียน"}
+                </span>
               </p>
-              <p className="text-[14px] text-gray-500">คัดกรอง โดย {item.screenedBy}</p>
               <button
                 type="button"
                 className="mt-1 rounded-lg border border-[#929396] bg-white px-5 py-1.5 text-[14px] text-gray-700 hover:bg-gray-50"
+                onClick={() => router.push(`/consideration/issue-work/${item.id}`)}
               >
                 จัดการ
               </button>

@@ -21,7 +21,7 @@ function Field({ label, value }: { label: string; value?: string | null }) {
   );
 }
 
-export default function ComplaintDetailPage() {
+export default function IssueDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const { data, attachments, loading } = useComplaintDetail(id);
@@ -34,6 +34,8 @@ export default function ComplaintDetailPage() {
   if (!data) {
     return <div className="flex min-h-screen items-center justify-center bg-gray-50 text-gray-400">ไม่พบข้อมูล</div>;
   }
+
+  const isInternal = data.organizationName !== null;
 
   return (
     <>
@@ -64,18 +66,31 @@ export default function ComplaintDetailPage() {
       <div className="flex min-h-screen items-start justify-center bg-gray-50 p-6 pt-12">
         <div className="w-full max-w-3xl rounded-xl border border-gray-200 bg-white shadow-sm">
           <div className="border-b px-8 pt-6 pb-4">
-            <h1 className="text-[22px] font-bold text-gray-900">รายละเอียดข้อร้องเรียน</h1>
+            <h1 className="text-[22px] font-bold text-gray-900">รายละเอียดประเด็นปัญหา</h1>
+            <p className="mt-1 text-[13px] text-gray-400">
+              {isInternal ? "ภายในองค์กร" : "บุคคลทั่วไป"}
+            </p>
           </div>
 
           <div className="flex flex-col gap-5 px-8 py-6">
+            {isInternal ? (
+              <div className="flex gap-6">
+                <Field label="ผู้แจ้ง" value={data.customerName} />
+                <Field label="หน่วยงาน" value={data.organizationName} />
+              </div>
+            ) : (
+              <div className="flex gap-6">
+                <Field label="ผู้แจ้ง" value={data.customerName} />
+              </div>
+            )}
+
             <div className="flex gap-6">
-              <Field label="ผู้แจ้ง" value={data.customerName} />
               <Field label="ระบบ" value={data.systemName} />
+              <Field label="ประเภทปัญหา" value={data.problemName} />
             </div>
 
             <div className="flex gap-6">
               <Field label="หัวข้อเรื่อง" value={data.title} />
-              <Field label="ประเภท" value={data.problemName} />
             </div>
 
             <div className="flex flex-col gap-1">
@@ -131,7 +146,7 @@ export default function ComplaintDetailPage() {
           <div className="flex justify-end px-8 pb-6">
             <button
               type="button"
-              onClick={() => router.push(`/screening/complaints`)}
+              onClick={() => router.back()}
               className="rounded-full bg-[#366DBD] px-6 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3]"
             >
               ย้อนกลับ

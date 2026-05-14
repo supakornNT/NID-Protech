@@ -12,7 +12,6 @@ import { CreateScreeningDto } from './dto/create-screening.dto';
 import { UpdateScreeningDto } from './dto/update-screening.dto';
 import { ScreeningsService } from './screenings.service';
 
-
 @Controller('admin/screenings')
 export class ScreeningsController {
   constructor(private readonly screening: ScreeningsService) {}
@@ -33,7 +32,10 @@ export class ScreeningsController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateScreeningDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateScreeningDto,
+  ) {
     return this.screening.update(id, body);
   }
 
@@ -41,5 +43,4 @@ export class ScreeningsController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.screening.remove(id);
   }
-
 }

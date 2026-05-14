@@ -1,4 +1,11 @@
-import { Controller, Get, ParseIntPipe, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  ParseIntPipe,
+  Patch,
+  Query,
+} from '@nestjs/common';
 import { RequestsService } from './requests.service';
 
 @Controller('requests')
@@ -15,8 +22,21 @@ export class RequestsController {
     return this.requestsService.findDetail(id);
   }
 
+  @Get('assign')
+  findAssign() {
+    return this.requestsService.findAssign();
+  }
+
   @Get('attachments')
   findAttachments(@Query('id', ParseIntPipe) id: number) {
     return this.requestsService.findAttachments(id);
+  }
+
+  @Patch('update')
+  updateStatus(
+    @Query('id', ParseIntPipe) id: number,
+    @Body('status') status: string,
+  ) {
+    return this.requestsService.updateStatus(id, status);
   }
 }

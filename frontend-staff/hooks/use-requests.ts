@@ -15,8 +15,12 @@ export function useRequests(type: "complaint" | "issue") {
 
   useEffect(() => {
     fetch(`http://localhost:4000/requests/screening?type=${type}`)
-      .then((res) => res.json())
-      .then((data) => setRows(data))
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => setRows(Array.isArray(data) ? data : []))
+      .catch((err) => console.error("[useRequests] fetch failed:", err))
       .finally(() => setLoading(false));
   }, [type]);
 

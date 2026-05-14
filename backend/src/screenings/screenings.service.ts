@@ -12,7 +12,7 @@ export class ScreeningsService {
     const [rows] = await this.db.query<Screening[]>(
       `SELECT
       screenings.id,
-      screenings.report_id,
+      screenings.request_id,
       screenings.screened_by,
       screenings.result,
       screenings.note,
@@ -28,7 +28,7 @@ export class ScreeningsService {
     const [rows] = await this.db.query<Screening[]>(
       `SELECT
       screenings.id,
-      screenings.report_id,
+      screenings.request_id,
       screenings.screened_by,
       screenings.result,
       screenings.note,
@@ -44,8 +44,8 @@ export class ScreeningsService {
 
   async create(dto: CreateScreeningDto): Promise<Screening | null> {
     const [result] = await this.db.query<ResultSetHeader>(
-      'INSERT INTO screenings (report_id, screened_by, result, note) VALUES (?, ?, ?, ?)',
-      [dto.reportId, dto.screenedBy, dto.result, dto.note],
+      'INSERT INTO screenings (request_id, screened_by, result, note) VALUES (?, ?, ?, ?)',
+      [dto.requestId, dto.screenedBy, dto.result, dto.note],
     );
 
     return this.findOne(result.insertId);
@@ -61,13 +61,13 @@ export class ScreeningsService {
     await this.db.query<ResultSetHeader>(
       `UPDATE screenings
       SET
-        report_id = ?,
+        request_id = ?,
         screened_by = ?,
         result = ?,
         note = ?
       WHERE id = ?`,
       [
-        dto.reportId ?? current.report_id,
+        dto.requestId ?? current.request_id,
         dto.screenedBy ?? current.screened_by,
         dto.result ?? current.result,
         dto.note ?? current.note,

@@ -4,7 +4,7 @@ type Detail = {
   id: number;
   requestNo: string;
   customerName: string;
-  organizationName: string;
+  organizationName: string | null;
   systemName: string;
   problemName: string;
   title: string;

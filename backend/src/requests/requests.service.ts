@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import type { Pool, RowDataPacket } from 'mysql2/promise';
 import type {
+  RequestsAssign,
   RequestsDetail,
   RequestsScreening,
 } from './interfaces/requests.interface';
@@ -23,7 +24,7 @@ export class RequestsService {
       LEFT JOIN systems ON systems.id = requests.system_id
       LEFT JOIN problem_types ON problem_types.id = requests.problem_type_id
       WHERE problem_types.request_type = ?
-      AND requests.status = 'in_progress'
+      AND requests.status = 'screening'
       `,
       [type],
     );
@@ -47,7 +48,6 @@ export class RequestsService {
       LEFT JOIN problem_types ON problem_types.id = requests.problem_type_id
       LEFT JOIN customers ON customers.id = requests.customer_id
       WHERE requests.id = ?
-      AND requests.status = 'in_progress'
       `,
       [id],
     );
@@ -60,6 +60,37 @@ export class RequestsService {
        FROM attachments
        WHERE request_id = ?`,
       [requestId],
+    );
+    return rows;
+  }
+
+  async updateStatus(id: number, status: string) {
+    const [rows] = await this.db.query<RowDataPacket[]>(
+      `UPDATE
+      requests SET status = ? WHERE id = ?
+      `,
+      [status, id],
+    );
+    return rows;
+  }
+
+  async findAssign() {
+    const [rows] = await this.db.query<RequestsAssign[]>(
+      `
+      SELECT
+      requests.id,
+      requests.title,
+      systems.name AS systemName,
+      customers.name AS customerName,
+      customers.surname AS customerSurname,
+      problem_types.request_type AS probleTypeName,
+      problem_types.name AS problemName
+      FROM requests 
+      LEFT JOIN systems ON systems.id = requests.system_id
+      LEFT JOIN customers ON customers.id = requests.customer_id
+      LEFT JOIN problem_types ON problem_types.id = requests.problem_type_id
+      WHERE requests.status = 'assigned'
+      `,
     );
     return rows;
   }
