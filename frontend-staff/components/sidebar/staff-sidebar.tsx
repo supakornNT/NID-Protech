@@ -104,7 +104,7 @@ const menuItems = [
         icon: ChartPie,
       },
       {
-        title: "ประวัติการเข้าสู่ระบบ",
+        title: "รายงานประวัติการเข้าใช้งานระบบ",
         href: "/reports/login-history",
         icon: ChartPie,
       },
@@ -115,46 +115,45 @@ const menuItems = [
     icon: FileText,
     children: [
       {
-        title: "ข้อมูลองค์กร",
+        title: "จัดการข้อมูลองค์กรที่เกี่ยวข้อง",
         href: "/management/organizations",
         icon: ChartBar,
       },
       {
-        title: "ระบบงาน",
+        title: "จัดการระบบโครงการเเละระบบงาน",
         href: "/management/systems",
         icon: ChartPie,
       },
       {
-        title: "ข้อมูลลงทะเบียนผู้เเจ้งประเด็น",
+        title: "บริหารจัดการข้อมูลลงทะเบียนผู้เเจ้งประเด็น",
         href: "/management/reporters",
         icon: ChartPie,
       },
       {
-        title: "ข้อมูลลงทะเบียนทีมเเก้ไข",
+        title: "จัดการข้อมูลลงทะเบียนทีมเเก้ไข",
         href: "/management/teams",
         icon: ChartPie,
       },
       {
-        title: "กลุ่มผู้ใช้งาน",
+        title: "จัดการกลุ่มผู้ใช้งาน",
         href: "/management/user-groups",
         icon: ChartPie,
       },
       {
-        title: "สิทธิผู้ใช้งาน",
+        title: "จัดการสิทธิผู้ใช้งานจำเเนกตามกลุ่ม",
         href: "/management/permissions",
         icon: ChartPie,
       },
       {
-        title: "ข้อมูลผู้ใช้งาน",
+        title: "จัดการข้อมูลผู้ใช้งาน",
         href: "/management/users",
         icon: ChartPie,
       },
       {
-        title: "รูปเเบบประเด็นเเละข้อร้องเรียน",
+        title: "จัดการรูปเเบบประเด็นเเละข้อร้องเรียน",
         href: "/management/issue-and-complaint-types",
         icon: ChartPie,
       },
-      
     ],
   },
 ];
