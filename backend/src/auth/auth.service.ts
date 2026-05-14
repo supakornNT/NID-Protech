@@ -23,6 +23,7 @@ export class AuthService {
     this.otpStore.set(dto.email, { code, expiresAt });
 
     // log ไว้ทดสอบก่อน
+    console.log(`${code}`);
     console.log(`OTP for ${dto.email}: ${code}`);
 
     const transporter = nodemailer.createTransport({

@@ -5,7 +5,8 @@
 }
 
 .card{
-    width: 70% ;
+    width: 100%;
+    max-width: 900px;
     min-height: 80vh;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     border-radius: 16px;

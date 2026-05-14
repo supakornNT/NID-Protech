@@ -31,6 +31,7 @@ export default function RequestServicePage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const { submit } = useSubmit("/requests/service", () => {
     setShowSuccess(true);
+    setSubmitted(false);
     setForm({ title: "", problem_type_id: "", detail: "" });
     setFiles([]);
   });

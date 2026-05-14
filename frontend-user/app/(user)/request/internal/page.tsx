@@ -36,6 +36,7 @@ export default function RequestInternalPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const { submit } = useSubmit("/requests/internal", () => {
     setShowSuccess(true);
+    setSubmitted(false);
     setForm({ title: "", problem_type_id: "", system_id: "", detail: "" });
     setFiles([]);
   });

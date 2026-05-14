@@ -34,6 +34,7 @@ export default function RequestExternalPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const { submit } = useSubmit("/requests/external", () => {
     setShowSuccess(true);
+    setSubmitted(false);
     setForm({ title: "", problem_type_id: "", system_id: "", detail: "" });
     setFiles([]);
   });
@@ -69,8 +70,8 @@ export default function RequestExternalPage() {
             <FormInput
               label="ผู้แจ้ง"
               placeholder="กำลังโหลด..."
-              className="w-1/2"
-              inputClassName={`${styles.input} cursor-not-allowed bg-gray-50`}
+              className="flex-1"
+              inputClassName={`${styles.input} bg-gray-50 cursor-not-allowed`}
               value={fullName}
               disabled
             />
