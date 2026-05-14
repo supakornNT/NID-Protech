@@ -52,7 +52,8 @@ export default function ReportExternalPage() {
 
   const handleSubmit = async () => {
     setSubmitted(true);
-    if (!form.title || !form.problem_type_id || !form.system_id || !form.detail) return;
+    if (!form.title || !form.problem_type_id || !form.system_id || !form.detail)
+      return;
     const formData = new FormData();
     formData.append("customer_id", String(CUSTOMER_ID));
     formData.append("title", form.title);
@@ -87,14 +88,6 @@ export default function ReportExternalPage() {
               disabled
             />
           </div>
-
-          <FormInput
-            label="หัวข้อเรื่อง"
-            placeholder="กรุณาเขียนหัวข้อเรื่อง"
-            inputClassName={`${styles.input} ${submitted && !form.title ? styles.inputError : ""}`}
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-          />
 
           <div className="flex flex-col gap-6 sm:flex-row">
             <div className="flex flex-1 flex-col gap-1">
@@ -134,7 +127,7 @@ export default function ReportExternalPage() {
               </select>
             </div>
 
-            <div className="flex flex-1 flex-col gap-1">
+            {/* <div className="flex flex-1 flex-col gap-1">
               <p style={{ fontSize: 16, fontWeight: 500 }}>ระยะเวลา</p>
               <input
                 type="date"
@@ -147,8 +140,15 @@ export default function ReportExternalPage() {
                   setDate(e.target.value);
                 }}
               />
-            </div>
+            </div> */}
           </div>
+          <FormInput
+            label="หัวข้อเรื่อง"
+            placeholder="กรุณาเขียนหัวข้อเรื่อง"
+            inputClassName={`${styles.input} ${submitted && !form.title ? styles.inputError : ""}`}
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+          />
 
           <div className="flex flex-col gap-1">
             <p style={{ fontSize: 16, fontWeight: 500 }}>รายละเอียด</p>
@@ -177,7 +177,9 @@ export default function ReportExternalPage() {
                   <p className="text-sm font-medium">เลือกไฟล์ที่ต้องการแนบ</p>
                   <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 p-5 transition hover:bg-gray-50">
                     <Paperclip size={24} className="mb-1 text-gray-400" />
-                    <span className="text-sm text-gray-500">คลิกเพื่อเลือกไฟล์</span>
+                    <span className="text-sm text-gray-500">
+                      คลิกเพื่อเลือกไฟล์
+                    </span>
                     <span className="text-xs text-gray-400">
                       หรือลากไฟล์มาวางที่นี่
                     </span>
@@ -185,6 +187,7 @@ export default function ReportExternalPage() {
                       type="file"
                       multiple
                       accept=".pdf,.png,.jpg,.jpeg"
+                      capture="environment"
                       className="hidden"
                       onChange={(e) =>
                         setFiles((prev) => [
@@ -230,10 +233,7 @@ export default function ReportExternalPage() {
         </div>
       </Card>
 
-      <SuccessDialog
-        open={showSuccess}
-        onClose={() => router.push("/home")}
-      />
+      <SuccessDialog open={showSuccess} onClose={() => router.push("/home")} />
     </div>
   );
 }

@@ -30,8 +30,8 @@ function formatTime(iso: string) {
 function CategoryBadge({ value }: { value: string }) {
   if (!value) return <span className="text-gray-300">—</span>;
   return (
-    <span className="inline-flex items-center rounded-full border border-[#F4A0A0] bg-[#FFF0F0] px-3 py-0.5 text-[12px] font-medium text-[#D9534F]">
-      {value}
+    <span className="inline-flex items-center rounded-full border border-[#E8D48A] bg-[#FFFBE6] px-3 py-0.5 text-[12px] font-medium text-[#c7920b]">
+      ข้อร้องเรียน
     </span>
   );
 }

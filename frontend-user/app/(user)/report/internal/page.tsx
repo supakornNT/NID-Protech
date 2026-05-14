@@ -56,7 +56,8 @@ export default function ReportInternalPage() {
 
   const handleSubmit = async () => {
     setSubmitted(true);
-    if (!form.title || !form.problem_type_id || !form.system_id || !form.detail) return;
+    if (!form.title || !form.problem_type_id || !form.system_id || !form.detail)
+      return;
     const formData = new FormData();
     formData.append("customer_id", "1");
     formData.append("organization", currentOrg?.name ?? "");
@@ -97,17 +98,6 @@ export default function ReportInternalPage() {
               inputClassName={`${styles.input} bg-gray-50 cursor-not-allowed`}
               value={currentOrg?.name ?? "กำลังโหลด..."}
               disabled
-            />
-          </div>
-
-          <div className="flex flex-col gap-6 sm:flex-row">
-            <FormInput
-              label="หัวข้อเรื่อง"
-              placeholder="กรุณาเขียนหัวข้อเรื่อง"
-              className="flex-1"
-              inputClassName={`${styles.input} ${submitted && !form.title ? styles.inputError : ""}`}
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
             />
           </div>
 
@@ -154,7 +144,7 @@ export default function ReportInternalPage() {
               </select>
             </div>
 
-            <div className="flex flex-1 flex-col gap-1">
+            {/* <div className="flex flex-1 flex-col gap-1">
               <p style={{ fontSize: 16, fontWeight: 500 }}>ระยะเวลา</p>
               <input
                 type="date"
@@ -167,7 +157,17 @@ export default function ReportInternalPage() {
                   setDate(e.target.value);
                 }}
               />
-            </div>
+            </div> */}
+          </div>
+          <div className="flex flex-col gap-6 sm:flex-row">
+            <FormInput
+              label="หัวข้อเรื่อง"
+              placeholder="กรุณาเขียนหัวข้อเรื่อง"
+              className="flex-1"
+              inputClassName={`${styles.input} ${submitted && !form.title ? styles.inputError : ""}`}
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+            />
           </div>
 
           <div className="flex flex-col gap-1">
@@ -197,7 +197,9 @@ export default function ReportInternalPage() {
                   <p className="text-sm font-medium">เลือกไฟล์ที่ต้องการแนบ</p>
                   <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 p-5 transition hover:bg-gray-50">
                     <Paperclip size={24} className="mb-1 text-gray-400" />
-                    <span className="text-sm text-gray-500">คลิกเพื่อเลือกไฟล์</span>
+                    <span className="text-sm text-gray-500">
+                      คลิกเพื่อเลือกไฟล์
+                    </span>
                     <span className="text-xs text-gray-400">
                       หรือลากไฟล์มาวางที่นี่
                     </span>
@@ -250,10 +252,7 @@ export default function ReportInternalPage() {
         </div>
       </Card>
 
-      <SuccessDialog
-        open={showSuccess}
-        onClose={() => router.push("/home")}
-      />
+      <SuccessDialog open={showSuccess} onClose={() => router.push("/home")} />
     </div>
   );
 }

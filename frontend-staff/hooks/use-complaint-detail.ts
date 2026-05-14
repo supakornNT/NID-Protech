@@ -26,8 +26,8 @@ export function useComplaintDetail(id: string | string[] | undefined) {
 
   useEffect(() => {
     Promise.all([
-      fetch(`http://localhost:4000/requests/detail?id=${id}`).then((r) => r.json()),
-      fetch(`http://localhost:4000/requests/attachments?id=${id}`).then((r) => r.json()),
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/requests/detail?id=${id}`).then((r) => r.json()),
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/requests/attachments?id=${id}`).then((r) => r.json()),
     ])
       .then(([detail, files]) => {
         setData(detail);

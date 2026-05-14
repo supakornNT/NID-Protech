@@ -14,7 +14,7 @@ export function useRequests(type: "complaint" | "issue") {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`http://localhost:4000/requests/screening?type=${type}`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/requests/screening?type=${type}`)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();

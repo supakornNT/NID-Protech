@@ -8,12 +8,12 @@ export function useRejectComplaint(onSuccess: (id: number) => void) {
     if (rejectId === null) return;
 
     await Promise.all([
-      fetch(`http://localhost:4000/requests/update?id=${rejectId}`, {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/requests/update?id=${rejectId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "rejected" }),
       }),
-      fetch("http://localhost:4000/admin/screenings", {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/screenings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
