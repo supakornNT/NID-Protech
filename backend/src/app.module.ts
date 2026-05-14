@@ -23,6 +23,7 @@ import { ReportConfirmationsModule } from './report_confirmations/report_confirm
 import { ScreeningsModule } from './screenings/screenings.module';
 import { AuthModule } from './auth/auth.module';
 import { UserPortalModule } from './user_portal/user_portal.module';
+import { RequestsModule } from './requests/requests.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { UserPortalModule } from './user_portal/user_portal.module';
     TicketStatusLogsModule,
     ReportConfirmationsModule,
     ScreeningsModule,
+    RequestsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

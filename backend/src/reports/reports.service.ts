@@ -163,9 +163,9 @@ export class ReportsService {
 
     for (const file of files) {
       await this.db.query<ResultSetHeader>(
-        `INSERT INTO attachments (report_id, attachment_type, original_name, file_ext)
-       VALUES (?, 'internal_report', ?, ?)`,
-        [reportId, file.originalname, extname(file.originalname)],
+        `INSERT INTO attachments (report_id, attachment_type, original_name, file_ext, saved_name)
+       VALUES (?, 'internal_report', ?, ?, ?)`,
+        [reportId, file.originalname, extname(file.originalname), file.filename],
       );
     }
 

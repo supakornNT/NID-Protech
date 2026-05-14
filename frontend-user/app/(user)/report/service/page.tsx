@@ -6,8 +6,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Paperclip, X } from "lucide-react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { FormInput } from "@/components/ui/form-input";
 import { useCustomer } from "@/hooks/useCustomer";
@@ -27,6 +27,24 @@ export default function ReportServicePage() {
     problem_type_id: "",
     detail: "",
   });
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const id = searchParams.get("id");
+    if (!id) return;
+    fetch(`http://localhost:4000/requests/detail?id=${id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data) {
+          setForm((prev) => ({
+            ...prev,
+            title: data.title ?? "",
+            detail: data.detail ?? "",
+          }));
+        }
+      });
+  }, [searchParams]);
 
   const { fullName } = useCustomer(identity === "reveal" ? CUSTOMER_ID : null);
   const { data: problemTypes, loading: problemTypesLoading } =
