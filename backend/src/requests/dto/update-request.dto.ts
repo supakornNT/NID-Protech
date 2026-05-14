@@ -1,4 +1,23 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateRequestDto } from './create-request.dto';
+export class UpdateRequestDto {
+  request_no?: string;
 
-export class UpdateRequestDto extends PartialType(CreateRequestDto) {}
+  customer_id?: number;
+
+  organization?: string;
+
+  system_id?: number;
+
+  problem_type_id?: number;
+
+  title?: string;
+
+  detail?: string;
+
+  status?: string;
+
+  score?: number;
+
+  resolve_due_at?: string;
+
+  closed_at?: string;
+}

@@ -12,7 +12,7 @@ export class AttachmentsService {
     const [rows] = await this.db.query<Attachment[]>(
       `SELECT
       attachments.id,
-      attachments.report_id,
+      attachments.request_id,
       attachments.ticket_id,
       attachments.attachment_type,
       attachments.original_name,
@@ -29,7 +29,7 @@ export class AttachmentsService {
     const [rows] = await this.db.query<Attachment[]>(
       `SELECT
       attachments.id,
-      attachments.report_id,
+      attachments.request_id,
       attachments.ticket_id,
       attachments.attachment_type,
       attachments.original_name,
@@ -46,9 +46,9 @@ export class AttachmentsService {
 
   async create(dto: CreateAttachmentDto): Promise<Attachment | null> {
     const [result] = await this.db.query<ResultSetHeader>(
-      'INSERT INTO attachments (report_id, ticket_id, attachment_type, original_name, file_ext) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO attachments (request_id, ticket_id, attachment_type, original_name, file_ext) VALUES (?, ?, ?, ?, ?)',
       [
-        dto.reportId,
+        dto.requestId,
         dto.ticketId,
         dto.attachmentType,
         dto.originalName,
@@ -72,14 +72,14 @@ export class AttachmentsService {
     await this.db.query<ResultSetHeader>(
       `UPDATE attachments
       SET
-        report_id = ?,
+        request_id = ?,
         ticket_id = ?,
         attachment_type = ?,
         original_name = ?,
         file_ext = ?
       WHERE id = ?`,
       [
-        dto.reportId ?? current.report_id,
+        dto.requestId ?? current.request_id,
         dto.ticketId ?? current.ticket_id,
         dto.attachmentType ?? current.attachment_type,
         dto.originalName ?? current.original_name,

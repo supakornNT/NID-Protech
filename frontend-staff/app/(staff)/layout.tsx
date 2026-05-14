@@ -6,12 +6,12 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen w-full bg-[#F3F4F6]">
+    <div className="min-h-screen w-full bg-[#F5F7FB]">
       <div className="flex min-h-screen w-full bg-white">
         <StaffSidebar />
 
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex h-20 items-center justify-between border-b border-[#E5E7EB] bg-[#E9EEF5] px-6 sm:px-8 lg:px-10">
+        <div className="flex min-w-0 flex-1 flex-col bg-white">
+          <header className="flex h-21 items-center justify-between border-b border-[#E5E7EB] bg-[#E9EEF5] px-6 sm:px-8 lg:px-10">
             <div>
               <p className="text-xs text-gray-400">ระบบจัดการ</p>
               <h1 className="mt-1 text-sm font-semibold text-[#2F66C5]">
@@ -33,7 +33,7 @@ export default function AdminLayout({
             </div>
           </header>
 
-          <main className="min-w-0 flex-1 flex flex-col">
+          <main className="min-w-0 flex flex-1 flex-col bg-white">
             {children}
           </main>
         </div>

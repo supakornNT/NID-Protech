@@ -7,8 +7,10 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CreateProblemTypeDto } from './dto/create-problem-type.dto';
+import { QueryProblemTypeDto } from './dto/query-problem-type.dto';
 import { UpdateProblemTypeDto } from './dto/update-problem-type.dto';
 import { ProblemTypesService } from './problem_types.service';
 
@@ -17,18 +19,18 @@ export class ProblemTypesController {
   constructor(private readonly problemType: ProblemTypesService) {}
 
   @Get()
-  findAll() {
-    return this.problemType.findAll();
+  findAll(@Query() query: QueryProblemTypeDto) {
+    return this.problemType.findAll(query);
   }
 
   @Get('complaint')
   findComplain() {
-    return this.problemType.findByReportType('complaint');
+    return this.problemType.findByRequestType('complaint');
   }
 
   @Get('issue')
   findIssue() {
-    return this.problemType.findByReportType('issue');
+    return this.problemType.findByRequestType('issue');
   }
 
   @Get(':id')

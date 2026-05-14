@@ -207,32 +207,32 @@ export const projectManagementRows = [
 export const problemTypeManagementRows = [
   {
     problemTypeName: "เข้าสู่ระบบไม่ได้",
-    reportType: "ประเด็น",
+    requestType: "ประเด็น",
     status: "ใช้งาน",
   },
   {
     problemTypeName: "ระบบช้า/โหลดไม่ขึ้น",
-    reportType: "ประเด็น",
+    requestType: "ประเด็น",
     status: "ใช้งาน",
   },
   {
     problemTypeName: "ข้อมูลแสดงผลผิดพลาด",
-    reportType: "ประเด็น",
+    requestType: "ประเด็น",
     status: "ใช้งาน",
   },
   {
     problemTypeName: "ร้องเรียนการให้บริการล่าช้า",
-    reportType: "คำร้อง",
+    requestType: "คำร้อง",
     status: "ใช้งาน",
   },
   {
     problemTypeName: "ร้องเรียนพฤติกรรมเจ้าหน้าที่",
-    reportType: "คำร้อง",
+    requestType: "คำร้อง",
     status: "ไม่ใช้งาน",
   },
   {
     problemTypeName: "ประเภทปัญหาเก่า",
-    reportType: "ประเด็น",
+    requestType: "ประเด็น",
     status: "ไม่ใช้งาน",
   },
 ];

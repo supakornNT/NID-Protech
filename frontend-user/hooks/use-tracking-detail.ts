@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { fetchJson } from "@/lib/api";
+import { fetchJson } from "@/lib/fetch";
 import { RepairDetail, TrackingDetail } from "@/types/tracking";
 
 interface TrackingTimelineApiItem {
@@ -70,10 +70,10 @@ function getActiveStep(statusCode: string | undefined): number {
   return 4;
 }
 
-function buildRepairDetail(report: TrackingDetailView): RepairDetail {
+function buildRepairDetail(request: TrackingDetailView): RepairDetail {
   return {
-    description: report.solution ?? "-",
-    repairedAt: report.repairedAt ?? "-",
+    description: request.solution ?? "-",
+    repairedAt: request.repairedAt ?? "-",
     files: [],
   };
 }
@@ -93,9 +93,9 @@ function parseDateTime(value: string): number {
   return new Date(normalizedValue).getTime();
 }
 
-export function useTrackingDetail(reportNo: string) {
+export function useTrackingDetail(requestNo: string) {
   const [countdown, setCountdown] = React.useState("");
-  const [report, setReport] = React.useState<TrackingDetailView | null>(null);
+  const [request, setRequest] = React.useState<TrackingDetailView | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [ratingSubmitting, setRatingSubmitting] = React.useState(false);
@@ -110,13 +110,13 @@ export function useTrackingDetail(reportNo: string) {
         setError(null);
 
         const result = await fetchJson<TrackingDetailApiResponse>(
-          `/user/reports/track/${encodeURIComponent(reportNo)}`,
+          `/user/requests/track/${encodeURIComponent(requestNo)}`,
           {
             signal: controller.signal,
           },
         );
 
-        setReport(mapTrackingDetail(result));
+        setRequest(mapTrackingDetail(result));
       } catch (loadError) {
         if (loadError instanceof Error && loadError.name === "AbortError") {
           return;
@@ -127,7 +127,7 @@ export function useTrackingDetail(reportNo: string) {
             ? loadError.message
             : "Failed to load tracking detail",
         );
-        setReport(null);
+        setRequest(null);
       } finally {
         setLoading(false);
       }
@@ -136,17 +136,17 @@ export function useTrackingDetail(reportNo: string) {
     void loadData();
 
     return () => controller.abort();
-  }, [reportNo, refreshKey]);
+  }, [requestNo, refreshKey]);
 
   React.useEffect(() => {
     if (
-      report?.statusCode !== "waiting_confirm" ||
-      !report.customerConfirmDueAt
+      request?.statusCode !== "waiting_confirm" ||
+      !request.customerConfirmDueAt
     ) {
       return;
     }
 
-    const deadline = parseDateTime(report.customerConfirmDueAt);
+    const deadline = parseDateTime(request.customerConfirmDueAt);
 
     if (Number.isNaN(deadline)) {
       return;
@@ -174,12 +174,12 @@ export function useTrackingDetail(reportNo: string) {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [report?.customerConfirmDueAt, report?.statusCode]);
+  }, [request?.customerConfirmDueAt, request?.statusCode]);
 
 
   
-  async function rejectReport(reason: string) {
-    if (!report) {
+  async function rejectRequest(reason: string) {
+    if (!request) {
       return;
     }
 
@@ -187,7 +187,7 @@ export function useTrackingDetail(reportNo: string) {
       setError(null);
 
       const result = await fetchJson<TrackingDetailApiResponse>(
-        `/user/reports/${report.id}/reject`,
+        `/user/requests/${request.id}/reject`,
         {
           method: "POST",
           headers: {
@@ -199,18 +199,18 @@ export function useTrackingDetail(reportNo: string) {
         },
       );
 
-      setReport(mapTrackingDetail(result));
+      setRequest(mapTrackingDetail(result));
     } catch (submitError) {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "Failed to reject report",
+          : "Failed to reject request",
       );
     }
   }
 
-  async function confirmReport() {
-    if (!report) {
+  async function confirmRequest() {
+    if (!request) {
       return;
     }
 
@@ -218,7 +218,7 @@ export function useTrackingDetail(reportNo: string) {
       setError(null);
 
       const result = await fetchJson<TrackingDetailApiResponse>(
-        `/user/reports/${report.id}/confirm`,
+        `/user/requests/${request.id}/confirm`,
         {
           method: "POST",
           headers: {
@@ -228,18 +228,18 @@ export function useTrackingDetail(reportNo: string) {
         },
       );
 
-      setReport(mapTrackingDetail(result));
+      setRequest(mapTrackingDetail(result));
     } catch (submitError) {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "Failed to confirm report",
+          : "Failed to confirm request",
       );
     }
   }
 
-  async function rateReport(payload: { rating: number; comment: string }) {
-    if (!report) {
+  async function rateRequest(payload: { rating: number; comment: string }) {
+    if (!request) {
       return;
     }
 
@@ -248,7 +248,7 @@ export function useTrackingDetail(reportNo: string) {
       setError(null);
 
       const result = await fetchJson<TrackingDetailApiResponse>(
-        `/user/reports/${report.id}/rating`,
+        `/user/requests/${request.id}/rating`,
         {
           method: "POST",
           headers: {
@@ -261,12 +261,12 @@ export function useTrackingDetail(reportNo: string) {
         },
       );
 
-      setReport(mapTrackingDetail(result));
+      setRequest(mapTrackingDetail(result));
     } catch (submitError) {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "Failed to rate report",
+          : "Failed to rate request",
       );
     } finally {
       setRatingSubmitting(false);
@@ -274,15 +274,15 @@ export function useTrackingDetail(reportNo: string) {
   }
 
   return {
-    report,
+    request,
     loading,
     error,
     ratingSubmitting,
     countdown,
-    activeStep: report ? getActiveStep(report.statusCode) : 4,
+    activeStep: request ? getActiveStep(request.statusCode) : 4,
     buildRepairDetail,
-    rejectReport,
-    confirmReport,
-    rateReport,
+    rejectRequest,
+    confirmRequest,
+    rateRequest,
   };
 }

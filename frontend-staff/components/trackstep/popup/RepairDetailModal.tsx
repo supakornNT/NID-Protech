@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  FileText,
-  ImageIcon,
-  X,
-} from "lucide-react";
+import { FileText, ImageIcon, X } from "lucide-react";
 
 export type RepairFile = {
   id: number;
@@ -48,9 +44,7 @@ export default function RepairDetailModal({
               รายละเอียดการแก้ไขปัญหา
             </h2>
 
-            <p className="text-xs text-gray-500">
-              ขั้นตอนบริการการแก้ไข
-            </p>
+            <p className="text-xs text-gray-500">ขั้นตอนบริการการแก้ไข</p>
           </div>
 
           <button
@@ -93,15 +87,9 @@ export default function RepairDetailModal({
               {/* ICON */}
               <div className="flex h-8 w-8 shrink-0 items-center justify-center">
                 {file.type === "pdf" ? (
-                  <FileText
-                    size={20}
-                    className="text-red-500"
-                  />
+                  <FileText size={20} className="text-red-500" />
                 ) : (
-                  <ImageIcon
-                    size={20}
-                    className="text-gray-600"
-                  />
+                  <ImageIcon size={20} className="text-gray-600" />
                 )}
               </div>
 
@@ -112,8 +100,7 @@ export default function RepairDetailModal({
                 </p>
 
                 <p className="text-xs text-gray-500">
-                  {file.type.toUpperCase()} •{" "}
-                  {file.size} •{" "}
+                  {file.type.toUpperCase()} • {file.size} •{" "}
                   {formatDateTime(file.uploadedAt)}
                 </p>
               </div>
