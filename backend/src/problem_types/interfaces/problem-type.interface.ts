@@ -1,11 +1,21 @@
 import type { RowDataPacket } from 'mysql2/promise';
+import { PaginationMeta } from '@/user_portal/interfaces/public-request-list.interface';
 
 export interface ProblemType extends RowDataPacket {
   id: number;
   code: string | null;
   name: string;
-  request_type: string;
+  requestType: string;
   status: string;
-  created_at: Date | null;
-  updated_at: Date | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+}
+
+export interface ProblemTypeCountRow extends RowDataPacket {
+  total: number;
+}
+
+export interface PublicProblemTypeList {
+  items: ProblemType[];
+  pagination: PaginationMeta;
 }

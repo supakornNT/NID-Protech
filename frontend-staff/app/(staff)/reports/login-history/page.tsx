@@ -17,6 +17,7 @@ import type {
 } from "@/hooks/login-log/use-login-log-list";
 import { useLoginLogSummary } from "@/hooks/login-log/use-login-log-summary";
 import type { Column } from "@/types/table";
+import { formatThaiDateTime } from "../../management/organizations/page";
 
 const DEFAULT_FILTERS: LoginLogFilters = {
   keyword: "",
@@ -27,25 +28,6 @@ const DEFAULT_FILTERS: LoginLogFilters = {
 };
 const PAGE_LIMIT = 5;
 
-function formatThaiDateTime(value: string | null): string {
-  if (!value) {
-    return "-";
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "-";
-  }
-
-  return new Intl.DateTimeFormat("th-TH", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
 
 function mapUserTypeLabel(value: string): string {
   return value || "-";

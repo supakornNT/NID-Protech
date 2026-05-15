@@ -66,6 +66,7 @@ export class OrganizationsService {
           organizations.phone,
           organizations.type AS organizationType,
           organizations.status,
+          organizations.created_at AS createdAt,
           organizations.updated_at AS updatedAt
         FROM organizations
         ${whereSql}
@@ -93,6 +94,8 @@ export class OrganizationsService {
       organizations.id,
       organizations.name,
       organizations.type,
+      organizations.email,
+      organizations.phone,
       organizations.status,
       organizations.created_at,
       organizations.updated_at
@@ -109,6 +112,8 @@ export class OrganizationsService {
       organizations.id,
       organizations.name,
       organizations.type,
+      organizations.email,
+      organizations.phone,
       organizations.status,
       organizations.created_at,
       organizations.updated_at
@@ -123,8 +128,14 @@ export class OrganizationsService {
 
   async create(dto: CreateOrganizationDto): Promise<Organization | null> {
     const [result] = await this.db.query<ResultSetHeader>(
-      'INSERT INTO organizations (name, type, status) VALUES (?, ?, ?)',
-      [dto.name, dto.type, dto.status ?? 'active'],
+      'INSERT INTO organizations (name, type, email, phone, status) VALUES (?, ?, ?, ?, ?)',
+      [
+        dto.name,
+        dto.type,
+        dto.email ?? null,
+        dto.phone ?? null,
+        dto.status ?? 'active',
+      ],
     );
 
     return this.findOne(result.insertId);
@@ -145,11 +156,15 @@ export class OrganizationsService {
       SET
         name = ?,
         type = ?,
+        email = ?,
+        phone = ?,
         status = ?
       WHERE id = ?`,
       [
         dto.name ?? current.name,
         dto.type ?? current.type,
+        dto.email ?? current.email,
+        dto.phone ?? current.phone,
         dto.status ?? current.status,
         id,
       ],
@@ -159,17 +174,19 @@ export class OrganizationsService {
   }
 
   async remove(id: number) {
+    const deleted = await this.findOne(id);
+
     await this.db.query<ResultSetHeader>(
-      'UPDATE organizations SET status = ? WHERE id = ?',
-      ['inactive', id],
+      'DELETE FROM organizations WHERE id = ?',
+      [id],
     );
 
-    return this.findOne(id);
+    return deleted;
   }
 
   async findActive(): Promise<Organization[]> {
     const [rows] = await this.db.query<Organization[]>(
-      `SELECT id, name, type FROM organizations WHERE status = 'active'`,
+      `SELECT id, name, type, email, phone FROM organizations WHERE status = 'active'`,
     );
 
     return rows;
@@ -177,7 +194,7 @@ export class OrganizationsService {
 
   async findName(id: number): Promise<Organization | null> {
     const [rows] = await this.db.query<Organization[]>(
-      `SELECT id,name FROM organizations WHERE id = ? `,
+      `SELECT id, name, email, phone FROM organizations WHERE id = ? `,
       [id],
     );
     return rows[0] ?? null;

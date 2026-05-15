@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const DEFAULT_LIMIT = 10;
 
 export type CustomerApiItem = {
   id: number;
@@ -26,18 +27,36 @@ export type CustomerListResponse = {
   };
 };
 
-export function useUnapprovedCustomers() {
+type CustomerPagination = CustomerListResponse["pagination"];
+
+export function useUnapprovedCustomers(search = "") {
   const [items, setItems] = useState<CustomerApiItem[]>([]);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<number | null>(null);
+  const [pagination, setPagination] = useState<CustomerPagination>({
+    page: 1,
+    limit: DEFAULT_LIMIT,
+    total: 0,
+    totalPages: 1,
+  });
 
   const fetchCustomers = useCallback(async () => {
     try {
       setLoading(true);
 
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(DEFAULT_LIMIT),
+      });
+
+      if (search.trim()) {
+        params.set("search", search.trim());
+      }
+
       const response = await fetch(
-        `${API_BASE_URL}/customers/unapproved?page=1&limit=100`,
+        `${API_BASE_URL}/customers/unapproved?${params.toString()}`,
         { cache: "no-store" },
       );
 
@@ -47,6 +66,12 @@ export function useUnapprovedCustomers() {
 
       const result = (await response.json()) as CustomerListResponse;
       setItems(result.items);
+      setPagination({
+        page: result.pagination.page,
+        limit: result.pagination.limit,
+        total: result.pagination.total,
+        totalPages: Math.max(result.pagination.totalPages, 1),
+      });
       setError(null);
     } catch (fetchError) {
       console.error(fetchError);
@@ -54,11 +79,17 @@ export function useUnapprovedCustomers() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, search]);
 
   useEffect(() => {
     void fetchCustomers();
   }, [fetchCustomers]);
+
+  useEffect(() => {
+    if (page > pagination.totalPages) {
+      setPage(pagination.totalPages);
+    }
+  }, [page, pagination.totalPages]);
 
   const updateCustomerStatus = useCallback(
     async (id: number, action: "approve" | "reject") => {
@@ -96,6 +127,9 @@ export function useUnapprovedCustomers() {
 
   return {
     items,
+    page,
+    setPage,
+    pagination,
     loading,
     error,
     activeId,

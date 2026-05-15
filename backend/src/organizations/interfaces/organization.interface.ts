@@ -4,6 +4,8 @@ export interface Organization extends RowDataPacket {
   id: number;
   name: string;
   type: string;
+  email: string | null;
+  phone: string | null;
   status: string;
   created_at: Date | null;
   updated_at: Date | null;

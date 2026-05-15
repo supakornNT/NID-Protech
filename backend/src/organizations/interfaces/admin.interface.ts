@@ -8,6 +8,7 @@ export interface AdminOrganization extends RowDataPacket {
   phone: string;
   organizationType: string;
   status: string;
+  createdAt: Date | null;
   updatedAt: Date | null;
 }
 

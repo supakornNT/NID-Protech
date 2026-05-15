@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const TABLE_LIMIT = 10;
 
 export type ProblemTypeRequestType = "issue" | "complaint";
 
@@ -10,10 +11,10 @@ export type ProblemTypeApiItem = {
   id: number;
   code: string | null;
   name: string;
-  request_type: ProblemTypeRequestType;
+  requestType: ProblemTypeRequestType;
   status: string;
-  created_at: string | null;
-  updated_at: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
 };
 
 export type ProblemTypePayload = {
@@ -23,12 +24,24 @@ export type ProblemTypePayload = {
   status: string;
 };
 
+type ProblemTypeListResponse = {
+  items: ProblemTypeApiItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
 type UseProblemTypeTableOptions = {
+  page: number;
   search: string;
   requestType: string;
 };
 
 export function useProblemTypeTable({
+  page,
   search,
   requestType,
 }: UseProblemTypeTableOptions) {
@@ -37,12 +50,21 @@ export function useProblemTypeTable({
   const [error, setError] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [pagination, setPagination] = useState<ProblemTypeListResponse["pagination"]>({
+    page: 1,
+    limit: TABLE_LIMIT,
+    total: 0,
+    totalPages: 1,
+  });
 
   const fetchProblemTypes = useCallback(async () => {
     try {
       setLoading(true);
 
-      const params = new URLSearchParams();
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(TABLE_LIMIT),
+      });
 
       if (search.trim()) {
         params.set("search", search.trim());
@@ -64,8 +86,14 @@ export function useProblemTypeTable({
         throw new Error(`Failed to load problem types (${response.status})`);
       }
 
-      const result = (await response.json()) as ProblemTypeApiItem[];
-      setItems(result);
+      const result = (await response.json()) as ProblemTypeListResponse;
+      setItems(result.items);
+      setPagination({
+        page: result.pagination.page,
+        limit: result.pagination.limit,
+        total: result.pagination.total,
+        totalPages: Math.max(result.pagination.totalPages, 1),
+      });
       setError(null);
     } catch (fetchError) {
       console.error(fetchError);
@@ -73,7 +101,7 @@ export function useProblemTypeTable({
     } finally {
       setLoading(false);
     }
-  }, [requestType, search]);
+  }, [page, requestType, search]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -170,14 +198,26 @@ export function useProblemTypeTable({
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to remove problem type (${response.status})`);
+          const errorResult = (await response.json().catch(() => null)) as
+            | { message?: string | string[] }
+            | null;
+          const message = Array.isArray(errorResult?.message)
+            ? errorResult?.message[0]
+            : errorResult?.message;
+
+          throw new Error(
+            message || `Failed to remove problem type (${response.status})`,
+          );
         }
 
         await fetchProblemTypes();
         return true;
       } catch (removeError) {
-        console.error(removeError);
-        setError("ไม่สามารถลบประเภทประเด็นหรือคำร้องได้");
+        setError(
+          removeError instanceof Error
+            ? removeError.message
+            : "ไม่สามารถลบประเภทประเด็นหรือคำร้องได้",
+        );
         return false;
       } finally {
         setActiveId(null);
@@ -186,10 +226,16 @@ export function useProblemTypeTable({
     [activeId, fetchProblemTypes],
   );
 
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
   return {
     items,
+    pagination,
     loading,
     error,
+    clearError,
     activeId,
     saving,
     fetchProblemTypes,

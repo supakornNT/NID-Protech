@@ -1,9 +1,13 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import type { Pool, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { CreateProblemTypeDto } from './dto/create-problem-type.dto';
 import { QueryProblemTypeDto } from './dto/query-problem-type.dto';
 import { UpdateProblemTypeDto } from './dto/update-problem-type.dto';
-import type { ProblemType } from './interfaces/problem-type.interface';
+import type {
+  ProblemType,
+  ProblemTypeCountRow,
+  PublicProblemTypeList,
+} from './interfaces/problem-type.interface';
 
 @Injectable()
 export class ProblemTypesService {
@@ -14,21 +18,26 @@ export class ProblemTypesService {
       problem_types.id,
       problem_types.code,
       problem_types.name,
-      problem_types.request_type,
+      problem_types.request_type AS requestType,
       problem_types.status,
-      problem_types.created_at,
-      problem_types.updated_at
+      problem_types.created_at AS createdAt,
+      problem_types.updated_at AS updatedAt
     FROM problem_types
   `;
 
-  async findAll(query: QueryProblemTypeDto = {}): Promise<ProblemType[]> {
+  async findAll(
+    query: QueryProblemTypeDto = {},
+  ): Promise<PublicProblemTypeList> {
+    const page = Math.max(Number(query.page ?? 1), 1);
+    const limit = Math.min(Math.max(Number(query.limit ?? 10), 1), 100);
+    const offset = (page - 1) * limit;
     const where: string[] = [];
     const params: Array<number | string> = [];
     const search = query.search?.trim();
     const requestType = query.requestType ?? query.request_type;
 
     if (requestType) {
-      where.push('pt.request_type = ?');
+      where.push('pt.requestType = ?');
       params.push(requestType);
     }
 
@@ -37,16 +46,37 @@ export class ProblemTypesService {
       params.push(`%${search}%`, `%${search}%`);
     }
 
-    const [rows] = await this.db.query<ProblemType[]>(
-      `SELECT pt.*
+    const whereSql = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
+
+    const [countRows] = await this.db.query<ProblemTypeCountRow[]>(
+      `SELECT COUNT(*) AS total
        FROM (${this.problemTypesBaseSelect}) AS pt
-       ${where.length > 0 ? `WHERE ${where.join(' AND ')}` : ''}
-       ORDER BY pt.created_at ASC, pt.id ASC
+       ${whereSql}
       `,
       params,
     );
 
-    return rows;
+    const [rows] = await this.db.query<ProblemType[]>(
+      `SELECT pt.*
+       FROM (${this.problemTypesBaseSelect}) AS pt
+       ${whereSql}
+       ORDER BY pt.createdAt ASC, pt.id ASC
+       LIMIT ? OFFSET ?
+      `,
+      [...params, limit, offset],
+    );
+
+    const total = Number(countRows[0]?.total ?? 0);
+
+    return {
+      items: rows,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: number): Promise<ProblemType | null> {
@@ -63,14 +93,12 @@ export class ProblemTypesService {
 
   private async generateCode(requestType: string): Promise<string> {
     type ProblemTypeCodeAggregate = RowDataPacket & {
-      total: number | null;
       maxCodeNumber: number | null;
     };
 
     const prefix = requestType === 'complaint' ? 'CO' : 'IS';
     const [rows] = await this.db.query<ProblemTypeCodeAggregate[]>(
       `SELECT
-         COUNT(*) AS total,
          MAX(
            CASE
              WHEN code REGEXP ? THEN CAST(SUBSTRING(code, 3) AS UNSIGNED)
@@ -81,11 +109,7 @@ export class ProblemTypesService {
        WHERE request_type = ?`,
       [`^${prefix}[0-9]{3}$`, requestType],
     );
-    const nextNumber =
-      Math.max(
-        Number(rows[0]?.total ?? 0),
-        Number(rows[0]?.maxCodeNumber ?? 0),
-      ) + 1;
+    const nextNumber = Number(rows[0]?.maxCodeNumber ?? 0) + 1;
 
     return `${prefix}${String(nextNumber).padStart(3, '0')}`;
   }
@@ -122,7 +146,7 @@ export class ProblemTypesService {
       WHERE id = ?`,
       [
         dto.name?.trim() ?? current.name,
-        dto.requestType ?? dto.request_type ?? current.request_type,
+        dto.requestType ?? dto.request_type ?? current.requestType,
         dto.status ?? current.status,
         id,
       ],
@@ -132,19 +156,36 @@ export class ProblemTypesService {
   }
 
   async remove(id: number) {
-    await this.db.query<ResultSetHeader>(
-      'UPDATE problem_types SET status = ? WHERE id = ?',
-      ['inactive', id],
+    const [relationRows] = await this.db.query<
+      Array<RowDataPacket & { total: number }>
+    >(
+      `SELECT COUNT(*) AS total
+       FROM requests
+       WHERE problem_type_id = ?`,
+      [id],
     );
 
-    return this.findOne(id);
+    if (Number(relationRows[0]?.total ?? 0) > 0) {
+      throw new BadRequestException(
+        'ไม่สามารถลบประเภทนี้ได้ เนื่องจากมีคำขอที่ใช้งานประเภทนี้อยู่',
+      );
+    }
+
+    const deleted = await this.findOne(id);
+
+    await this.db.query<ResultSetHeader>(
+      'DELETE FROM problem_types WHERE id = ?',
+      [id],
+    );
+
+    return deleted;
   }
 
   async findByRequestType(type: string): Promise<ProblemType[]> {
     const [rows] = await this.db.query<ProblemType[]>(
-      `SELECT pt.id, pt.code, pt.name, pt.request_type
+      `SELECT pt.*
        FROM (${this.problemTypesBaseSelect}) AS pt
-       WHERE pt.request_type = ? AND pt.status = 'active'`,
+       WHERE pt.requestType = ? AND pt.status = 'active'`,
       [type],
     );
 

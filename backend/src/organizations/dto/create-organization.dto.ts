@@ -3,5 +3,9 @@ export class CreateOrganizationDto {
 
   type?: string;
 
+  email?: string | null;
+
+  phone?: string | null;
+
   status?: string;
 }

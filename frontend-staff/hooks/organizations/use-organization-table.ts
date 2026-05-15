@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
-const TABLE_LIMIT = 100;
+const TABLE_LIMIT = 10;
+const STATUS_OPTIONS = ["active", "inactive"];
+const TYPE_OPTIONS = ["company", "government", "other"];
 
 export type OrganizationApiItem = {
   id: number;
@@ -12,7 +14,16 @@ export type OrganizationApiItem = {
   phone: string;
   organizationType: string;
   status: string;
+  createdAt: string | null;
   updatedAt: string | null;
+};
+
+export type OrganizationPayload = {
+  name: string;
+  type: string;
+  email: string;
+  phone: string;
+  status: string;
 };
 
 type OrganizationListResponse = {
@@ -26,12 +37,14 @@ type OrganizationListResponse = {
 };
 
 type UseOrganizationTableOptions = {
+  page: number;
   search: string;
   statusFilter: string;
   typeFilter: string;
 };
 
 export function useOrganizationTable({
+  page,
   search,
   statusFilter,
   typeFilter,
@@ -40,13 +53,20 @@ export function useOrganizationTable({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<number | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [pagination, setPagination] = useState<OrganizationListResponse["pagination"]>({
+    page: 1,
+    limit: TABLE_LIMIT,
+    total: 0,
+    totalPages: 1,
+  });
 
   const fetchOrganizations = useCallback(async () => {
     try {
       setLoading(true);
 
       const params = new URLSearchParams({
-        page: "1",
+        page: String(page),
         limit: String(TABLE_LIMIT),
       });
 
@@ -73,6 +93,12 @@ export function useOrganizationTable({
 
       const result = (await response.json()) as OrganizationListResponse;
       setItems(result.items);
+      setPagination({
+        page: result.pagination.page,
+        limit: result.pagination.limit,
+        total: result.pagination.total,
+        totalPages: Math.max(result.pagination.totalPages, 1),
+      });
       setError(null);
     } catch (fetchError) {
       console.error(fetchError);
@@ -80,31 +106,11 @@ export function useOrganizationTable({
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter, typeFilter]);
+  }, [page, search, statusFilter, typeFilter]);
 
   useEffect(() => {
     void fetchOrganizations();
   }, [fetchOrganizations]);
-
-  const statusOptions = useMemo(() => {
-    return Array.from(
-      new Set(
-        items
-          .map((item) => item.status)
-          .filter((value): value is string => value.trim().length > 0),
-      ),
-    );
-  }, [items]);
-
-  const typeOptions = useMemo(() => {
-    return Array.from(
-      new Set(
-        items
-          .map((item) => item.organizationType)
-          .filter((value): value is string => value.trim().length > 0),
-      ),
-    );
-  }, [items]);
 
   const removeOrganization = useCallback(
     async (id: number) => {
@@ -137,14 +143,85 @@ export function useOrganizationTable({
     [activeId, fetchOrganizations],
   );
 
+  const createOrganization = useCallback(
+    async (payload: OrganizationPayload) => {
+      try {
+        setSaving(true);
+        setError(null);
+
+        const response = await fetch(`${API_BASE_URL}/admin-organizations`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to create organization (${response.status})`);
+        }
+
+        await fetchOrganizations();
+        return true;
+      } catch (createError) {
+        console.error(createError);
+        setError("ไม่สามารถสร้างข้อมูลองค์กรได้");
+        return false;
+      } finally {
+        setSaving(false);
+      }
+    },
+    [fetchOrganizations],
+  );
+
+  const updateOrganization = useCallback(
+    async (id: number, payload: OrganizationPayload) => {
+      try {
+        setActiveId(id);
+        setError(null);
+
+        const response = await fetch(`${API_BASE_URL}/admin-organizations/${id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to update organization (${response.status})`);
+        }
+
+        await fetchOrganizations();
+        return true;
+      } catch (updateError) {
+        console.error(updateError);
+        setError("ไม่สามารถแก้ไขข้อมูลองค์กรได้");
+        return false;
+      } finally {
+        setActiveId(null);
+      }
+    },
+    [fetchOrganizations],
+  );
+
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
   return {
     items,
+    pagination,
     loading,
     error,
+    clearError,
     activeId,
-    statusOptions,
-    typeOptions,
+    saving,
+    statusOptions: STATUS_OPTIONS,
+    typeOptions: TYPE_OPTIONS,
     fetchOrganizations,
+    createOrganization,
+    updateOrganization,
     removeOrganization,
   };
 }

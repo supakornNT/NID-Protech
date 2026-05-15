@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { AdminTablePage, StatusBadge } from "@/components/admin/admin-table-page";
 import { ProTechButton } from "@/components/tables/protech-button";
@@ -80,11 +80,19 @@ function mapCustomerRow(item: CustomerApiItem): CustomerRow {
 }
 
 export default function CustomersPage() {
+  const [searchValue, setSearchValue] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
-  const { items, loading, error, activeId, updateCustomerStatus } =
-    useUnapprovedCustomers();
+  const { items, page, setPage, pagination, loading, error, activeId, updateCustomerStatus } =
+    useUnapprovedCustomers(appliedSearch);
 
-  const rows = items.map(mapCustomerRow);
+  useEffect(() => {
+    if (page > pagination.totalPages) {
+      setPage(pagination.totalPages);
+    }
+  }, [page, pagination.totalPages, setPage]);
+
+  const rows = useMemo(() => items.map(mapCustomerRow), [items]);
 
   function openConfirmDialog(
     id: number,
@@ -160,7 +168,19 @@ export default function CustomersPage() {
         subtitle="ตรวจสอบและอนุมัติการลงทะเบียนของผู้ใช้งานที่รอการยืนยัน"
         columns={columns}
         data={rows}
+        searchValue={searchValue}
         searchPlaceholder="ค้นหาชื่อ อีเมล เบอร์โทร"
+        onSearchClick={(value) => {
+          setSearchValue(value);
+          setAppliedSearch(value);
+          setPage(1);
+        }}
+        page={pagination.page}
+        totalPages={Math.max(pagination.totalPages, 1)}
+        totalItems={pagination.total}
+        onPageChange={setPage}
+        disableClientFiltering
+        disableClientPagination
         showDelete={false}
         showCreate={false}
       />
