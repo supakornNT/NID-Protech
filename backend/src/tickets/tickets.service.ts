@@ -1,143 +1,45 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { Pool, ResultSetHeader } from 'mysql2/promise';
-import { CreateTicketDto } from './dto/create-ticket.dto';
-import { UpdateTicketDto } from './dto/update-ticket.dto';
-import type { Ticket } from './interfaces/ticket.interface';
+import type { Pool } from 'mysql2/promise';
+import { TicketByRequest } from './interfaces/ticket.interface';
 
 @Injectable()
 export class TicketsService {
   constructor(@Inject('DB') private readonly db: Pool) {}
 
-  async findAll(): Promise<Ticket[]> {
-    const [rows] = await this.db.query<Ticket[]>(
+  async findByStaff(staffId: number) {
+    const [rows] = await this.db.query<TicketByRequest[]>(
       `SELECT
-      tickets.id,
-      tickets.ticket_no,
-      tickets.report_id,
-      reports.report_no,
-      tickets.assigned_team_id,
-      teams.name AS assigned_team_name,
-      tickets.assigned_staff_id,
-      CONCAT(assigned_staff.name, ' ', assigned_staff.surname) AS assigned_staff_name,
-      tickets.assigned_by,
-      CONCAT(assigned_by_staff.name, ' ', assigned_by_staff.surname) AS assigned_by_name,
-      tickets.title,
-      tickets.description,
-      tickets.status,
-      tickets.created_at,
-      tickets.resolved_at,
-      tickets.closed_at
+        tickets.id,
+        tickets.title,
+        requests.detail,
+        tickets.resolved_at AS resolvedAt,
+        problem_types.name AS problemName,
+        problem_types.request_type AS requestType
       FROM tickets
-      LEFT JOIN reports ON reports.id = tickets.report_id
-      LEFT JOIN teams ON teams.id = tickets.assigned_team_id
-      LEFT JOIN staffs AS assigned_staff ON assigned_staff.id = tickets.assigned_staff_id
-      LEFT JOIN staffs AS assigned_by_staff ON assigned_by_staff.id = tickets.assigned_by
-      `,
+      LEFT JOIN requests ON requests.id = tickets.request_id
+      LEFT JOIN problem_types ON problem_types.id = requests.problem_type_id
+      WHERE tickets.assigned_staff_id = ?
+        AND tickets.status NOT IN ('resolved', 'closed')`,
+      [staffId],
     );
-
     return rows;
   }
 
-  async findOne(id: number): Promise<Ticket | null> {
-    const [rows] = await this.db.query<Ticket[]>(
-      `SELECT
-      tickets.id,
-      tickets.ticket_no,
-      tickets.report_id,
-      reports.report_no,
-      tickets.assigned_team_id,
-      teams.name AS assigned_team_name,
-      tickets.assigned_staff_id,
-      CONCAT(assigned_staff.name, ' ', assigned_staff.surname) AS assigned_staff_name,
-      tickets.assigned_by,
-      CONCAT(assigned_by_staff.name, ' ', assigned_by_staff.surname) AS assigned_by_name,
-      tickets.title,
-      tickets.description,
-      tickets.status,
-      tickets.created_at,
-      tickets.resolved_at,
-      tickets.closed_at
+  async findAllByRequest(id: number) {
+    const [rows] = await this.db.query<TicketByRequest[]>(
+      `
+      SELECT
+        tickets.id,
+        CONCAT(staffs.name,staffs.surname) AS assignedStaffName,
+        tickets.title,
+        tickets.status,
+        tickets.resolved_at AS resolvedAt
       FROM tickets
-      LEFT JOIN reports ON reports.id = tickets.report_id
-      LEFT JOIN teams ON teams.id = tickets.assigned_team_id
-      LEFT JOIN staffs AS assigned_staff ON assigned_staff.id = tickets.assigned_staff_id
-      LEFT JOIN staffs AS assigned_by_staff ON assigned_by_staff.id = tickets.assigned_by
-      WHERE tickets.id = ?
+      LEFT JOIN staffs ON staffs.id = tickets.assigned_staff_id
+      WHERE tickets.request_id = ?
       `,
       [id],
     );
-
-    return rows[0] ?? null;
-  }
-
-  async create(dto: CreateTicketDto): Promise<Ticket | null> {
-    const [result] = await this.db.query<ResultSetHeader>(
-      'INSERT INTO tickets (ticket_no, report_id, parent_ticket_id, assigned_team_id, assigned_staff_id, assigned_by, title, description, status, resolved_at, closed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [
-        dto.ticketNo,
-        dto.reportId,
-        dto.parentTicketId,
-        dto.assignedTeamId,
-        dto.assignedStaffId,
-        dto.assignedBy,
-        dto.title,
-        dto.description,
-        dto.status,
-        dto.resolvedAt,
-        dto.closedAt,
-      ],
-    );
-
-    return this.findOne(result.insertId);
-  }
-
-  async update(id: number, dto: UpdateTicketDto): Promise<Ticket | null> {
-    const current = await this.findOne(id);
-
-    if (!current) {
-      return null;
-    }
-
-    await this.db.query<ResultSetHeader>(
-      `UPDATE tickets
-      SET
-        ticket_no = ?,
-        report_id = ?,
-        parent_ticket_id = ?,
-        assigned_team_id = ?,
-        assigned_staff_id = ?,
-        assigned_by = ?,
-        title = ?,
-        description = ?,
-        status = ?,
-        resolved_at = ?,
-        closed_at = ?
-      WHERE id = ?`,
-      [
-        dto.ticketNo ?? current.ticket_no,
-        dto.reportId ?? current.report_id,
-        dto.parentTicketId ?? current.parent_ticket_id,
-        dto.assignedTeamId ?? current.assigned_team_id,
-        dto.assignedStaffId ?? current.assigned_staff_id,
-        dto.assignedBy ?? current.assigned_by,
-        dto.title ?? current.title,
-        dto.description ?? current.description,
-        dto.status ?? current.status,
-        dto.resolvedAt ?? current.resolved_at,
-        dto.closedAt ?? current.closed_at,
-        id,
-      ],
-    );
-
-    return this.findOne(id);
-  }
-
-  async remove(id: number) {
-    await this.db.query<ResultSetHeader>(
-      'UPDATE tickets SET status = ? WHERE id = ?',
-      ['inactive', id],
-    );
-
-    return this.findOne(id);
+    return rows;
   }
 }

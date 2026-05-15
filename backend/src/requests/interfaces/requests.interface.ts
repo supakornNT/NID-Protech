@@ -18,6 +18,7 @@ export interface RequestsDetail extends RowDataPacket {
   title: string;
   detail: string;
   closedAt: Date | null;
+  resolvedAt: string | null;
 }
 
 export interface RequestsAssign extends RowDataPacket {

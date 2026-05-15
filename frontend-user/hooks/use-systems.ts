@@ -11,10 +11,7 @@ export function useSystems(organizationId: number | null) {
   const [data, setData] = useState<System[]>([]);
 
   useEffect(() => {
-    if (!organizationId) {
-      setData([]);
-      return;
-    }
+    if (!organizationId) return;
 
     const controller = new AbortController();
 

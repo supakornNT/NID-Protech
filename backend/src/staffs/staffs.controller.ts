@@ -22,6 +22,11 @@ export class StaffsController {
     return this.staff.findAll();
   }
 
+  @Get('with-task-count')
+  findWithTaskCount() {
+    return this.staff.findWithTaskCount();
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.staff.findOne(id);

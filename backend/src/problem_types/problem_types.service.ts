@@ -88,9 +88,9 @@ export class ProblemTypesService {
     return this.findOne(id);
   }
 
-  async findByReportType(type: string): Promise<ProblemType[]> {
+  async findByRequestType(type: string): Promise<ProblemType[]> {
     const [rows] = await this.db.query<ProblemType[]>(
-      `SELECT id, name, report_type
+      `SELECT id, name, request_type
        FROM problem_types
        WHERE report_type = ? AND status = 'active'`,
       [type],

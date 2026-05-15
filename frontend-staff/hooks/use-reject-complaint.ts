@@ -8,7 +8,7 @@ export function useRejectComplaint(onSuccess: (id: number) => void) {
     if (rejectId === null) return;
 
     await Promise.all([
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/requests/update?id=${rejectId}`, {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/requests/update/status?id=${rejectId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "rejected" }),

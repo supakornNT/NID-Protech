@@ -10,13 +10,14 @@ type Detail = {
   title: string;
   detail: string;
   closedAt: string | null;
+  resolvedAt: string | null;
 };
 
 type Attachment = {
   id: number;
-  original_name: string;
-  saved_name: string;
-  file_ext: string;
+  originalName: string;
+  savedName: string;
+  fileExt: string;
 };
 
 export function useComplaintDetail(id: string | string[] | undefined) {

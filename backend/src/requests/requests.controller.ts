@@ -32,11 +32,19 @@ export class RequestsController {
     return this.requestsService.findAttachments(id);
   }
 
-  @Patch('update')
+  @Patch('update/status')
   updateStatus(
     @Query('id', ParseIntPipe) id: number,
     @Body('status') status: string,
   ) {
     return this.requestsService.updateStatus(id, status);
+  }
+
+  @Patch('update/resolved')
+  updateResolve(
+    @Query('id', ParseIntPipe) id: number,
+    @Body('resolved') resolved: string,
+  ) {
+    return this.requestsService.updateResolved(id, resolved);
   }
 }

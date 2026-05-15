@@ -41,77 +41,55 @@ export default function IssueWorkPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6 bg-white p-8">
-      {/* Header */}
       <div>
         <h1 className="text-[32px] font-bold text-gray-900">การจัดการงาน</h1>
         <p className="text-[16px] text-gray-500">งานที่ต้องมอบหมาย</p>
       </div>
 
-      {/* Toolbar */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search
-              size={15}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              placeholder="ค้นหาระบบ..."
-              className="h-9 w-56 rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-[14px] outline-none focus:border-[#366DBD] focus:ring-2 focus:ring-[#366DBD]/10"
-            />
-          </div>
-          <button
-            type="button"
-            className="h-9 rounded-lg bg-[#366DBD] px-5 text-[14px] font-semibold text-white transition hover:bg-[#2d5da3]"
-          >
-            ค้นหา
-          </button>
+        <div className="relative">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            placeholder="ค้นหาระบบ..."
+            className="h-9 w-56 rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-[14px] outline-none focus:border-[#366DBD] focus:ring-2 focus:ring-[#366DBD]/10"
+          />
         </div>
+        <button
+          type="button"
+          className="h-9 rounded-lg bg-[#366DBD] px-5 text-[14px] font-semibold text-white transition hover:bg-[#2d5da3]"
+        >
+          ค้นหา
+        </button>
       </div>
 
-      {/* Cards */}
       <div className="flex flex-col gap-4">
         {paged.map((item) => (
           <div
             key={item.id}
-            className="flex items-center justify-between rounded-2xl border border-[#D6E4F7] bg-white px-6 py-5 shadow-sm"
+            className="flex items-center justify-between rounded-2xl border border-[#000000] bg-white px-6 py-5 shadow-sm"
           >
-            {/* Left */}
             <div className="flex flex-col gap-1.5">
-              <p className="text-[17px] font-bold text-gray-900">
-                {item.title}
-              </p>
-              <p className="text-[14px] text-gray-500">
-                ผู้แจ้ง : {item.customerName} {item.customerSurname}
-              </p>
-              <p className="text-[14px] text-gray-500">
-                ระบบ : {item.systemName}
-              </p>
+              <p className="text-[17px] font-bold text-gray-900">{item.title}</p>
+              <p className="text-[14px] text-gray-500">ผู้แจ้ง : {item.customerName} {item.customerSurname}</p>
+              <p className="text-[14px] text-gray-500">ระบบ : {item.systemName}</p>
               <span className="mt-1 inline-flex w-fit rounded-md border border-[#F4A0A0] bg-[#FFF0F0] px-3 py-0.5 text-[13px] text-[#D9534F]">
                 {item.problemName}
               </span>
             </div>
-
-            {/* Right */}
             <div className="flex flex-col items-end gap-2">
               <p className="text-[14px]">
                 ประเภท :{" "}
-                <span
-                  className={`font-bold ${item.probleTypeName === "issue" ? "text-[#D9534F]" : "text-[#D4A017]"}`}
-                >
+                <span className={`font-bold ${item.probleTypeName === "issue" ? "text-[#D9534F]" : "text-[#D4A017]"}`}>
                   {item.probleTypeName === "issue" ? "ปัญหา" : "ร้องเรียน"}
                 </span>
               </p>
               <button
                 type="button"
-                className="mt-1 rounded-lg border border-[#929396] bg-white px-5 py-1.5 text-[14px] text-gray-700 hover:bg-gray-50"
                 onClick={() => router.push(`/consideration/issue-work/${item.id}`)}
+                className="mt-1 rounded-lg border border-[#929396] bg-white px-5 py-1.5 text-[14px] text-gray-700 hover:bg-gray-50"
               >
                 จัดการ
               </button>
@@ -120,7 +98,6 @@ export default function IssueWorkPage() {
         ))}
       </div>
 
-      {/* Pagination */}
       <div className="flex items-center justify-end gap-1 text-sm text-gray-600">
         <button
           onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -129,7 +106,6 @@ export default function IssueWorkPage() {
         >
           <ChevronLeft size={16} /> Previous
         </button>
-
         {getVisiblePages().map((p) => (
           <button
             key={p}
@@ -143,9 +119,7 @@ export default function IssueWorkPage() {
             {p}
           </button>
         ))}
-
         {totalPages > 3 && <span className="px-1 text-gray-400">...</span>}
-
         <button
           onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
           disabled={page === totalPages}

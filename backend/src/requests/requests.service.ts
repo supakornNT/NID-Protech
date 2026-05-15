@@ -42,7 +42,8 @@ export class RequestsService {
         problem_types.name AS problemName,
         requests.title AS title,
         requests.detail AS detail,
-        requests.closed_at AS closedAt
+        requests.closed_at AS closedAt,
+        requests.resolved_at AS resolvedAt
       FROM requests 
       LEFT JOIN systems ON systems.id = requests.system_id
       LEFT JOIN problem_types ON problem_types.id = requests.problem_type_id
@@ -56,7 +57,7 @@ export class RequestsService {
 
   async findAttachments(requestId: number) {
     const [rows] = await this.db.query<RowDataPacket[]>(
-      `SELECT id, original_name, saved_name, file_ext
+      `SELECT id, original_name AS originalName, saved_name AS savedName, file_ext AS fileExt
        FROM attachments
        WHERE request_id = ?`,
       [requestId],
@@ -91,6 +92,17 @@ export class RequestsService {
       LEFT JOIN problem_types ON problem_types.id = requests.problem_type_id
       WHERE requests.status = 'assigned'
       `,
+    );
+    return rows;
+  }
+
+  async updateResolved(id: number, resolved: string) {
+    const [rows] = await this.db.query<RowDataPacket[]>(
+      `
+      UPDATE
+      requests SET resolved_at = ? WHERE id = ?
+      `,
+      [resolved, id],
     );
     return rows;
   }

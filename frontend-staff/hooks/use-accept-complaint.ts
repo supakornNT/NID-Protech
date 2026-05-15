@@ -8,7 +8,7 @@ export function useAcceptComplaint(onSuccess: (id: number) => void) {
     if (acceptId === null) return;
 
     await Promise.all([
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/requests/update?id=${acceptId}`, {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/requests/update/status?id=${acceptId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "assigned" }),

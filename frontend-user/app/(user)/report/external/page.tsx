@@ -10,10 +10,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { FormInput } from "@/components/ui/form-input";
-import { useProblemTypes } from "@/hooks/useProblemTypes";
-import { useCustomer } from "@/hooks/useCustomer";
-import { useSystems } from "@/hooks/useSystems";
-import { useSubmit } from "@/hooks/useSubmit";
+import { useProblemTypes } from "@/hooks/use-problem-types";
+import { useCustomer } from "@/hooks/use-customer";
+import { useSystems } from "@/hooks/use-systems";
+import { useSubmit } from "@/hooks/use-submit";
 import styles from "../report.module.css";
 import { SuccessDialog } from "@/components/ui/success-dialog";
 

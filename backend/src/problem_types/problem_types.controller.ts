@@ -23,12 +23,12 @@ export class ProblemTypesController {
 
   @Get('complaint')
   findComplain() {
-    return this.problemType.findByReportType('complaint');
+    return this.problemType.findByRequestType('complaint');
   }
 
   @Get('issue')
   findIssue() {
-    return this.problemType.findByReportType('issue');
+    return this.problemType.findByRequestType('issue');
   }
 
   @Get(':id')
