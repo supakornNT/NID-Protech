@@ -130,11 +130,11 @@ export class OrganizationsService {
     const [result] = await this.db.query<ResultSetHeader>(
       'INSERT INTO organizations (name, type, email, phone, status) VALUES (?, ?, ?, ?, ?)',
       [
-        dto.name,
-        dto.type,
-        dto.email ?? null,
-        dto.phone ?? null,
-        dto.status ?? 'active',
+        dto.name?.trim(),
+        dto.type?.trim() ?? null,
+        dto.email?.trim() || null,
+        dto.phone?.trim() || null,
+        dto.status?.trim() ?? 'active',
       ],
     );
 

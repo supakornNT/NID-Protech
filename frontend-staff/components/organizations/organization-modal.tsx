@@ -128,7 +128,7 @@ export function OrganizationModal({
               onChange={(event) =>
                 setFormState((current) => ({
                   ...current,
-                  phone: event.target.value,
+                 phone: event.target.value.replace(/\D/g, ""),
                 }))
               }
             />

@@ -35,7 +35,7 @@ export function AdminModalShell({
       >
         <div className="px-6 py-5">
           <DialogHeader className="mb-5 text-center">
-            <DialogTitle className="text-[18px] font-bold normal-case tracking-normal text-[#3F73BB]">
+            <DialogTitle className="text-[24px] font-bold normal-case tracking-normal text-[#3F73BB]">
               {title}
             </DialogTitle>
             {description ? (
