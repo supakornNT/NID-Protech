@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+
 export function useRejectComplaint(onSuccess: (id: number) => void) {
   const [rejectId, setRejectId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState("");
@@ -8,12 +10,12 @@ export function useRejectComplaint(onSuccess: (id: number) => void) {
     if (rejectId === null) return;
 
     await Promise.all([
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/requests/update?id=${rejectId}`, {
+      fetch(`${API_BASE_URL}/requests/update?id=${rejectId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "rejected" }),
       }),
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/screenings`, {
+      fetch(`${API_BASE_URL}/admin/screenings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

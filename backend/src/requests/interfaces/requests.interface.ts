@@ -4,7 +4,7 @@ export interface RequestsScreening extends RowDataPacket {
   id: number;
   requestNo: string;
   systemName: string;
-  problemTypeName: string;
+  requestTypeName: string;
   createdAt: Date;
 }
 

@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+
 export function useAcceptComplaint(onSuccess: (id: number) => void) {
   const [acceptId, setAcceptId] = useState<number | null>(null);
   const [acceptReason, setAcceptReason] = useState("");
@@ -8,12 +10,12 @@ export function useAcceptComplaint(onSuccess: (id: number) => void) {
     if (acceptId === null) return;
 
     await Promise.all([
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/requests/update?id=${acceptId}`, {
+      fetch(`${API_BASE_URL}/requests/update?id=${acceptId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "assigned" }),
       }),
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/screenings`, {
+      fetch(`${API_BASE_URL}/admin/screenings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

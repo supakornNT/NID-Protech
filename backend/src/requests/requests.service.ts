@@ -51,7 +51,7 @@ export class RequestsService {
         requests.id,
         requests.request_no AS requestNo,
         systems.name AS systemName,
-        problem_types.request_type AS problemTypeName,
+        problem_types.request_type AS requestTypeName,
         requests.created_at AS createdAt
       FROM requests
       LEFT JOIN systems ON systems.id = requests.system_id

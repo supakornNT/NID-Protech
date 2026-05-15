@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+
 type Detail = {
   id: number;
   requestNo: string;
@@ -26,8 +28,8 @@ export function useComplaintDetail(id: string | string[] | undefined) {
 
   useEffect(() => {
     Promise.all([
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/requests/detail?id=${id}`).then((r) => r.json()),
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/requests/attachments?id=${id}`).then((r) => r.json()),
+      fetch(`${API_BASE_URL}/requests/detail?id=${id}`).then((r) => r.json()),
+      fetch(`${API_BASE_URL}/requests/attachments?id=${id}`).then((r) => r.json()),
     ])
       .then(([detail, files]) => {
         setData(detail);
