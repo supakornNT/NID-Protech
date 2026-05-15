@@ -33,3 +33,17 @@ export interface TicketByRequest extends RowDataPacket {
   problemName: string;
   requestType: string;
 }
+
+export interface SubTicket extends RowDataPacket {
+  ticketNo: string;
+  requestId: number;
+  assignedTeamId: number;
+  assignedStafId: number;
+  assignedBy: number;
+  dueAt: Date;
+  assigedNote: string;
+  title: string;
+  description: string;
+  status: string;
+  createdAt: Date;
+}

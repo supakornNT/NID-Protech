@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { Pool, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
-import { extname } from 'path';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { CreateExternalRequestDto } from './dto/create-request-external.dto';
 import { CreateInternalRequestDto } from './dto/create-request-internal.dto';
@@ -149,7 +148,10 @@ export class RequestsService {
     return this.findOne(result.insertId);
   }
 
-  async update(id: number, dto: UpdateRequestDto): Promise<RequestRecord | null> {
+  async update(
+    id: number,
+    dto: UpdateRequestDto,
+  ): Promise<RequestRecord | null> {
     const current = await this.findOne(id);
 
     if (!current) {
@@ -223,6 +225,82 @@ export class RequestsService {
     );
 
     return rows;
+  }
+
+  private async insertAttachments(
+    requestId: number,
+    files: Express.Multer.File[],
+  ) {
+    for (const file of files) {
+      const ext = file.originalname.split('.').pop() ?? '';
+      await this.db.query(
+        'INSERT INTO attachments (request_id, original_name, saved_name, file_ext) VALUES (?, ?, ?, ?)',
+        [requestId, file.originalname, file.filename, ext],
+      );
+    }
+  }
+
+  async createRequestInternal(
+    dto: CreateInternalRequestDto,
+    files: Express.Multer.File[],
+  ) {
+    const requestNo = `REQ-${Date.now()}`;
+    const [result] = await this.db.query<ResultSetHeader>(
+      `INSERT INTO requests (request_no, customer_id, organization, system_id, problem_type_id, title, detail, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'screening')`,
+      [
+        requestNo,
+        dto.customer_id,
+        dto.organization,
+        dto.system_id,
+        dto.problem_type_id,
+        dto.title,
+        dto.detail,
+      ],
+    );
+    await this.insertAttachments(result.insertId, files);
+    return { id: result.insertId, requestNo };
+  }
+
+  async createRequestExternal(
+    dto: CreateExternalRequestDto,
+    files: Express.Multer.File[],
+  ) {
+    const requestNo = `REQ-${Date.now()}`;
+    const [result] = await this.db.query<ResultSetHeader>(
+      `INSERT INTO requests (request_no, customer_id, system_id, problem_type_id, title, detail, status)
+       VALUES (?, ?, ?, ?, ?, ?, 'screening')`,
+      [
+        requestNo,
+        dto.customer_id,
+        dto.system_id,
+        dto.problem_type_id,
+        dto.title,
+        dto.detail,
+      ],
+    );
+    await this.insertAttachments(result.insertId, files);
+    return { id: result.insertId, requestNo };
+  }
+
+  async createRequestService(
+    dto: CreateServiceRequestDto,
+    files: Express.Multer.File[],
+  ) {
+    const requestNo = `REQ-${Date.now()}`;
+    const [result] = await this.db.query<ResultSetHeader>(
+      `INSERT INTO requests (request_no, customer_id, problem_type_id, title, detail, status)
+       VALUES (?, ?, ?, ?, ?, 'screening')`,
+      [
+        requestNo,
+        dto.customer_id ?? null,
+        dto.problem_type_id,
+        dto.title,
+        dto.detail,
+      ],
+    );
+    await this.insertAttachments(result.insertId, files);
+    return { id: result.insertId, requestNo };
   }
 
   async updateResolved(id: number, resolved: string) {

@@ -1,13 +1,17 @@
 "use client";
 
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Paperclip, X } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { FormInput } from "@/components/ui/form-input";
-import { useCustomer } from "@/hooks/useCustomer";
-import { useProblemTypes } from "@/hooks/useProblemTypes";
+import { useCustomer } from "@/hooks/use-customer";
+import { useProblemTypes } from "@/hooks/use-problem-types";
 import styles from "../request.module.css";
 import { SuccessDialog } from "@/components/ui/success-dialog";
 import { useSubmit } from "@/hooks/use-submit";
@@ -129,11 +133,15 @@ function RequestServicePageContent() {
             />
 
             <div className="flex flex-1 flex-col gap-1">
-              <p style={{ fontSize: 16, fontWeight: 500 }}>หัวข้อเรื่องร้องเรียน</p>
+              <p style={{ fontSize: 16, fontWeight: 500 }}>
+                หัวข้อเรื่องร้องเรียน
+              </p>
               <select
                 className={`${styles.input} ${styles.select} ${submitted && !form.problem_type_id ? styles.inputError : ""}`}
                 value={form.problem_type_id}
-                onChange={(e) => setForm({ ...form, problem_type_id: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, problem_type_id: e.target.value })
+                }
                 disabled={problemTypesLoading}
               >
                 <option value="">กรุณาเลือกหัวข้อเรื่องร้องเรียน</option>
@@ -173,7 +181,9 @@ function RequestServicePageContent() {
                   <p className="text-sm font-medium">เลือกไฟล์ที่ต้องการแนบ</p>
                   <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 p-5 transition hover:bg-gray-50">
                     <Paperclip size={24} className="mb-1 text-gray-400" />
-                    <span className="text-sm text-gray-500">คลิกเพื่อเลือกไฟล์</span>
+                    <span className="text-sm text-gray-500">
+                      คลิกเพื่อเลือกไฟล์
+                    </span>
                     <span className="text-xs text-gray-400">
                       หรือลากไฟล์มาวางที่นี่
                     </span>
@@ -183,7 +193,10 @@ function RequestServicePageContent() {
                       accept=".pdf,.png,.jpg,.jpeg"
                       className="hidden"
                       onChange={(e) =>
-                        setFiles((prev) => [...prev, ...Array.from(e.target.files ?? [])])
+                        setFiles((prev) => [
+                          ...prev,
+                          ...Array.from(e.target.files ?? []),
+                        ])
                       }
                     />
                   </label>

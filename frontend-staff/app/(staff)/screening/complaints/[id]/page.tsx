@@ -92,9 +92,9 @@ export default function ComplaintDetailPage() {
                 <p className="text-[15px] font-medium text-gray-800">ไฟล์แนบ</p>
                 <div className="flex flex-wrap gap-3">
                   {attachments.map((file) => {
-                    const fileName = file.saved_name ?? file.original_name;
+                    const fileName = file.savedName ?? file.originalName;
                     const url = `http://localhost:4000/uploads/requests/${fileName}`;
-                    const isImage = IMAGE_EXTS.includes(file.file_ext.toLowerCase());
+                    const isImage = IMAGE_EXTS.includes(file.fileExt.toLowerCase());
                     return isImage ? (
                       <button
                         key={file.id}
