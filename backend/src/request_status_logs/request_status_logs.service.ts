@@ -46,7 +46,9 @@ export class RequestStatusLogsService {
     return rows[0] ?? null;
   }
 
-  async create(dto: CreateRequestStatusLogDto): Promise<RequestStatusLog | null> {
+  async create(
+    dto: CreateRequestStatusLogDto,
+  ): Promise<RequestStatusLog | null> {
     const [result] = await this.db.query<ResultSetHeader>(
       'INSERT INTO request_status_logs (request_id, old_status, new_status, changed_by_type, changed_by_id, note) VALUES (?, ?, ?, ?, ?, ?)',
       [

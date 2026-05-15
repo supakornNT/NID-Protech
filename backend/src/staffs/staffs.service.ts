@@ -127,6 +127,7 @@ export class StaffsService {
       `SELECT
         staffs.id,
         CONCAT(staffs.name, ' ', staffs.surname) AS fullName,
+        MIN(teams.id) AS teamId,
         MIN(teams.name) AS teamName,
         COUNT(DISTINCT tickets.id) AS activeTaskCount
       FROM staffs
@@ -134,7 +135,7 @@ export class StaffsService {
       LEFT JOIN teams ON teams.id = staff_team_roles.team_id
       LEFT JOIN tickets ON tickets.assigned_staff_id = staffs.id
         AND tickets.status NOT IN ('resolved', 'closed')
-      WHERE staffs.status = 'active'
+      WHERE staffs.status = 'active' AND tickets.status != 'cancelled'
       GROUP BY staffs.id, staffs.name, staffs.surname`,
     );
     return rows;

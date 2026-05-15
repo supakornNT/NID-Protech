@@ -1,27 +1,38 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useStaffList } from "@/hooks/use-staff-list";
 import { useTicketsByStaff } from "@/hooks/use-tickets-by-staff";
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
+import { useCreateTicket } from "@/hooks/assign/use-create-ticket";
 
 const STAFF_LIMIT = 5;
 const TICKET_LIMIT = 5;
 
 export default function AssignWorkPage() {
   const router = useRouter();
-  const { staffs, loading } = useStaffList();
+  const params = useParams();
+  const requestId = Number(params.id);
+  const { staffs, loading, refetch: refetchStaffs } = useStaffList();
   const [search, setSearch] = useState("");
   const [staffPage, setStaffPage] = useState(1);
   const [ticketPage, setTicketPage] = useState(1);
-  const [selectedStaff, setSelectedStaff] = useState<{ id: number; fullName: string; activeTaskCount: number } | null>(null);
-  const {tickets} = useTicketsByStaff(selectedStaff?.id ?? null);
-  const [modalStaff, setModalStaff] = useState<{ id: number; fullName: string } | null>(null);
+  const [selectedStaff, setSelectedStaff] = useState<{ id: number; fullName: string; teamId: number | null; activeTaskCount: number } | null>(null);
+  const { tickets, refetch } = useTicketsByStaff(selectedStaff?.id ?? null);
+  const [modalStaff, setModalStaff] = useState<{ id: number; fullName: string; teamId: number | null } | null>(null);
   const [title, setTitle] = useState("");
   const [detail, setDetail] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const { createTicket, loading: submitting } = useCreateTicket(() => {
+    setModalStaff(null);
+    setTitle("");
+    setDetail("");
+    setDueDate("");
+    refetch();
+    refetchStaffs();
+  });
 
   const filtered = staffs.filter(
     (s) =>
@@ -222,8 +233,25 @@ export default function AssignWorkPage() {
             <button type="button" onClick={() => setModalStaff(null)} className="rounded-lg border border-gray-300 px-5 py-2 text-[14px] text-gray-600 hover:bg-gray-50">
               ยกเลิก
             </button>
-            <button type="button" className="rounded-lg bg-[#366DBD] px-5 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3]">
-              ยืนยัน
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={() => {
+                if (!modalStaff) return;
+                createTicket({
+                  requestId,
+                  assignedTeamId: modalStaff.teamId ?? 0,
+                  assignedStaffId: modalStaff.id,
+                  assignedBy: null,
+                  dueAt: dueDate,
+                  title,
+                  description: detail,
+                  status: "open",
+                });
+              }}
+              className="rounded-lg bg-[#366DBD] px-5 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-50"
+            >
+              {submitting ? "กำลังบันทึก..." : "ยืนยัน"}
             </button>
           </div>
         </div>

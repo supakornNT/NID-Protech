@@ -47,3 +47,10 @@ export interface SubTicket extends RowDataPacket {
   status: string;
   createdAt: Date;
 }
+
+export interface findById extends RowDataPacket {
+  fullName: string;
+  title: string;
+  description: string;
+  dueAt: Date;
+}
