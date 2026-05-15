@@ -2,10 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { normalizeSearchKeyword, normalizeTextInput } from "@/lib/form-utils";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 const TABLE_LIMIT = 10;
 
 export type ProblemTypeRequestType = "issue" | "complaint";
+export type ProblemTypeStatus = "active" | "inactive";
+export type ProblemTypeFilter = "all" | ProblemTypeRequestType;
 
 export type ProblemTypeApiItem = {
   id: number;
@@ -21,7 +25,7 @@ export type ProblemTypePayload = {
   code?: string | null;
   name: string;
   requestType: ProblemTypeRequestType;
-  status: string;
+  status: ProblemTypeStatus;
 };
 
 type ProblemTypeListResponse = {
@@ -37,7 +41,7 @@ type ProblemTypeListResponse = {
 type UseProblemTypeTableOptions = {
   page: number;
   search: string;
-  requestType: string;
+  requestType: ProblemTypeFilter;
 };
 
 export function useProblemTypeTable({
@@ -65,9 +69,10 @@ export function useProblemTypeTable({
         page: String(page),
         limit: String(TABLE_LIMIT),
       });
+      const normalizedSearch = normalizeSearchKeyword(search);
 
-      if (search.trim()) {
-        params.set("search", search.trim());
+      if (normalizedSearch) {
+        params.set("search", normalizedSearch);
       }
 
       if (requestType !== "all") {
@@ -125,7 +130,7 @@ export function useProblemTypeTable({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            name: payload.name.trim(),
+            name: normalizeTextInput(payload.name),
             requestType: payload.requestType,
             status: payload.status,
           }),
@@ -160,7 +165,7 @@ export function useProblemTypeTable({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            name: payload.name.trim(),
+            name: normalizeTextInput(payload.name),
             requestType: payload.requestType,
             status: payload.status,
           }),

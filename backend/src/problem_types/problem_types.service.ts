@@ -8,6 +8,17 @@ import type {
   ProblemTypeCountRow,
   PublicProblemTypeList,
 } from './interfaces/problem-type.interface';
+import {
+  ACTIVE_STATUS_VALUES,
+  PROBLEM_TYPE_REQUEST_TYPES,
+  normalizeOptionalString,
+  optionalEnumValue,
+  optionalText,
+  positiveIntFromQuery,
+  requireEnumValue,
+  requireText,
+  getCountTotal,
+} from '@/common/validation/input-rules';
 
 @Injectable()
 export class ProblemTypesService {
@@ -25,16 +36,55 @@ export class ProblemTypesService {
     FROM problem_types
   `;
 
+  private normalizeListQuery(query: QueryProblemTypeDto) {
+    return {
+      page: positiveIntFromQuery(query.page, 'page', 1),
+      limit: positiveIntFromQuery(query.limit, 'limit', 10, 100),
+      search: optionalText(query.search, 'search', 255),
+      requestType: optionalEnumValue(
+        query.requestType ?? query.request_type,
+        'requestType',
+        PROBLEM_TYPE_REQUEST_TYPES,
+      ),
+    };
+  }
+
+  private normalizeProblemTypePayload(
+    dto: CreateProblemTypeDto | UpdateProblemTypeDto,
+  ) {
+    const requestTypeInput = normalizeOptionalString(
+      dto.requestType ?? dto.request_type,
+    );
+
+    return {
+      name:
+        dto.name === undefined ? undefined : requireText(dto.name, 'name', 255),
+      requestType:
+        requestTypeInput === undefined
+          ? undefined
+          : requireEnumValue(
+              requestTypeInput,
+              'requestType',
+              PROBLEM_TYPE_REQUEST_TYPES,
+            ),
+      status:
+        dto.status === undefined
+          ? undefined
+          : requireEnumValue(dto.status, 'status', ACTIVE_STATUS_VALUES),
+    };
+  }
+
   async findAll(
     query: QueryProblemTypeDto = {},
   ): Promise<PublicProblemTypeList> {
-    const page = Math.max(Number(query.page ?? 1), 1);
-    const limit = Math.min(Math.max(Number(query.limit ?? 10), 1), 100);
+    const normalizedQuery = this.normalizeListQuery(query);
+    const page = normalizedQuery.page;
+    const limit = normalizedQuery.limit;
     const offset = (page - 1) * limit;
     const where: string[] = [];
     const params: Array<number | string> = [];
-    const search = query.search?.trim();
-    const requestType = query.requestType ?? query.request_type;
+    const search = normalizedQuery.search;
+    const requestType = normalizedQuery.requestType;
 
     if (requestType) {
       where.push('pt.requestType = ?');
@@ -66,7 +116,7 @@ export class ProblemTypesService {
       [...params, limit, offset],
     );
 
-    const total = Number(countRows[0]?.total ?? 0);
+    const total = getCountTotal(countRows, 0);
 
     return {
       items: rows,
@@ -115,13 +165,15 @@ export class ProblemTypesService {
   }
 
   async create(dto: CreateProblemTypeDto): Promise<ProblemType | null> {
-    const name = dto.name?.trim();
-    const requestType = dto.requestType ?? dto.request_type ?? 'issue';
+    const payload = this.normalizeProblemTypePayload(dto);
+    const name = payload.name ?? requireText(dto.name, 'name', 255);
+    const requestType = payload.requestType ?? 'issue';
+    const status = payload.status ?? 'active';
     const code = await this.generateCode(requestType);
 
     const [result] = await this.db.query<ResultSetHeader>(
       'INSERT INTO problem_types (code, name, request_type, status) VALUES (?, ?, ?, ?)',
-      [code, name, requestType, dto.status ?? 'active'],
+      [code, name, requestType, status],
     );
 
     return this.findOne(result.insertId);
@@ -137,6 +189,8 @@ export class ProblemTypesService {
       return null;
     }
 
+    const payload = this.normalizeProblemTypePayload(dto);
+
     await this.db.query<ResultSetHeader>(
       `UPDATE problem_types
       SET
@@ -145,9 +199,9 @@ export class ProblemTypesService {
         status = ?
       WHERE id = ?`,
       [
-        dto.name?.trim() ?? current.name,
-        dto.requestType ?? dto.request_type ?? current.requestType,
-        dto.status ?? current.status,
+        payload.name ?? current.name,
+        payload.requestType ?? current.requestType,
+        payload.status ?? current.status,
         id,
       ],
     );

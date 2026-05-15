@@ -16,6 +16,8 @@ import {
   useOrganizationTable,
   type OrganizationApiItem,
   type OrganizationPayload,
+  type OrganizationStatusFilter,
+  type OrganizationTypeFilter,
 } from "@/hooks/organizations/use-organization-table";
 import { formatPhoneNumber } from "@/lib/utils";
 import type { Column } from "@/types/table";
@@ -63,8 +65,8 @@ export default function OrganizationsPage() {
   const [page, setPage] = useState(1);
   const [searchValue, setSearchValue] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<OrganizationStatusFilter>("all");
+  const [typeFilter, setTypeFilter] = useState<OrganizationTypeFilter>("all");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [dialogState, setDialogState] = useState<DialogState>(null);
 
@@ -133,10 +135,14 @@ export default function OrganizationsPage() {
     if (dialogState?.mode === "edit" && dialogState.item) {
       return {
         name: dialogState.item.organizationName || "",
-        type: dialogState.item.organizationType || "company",
+        type:
+          dialogState.item.organizationType === "government" ||
+          dialogState.item.organizationType === "other"
+            ? dialogState.item.organizationType
+            : "company",
         email: dialogState.item.email || "",
         phone: dialogState.item.phone || "",
-        status: dialogState.item.status || "active",
+        status: dialogState.item.status === "inactive" ? "inactive" : "active",
       };
     }
 
@@ -253,7 +259,14 @@ export default function OrganizationsPage() {
         columns={columns}
         data={rows}
         searchValue={searchValue}
-        searchPlaceholder="ค้นหาชื่อองค์กร อีเมล เบอร์โทร"
+        searchInputProps={{
+          type: "search",
+          inputMode: "search",
+          autoComplete: "off",
+          maxLength: 120,
+          title: "ค้นหาด้วยชื่อองค์กร อีเมล หรือเบอร์โทร",
+        }}
+        searchPlaceholder="องค์กร/อีเมล/เบอร์โทร"
         onSearchClick={(value) => {
           setSearchValue(value);
           setAppliedSearch(value);
@@ -278,7 +291,7 @@ export default function OrganizationsPage() {
                   <select
                     value={statusFilter}
                     onChange={(event) => {
-                      setStatusFilter(event.target.value);
+                      setStatusFilter(event.target.value as OrganizationStatusFilter);
                       resetToFirstPage();
                       resetSelection();
                     }}
@@ -298,7 +311,7 @@ export default function OrganizationsPage() {
                   <select
                     value={typeFilter}
                     onChange={(event) => {
-                      setTypeFilter(event.target.value);
+                      setTypeFilter(event.target.value as OrganizationTypeFilter);
                       resetToFirstPage();
                       resetSelection();
                     }}

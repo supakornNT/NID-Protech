@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { normalizeSearchKeyword } from "@/lib/form-utils";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 export type LoginLogFilters = {
@@ -46,8 +48,10 @@ function buildQuery(params: UseLoginLogListParams): string {
   searchParams.set("page", String(params.page));
   searchParams.set("limit", String(params.limit));
 
-  if (params.filters.keyword.trim()) {
-    searchParams.set("search", params.filters.keyword.trim());
+  const normalizedKeyword = normalizeSearchKeyword(params.filters.keyword);
+
+  if (normalizedKeyword) {
+    searchParams.set("search", normalizedKeyword);
   }
 
   if (params.filters.userType !== "all") {

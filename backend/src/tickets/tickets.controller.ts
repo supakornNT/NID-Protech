@@ -12,7 +12,6 @@ import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { TicketsService } from './tickets.service';
 
-
 @Controller('admin/tickets')
 export class TicketsController {
   constructor(private readonly ticket: TicketsService) {}
@@ -41,5 +40,4 @@ export class TicketsController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.ticket.remove(id);
   }
-
 }

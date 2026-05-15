@@ -1,11 +1,14 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { ChevronDown, Edit3, Info, Plus, Trash2 } from "lucide-react";
 
 import { DeleteConfirmDialog } from "@/components/admin/delete-confirm-dialog";
 import { ProTechButton } from "@/components/tables/protech-button";
-import { ProTechSearchBar } from "@/components/tables/protech-search";
+import {
+  ProTechSearchBar,
+  type SearchInputConfig,
+} from "@/components/tables/protech-search";
 import { ProTechTable } from "@/components/tables/protech-table";
 import type { Column } from "@/types/table";
 
@@ -40,6 +43,7 @@ type AdminTablePageProps<T extends Record<string, unknown>> = {
   deleteConfirmDescription?: string;
   deleteDisabled?: boolean;
   searchValue?: string;
+  searchInputProps?: SearchInputConfig;
   filterValues?: Record<string, string>;
   page?: number;
   totalPages?: number;
@@ -73,6 +77,7 @@ export function AdminTablePage<T extends Record<string, unknown>>({
   deleteConfirmDescription,
   deleteDisabled = false,
   searchValue,
+  searchInputProps,
   filterValues,
   page,
   totalPages,
@@ -84,6 +89,7 @@ export function AdminTablePage<T extends Record<string, unknown>>({
 }: AdminTablePageProps<T>) {
   const [internalPage, setInternalPage] = useState(1);
   const [internalSearch, setInternalSearch] = useState("");
+  const [controlledSearchDraft, setControlledSearchDraft] = useState(searchValue ?? "");
   const [internalSelectedFilters, setInternalSelectedFilters] = useState<
     Record<string, string>
   >(Object.fromEntries(filters.map((filter) => [filter.key, "all"])));
@@ -94,7 +100,13 @@ export function AdminTablePage<T extends Record<string, unknown>>({
     typeof totalItems === "number" &&
     typeof onPageChange === "function";
 
-  const resolvedSearch = searchValue ?? internalSearch;
+  useEffect(() => {
+    if (searchValue !== undefined) {
+      setControlledSearchDraft(searchValue);
+    }
+  }, [searchValue]);
+
+  const resolvedSearch = searchValue !== undefined ? controlledSearchDraft : internalSearch;
   const resolvedSelectedFilters = filterValues ?? internalSelectedFilters;
 
   const filteredData = useMemo(() => {
@@ -150,11 +162,16 @@ export function AdminTablePage<T extends Record<string, unknown>>({
       placeholder={searchPlaceholder}
       className="flex-none"
       inputClassName="h-[31px] rounded-md border border-[#A8B1C2] px-3 text-[14px]"
-      onSearch={(value) => {
-        if (searchValue === undefined) {
-          setInternalSearch(value);
+      inputProps={searchInputProps}
+      onValueChange={(value) => {
+        if (searchValue !== undefined) {
+          setControlledSearchDraft(value);
+          return;
         }
 
+        setInternalSearch(value);
+      }}
+      onSearch={(value) => {
         if (isControlledPagination) {
           onPageChange(1);
         } else {

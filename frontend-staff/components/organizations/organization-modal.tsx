@@ -4,7 +4,17 @@ import { useState } from "react";
 
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { ProTechButton } from "@/components/tables/protech-button";
-import type { OrganizationPayload } from "@/hooks/organizations/use-organization-table";
+import type {
+  OrganizationPayload,
+  OrganizationStatus,
+  OrganizationType,
+} from "@/hooks/organizations/use-organization-table";
+import {
+  isValidOptionalEmail,
+  isValidOptionalPhone,
+  keepDigitsOnly,
+  normalizeTextInput,
+} from "@/lib/form-utils";
 
 type OrganizationModalProps = {
   open: boolean;
@@ -15,14 +25,13 @@ type OrganizationModalProps = {
   onSubmit: (payload: OrganizationPayload) => void;
 };
 
-const TYPE_OPTIONS = [
+const TYPE_OPTIONS: Array<{ label: string; value: OrganizationType }> = [
   { label: "company", value: "company" },
   { label: "government", value: "government" },
   { label: "other", value: "other" },
 ];
 
-
-const STATUS_OPTIONS = [
+const STATUS_OPTIONS: Array<{ label: string; value: OrganizationStatus }> = [
   { label: "active", value: "active" },
   { label: "inactive", value: "inactive" },
 ];
@@ -55,8 +64,13 @@ export function OrganizationModal({
           <div className="space-y-2 md:col-span-2">
             <label className="block text-[16px] text-[#111827]">ชื่อองค์กร</label>
             <input
+              type="text"
+              autoComplete="organization"
+              maxLength={150}
               className="h-8.25 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none"
               value={formState.name}
+              placeholder="กรอกชื่อองค์กร 
+              "
               onChange={(event) =>
                 setFormState((current) => ({
                   ...current,
@@ -64,6 +78,7 @@ export function OrganizationModal({
                 }))
               }
             />
+           
           </div>
 
           <div className="space-y-2">
@@ -74,7 +89,7 @@ export function OrganizationModal({
               onChange={(event) =>
                 setFormState((current) => ({
                   ...current,
-                  type: event.target.value,
+                  type: event.target.value as OrganizationType,
                 }))
               }
             >
@@ -94,7 +109,7 @@ export function OrganizationModal({
               onChange={(event) =>
                 setFormState((current) => ({
                   ...current,
-                  status: event.target.value,
+                  status: event.target.value as OrganizationStatus,
                 }))
               }
             >
@@ -109,8 +124,13 @@ export function OrganizationModal({
           <div className="space-y-2">
             <label className="block text-[16px] text-[#111827]">อีเมล</label>
             <input
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              maxLength={120}
               className="h-8.25 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none"
               value={formState.email}
+              placeholder="กรอก e-mail "
               onChange={(event) =>
                 setFormState((current) => ({
                   ...current,
@@ -118,20 +138,27 @@ export function OrganizationModal({
                 }))
               }
             />
+           
           </div>
 
           <div className="space-y-2">
             <label className="block text-[16px] text-[#111827]">เบอร์โทร</label>
             <input
+              type="tel"
+              inputMode="numeric"
+              autoComplete="tel"
+              maxLength={10}
               className="h-8.25 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none"
               value={formState.phone}
+              placeholder="กรอกตัวเลข 0-9 เท่านั้น"
               onChange={(event) =>
                 setFormState((current) => ({
                   ...current,
-                 phone: event.target.value.replace(/\D/g, ""),
+                  phone: keepDigitsOnly(event.target.value),
                 }))
               }
             />
+          
           </div>
         </div>
 
@@ -154,10 +181,22 @@ export function OrganizationModal({
             className="h-8.25 min-w-21.5 text-[14px]"
             disabled={saving}
             onClick={() => {
-              const trimmedName = formState.name.trim();
+              const trimmedName = normalizeTextInput(formState.name);
+              const trimmedEmail = normalizeTextInput(formState.email);
+              const trimmedPhone = normalizeTextInput(formState.phone);
 
               if (!trimmedName) {
                 setValidationError("กรุณากรอกชื่อองค์กร");
+                return;
+              }
+
+              if (!isValidOptionalEmail(trimmedEmail)) {
+                setValidationError("กรุณากรอก e-mail ให้ถูกต้อง เช่น name@example.com");
+                return;
+              }
+
+              if (!isValidOptionalPhone(trimmedPhone)) {
+                setValidationError("กรุณากรอกเบอร์โทรเป็นตัวเลข 9-10 หลัก");
                 return;
               }
 
@@ -165,6 +204,8 @@ export function OrganizationModal({
               onSubmit({
                 ...formState,
                 name: trimmedName,
+                email: trimmedEmail,
+                phone: trimmedPhone,
               });
             }}
           >

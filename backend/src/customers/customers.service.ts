@@ -9,6 +9,11 @@ import {
   GetCustomersQuery,
   PublicAdminCustomerList,
 } from './interfaces/admin.interface';
+import {
+  getCountTotal,
+  optionalText,
+  positiveIntFromQuery,
+} from '@/common/validation/input-rules';
 
 @Injectable()
 export class CustomersService {
@@ -74,10 +79,10 @@ export class CustomersService {
   async findUnapproved(
     query: GetCustomersQuery,
   ): Promise<PublicAdminCustomerList> {
-    const page = Math.max(Number(query.page ?? 1), 1);
-    const limit = Math.min(Math.max(Number(query.limit ?? 10), 1), 100);
+    const page = positiveIntFromQuery(query.page, 'page', 1);
+    const limit = positiveIntFromQuery(query.limit, 'limit', 10, 100);
     const offset = (page - 1) * limit;
-    const search = query.search?.trim() ?? '';
+    const search = optionalText(query.search, 'search', 255) ?? '';
 
     const whereClauses = [`customers.status = 'pending'`];
     const params: Array<string | number> = [];
@@ -126,7 +131,7 @@ export class CustomersService {
       [...params, limit, offset],
     );
 
-    const total = Number(countRows[0]?.total ?? 0);
+    const total = getCountTotal(countRows, 0);
 
     return {
       items: rows,

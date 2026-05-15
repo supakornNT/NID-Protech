@@ -73,7 +73,11 @@ export class SystemsService {
   async create(dto: CreateSystemDto): Promise<System | null> {
     const [result] = await this.db.query<ResultSetHeader>(
       'INSERT INTO systems (organization_id, name, status) VALUES (?, ?, ?)',
-      [dto.organizationId ?? dto.organization_id, dto.name, dto.status ?? 'active'],
+      [
+        dto.organizationId ?? dto.organization_id,
+        dto.name,
+        dto.status ?? 'active',
+      ],
     );
 
     return this.findOne(result.insertId);

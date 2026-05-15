@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import {
   Dialog,
@@ -17,6 +17,11 @@ type AdminModalShellProps = {
   description?: string;
   children: ReactNode;
   widthClassName?: string;
+  contentClassName?: string;
+  contentStyle?: CSSProperties;
+  bodyClassName?: string;
+  headerClassName?: string;
+  titleClassName?: string;
 };
 
 export function AdminModalShell({
@@ -26,16 +31,27 @@ export function AdminModalShell({
   description,
   children,
   widthClassName = "max-w-[520px]",
+  contentClassName,
+  contentStyle,
+  bodyClassName,
+  headerClassName,
+  titleClassName,
 }: AdminModalShellProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className={`${widthClassName} rounded-[16px] border border-[#3F73BB] bg-white p-0 shadow-[0_10px_24px_rgba(47,102,197,0.18)]`}
+        style={contentStyle}
+        className={`${widthClassName} ${contentClassName ?? ""} rounded-[16px] border border-[#3F73BB] bg-white p-0 shadow-[0_10px_24px_rgba(47,102,197,0.18)]`}
       >
-        <div className="px-6 py-5">
-          <DialogHeader className="mb-5 text-center">
-            <DialogTitle className="text-[24px] font-bold normal-case tracking-normal text-[#3F73BB]">
+        <div className={bodyClassName ?? "px-6 py-5"}>
+          <DialogHeader className={headerClassName ?? "mb-5 text-center"}>
+            <DialogTitle
+              className={
+                titleClassName ??
+                "text-[24px] font-bold normal-case tracking-normal text-[#3F73BB]"
+              }
+            >
               {title}
             </DialogTitle>
             {description ? (

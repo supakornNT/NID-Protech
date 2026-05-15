@@ -152,7 +152,10 @@ export class RequestsService {
     return this.findOne(result.insertId);
   }
 
-  async update(id: number, dto: UpdateRequestDto): Promise<RequestRecord | null> {
+  async update(
+    id: number,
+    dto: UpdateRequestDto,
+  ): Promise<RequestRecord | null> {
     const current = await this.findOne(id);
 
     if (!current) {

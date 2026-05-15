@@ -1,7 +1,16 @@
 "use client";
 
 import * as React from "react";
+
 import { ProTechButton } from "@/components/tables/protech-button";
+
+export type SearchInputConfig = {
+  type?: React.HTMLInputTypeAttribute;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+  autoComplete?: string;
+  maxLength?: number;
+  title?: string;
+};
 
 type ProTechSearchProps = {
   value: string;
@@ -10,6 +19,7 @@ type ProTechSearchProps = {
   icon?: React.ReactNode;
   className?: string;
   inputClassName?: string;
+  inputProps?: SearchInputConfig;
 };
 
 type ProTechSearchBarProps = {
@@ -22,6 +32,8 @@ type ProTechSearchBarProps = {
   buttonClassName?: string;
   buttonLabel?: string;
   onSearch?: (value: string) => void;
+  inputProps?: SearchInputConfig;
+  onValueChange?: (value: string) => void;
 };
 
 export function ProTechSearch({
@@ -31,13 +43,19 @@ export function ProTechSearch({
   icon,
   className = "",
   inputClassName = "",
+  inputProps,
 }: ProTechSearchProps) {
   return (
     <div className={`relative min-w-0 flex-1 sm:w-[200px] sm:flex-none ${className}`}>
       <input
+        type={inputProps?.type ?? "text"}
         value={value}
         onChange={onChange}
         placeholder={placeholder}
+        inputMode={inputProps?.inputMode}
+        autoComplete={inputProps?.autoComplete}
+        maxLength={inputProps?.maxLength}
+        title={inputProps?.title}
         className={`
           h-8 w-full rounded-md border border-gray-400 bg-white
           px-3 pr-9 text-sm outline-none
@@ -64,29 +82,37 @@ export function ProTechSearchBar({
   buttonClassName = "",
   buttonLabel = "ค้นหา",
   onSearch,
+  inputProps,
+  onValueChange,
 }: ProTechSearchBarProps) {
   const [internalValue, setInternalValue] = React.useState(defaultValue);
-  const resolvedValue = value ?? internalValue;
+  const isControlled = value !== undefined;
+  const resolvedValue = isControlled ? value : internalValue;
 
   React.useEffect(() => {
-    if (value === undefined) {
+    if (!isControlled) {
       setInternalValue(defaultValue);
     }
-  }, [defaultValue, value]);
+  }, [defaultValue, isControlled]);
 
   return (
     <div className={`flex flex-wrap items-center gap-3 ${className}`}>
       <ProTechSearch
         value={resolvedValue}
         onChange={(event) => {
-          if (value === undefined) {
-            setInternalValue(event.target.value);
+          const nextValue = event.target.value;
+
+          if (!isControlled) {
+            setInternalValue(nextValue);
           }
+
+          onValueChange?.(nextValue);
         }}
         placeholder={placeholder}
         icon={icon}
         className="w-[200px] flex-none"
         inputClassName={inputClassName}
+        inputProps={inputProps}
       />
       <ProTechButton
         variant="primary"

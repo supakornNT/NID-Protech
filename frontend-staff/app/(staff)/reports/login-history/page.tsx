@@ -16,6 +16,7 @@ import type {
   LoginLogItem,
 } from "@/hooks/login-log/use-login-log-list";
 import { useLoginLogSummary } from "@/hooks/login-log/use-login-log-summary";
+import { isValidDateRange } from "@/lib/form-utils";
 import type { Column } from "@/types/table";
 import { formatThaiDateTime } from "../../management/organizations/page";
 
@@ -117,6 +118,7 @@ export default function ReportLoginHistoryPage() {
   const [draftFilters, setDraftFilters] = useState<LoginLogFilters>(DEFAULT_FILTERS);
   const [appliedFilters, setAppliedFilters] = useState<LoginLogFilters>(DEFAULT_FILTERS);
   const [selectedRow, setSelectedRow] = useState<LoginLogItem | null>(null);
+  const [filterError, setFilterError] = useState<string | null>(null);
 
   const { data: summary, loading: summaryLoading, error: summaryError } =
     useLoginLogSummary();
@@ -257,13 +259,21 @@ export default function ReportLoginHistoryPage() {
               <div className="flex flex-1 flex-wrap items-center gap-3">
                 <ProTechSearch
                   value={draftFilters.keyword}
+                  inputProps={{
+                    type: "search",
+                    inputMode: "search",
+                    autoComplete: "off",
+                    maxLength: 120,
+                    title: "ค้นหาด้วยชื่อผู้ใช้หรือ e-mail",
+                  }}
                   onChange={(event) => {
+                    setFilterError(null);
                     setDraftFilters((current: LoginLogFilters) => ({
                       ...current,
                       keyword: event.target.value,
                     }));
                   }}
-                  placeholder="ค้นหาชื่อผู้ใช้หรือ e-mail"
+                  placeholder="ค้นหาชื่อ ผู้ใช้/e-mail"
                   className="w-50 flex-none"
                   inputClassName="h-[31px] rounded-md border border-[#A8B1C2] px-3 text-[14px]"
                 />
@@ -308,6 +318,7 @@ export default function ReportLoginHistoryPage() {
                     type="date"
                     value={draftFilters.startDate}
                     onChange={(event) => {
+                      setFilterError(null);
                       setDraftFilters((current: LoginLogFilters) => ({
                         ...current,
                         startDate: event.target.value,
@@ -323,6 +334,7 @@ export default function ReportLoginHistoryPage() {
                     type="date"
                     value={draftFilters.endDate}
                     onChange={(event) => {
+                      setFilterError(null);
                       setDraftFilters((current: LoginLogFilters) => ({
                         ...current,
                         endDate: event.target.value,
@@ -336,6 +348,17 @@ export default function ReportLoginHistoryPage() {
                   variant="primary"
                   className="h-7.75 min-w-18.5 px-4 text-[14px]"
                   onClick={() => {
+                    if (
+                      !isValidDateRange(
+                        draftFilters.startDate,
+                        draftFilters.endDate,
+                      )
+                    ) {
+                      setFilterError("วันที่เริ่มต้นต้องไม่มากกว่าวันที่สิ้นสุด");
+                      return;
+                    }
+
+                    setFilterError(null);
                     setPage(1);
                     setAppliedFilters(draftFilters);
                   }}
@@ -347,6 +370,7 @@ export default function ReportLoginHistoryPage() {
                   variant="delete"
                   className="h-7.75 px-4 text-[14px]"
                   onClick={() => {
+                    setFilterError(null);
                     setDraftFilters(DEFAULT_FILTERS);
                     setAppliedFilters(DEFAULT_FILTERS);
                     setPage(1);
@@ -356,6 +380,11 @@ export default function ReportLoginHistoryPage() {
                 </ProTechButton>
               </div>
             </div>
+            {filterError ? (
+              <p className="mt-4 rounded-md border border-[#FFB4C0] bg-[#FFF5F7] px-4 py-3 text-sm text-[#D1435B]">
+                {filterError}
+              </p>
+            ) : null}
           </CardContent>
         </Card>
 

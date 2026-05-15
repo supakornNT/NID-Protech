@@ -1,5 +1,6 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { Pool, PoolConnection, RowDataPacket } from 'mysql2/promise';
+import { getCountTotal } from '@/common/validation/input-rules';
 import type {
   RequestTrackRow,
   StatusLogRow,
@@ -75,7 +76,7 @@ export class UserPortalRepository {
       params,
     );
 
-    return Number(countRows[0]?.total ?? 0);
+    return getCountTotal(countRows, 0);
   }
 
   async findRequests(

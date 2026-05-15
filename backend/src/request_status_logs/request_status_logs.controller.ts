@@ -12,7 +12,6 @@ import { CreateRequestStatusLogDto } from './dto/create-request-status-log.dto';
 import { UpdateRequestStatusLogDto } from './dto/update-request-status-log.dto';
 import { RequestStatusLogsService } from './request_status_logs.service';
 
-
 @Controller('admin/request-status-logs')
 export class RequestStatusLogsController {
   constructor(private readonly requestStatusLog: RequestStatusLogsService) {}
@@ -33,7 +32,10 @@ export class RequestStatusLogsController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateRequestStatusLogDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateRequestStatusLogDto,
+  ) {
     return this.requestStatusLog.update(id, body);
   }
 
@@ -41,5 +43,4 @@ export class RequestStatusLogsController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.requestStatusLog.remove(id);
   }
-
 }

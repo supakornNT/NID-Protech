@@ -14,6 +14,7 @@ import { ProblemTypeModal } from "@/components/problem-types/problem-type-modal"
 import { ProTechButton } from "@/components/tables/protech-button";
 import {
   useProblemTypeTable,
+  type ProblemTypeFilter,
   type ProblemTypeApiItem,
   type ProblemTypePayload,
 } from "@/hooks/problem-types/use-problem-type-table";
@@ -57,8 +58,9 @@ function buildInitialValue(dialogState: DialogState): ProblemTypePayload {
     return {
       code: dialogState.item.code,
       name: dialogState.item.name,
-      requestType: dialogState.item.requestType,
-      status: dialogState.item.status,
+      requestType:
+        dialogState.item.requestType === "complaint" ? "complaint" : "issue",
+      status: dialogState.item.status === "inactive" ? "inactive" : "active",
     };
   }
 
@@ -74,7 +76,7 @@ export default function ProblemTypesPage() {
   const [page, setPage] = useState(1);
   const [searchValue, setSearchValue] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState<ProblemTypeFilter>("all");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [dialogState, setDialogState] = useState<DialogState>(null);
 
@@ -222,6 +224,13 @@ export default function ProblemTypesPage() {
         columns={columns}
         data={rows}
         searchValue={searchValue}
+        searchInputProps={{
+          type: "search",
+          inputMode: "search",
+          autoComplete: "off",
+          maxLength: 100,
+          title: "ค้นหาด้วยชื่อประเภทของปัญหาหรือข้อร้องเรียน",
+        }}
         searchPlaceholder="ค้นหาประเภท"
         onSearchClick={(value) => {
           setSearchValue(value);
@@ -246,7 +255,7 @@ export default function ProblemTypesPage() {
                   <select
                     value={categoryFilter}
                     onChange={(event) => {
-                      setCategoryFilter(event.target.value);
+                      setCategoryFilter(event.target.value as ProblemTypeFilter);
                       resetToFirstPage();
                     }}
                     className="h-[31px] min-w-[132px] appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-left text-[14px] text-[#6B7280] outline-none"

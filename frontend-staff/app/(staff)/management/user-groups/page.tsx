@@ -32,16 +32,7 @@ export default function UserGroupsPage() {
     () => [
       {
         key: "check",
-        title: (
-          <CheckCell
-            checked={allGroupSelected}
-            onClick={() =>
-              setSelectedGroupRows(
-                allGroupSelected ? [] : userGroupRows.map((row) => row.order),
-              )
-            }
-          />
-        ),
+        title: "",
         className: "w-[150px]",
         render: (_, row) => (
           <CheckCell
@@ -168,30 +159,7 @@ export default function UserGroupsPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="relative inline-flex items-end gap-8 px-3 pb-2">
           <span className="absolute inset-x-0 bottom-0 h-px bg-[#111827]" />
-          <button
-            type="button"
-            className={`relative z-10  px-1 pb-1 text-[16px] transition-all duration-200 ${
-              tab === "groups" ? "text-[#3F73BB]" : "text-[#111827] hover:text-[#3F73BB]"
-            }`}
-            onClick={() => setTab("groups")}
-          >
-            กลุ่ม
-            {tab === "groups" && (
-              <span className="absolute bottom-[-2px] left-0 z-20 h-[2px] w-full bg-[#3F73BB]" />
-            )}
-          </button>
-          <button
-            type="button"
-            className={`relative z-10  px-1 pb-1 text-[16px] transition-all duration-200 ${
-              tab === "members" ? "text-[#3F73BB]" : "text-[#111827] hover:text-[#3F73BB]"
-            }`}
-            onClick={() => setTab("members")}
-          >
-            จัดการคนในกลุ่ม
-            {tab === "members" && (
-              <span className="absolute bottom-[-2px] left-0 z-20 h-[2px] w-full bg-[#3F73BB]" />
-            )}
-          </button>
+         
         </div>
 
         <div className="flex items-center gap-3">

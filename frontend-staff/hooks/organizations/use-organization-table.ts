@@ -2,10 +2,20 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import {
+  normalizeSearchKeyword,
+  normalizeTextInput,
+} from "@/lib/form-utils";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 const TABLE_LIMIT = 10;
-const STATUS_OPTIONS = ["active", "inactive"];
-const TYPE_OPTIONS = ["company", "government", "other"];
+const STATUS_OPTIONS = ["active", "inactive"] as const;
+const TYPE_OPTIONS = ["company", "government", "other"] as const;
+
+export type OrganizationStatus = (typeof STATUS_OPTIONS)[number];
+export type OrganizationType = (typeof TYPE_OPTIONS)[number];
+export type OrganizationStatusFilter = "all" | OrganizationStatus;
+export type OrganizationTypeFilter = "all" | OrganizationType;
 
 export type OrganizationApiItem = {
   id: number;
@@ -20,10 +30,10 @@ export type OrganizationApiItem = {
 
 export type OrganizationPayload = {
   name: string;
-  type: string;
+  type: OrganizationType;
   email: string;
   phone: string;
-  status: string;
+  status: OrganizationStatus;
 };
 
 type OrganizationListResponse = {
@@ -39,8 +49,8 @@ type OrganizationListResponse = {
 type UseOrganizationTableOptions = {
   page: number;
   search: string;
-  statusFilter: string;
-  typeFilter: string;
+  statusFilter: OrganizationStatusFilter;
+  typeFilter: OrganizationTypeFilter;
 };
 
 export function useOrganizationTable({
@@ -69,9 +79,10 @@ export function useOrganizationTable({
         page: String(page),
         limit: String(TABLE_LIMIT),
       });
+      const normalizedSearch = normalizeSearchKeyword(search);
 
-      if (search.trim()) {
-        params.set("search", search.trim());
+      if (normalizedSearch) {
+        params.set("search", normalizedSearch);
       }
 
       if (statusFilter !== "all") {
@@ -154,7 +165,12 @@ export function useOrganizationTable({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({
+            ...payload,
+            name: normalizeTextInput(payload.name),
+            email: normalizeTextInput(payload.email),
+            phone: normalizeTextInput(payload.phone),
+          }),
         });
 
         if (!response.ok) {
@@ -185,7 +201,12 @@ export function useOrganizationTable({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({
+            ...payload,
+            name: normalizeTextInput(payload.name),
+            email: normalizeTextInput(payload.email),
+            phone: normalizeTextInput(payload.phone),
+          }),
         });
 
         if (!response.ok) {

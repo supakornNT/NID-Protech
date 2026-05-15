@@ -14,7 +14,7 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { mkdirSync } from 'fs';
 import { diskStorage } from 'multer';
-import { extname, resolve } from 'path';
+import { resolve } from 'path';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { CreateExternalRequestDto } from './dto/create-request-external.dto';
 import { CreateInternalRequestDto } from './dto/create-request-internal.dto';
@@ -108,7 +108,10 @@ export class RequestsController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateRequestDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateRequestDto,
+  ) {
     return this.request.update(id, body);
   }
 

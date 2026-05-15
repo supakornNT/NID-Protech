@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { normalizeSearchKeyword } from "@/lib/form-utils";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 const DEFAULT_LIMIT = 10;
 
@@ -50,9 +52,10 @@ export function useUnapprovedCustomers(search = "") {
         page: String(page),
         limit: String(DEFAULT_LIMIT),
       });
+      const normalizedSearch = normalizeSearchKeyword(search);
 
-      if (search.trim()) {
-        params.set("search", search.trim());
+      if (normalizedSearch) {
+        params.set("search", normalizedSearch);
       }
 
       const response = await fetch(

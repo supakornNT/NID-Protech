@@ -7,7 +7,9 @@ import { ProTechButton } from "@/components/tables/protech-button";
 import type {
   ProblemTypePayload,
   ProblemTypeRequestType,
+  ProblemTypeStatus,
 } from "@/hooks/problem-types/use-problem-type-table";
+import { normalizeTextInput } from "@/lib/form-utils";
 
 type ProblemTypeModalProps = {
   open: boolean;
@@ -26,7 +28,7 @@ const REQUEST_TYPE_OPTIONS: Array<{
   { label: "ข้อร้องเรียน", value: "complaint" },
 ];
 
-const STATUS_OPTIONS = [
+const STATUS_OPTIONS: Array<{ label: string; value: ProblemTypeStatus }> = [
   { label: "ใช้งาน", value: "active" },
   { label: "ปิดใช้งาน", value: "inactive" },
 ];
@@ -58,7 +60,7 @@ export function ProblemTypeModal({
       }
       widthClassName="max-w-[920px]"
     >
-      <div className="rounded-[50px]  px-4 py-14">
+      <div className="rounded-[50px] px-4 py-14">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-6">
           <div className="space-y-2">
             <label className="block text-[16px] text-[#111827]">รหัส</label>
@@ -100,7 +102,7 @@ export function ProblemTypeModal({
               onChange={(event) =>
                 setFormState((current) => ({
                   ...current,
-                  status: event.target.value,
+                  status: event.target.value as ProblemTypeStatus,
                 }))
               }
             >
@@ -115,8 +117,12 @@ export function ProblemTypeModal({
           <div className="space-y-2 md:col-span-3">
             <label className="block text-[16px] text-[#111827]">ประเภท</label>
             <input
+              type="text"
+              autoComplete="off"
+              maxLength={100}
               className="h-8.25 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none"
               value={formState.name}
+              placeholder="กรอกชื่อประเภท เช่น ปัญหาระบบ, ขอแก้ไขข้อมูล"
               onChange={(event) =>
                 setFormState((current) => ({
                   ...current,
@@ -124,6 +130,8 @@ export function ProblemTypeModal({
                 }))
               }
             />
+            
+           
           </div>
         </div>
 
@@ -146,7 +154,7 @@ export function ProblemTypeModal({
             className="h-8.25 min-w-21.5 text-[14px]"
             disabled={saving}
             onClick={() => {
-              const trimmedName = formState.name.trim();
+              const trimmedName = normalizeTextInput(formState.name);
 
               if (!trimmedName) {
                 setValidationError("กรุณากรอกชื่อประเภท");
@@ -166,4 +174,5 @@ export function ProblemTypeModal({
       </div>
     </AdminModalShell>
   );
+  
 }

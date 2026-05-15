@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import type { Pool } from 'mysql2/promise';
 
 import type {
@@ -8,6 +8,15 @@ import type {
   PublicAdminLoginLogList,
 } from './interfaces/admin.interface';
 import type { LoginLog } from './interfaces/login-log.interface';
+import {
+  getCountTotal,
+  LOGIN_STATUS_VALUES,
+  LOGIN_USER_TYPES,
+  optionalEnumValue,
+  optionalIsoDate,
+  optionalText,
+  positiveIntFromQuery,
+} from '@/common/validation/input-rules';
 
 @Injectable()
 export class LoginLogsService {
@@ -44,6 +53,27 @@ export class LoginLogsService {
       AND login_logs.user_id = staffs.id
   `;
 
+  private normalizeQuery(query: GetLoginLogsQuery) {
+    const startDate = optionalIsoDate(query.startDate, 'startDate');
+    const endDate = optionalIsoDate(query.endDate, 'endDate');
+
+    if (startDate && endDate && startDate > endDate) {
+      throw new BadRequestException(
+        'startDate must be less than or equal to endDate',
+      );
+    }
+
+    return {
+      page: positiveIntFromQuery(query.page, 'page', 1),
+      limit: positiveIntFromQuery(query.limit, 'limit', 10, 100),
+      search: optionalText(query.search, 'search', 255),
+      userType: optionalEnumValue(query.userType, 'userType', LOGIN_USER_TYPES),
+      status: optionalEnumValue(query.status, 'status', LOGIN_STATUS_VALUES),
+      startDate,
+      endDate,
+    };
+  }
+
   private buildWhere(query: GetLoginLogsQuery): {
     whereSql: string;
     params: Array<string | number>;
@@ -51,11 +81,12 @@ export class LoginLogsService {
     const whereClauses: string[] = [];
     const params: Array<string | number> = [];
 
-    const search = query.search?.trim() ?? '';
-    const userType = query.userType?.trim() ?? '';
-    const status = query.status?.trim() ?? '';
-    const startDate = query.startDate?.trim() ?? '';
-    const endDate = query.endDate?.trim() ?? '';
+    const normalizedQuery = this.normalizeQuery(query);
+    const search = normalizedQuery.search ?? '';
+    const userType = normalizedQuery.userType ?? '';
+    const status = normalizedQuery.status ?? '';
+    const startDate = normalizedQuery.startDate ?? '';
+    const endDate = normalizedQuery.endDate ?? '';
 
     if (search) {
       whereClauses.push(`(
@@ -68,12 +99,12 @@ export class LoginLogsService {
       params.push(like, like, like, like);
     }
 
-    if (userType && userType !== 'all') {
+    if (userType) {
       whereClauses.push(`login_logs.user_type = ?`);
       params.push(userType);
     }
 
-    if (status && status !== 'all') {
+    if (status) {
       whereClauses.push(`login_logs.status = ?`);
       params.push(status);
     }
@@ -89,16 +120,16 @@ export class LoginLogsService {
     }
 
     return {
-      whereSql: whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '',
+      whereSql:
+        whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '',
       params,
     };
   }
 
   async findAll(query: GetLoginLogsQuery): Promise<PublicAdminLoginLogList> {
-    const page = Math.max(Number(query.page ?? 1), 1);
-    const limit = Math.min(Math.max(Number(query.limit ?? 10), 1), 100);
-    const offset = (page - 1) * limit;
-
+    const normalizedQuery = this.normalizeQuery(query);
+    const page = normalizedQuery.page;
+    const limit = normalizedQuery.limit;
     const { whereSql, params } = this.buildWhere(query);
 
     const [countRows] = await this.db.query<CountRow[]>(
@@ -116,7 +147,7 @@ export class LoginLogsService {
       params,
     );
 
-    const total = Number(countRows[0]?.total ?? 0);
+    const total = getCountTotal(countRows, 0);
     const totalPages = Math.max(1, Math.ceil(total / limit));
     const safePage = Math.min(page, totalPages);
     const safeOffset = (safePage - 1) * limit;

@@ -169,7 +169,14 @@ export default function CustomersPage() {
         columns={columns}
         data={rows}
         searchValue={searchValue}
-        searchPlaceholder="ค้นหาชื่อ อีเมล เบอร์โทร"
+        searchInputProps={{
+          type: "search",
+          inputMode: "search",
+          autoComplete: "off",
+          maxLength: 100,
+          title: "ค้นหาด้วยชื่อผู้ใช้ อีเมล หรือเบอร์โทร",
+        }}
+        searchPlaceholder="ชื่อ/อีเมล/เบอร์โทร"
         onSearchClick={(value) => {
           setSearchValue(value);
           setAppliedSearch(value);

@@ -12,7 +12,6 @@ import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
 import { StaffsService } from './staffs.service';
 
-
 @Controller('admin/staffs')
 export class StaffsController {
   constructor(private readonly staff: StaffsService) {}
@@ -51,5 +50,4 @@ export class StaffsController {
   active(@Param('id', ParseIntPipe) id: number) {
     return this.staff.active(id);
   }
-
 }

@@ -12,7 +12,6 @@ import { CreateTicketStatusLogDto } from './dto/create-ticket-status-log.dto';
 import { UpdateTicketStatusLogDto } from './dto/update-ticket-status-log.dto';
 import { TicketStatusLogsService } from './ticket_status_logs.service';
 
-
 @Controller('admin/ticket-status-logs')
 export class TicketStatusLogsController {
   constructor(private readonly ticketStatusLog: TicketStatusLogsService) {}
@@ -33,7 +32,10 @@ export class TicketStatusLogsController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateTicketStatusLogDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateTicketStatusLogDto,
+  ) {
     return this.ticketStatusLog.update(id, body);
   }
 
@@ -41,5 +43,4 @@ export class TicketStatusLogsController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.ticketStatusLog.remove(id);
   }
-
 }
