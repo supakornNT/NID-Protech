@@ -19,12 +19,12 @@ export default function HomePage() {
   const router = useRouter();
   // Flow หน้านี้:
   // 1. mount หน้าแล้ว useDashboardSummary() จะเรียก GET /user/dashboard-summary
-  // 2. API คืนค่าสรุปจาก reports ที่อยู่ใน customer tracking flow
-  //    โดยข้อมูลมาจาก table reports:
-  //    - total <- COUNT(*) ของ reports
-  //    - screening <- reports.status = 'screening'
-  //    - inProgress <- reports.status IN ('assigned', 'in_progress')
-  //    - completed <- reports.status = 'closed'
+  // 2. API คืนค่าสรุปจาก requests ที่อยู่ใน customer tracking flow
+  //    โดยข้อมูลมาจาก table requests:
+  //    - total <- COUNT(*) ของ requests
+  //    - screening <- requests.status = 'screening'
+  //    - inProgress <- requests.status IN ('assigned', 'in_progress')
+  //    - completed <- requests.status = 'closed'
   // 3. หน้าเอา total/screening/inProgress/completed ไปแทนตัวเลขในการ์ดสรุป
   const { summary, loading, error } = useDashboardSummary();
 
@@ -47,7 +47,7 @@ export default function HomePage() {
       </section>
 
       <section className={styles.content}>
-        <div className={styles.reportCard}>
+        <div className={styles.requestCard}>
           <div className={styles.cardHeader}>
             <BadgeInfo size={34} />
             <div>
@@ -56,8 +56,8 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className={styles.reportOptions}>
-            <div className={styles.reportOption}>
+          <div className={styles.requestOptions}>
+            <div className={styles.requestOption}>
               <div className={styles.iconCircle}>
                 <Airplay size={58} />
               </div>
@@ -65,12 +65,12 @@ export default function HomePage() {
               <h3>แจ้งปัญหา</h3>
               <p>แจ้งปัญหาเกี่ยวกับระบบ</p>
 
-              <ProTechButton onClick={() => {router.push("/report/external")}}>
+              <ProTechButton onClick={() => {router.push("/request/external")}}>
                 แจ้งปัญหา
               </ProTechButton>
             </div>
 
-            <div className={styles.reportOption}>
+            <div className={styles.requestOption}>
               <div className={styles.iconCircle}>
                 <Megaphone size={58} />
               </div>
@@ -78,7 +78,7 @@ export default function HomePage() {
               <h3>แจ้งข้อร้องเรียน</h3>
               <p>ร้องเรียนการให้บริการหรือพฤติกรรมของเจ้าหน้าที่</p>
 
-              <ProTechButton onClick={() => {router.push("/report/service")}}>
+              <ProTechButton onClick={() => {router.push("/request/service")}}>
                 แจ้งข้อร้องเรียน
               </ProTechButton>
             </div>

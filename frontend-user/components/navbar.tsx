@@ -58,13 +58,13 @@ export default function Navbar() {
           </div>
 
           <div className={styles.desktopDropdownMenu}>
-            <Link href="/report/internal">
+            <Link href="/request/internal">
               รายงานปัญหาเกี่ยวกับระบบภายในองค์กร
             </Link>
-            <Link href="/report/external">
+            <Link href="/request/external">
               รายงานปัญหาเกี่ยวกับระบบสาธารณะ
             </Link>
-            <Link href="/report/service">
+            <Link href="/request/service">
               แจ้งข้อร้องเรียนการให้บริการ
             </Link>
           </div>
@@ -131,7 +131,7 @@ export default function Navbar() {
           }`}
         >
           <Link
-            href="/report/internal"
+            href="/request/internal"
             className={styles.mobileSubmenuItem}
             onClick={() => setMobileMenuOpen(false)}
           >
@@ -139,7 +139,7 @@ export default function Navbar() {
           </Link>
 
           <Link
-            href="/report/external"
+            href="/request/external"
             className={styles.mobileSubmenuItem}
             onClick={() => setMobileMenuOpen(false)}
           >
@@ -147,7 +147,7 @@ export default function Navbar() {
           </Link>
 
           <Link
-            href="/report/service"
+            href="/request/service"
             className={styles.mobileSubmenuItem}
             onClick={() => setMobileMenuOpen(false)}
           >

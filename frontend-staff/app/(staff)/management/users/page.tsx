@@ -28,7 +28,7 @@ const columns: Column<UserRow>[] = [
 
 export default function UsersPage() {
   return (
-    <div className="min-h-full rounded-xl  p-4 sm:p-6 lg:p-8">
+    <div className="min-h-full w-full rounded-xl px-5 py-7 sm:px-6 sm:py-8 lg:px-8 lg:py-9">
       <AdminTablePage
         title="จัดการข้อมูลผู้ใช้งาน"
         subtitle="จัดการข้อมูลผู้ใช้งานในระบบและสิทธิ์การเข้าถึง"

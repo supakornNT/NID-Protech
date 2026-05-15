@@ -3,8 +3,12 @@ import type { RowDataPacket } from 'mysql2/promise';
 export interface Ticket extends RowDataPacket {
   id: number;
   ticket_no: string;
-  report_id: number;
-  report_no: string;
+  request_id: number;
+  request_no: string;
+  parent_ticket_id: number | null;
+  assigned_note: string | null;
+  due_at: Date | null;
+  customer_confirm_due_at: Date | null;
   assigned_team_id: number;
   assigned_team_name: string;
   assigned_staff_id: number;

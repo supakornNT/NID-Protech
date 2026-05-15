@@ -5,17 +5,17 @@ import { fetchJson } from '@/lib/fetch';
 export interface ProblemType {
   id: number;
   name: string;
-  report_type: string;
+  request_type: string;
 }
 
-export function useProblemTypes(reportType: 'complaint' | 'issue') {
+export function useProblemTypes(requestType: 'complaint' | 'issue') {
   const [data, setData] = useState<ProblemType[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const controller = new AbortController();
 
-    fetchJson<ProblemType[]>(`/admin/problem-types/${reportType}`, {
+    fetchJson<ProblemType[]>(`/admin/problem-types/${requestType}`, {
       signal: controller.signal,
     })
       .then(setData)
@@ -23,7 +23,7 @@ export function useProblemTypes(reportType: 'complaint' | 'issue') {
       .finally(() => setLoading(false));
 
     return () => controller.abort();
-  }, [reportType]);
+  }, [requestType]);
 
   return { data, loading };
 }

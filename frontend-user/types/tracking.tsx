@@ -2,7 +2,6 @@ export type TrackingRow = {
   trackingNo: string;
   system: string;
   problem: string;
-  dueDate: string;
   status: string;
 };
 

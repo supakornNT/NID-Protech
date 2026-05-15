@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+
 type RequestRow = {
   id: number;
   requestNo: string;
@@ -14,7 +16,7 @@ export function useRequests(type: "complaint" | "issue") {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/requests/screening?type=${type}`)
+    fetch(`${API_BASE_URL}/requests/screening?type=${type}`)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();

@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+
 export type WorkItem = {
   id: number;
   title: string;
@@ -15,7 +17,7 @@ export function useIssueWork() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/requests/assign`)
+    fetch(`${API_BASE_URL}/requests/assign`)
       .then((r) => r.json())
       .then((data) => setRows(Array.isArray(data) ? data : []))
       .catch(console.error)

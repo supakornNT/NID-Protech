@@ -68,7 +68,9 @@ export default function AdminHomePage() {
   const gradient = useMemo(
     () =>
       `conic-gradient(${chartSegments
-        .map((segment) => `${segment.color} ${segment.start}deg ${segment.end}deg`)
+        .map(
+          (segment) => `${segment.color} ${segment.start}deg ${segment.end}deg`,
+        )
         .join(", ")})`,
     [chartSegments],
   );
@@ -155,7 +157,7 @@ export default function AdminHomePage() {
                   )}
                 </div>
 
-               <div className="w-full max-w-[420px] space-y-3 lg:w-[340px] lg:max-w-none">
+                <div className="w-full max-w-[420px] space-y-3 lg:w-[340px] lg:max-w-none">
                   {chartSegments.map((item) => {
                     const isActive = activeChart === item.label;
 
@@ -233,9 +235,7 @@ export default function AdminHomePage() {
             <Card className="rounded-xl border-0 bg-white shadow-none transition-all duration-200 ">
               <CardContent className="p-5 sm:p-6">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <h2 className="text-xl font-bold text-black">
-                    ผู้ใช้ล่าสุด
-                  </h2>
+                  <h2 className="text-xl font-bold text-black">ผู้ใช้ล่าสุด</h2>
 
                   <button className="text-left text-base font-medium text-[#2F66C5] transition-colors duration-200 hover:text-[#174F9F] sm:text-right">
                     ดูทั้งหมด
@@ -262,9 +262,7 @@ export default function AdminHomePage() {
 
         <Card className="mt-4 rounded-xl border-0 bg-white shadow-none transition-all duration-200 lg:mt-6">
           <CardContent className="p-5 sm:p-6 lg:p-7">
-            <h2 className="text-xl font-bold text-black">
-              ข้อมูลโครงสร้าง
-            </h2>
+            <h2 className="text-xl font-bold text-black">ข้อมูลโครงสร้าง</h2>
 
             <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
               <BottomBox
@@ -329,12 +327,8 @@ function SummaryCard({
         </div>
 
         <div className="min-w-0">
-          <p className="text-base font-semibold text-black">
-            {title}
-          </p>
-          <p className="mt-1 text-xl font-bold text-black">
-            {value}
-          </p>
+          <p className="text-base font-semibold text-black">{title}</p>
+          <p className="mt-1 text-xl font-bold text-black">{value}</p>
         </div>
       </CardContent>
     </Card>
@@ -371,9 +365,7 @@ function InfoRow({
       <div
         className={`flex min-h-[48px] flex-1 flex-col justify-center rounded-xl px-4 py-2 transition-all duration-200 hover:brightness-[0.99] sm:min-h-[56px] sm:px-5 ${boxBg}`}
       >
-        <p className={`text-base font-semibold ${titleText}`}>
-          {title}
-        </p>
+        <p className={`text-base font-semibold ${titleText}`}>{title}</p>
 
         <p className={`mt-1 text-xl font-bold leading-none ${valueText}`}>
           {value}
@@ -399,9 +391,7 @@ function RecentUser({
         <p className="text-base text-gray-500">{role}</p>
       </div>
 
-      <p className="text-base text-gray-500 sm:whitespace-nowrap">
-        {time}
-      </p>
+      <p className="text-base text-gray-500 sm:whitespace-nowrap">{time}</p>
     </div>
   );
 }

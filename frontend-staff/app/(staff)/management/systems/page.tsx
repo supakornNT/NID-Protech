@@ -56,7 +56,8 @@ const columns: Column<ProjectRow>[] = [
 
 export default function ProjectsPage() {
   return (
-    <div className="space-y-5">
+    <div className="min-h-full w-full rounded-xl px-5 py-7 sm:px-6 sm:py-8 lg:px-8 lg:py-9">
+      <div className="space-y-5">
       <div>
         <h1 className="text-[32px] font-bold leading-none text-[#111827]">
           จัดการข้อมูลโครงการ
@@ -92,6 +93,7 @@ export default function ProjectsPage() {
         totalItems={50}
         onPageChange={() => {}}
       />
+      </div>
     </div>
   );
 }

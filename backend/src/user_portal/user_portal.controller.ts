@@ -7,10 +7,10 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { ConfirmReportDto } from './dto/confirm-report.dto';
-import { RateReportDto } from './dto/rate-report.dto';
-import { RejectReportDto } from './dto/reject-report.dto';
-import type { GetReportsQuery } from './interfaces/public-report-list.interface';
+import { ConfirmRequestDto } from './dto/confirm-request.dto';
+import { RateRequestDto } from './dto/rate-request.dto';
+import { RejectRequestDto } from './dto/reject-request.dto';
+import type { GetRequestsQuery } from './interfaces/public-request-list.interface';
 import { UserPortalService } from './user_portal.service';
 
 @Controller('user')
@@ -22,42 +22,42 @@ export class UserPortalController {
     return this.userPortalService.getDashboardSummary();
   }
 
-  @Get('reports')
-  getReports(@Query() query: GetReportsQuery) {
-    return this.userPortalService.getReports(query);
+  @Get('requests')
+  getRequests(@Query() query: GetRequestsQuery) {
+    return this.userPortalService.getRequests(query);
   }
 
-  @Get('reports/track/:reportNo/pdf-data')
-  getReportPdfData(@Param('reportNo') reportNo: string) {
-    return this.userPortalService.getReportPdfData(reportNo);
+  @Get('requests/track/:requestNo/pdf-data')
+  getRequestPdfData(@Param('requestNo') requestNo: string) {
+    return this.userPortalService.getRequestPdfData(requestNo);
   }
 
-  @Get('reports/track/:reportNo')
-  getReportTrack(@Param('reportNo') reportNo: string) {
-    return this.userPortalService.getReportTrack(reportNo);
+  @Get('requests/track/:requestNo')
+  getRequestTrack(@Param('requestNo') requestNo: string) {
+    return this.userPortalService.getRequestTrack(requestNo);
   }
 
-  @Post('reports/:id/confirm')
-  confirmReport(
+  @Post('requests/:id/confirm')
+  confirmRequest(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: ConfirmReportDto,
+    @Body() body: ConfirmRequestDto,
   ) {
-    return this.userPortalService.confirmReport(id, body);
+    return this.userPortalService.confirmRequest(id, body);
   }
 
-  @Post('reports/:id/rating')
-  rateReport(
+  @Post('requests/:id/rating')
+  rateRequest(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: RateReportDto,
+    @Body() body: RateRequestDto,
   ) {
-    return this.userPortalService.rateReport(id, body);
+    return this.userPortalService.rateRequest(id, body);
   }
 
-  @Post('reports/:id/reject')
-  rejectReport(
+  @Post('requests/:id/reject')
+  rejectRequest(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: RejectReportDto,
+    @Body() body: RejectRequestDto,
   ) {
-    return this.userPortalService.rejectReport(id, body);
+    return this.userPortalService.rejectRequest(id, body);
   }
 }

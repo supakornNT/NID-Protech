@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+
 export function useAcceptComplaint(onSuccess: (id: number) => void) {
   const [acceptId, setAcceptId] = useState<number | null>(null);
   const [acceptReason, setAcceptReason] = useState("");
@@ -13,11 +15,11 @@ export function useAcceptComplaint(onSuccess: (id: number) => void) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "assigned" }),
       }),
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/screenings`, {
+      fetch(`${API_BASE_URL}/admin/screenings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          reportId: acceptId,
+          requestId: acceptId,
           result: "accepted",
           note: acceptReason,
         }),

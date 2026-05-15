@@ -12,7 +12,6 @@ import { CreateTeamDto } from './dto/create-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
 import { TeamsService } from './teams.service';
 
-
 @Controller('admin/teams')
 export class TeamsController {
   constructor(private readonly team: TeamsService) {}
@@ -41,5 +40,4 @@ export class TeamsController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.team.remove(id);
   }
-
 }

@@ -4,8 +4,7 @@ export interface RequestsScreening extends RowDataPacket {
   id: number;
   requestNo: string;
   systemName: string;
-  problemTypeName: string;
-  status: string;
+  requestTypeName: string;
   createdAt: Date;
 }
 
@@ -27,7 +26,6 @@ export interface RequestsAssign extends RowDataPacket {
   title: string;
   customerName: string;
   customerSurname: string;
-  screennerName: string;
   probleTypeName: string;
-  probleName: string;
+  problemName: string;
 }

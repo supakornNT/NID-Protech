@@ -7,18 +7,24 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { OrganizationsService } from './organizations.service';
+import type { OrganizationQueryDto } from './dto/query-organization.dto';
 
-@Controller('admin/organizations')
+@Controller('admin-organizations')
 export class OrganizationsController {
   constructor(private readonly organization: OrganizationsService) {}
 
   @Get()
   findAll() {
     return this.organization.findAll();
+  }
+  @Get('table')
+  maketable(@Query() query: OrganizationQueryDto) {
+    return this.organization.maketable(query);
   }
 
   @Get('active')

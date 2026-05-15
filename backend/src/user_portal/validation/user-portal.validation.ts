@@ -1,15 +1,15 @@
 import { BadRequestException } from '@nestjs/common';
-import { ConfirmReportDto } from '../dto/confirm-report.dto';
-import { RateReportDto } from '../dto/rate-report.dto';
-import { RejectReportDto } from '../dto/reject-report.dto';
+import { ConfirmRequestDto } from '../dto/confirm-request.dto';
+import { RateRequestDto } from '../dto/rate-request.dto';
+import { RejectRequestDto } from '../dto/reject-request.dto';
 
-export function validateConfirmReportDto(dto: ConfirmReportDto): void {
+export function validateConfirmRequestDto(dto: ConfirmRequestDto): void {
   if (dto.comment !== undefined && typeof dto.comment !== 'string') {
     throw new BadRequestException('comment must be a string');
   }
 }
 
-export function validateRateReportDto(dto: RateReportDto): void {
+export function validateRateRequestDto(dto: RateRequestDto): void {
   if (!Number.isInteger(dto.score) || dto.score < 1 || dto.score > 5) {
     throw new BadRequestException('score must be an integer between 1 and 5');
   }
@@ -19,7 +19,7 @@ export function validateRateReportDto(dto: RateReportDto): void {
   }
 }
 
-export function validateRejectReportDto(dto: RejectReportDto): void {
+export function validateRejectRequestDto(dto: RejectRequestDto): void {
   if (typeof dto.reason !== 'string' || dto.reason.trim().length === 0) {
     throw new BadRequestException('reason is required');
   }

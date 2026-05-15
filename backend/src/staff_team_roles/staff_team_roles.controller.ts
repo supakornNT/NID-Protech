@@ -12,7 +12,6 @@ import { CreateStaffTeamRoleDto } from './dto/create-staff-team-role.dto';
 import { UpdateStaffTeamRoleDto } from './dto/update-staff-team-role.dto';
 import { StaffTeamRolesService } from './staff_team_roles.service';
 
-
 @Controller('admin/staff-team-roles')
 export class StaffTeamRolesController {
   constructor(private readonly staffTeamRole: StaffTeamRolesService) {}
@@ -33,7 +32,10 @@ export class StaffTeamRolesController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateStaffTeamRoleDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateStaffTeamRoleDto,
+  ) {
     return this.staffTeamRole.update(id, body);
   }
 
@@ -41,5 +43,4 @@ export class StaffTeamRolesController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.staffTeamRole.remove(id);
   }
-
 }
