@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
@@ -15,8 +16,8 @@ import { mkdirSync } from 'fs';
 import { diskStorage } from 'multer';
 import { extname, resolve } from 'path';
 import { CreateRequestDto } from './dto/create-request.dto';
-import { CreateInternalRequestDto } from './dto/create-request-internal.dto';
 import { CreateExternalRequestDto } from './dto/create-request-external.dto';
+import { CreateInternalRequestDto } from './dto/create-request-internal.dto';
 import { CreateServiceRequestDto } from './dto/create-request-service.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
 import { RequestsService } from './requests.service';
@@ -28,14 +29,33 @@ mkdirSync(requestsUploadDir, { recursive: true });
 const internalStorage = diskStorage({
   destination: requestsUploadDir,
   filename(_req, file, cb) {
-    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(null, unique + extname(file.originalname));
+    cb(null, file.originalname);
   },
 });
 
 @Controller('requests')
 export class RequestsController {
   constructor(private readonly request: RequestsService) {}
+
+  @Get('screening')
+  findScreening(@Query('type') type: string) {
+    return this.request.findScreening(type);
+  }
+
+  @Get('detail')
+  findDetail(@Query('id', ParseIntPipe) id: number) {
+    return this.request.findDetail(id);
+  }
+
+  @Get('assign')
+  findAssign() {
+    return this.request.findAssign();
+  }
+
+  @Get('attachments')
+  findAttachments(@Query('id', ParseIntPipe) id: number) {
+    return this.request.findAttachments(id);
+  }
 
   @Get()
   findAll() {
@@ -77,6 +97,14 @@ export class RequestsController {
     @UploadedFiles() files: Express.Multer.File[],
   ) {
     return this.request.createRequestService(body, files ?? []);
+  }
+
+  @Patch('update')
+  updateStatus(
+    @Query('id', ParseIntPipe) id: number,
+    @Body('status') status: string,
+  ) {
+    return this.request.updateStatus(id, status);
   }
 
   @Patch(':id')

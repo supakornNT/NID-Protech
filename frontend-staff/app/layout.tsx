@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 
 import "./globals.css";
-import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "ProTech Staff",
   description: "ProTech staff portal",
 };
+
+const rootStyle = {
+  "--font-sans": "ui-sans-serif, system-ui, sans-serif",
+} as CSSProperties;
 
 export default function RootLayout({
   children,
@@ -17,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="th" className={cn("font-sans", inter.variable)}>
+    <html lang="th" className={cn("font-sans")} style={rootStyle}>
       <body className="min-h-screen bg-[#ffffff]">{children}</body>
     </html>
   );

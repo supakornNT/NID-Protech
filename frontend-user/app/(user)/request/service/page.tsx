@@ -2,8 +2,8 @@
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Paperclip, X } from "lucide-react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { FormInput } from "@/components/ui/form-input";
 import { useCustomer } from "@/hooks/useCustomer";
@@ -14,7 +14,7 @@ import { useSubmit } from "@/hooks/useSubmit";
 
 const CUSTOMER_ID = 1;
 
-export default function RequestServicePage() {
+function RequestServicePageContent() {
   const router = useRouter();
   const [files, setFiles] = useState<File[]>([]);
   const [identity, setIdentity] = useState<"reveal" | "anonymous">("anonymous");
@@ -23,6 +23,24 @@ export default function RequestServicePage() {
     problem_type_id: "",
     detail: "",
   });
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const id = searchParams.get("id");
+    if (!id) return;
+    fetch(`http://localhost:4000/requests/detail?id=${id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data) {
+          setForm((prev) => ({
+            ...prev,
+            title: data.title ?? "",
+            detail: data.detail ?? "",
+          }));
+        }
+      });
+  }, [searchParams]);
 
   const { fullName } = useCustomer(identity === "reveal" ? CUSTOMER_ID : null);
   const { data: problemTypes, loading: problemTypesLoading } =
@@ -207,5 +225,13 @@ export default function RequestServicePage() {
 
       <SuccessDialog open={showSuccess} onClose={() => router.push("/home")} />
     </div>
+  );
+}
+
+export default function RequestServicePage() {
+  return (
+    <Suspense fallback={null}>
+      <RequestServicePageContent />
+    </Suspense>
   );
 }

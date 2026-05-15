@@ -389,7 +389,7 @@ export default function ReportLoginHistoryPage() {
           <div>
             <h2 className="text-xl font-bold text-[#111827]">ประวัติการเข้าสู่ระบบ</h2>
             <p className="mt-1 text-sm text-[#8B95A7]">
-              เรียงจากรายการล่าสุดก่อน 
+              เรียงจากรายการล่าสุดก่อน
             </p>
           </div>
 
