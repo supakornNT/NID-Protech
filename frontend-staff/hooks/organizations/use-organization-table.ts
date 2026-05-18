@@ -2,10 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import {
-  normalizeSearchKeyword,
-  normalizeTextInput,
-} from "@/lib/form-utils";
+import { normalizeSearchKeyword, normalizeTextInput } from "@/lib/form-utils";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 const TABLE_LIMIT = 10;
@@ -64,7 +61,9 @@ export function useOrganizationTable({
   const [error, setError] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
-  const [pagination, setPagination] = useState<OrganizationListResponse["pagination"]>({
+  const [pagination, setPagination] = useState<
+    OrganizationListResponse["pagination"]
+  >({
     page: 1,
     limit: TABLE_LIMIT,
     total: 0,
@@ -118,9 +117,14 @@ export function useOrganizationTable({
       setLoading(false);
     }
   }, [page, search, statusFilter, typeFilter]);
-
   useEffect(() => {
-    void fetchOrganizations();
+    const timeoutId = window.setTimeout(() => {
+      void fetchOrganizations();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [fetchOrganizations]);
 
   const removeOrganization = useCallback(
@@ -133,9 +137,12 @@ export function useOrganizationTable({
         setActiveId(id);
         setError(null);
 
-        const response = await fetch(`${API_BASE_URL}/admin-organizations/${id}`, {
-          method: "DELETE",
-        });
+        const response = await fetch(
+          `${API_BASE_URL}/admin-organizations/${id}`,
+          {
+            method: "DELETE",
+          },
+        );
 
         if (!response.ok) {
           throw new Error(`Failed to remove organization (${response.status})`);
@@ -196,18 +203,21 @@ export function useOrganizationTable({
         setActiveId(id);
         setError(null);
 
-        const response = await fetch(`${API_BASE_URL}/admin-organizations/${id}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
+        const response = await fetch(
+          `${API_BASE_URL}/admin-organizations/${id}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              ...payload,
+              name: normalizeTextInput(payload.name),
+              email: normalizeTextInput(payload.email),
+              phone: normalizeTextInput(payload.phone),
+            }),
           },
-          body: JSON.stringify({
-            ...payload,
-            name: normalizeTextInput(payload.name),
-            email: normalizeTextInput(payload.email),
-            phone: normalizeTextInput(payload.phone),
-          }),
-        });
+        );
 
         if (!response.ok) {
           throw new Error(`Failed to update organization (${response.status})`);

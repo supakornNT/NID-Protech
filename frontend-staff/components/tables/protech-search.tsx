@@ -46,7 +46,7 @@ export function ProTechSearch({
   inputProps,
 }: ProTechSearchProps) {
   return (
-    <div className={`relative min-w-0 flex-1 sm:w-[200px] sm:flex-none ${className}`}>
+    <div className={`relative min-w-0 flex-1 sm:w-50 sm:flex-none ${className}`}>
       <input
         type={inputProps?.type ?? "text"}
         value={value}
@@ -89,12 +89,6 @@ export function ProTechSearchBar({
   const isControlled = value !== undefined;
   const resolvedValue = isControlled ? value : internalValue;
 
-  React.useEffect(() => {
-    if (!isControlled) {
-      setInternalValue(defaultValue);
-    }
-  }, [defaultValue, isControlled]);
-
   return (
     <div className={`flex flex-wrap items-center gap-3 ${className}`}>
       <ProTechSearch
@@ -110,13 +104,13 @@ export function ProTechSearchBar({
         }}
         placeholder={placeholder}
         icon={icon}
-        className="w-[200px] flex-none"
+        className="w-50 flex-none"
         inputClassName={inputClassName}
         inputProps={inputProps}
       />
       <ProTechButton
         variant="primary"
-        className={`h-[31px] min-w-[74px] px-4 text-[14px] ${buttonClassName}`}
+        className={`h-7.75 min-w-18.5 px-4 text-[14px] ${buttonClassName}`}
         onClick={() => onSearch?.(resolvedValue)}
       >
         {buttonLabel}

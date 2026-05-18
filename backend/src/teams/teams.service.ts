@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { BadRequestException } from '@nestjs/common';
-import type { Pool, ResultSetHeader } from 'mysql2/promise';
+import type { Pool, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { CreateTeamDto } from './dto/create-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
 import { UpdateTeamPermissionsDto } from './dto/update-team-permissions.dto';
@@ -141,13 +141,34 @@ export class TeamsService {
 
   async create(dto: CreateTeamDto): Promise<Team | null> {
     const name = requireText(dto.name, 'name', 255);
+
     const status =
       dto.status === undefined
         ? 'active'
         : requireEnumValue(dto.status, 'status', ACTIVE_STATUS_VALUES);
 
+    const [duplicateRows] = await this.db.query<RowDataPacket[]>(
+      `
+      SELECT id
+      FROM teams
+      WHERE LOWER(name) = LOWER(?)
+      LIMIT 1
+    `,
+      [name],
+    );
+
+    if (duplicateRows.length > 0) {
+      throw new BadRequestException('ชื่อกลุ่มผู้ใช้งานนี้มีอยู่แล้ว');
+    }
+
     const [result] = await this.db.query<ResultSetHeader>(
-      'INSERT INTO teams (name, status) VALUES (?, ?)',
+      `
+      INSERT INTO teams (
+        name,
+        status
+      )
+      VALUES (?, ?)
+    `,
       [name, status],
     );
 
@@ -165,17 +186,35 @@ export class TeamsService {
       dto.name === undefined
         ? current.name
         : requireText(dto.name, 'name', 255);
+
     const status =
       dto.status === undefined
         ? current.status
         : requireEnumValue(dto.status, 'status', ACTIVE_STATUS_VALUES);
 
+    const [duplicateRows] = await this.db.query<RowDataPacket[]>(
+      `
+      SELECT id
+      FROM teams
+      WHERE LOWER(name) = LOWER(?)
+        AND id <> ?
+      LIMIT 1
+    `,
+      [name, id],
+    );
+
+    if (duplicateRows.length > 0) {
+      throw new BadRequestException('ชื่อกลุ่มผู้ใช้งานนี้มีอยู่แล้ว');
+    }
+
     await this.db.query<ResultSetHeader>(
-      `UPDATE teams
+      `
+      UPDATE teams
       SET
         name = ?,
         status = ?
-      WHERE id = ?`,
+      WHERE id = ?
+    `,
       [name, status, id],
     );
 
@@ -218,10 +257,9 @@ export class TeamsService {
       );
     }
 
-    await this.db.query<ResultSetHeader>(
-      'UPDATE teams SET status = ? WHERE id = ?',
-      ['inactive', id],
-    );
+    await this.db.query<ResultSetHeader>('DELETE FROM teams WHERE id = ?', [
+      id,
+    ]);
 
     return this.findOne(id);
   }

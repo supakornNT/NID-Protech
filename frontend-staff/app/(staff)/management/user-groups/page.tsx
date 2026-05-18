@@ -13,7 +13,7 @@ import { DeleteConfirmDialog } from "@/components/admin/delete-confirm-dialog";
 import { TeamGroupModal } from "@/components/user-groups/team-group-modal";
 import { TeamMemberModal } from "@/components/user-groups/team-member-modal";
 import { ProTechButton } from "@/components/tables/protech-button";
-import { ProTechSearch } from "@/components/tables/protech-search";
+import { ProTechSearchBar } from "@/components/tables/protech-search";
 import { ProTechTable } from "@/components/tables/protech-table";
 import {
   GroupRow,
@@ -117,7 +117,9 @@ export default function UserGroupsPage() {
           <CheckCell
             checked={row.checked}
             onClick={() => {
-              setSelectedGroupId((current) => (current === row.id ? null : row.id));
+              setSelectedGroupId((current) =>
+                current === row.id ? null : row.id,
+              );
             }}
           />
         ),
@@ -195,39 +197,12 @@ export default function UserGroupsPage() {
             จัดการกลุ่มผู้ใช้งาน
           </h1>
           <p className="mt-2 text-[16px] text-[#8B95A7]">
-            จัดการกลุ่มผู้ใช้งาน เพิ่มคนเข้าทีม และตรวจสอบว่าผู้ใช้งานอยู่กลุ่มใดบ้าง
+            จัดการกลุ่มผู้ใช้งาน เพิ่มคนเข้าทีม
+            และตรวจสอบว่าผู้ใช้งานอยู่กลุ่มใดบ้าง
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <ProTechSearch
-            value={searchValue}
-            onChange={(event) => {
-              setSearchValue(event.target.value);
-            }}
-            placeholder={isGroupsTab ? "ค้นหาชื่อกลุ่ม" : "ค้นหาชื่อผู้ใช้หรืออีเมล"}
-            inputProps={{
-              type: "search",
-              inputMode: "search",
-              autoComplete: "off",
-              maxLength: 255,
-              title: isGroupsTab
-                ? "ค้นหาด้วยชื่อกลุ่ม"
-                : "ค้นหาด้วยชื่อผู้ใช้ อีเมล หรือชื่อกลุ่ม",
-            }}
-            className="w-55.5 flex-none"
-            inputClassName="h-[31px] rounded-md border border-[#A8B1C2] px-3 text-[14px]"
-          />
-          <ProTechButton
-            variant="primary"
-            className="h-7.75 min-w-18.5 px-4 text-[14px]"
-            onClick={search}
-          >
-            ค้นหา
-          </ProTechButton>
-        </div>
-
-        <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="relative inline-flex items-end gap-8 px-3 pb-2">
             <span className="absolute inset-x-0 bottom-0 h-px bg-[#111827]" />
             <button
@@ -241,7 +216,7 @@ export default function UserGroupsPage() {
             >
               กลุ่ม
               {isGroupsTab ? (
-                <span className="absolute inset-x-0 -bottom-2 h-[2px] bg-[#3F73BB]" />
+                <span className="absolute inset-x-0 -bottom-2 h-0.5 bg-[#3F73BB]" />
               ) : null}
             </button>
             <button
@@ -256,28 +231,58 @@ export default function UserGroupsPage() {
             >
               จัดการคนในกลุ่ม
               {!isGroupsTab ? (
-                <span className="absolute inset-x-0 -bottom-2 h-[2px] bg-[#3F73BB]" />
+                <span className="absolute inset-x-0 -bottom-2 h-0.5 bg-[#3F73BB]" />
               ) : null}
             </button>
           </div>
+        </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-3">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="flex flex-wrap items-end gap-2">
+            <ProTechSearchBar
+              value={searchValue}
+              onValueChange={setSearchValue}
+              placeholder={
+                isGroupsTab ? "ค้นหาชื่อกลุ่ม" : "ค้นหาชื่อผู้ใช้หรืออีเมล"
+              }
+              onSearch={search}
+              inputProps={{
+                type: "search",
+                inputMode: "search",
+                autoComplete: "off",
+                maxLength: 255,
+                title: isGroupsTab
+                  ? "ค้นหาด้วยชื่อกลุ่ม"
+                  : "ค้นหาด้วยชื่อผู้ใช้ อีเมล หรือชื่อกลุ่ม",
+              }}
+              inputClassName="h-[31px] rounded-md border border-[#A8B1C2] px-3 text-[14px]"
+            />
+
             {isGroupsTab ? (
               <ToolbarSelect
                 value={groupStatusFilter}
                 placeholder="สถานะทั้งหมด"
                 options={[
-                  { value: "active", label: "ใช้งาน" },
-                  { value: "inactive", label: "ปิดใช้งาน" },
+                  {
+                    value: "active",
+                    label: "ใช้งาน",
+                  },
+                  {
+                    value: "inactive",
+                    label: "ปิดใช้งาน",
+                  },
                 ]}
                 onChange={(value) => {
                   setGroupStatusFilter(value as "all" | "active" | "inactive");
-                  setGroupPage(1);
-                    setSelectedGroupId(null);
-                  }}
-                />
-            ) : null}
 
+                  setGroupPage(1);
+                  setSelectedGroupId(null);
+                }}
+              />
+            ) : null}
+          </div>
+
+          <div className="flex flex-wrap items-center justify-end gap-3">
             {isGroupsTab ? (
               <DeleteConfirmDialog
                 title="ยืนยันการลบข้อมูล"
@@ -315,7 +320,7 @@ export default function UserGroupsPage() {
         </div>
 
         {error ? (
-          <div className="max-w-[520px] rounded-md border border-[#FFB4C0] bg-[#FFF5F7] px-3 py-2 text-sm text-[#D1435B]">
+          <div className="max-w-130 rounded-md border border-[#FFB4C0] bg-[#FFF5F7] px-3 py-2 text-sm text-[#D1435B]">
             {error}
           </div>
         ) : null}

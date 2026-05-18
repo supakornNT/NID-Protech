@@ -2,11 +2,11 @@
 
 import { useMemo } from "react";
 
-import { ActionIcons } from "@/components/admin/admin-table-page";
+import {
+  ActionIcons,
+  AdminTablePage,
+} from "@/components/admin/admin-table-page";
 import { PermissionEditModal } from "@/components/permission/PermissionEditModal";
-import { ProTechButton } from "@/components/tables/protech-button";
-import { ProTechSearch } from "@/components/tables/protech-search";
-import { ProTechTable } from "@/components/tables/protech-table";
 import {
   PermissionTableRow,
   useTeamPermissionsPage,
@@ -69,41 +69,33 @@ export default function PermissionsPage() {
   return (
     <div className="min-h-full w-full rounded-xl px-5 py-7 sm:px-6 sm:py-8 lg:px-8 lg:py-9">
       <div className="space-y-5">
-        <div>
-          <h1 className="text-[32px] font-bold leading-none text-[#111827]">
-            จัดการสิทธิ์ผู้ใช้งานจำแนกตามกลุ่ม
-          </h1>
-          <p className="mt-2 text-[16px] text-[#8B95A7]">
-            จัดการและแก้ไขข้อมูลกลุ่มผู้ใช้งาน
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <ProTechSearch
-            value={searchValue}
-            onChange={(event) => {
-              setSearchValue(event.target.value);
-            }}
-            placeholder="ค้นหาชื่อทีม"
-            inputProps={{
-              type: "search",
-              inputMode: "search",
-              autoComplete: "off",
-              maxLength: 255,
-              title: "ค้นหาด้วยชื่อทีม",
-            }}
-            className="w-55.5 flex-none"
-            inputClassName="h-[31px] rounded-md border border-[#A8B1C2] px-3 text-[14px]"
-          />
-
-          <ProTechButton
-            variant="primary"
-            className="h-7.75 min-w-18.5 px-4 text-[14px]"
-            onClick={search}
-          >
-            ค้นหา
-          </ProTechButton>
-        </div>
+        <AdminTablePage
+          title="จัดการสิทธิ์ผู้ใช้งานจำแนกตามกลุ่ม"
+          subtitle="จัดการและแก้ไขข้อมูลกลุ่มผู้ใช้งาน"
+          columns={columns}
+          data={rows}
+          searchValue={searchValue}
+          searchPlaceholder="ค้นหาชื่อทีม"
+          searchInputProps={{
+            type: "search",
+            inputMode: "search",
+            autoComplete: "off",
+            maxLength: 255,
+            title: "ค้นหาด้วยชื่อทีม",
+          }}
+          page={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          onPageChange={setPage}
+          disableClientFiltering
+          disableClientPagination
+          showCreate={false}
+          showDelete={false}
+          onSearchClick={(value) => {
+            setSearchValue(value);
+            search();
+          }}
+        />
 
         {error ? (
           <div className="max-w-105 rounded-md border border-[#FFB4C0] bg-[#FFF5F7] px-3 py-2 text-sm text-[#D1435B]">
@@ -115,17 +107,7 @@ export default function PermissionsPage() {
           <p className="text-sm text-[#8B95A7]">
             กำลังโหลดข้อมูลสิทธิ์ผู้ใช้งาน...
           </p>
-        ) : (
-          <ProTechTable
-            columns={columns}
-            data={rows}
-            limit={pageLimit}
-            page={page}
-            totalPages={totalPages}
-            totalItems={totalItems}
-            onPageChange={setPage}
-          />
-        )}
+        ) : null}
       </div>
 
       <PermissionEditModal
