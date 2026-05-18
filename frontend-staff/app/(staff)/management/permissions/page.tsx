@@ -3,13 +3,15 @@
 import { useMemo } from "react";
 
 import { ActionIcons } from "@/components/admin/admin-table-page";
+import { PermissionEditModal } from "@/components/permission/PermissionEditModal";
 import { ProTechButton } from "@/components/tables/protech-button";
 import { ProTechSearch } from "@/components/tables/protech-search";
 import { ProTechTable } from "@/components/tables/protech-table";
+import {
+  PermissionTableRow,
+  useTeamPermissionsPage,
+} from "@/hooks/permission/useTeamPermissionsPage";
 import type { Column } from "@/types/table";
-
-
-
 
 export default function PermissionsPage() {
   const {
@@ -72,7 +74,7 @@ export default function PermissionsPage() {
             จัดการสิทธิ์ผู้ใช้งานจำแนกตามกลุ่ม
           </h1>
           <p className="mt-2 text-[16px] text-[#8B95A7]">
-            การจัดการแก้ไขข้อมูลกลุ่มผู้ใช้งาน
+            จัดการและแก้ไขข้อมูลกลุ่มผู้ใช้งาน
           </p>
         </div>
 
@@ -144,5 +146,3 @@ export default function PermissionsPage() {
     </div>
   );
 }
-import { PermissionTableRow, useTeamPermissionsPage } from "@/hooks/permission/useTeamPermissionsPage";import { PermissionEditModal } from "@/components/permission/PermissionEditModal";
-

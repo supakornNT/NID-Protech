@@ -49,11 +49,11 @@ export class OrganizationsService {
       email:
         dto.email === undefined
           ? undefined
-          : optionalEmail(dto.email, 'email', 255),
+          : (optionalEmail(dto.email, 'email', 255) ?? null),
       phone:
         dto.phone === undefined
           ? undefined
-          : optionalPhone(dto.phone, 'phone', 20),
+          : (optionalPhone(dto.phone, 'phone', 20) ?? null),
       status:
         dto.status === undefined
           ? undefined
@@ -216,8 +216,8 @@ export class OrganizationsService {
       [
         payload.name ?? current.name,
         payload.type ?? current.type,
-        payload.email ?? current.email,
-        payload.phone ?? current.phone,
+        payload.email === undefined ? current.email : payload.email,
+        payload.phone === undefined ? current.phone : payload.phone,
         payload.status ?? current.status,
         id,
       ],

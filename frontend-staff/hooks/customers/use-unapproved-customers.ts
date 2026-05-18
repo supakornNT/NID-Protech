@@ -68,13 +68,22 @@ export function useUnapprovedCustomers(search = "") {
       }
 
       const result = (await response.json()) as CustomerListResponse;
+      const nextTotalPages = Math.max(result.pagination.totalPages, 1);
+
       setItems(result.items);
       setPagination({
         page: result.pagination.page,
         limit: result.pagination.limit,
         total: result.pagination.total,
-        totalPages: Math.max(result.pagination.totalPages, 1),
+        totalPages: nextTotalPages,
       });
+
+      if (result.items.length === 0 && page > nextTotalPages) {
+        window.setTimeout(() => {
+          setPage(nextTotalPages);
+        }, 0);
+      }
+
       setError(null);
     } catch (fetchError) {
       console.error(fetchError);
@@ -85,14 +94,14 @@ export function useUnapprovedCustomers(search = "") {
   }, [page, search]);
 
   useEffect(() => {
-    void fetchCustomers();
-  }, [fetchCustomers]);
+    const timeoutId = window.setTimeout(() => {
+      void fetchCustomers();
+    }, 0);
 
-  useEffect(() => {
-    if (page > pagination.totalPages) {
-      setPage(pagination.totalPages);
-    }
-  }, [page, pagination.totalPages]);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [fetchCustomers]);
 
   const updateCustomerStatus = useCallback(
     async (id: number, action: "approve" | "reject") => {

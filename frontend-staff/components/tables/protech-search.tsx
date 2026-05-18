@@ -58,7 +58,7 @@ export function ProTechSearch({
         title={inputProps?.title}
         className={`
           h-8 w-full rounded-md border border-gray-400 bg-white
-          px-3 pr-9 text-sm outline-none
+          px-3 pr-5 text-sm outline-none
           ${inputClassName}
         `}
       />

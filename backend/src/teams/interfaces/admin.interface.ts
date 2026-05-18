@@ -38,11 +38,17 @@ export interface TeamPermissionItem {
   assigned: boolean;
 }
 
+export interface TeamPermissionSection {
+  id: string;
+  title: string;
+  items: TeamPermissionItem[];
+}
+
 export interface TeamPermissionDetail {
   team: {
     id: number;
     name: string;
     status: string;
   };
-  permissions: TeamPermissionItem[];
+  sections: TeamPermissionSection[];
 }

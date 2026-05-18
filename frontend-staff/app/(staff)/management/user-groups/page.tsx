@@ -145,12 +145,12 @@ export default function UserGroupsPage() {
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder=""
-          className="w-[222px] flex-none"
+          className="w-55.5 flex-none"
           inputClassName="h-[31px] rounded-md border border-[#A8B1C2] px-3 text-[14px]"
         />
         <ProTechButton
           variant="primary"
-          className="h-[31px] min-w-[74px] px-4 text-[14px]"
+          className="h-7.75 min-w-18.5 px-4 text-[14px]"
         >
           ค้นหา
         </ProTechButton>
@@ -165,12 +165,12 @@ export default function UserGroupsPage() {
         <div className="flex items-center gap-3">
           <ToolbarSelect placeholder="กลุ่มทั้งหมด" />
           <ToolbarSelect placeholder="สถานะทั้งหมด" />
-          <ProTechButton variant="delete" className="h-[31px] px-4 text-[14px]">
+          <ProTechButton variant="delete" className="h-7.75 px-4 text-[14px]">
             ลบ
           </ProTechButton>
           <ProTechButton
             variant="create"
-            className="h-[31px] px-4 text-[14px]"
+            className="h-7.75 px-4 text-[14px]"
             onClick={() => setOpenCreate(true)}
           >
             สร้าง
@@ -224,14 +224,14 @@ function GroupActionCell({ row }: { row: GroupRow }) {
           <div className="flex justify-end gap-3">
             <ProTechButton
               variant="delete"
-              className="h-[33px] min-w-[76px] text-[14px]"
+              className="h-8.25 min-w-19 text-[14px]"
               onClick={() => setOpen(false)}
             >
               ยกเลิก
             </ProTechButton>
             <ProTechButton
               variant="primary"
-              className="h-[33px] min-w-[86px] text-[14px]"
+              className="h-8.25 min-w-21.5 text-[14px]"
             >
               แก้ไข
             </ProTechButton>

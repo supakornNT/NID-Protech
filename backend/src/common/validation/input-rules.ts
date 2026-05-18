@@ -181,6 +181,30 @@ export function getCountTotal(value: unknown, fallback = 0): number {
     return value;
   }
 
+  if (Array.isArray(value)) {
+    const firstRow = value[0];
+
+    if (
+      firstRow &&
+      typeof firstRow === 'object' &&
+      'total' in firstRow
+    ) {
+      return toSafeNumber(
+        (firstRow as { total?: unknown }).total,
+        fallback,
+      );
+    }
+
+    return fallback;
+  }
+
+  if (value && typeof value === 'object' && 'total' in value) {
+    return toSafeNumber(
+      (value as { total?: unknown }).total,
+      fallback,
+    );
+  }
+
   const parsed = Number(value);
 
   return Number.isNaN(parsed) ? fallback : parsed;

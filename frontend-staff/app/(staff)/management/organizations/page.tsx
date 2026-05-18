@@ -67,7 +67,7 @@ export default function OrganizationsPage() {
   const [appliedSearch, setAppliedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<OrganizationStatusFilter>("all");
   const [typeFilter, setTypeFilter] = useState<OrganizationTypeFilter>("all");
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [dialogState, setDialogState] = useState<DialogState>(null);
 
   const {
@@ -91,9 +91,10 @@ export default function OrganizationsPage() {
   });
 
   const safePage = Math.min(page, Math.max(pagination.totalPages, 1));
-  const resolvedSelectedIds = selectedIds.filter((selectedId) =>
-    items.some((item) => item.id === selectedId),
-  );
+  const resolvedSelectedId =
+    selectedId !== null && items.some((item) => item.id === selectedId)
+      ? selectedId
+      : null;
 
   useEffect(() => {
     if (!error) {
@@ -112,7 +113,7 @@ export default function OrganizationsPage() {
   const rows = useMemo<OrganizationRow[]>(() => {
     return items.map((item) => ({
       id: item.id,
-      checked: resolvedSelectedIds.includes(item.id),
+      checked: item.id === resolvedSelectedId,
       organizationName: item.organizationName || "-",
       email: item.email || "-",
       phone: formatPhoneNumber(item.phone) || "-",
@@ -121,10 +122,10 @@ export default function OrganizationsPage() {
       createdAt: formatThaiDateTime(item.createdAt),
       updatedAt: formatThaiDateTime(item.updatedAt),
     }));
-  }, [items, resolvedSelectedIds]);
+  }, [items, resolvedSelectedId]);
 
   function resetSelection() {
-    setSelectedIds([]);
+    setSelectedId(null);
   }
 
   function resetToFirstPage() {
@@ -156,27 +157,19 @@ export default function OrganizationsPage() {
   }
 
   function handleToggleSelect(id: number) {
-    setSelectedIds((current) =>
-      current.includes(id)
-        ? current.filter((itemId) => itemId !== id)
-        : [...current, id],
-    );
+    setSelectedId((current) => (current === id ? null : id));
   }
 
   async function handleDeleteSelected() {
-    if (resolvedSelectedIds.length === 0) {
+    if (resolvedSelectedId === null) {
       return;
     }
 
-    for (const id of resolvedSelectedIds) {
-      const success = await removeOrganization(id);
+    const success = await removeOrganization(resolvedSelectedId);
 
-      if (!success) {
-        break;
-      }
+    if (success) {
+      resetSelection();
     }
-
-    resetSelection();
   }
 
   async function handleSubmit(payload: OrganizationPayload) {
@@ -339,7 +332,7 @@ export default function OrganizationsPage() {
                     <ProTechButton
                       variant="delete"
                       className="h-[31px] px-4 text-[14px]"
-                      disabled={resolvedSelectedIds.length === 0 || activeId !== null}
+                      disabled={resolvedSelectedId === null || activeId !== null}
                     >
                       ลบ
                     </ProTechButton>

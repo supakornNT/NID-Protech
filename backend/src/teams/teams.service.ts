@@ -21,8 +21,43 @@ import {
   PublicAdminTeamList,
   TeamPermissionDetail,
   TeamPermissionItem,
+  TeamPermissionSection,
   TeamPermissionRow,
 } from './interfaces/admin.interface';
+
+const PERMISSION_SECTION_TITLES: Record<string, string> = {
+  screening: 'การคัดกรอง',
+  report: 'การรายงาน',
+  tracking: 'การติดตาม',
+  operation: 'การปฏิบัติงาน',
+  assignment: 'การมอบหมาย',
+  management: 'การจัดการ',
+};
+
+const PERMISSION_SECTION_PREFIX_MAP: Record<string, string> = {
+  admin: 'management',
+};
+
+function buildPermissionSections(
+  permissions: TeamPermissionItem[],
+): TeamPermissionSection[] {
+  const grouped = new Map<string, TeamPermissionItem[]>();
+
+  for (const permission of permissions) {
+    const rawPrefix = permission.code.split('.')[0] ?? 'other';
+    const sectionId = PERMISSION_SECTION_PREFIX_MAP[rawPrefix] ?? rawPrefix;
+    const items = grouped.get(sectionId) ?? [];
+
+    items.push(permission);
+    grouped.set(sectionId, items);
+  }
+
+  return Array.from(grouped.entries()).map(([id, items]) => ({
+    id,
+    title: PERMISSION_SECTION_TITLES[id] ?? id,
+    items,
+  }));
+}
 
 @Injectable()
 export class TeamsService {
@@ -196,7 +231,7 @@ export class TeamsService {
         name: team.name,
         status: team.status,
       },
-      permissions,
+      sections: buildPermissionSections(permissions),
     };
   }
 

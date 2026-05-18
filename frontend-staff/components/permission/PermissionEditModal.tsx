@@ -1,17 +1,17 @@
 "use client";
 
-import {  useState } from "react";
+import { useState } from "react";
 
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { ProTechButton } from "@/components/tables/protech-button";
-import { normalizeTextInput } from "@/lib/form-utils";
-import { EditDialogState, PermissionSection } from "@/hooks/permission/useTeamPermissionsPage";
-
-
+import {
+  EditDialogState,
+  PermissionSection,
+} from "@/hooks/permission/useTeamPermissionsPage";
 
 function getSectionDisplayTitle(sectionId: string, fallbackTitle: string) {
   if (sectionId === "screening") return "รับเรื่องและคัดกรอง";
-  if (sectionId === "reports") return "รายงาน";
+  if (sectionId === "report") return "รายงาน";
   if (sectionId === "tracking") return "การติดตาม";
   if (sectionId === "operation") return "การปฏิบัติงาน";
   if (sectionId === "assignment") return "การพิจารณา";
@@ -20,13 +20,9 @@ function getSectionDisplayTitle(sectionId: string, fallbackTitle: string) {
   return fallbackTitle;
 }
 
-function getSectionItemContainerClassName(sectionId: string) {
-  if (sectionId === "management") {
-    return "grid gap-x-5 gap-y-4 md:grid-cols-2 lg:grid-cols-4";
-  }
-
-  if (sectionId === "assignment") {
-    return "grid gap-x-5 gap-y-4 lg:grid-cols-2";
+function getSectionItemContainerClassName(itemCount: number) {
+  if (itemCount > 4) {
+    return "grid gap-x-5 gap-y-4 md:grid-cols-2";
   }
 
   return "space-y-3";
@@ -66,9 +62,10 @@ export function PermissionEditModal({
   const [validationError, setValidationError] = useState<string | null>(null);
 
   function closeModal() {
-  setValidationError(null);
-  onOpenChange(false);
-}
+    setValidationError(null);
+    onOpenChange(false);
+  }
+
   function togglePermission(permissionId: number) {
     if (!value) {
       return;
@@ -89,12 +86,12 @@ export function PermissionEditModal({
   const sectionsForDisplay = value
     ? value.sections.reduce<PermissionSection[]>((result, section) => {
         if (section.id === "other") {
-          const reportsSection = result.find(
-            (currentSection) => currentSection.id === "reports",
+          const reportSection = result.find(
+            (currentSection) => currentSection.id === "report",
           );
 
-          if (reportsSection) {
-            reportsSection.items = [...reportsSection.items, ...section.items];
+          if (reportSection) {
+            reportSection.items = [...reportSection.items, ...section.items];
             return result;
           }
         }
@@ -108,7 +105,7 @@ export function PermissionEditModal({
     <AdminModalShell
       open={open}
       onOpenChange={onOpenChange}
-      title="แก้ไขข้อมูลสิทธิ์ผู้ใช้งานจำแนกตามกลุ่ม"
+      title="จัดการสิทธิ์การเข้าถึง"
       widthClassName="max-w-none sm:max-w-none"
       contentClassName="top-8 translate-y-0"
       contentStyle={{ width: "min(980px, calc(100vw - 2rem))" }}
@@ -117,34 +114,23 @@ export function PermissionEditModal({
       titleClassName="text-[18px] font-bold normal-case tracking-normal text-[#3F73BB] sm:text-[20px]"
     >
       {loading ? (
-        <p className="text-sm text-[#8B95A7]">กำลังโหลดรายละเอียดสิทธิ์...</p>
+        <p className="text-sm text-[#8B95A7]">กำลังโหลดข้อมูล...</p>
       ) : value ? (
         <div className="max-h-[calc(100vh-6rem)] space-y-5 overflow-y-auto pr-1">
           <div className="max-w-70 space-y-1.5">
-            <label className="block text-[16px] text-[#111827]">ทีม</label>
+            <label className="block text-[16px] text-[#111827]">ชื่อกลุ่ม</label>
 
-            <input
-              type="text"
-              autoComplete="off"
-              maxLength={255}
-              value={value.teamName}
-              onChange={(event) =>
-                onChange({
-                  ...value,
-                  teamName: event.target.value,
-                })
-              }
-              className="h-8 w-full rounded-[6px] border border-[#A8B1C2] bg-white px-3 text-[13px] text-[#111827] outline-none"
-              placeholder="กรอกชื่อทีม เช่น ทีม IT Support"
-            />
+            <div className="flex h-8 w-full items-center rounded-[6px] border border-[#A8B1C2] bg-[#F8FAFC] px-3 text-[13px] text-[#111827]">
+              {value.teamName}
+            </div>
           </div>
 
           <div className="rounded-[6px] border border-[#A8B1C2] bg-[#EEF4FF] p-3 sm:p-4">
             <p className="mb-3 text-[15px] font-semibold text-[#111827]">
-              จัดการสิทธิ์
+              สิทธิ์การเข้าถึง
             </p>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2">
               {sectionsForDisplay.map((section) => (
                 <div
                   key={section.id}
@@ -156,7 +142,11 @@ export function PermissionEditModal({
                     {getSectionDisplayTitle(section.id, section.title)}
                   </p>
 
-                  <div className={getSectionItemContainerClassName(section.id)}>
+                  <div
+                    className={getSectionItemContainerClassName(
+                      section.items.length,
+                    )}
+                  >
                     {section.items.map((item) => (
                       <PermissionChoice
                         key={item.id}
@@ -183,7 +173,7 @@ export function PermissionEditModal({
             <ProTechButton
               variant="delete"
               className="h-8 min-w-18 text-[12px]"
-             onClick={closeModal}
+              onClick={closeModal}
             >
               ยกเลิก
             </ProTechButton>
@@ -193,30 +183,17 @@ export function PermissionEditModal({
               className="h-8 min-w-18 text-[12px]"
               disabled={saving}
               onClick={() => {
-                const normalizedTeamName = normalizeTextInput(value.teamName);
-
-                if (!normalizedTeamName) {
-                  setValidationError("กรุณากรอกชื่อทีม");
-                  return;
-                }
-
                 if (value.permissionIds.length === 0) {
-                  setValidationError("กรุณาเลือกสิทธิ์อย่างน้อย 1 รายการ");
+                  setValidationError("กรุณาเลือกอย่างน้อย 1 สิทธิ์");
                   return;
                 }
 
                 setValidationError(null);
 
-                const nextValue: NonNullable<EditDialogState> = {
-                  ...value,
-                  teamName: normalizedTeamName,
-                };
-
-                onChange(nextValue);
-                onSubmit(nextValue);
+                onSubmit(value);
               }}
             >
-              {saving ? "กำลังบันทึก..." : "เพิ่มสิทธิ์"}
+              {saving ? "กำลังบันทึก..." : "บันทึก"}
             </ProTechButton>
           </div>
         </div>
