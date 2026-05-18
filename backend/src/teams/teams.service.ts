@@ -59,6 +59,8 @@ function buildPermissionSections(
   }));
 }
 
+type TeamUsageCountRow = CountRow;
+
 @Injectable()
 export class TeamsService {
   constructor(@Inject('DB') private readonly db: Pool) {}
@@ -180,7 +182,42 @@ export class TeamsService {
     return this.findOne(id);
   }
 
+  private async getTeamUsageTotal(id: number): Promise<number> {
+    const [staffTeamRoleRows] = await this.db.query<TeamUsageCountRow[]>(
+      'SELECT COUNT(*) AS total FROM staff_team_roles WHERE team_id = ?',
+      [id],
+    );
+    const [ticketRows] = await this.db.query<TeamUsageCountRow[]>(
+      'SELECT COUNT(*) AS total FROM tickets WHERE assigned_team_id = ?',
+      [id],
+    );
+    const [ticketAssignmentRows] = await this.db.query<TeamUsageCountRow[]>(
+      'SELECT COUNT(*) AS total FROM ticket_assignments WHERE assigned_team_id = ?',
+      [id],
+    );
+
+    return (
+      getCountTotal(staffTeamRoleRows, 0) +
+      getCountTotal(ticketRows, 0) +
+      getCountTotal(ticketAssignmentRows, 0)
+    );
+  }
+
   async remove(id: number) {
+    const current = await this.findOne(id);
+
+    if (!current) {
+      return null;
+    }
+
+    const usageTotal = await this.getTeamUsageTotal(id);
+
+    if (usageTotal > 0) {
+      throw new BadRequestException(
+        'ไม่สามารถลบกลุ่มผู้ใช้งานที่มีการใช้งานอยู่ได้',
+      );
+    }
+
     await this.db.query<ResultSetHeader>(
       'UPDATE teams SET status = ? WHERE id = ?',
       ['inactive', id],
