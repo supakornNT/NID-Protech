@@ -43,7 +43,8 @@ export function TeamMemberModal({
     }
 
     return (
-      staffOptions.find((option) => option.value === formState.staffId)?.label ?? ""
+      staffOptions.find((option) => option.value === formState.staffId)?.label ??
+      ""
     );
   }, [formState.staffId, mode, staffName, staffOptions]);
 
@@ -62,9 +63,9 @@ export function TeamMemberModal({
       onOpenChange={(nextOpen) => {
         if (!nextOpen) {
           setValidationError(null);
-      }
+        }
 
-      onOpenChange(nextOpen);
+        onOpenChange(nextOpen);
       }}
       title={
         mode === "edit" ? "แก้ไขคนในกลุ่มผู้ใช้งาน" : "เพิ่มคนเข้ากลุ่มผู้ใช้งาน"
@@ -74,7 +75,9 @@ export function TeamMemberModal({
       <div className="space-y-5">
         <div className="grid grid-cols-1 gap-4">
           <div className="space-y-2">
-            <label className="block text-[16px] text-[#111827]">ผู้ใช้งาน</label>
+            <label className="block text-[16px] text-[#111827]">
+              ผู้ใช้งาน
+            </label>
             {mode === "edit" ? (
               <div className="flex h-8.5 items-center rounded-md border border-[#A8B1C2] bg-[#F8FAFC] px-3 text-[14px] text-[#111827]">
                 {resolvedStaffName}
@@ -102,7 +105,9 @@ export function TeamMemberModal({
         </div>
 
         <div className="space-y-2">
-          <label className="block text-[16px] text-[#111827]">กลุ่มผู้ใช้งาน</label>
+          <label className="block text-[16px] text-[#111827]">
+            กลุ่มผู้ใช้งาน
+          </label>
           <div className="max-h-64 space-y-2 overflow-y-auto rounded-md border border-[#A8B1C2] bg-white p-3">
             {teamOptions.map((option) => {
               const checked = formState.teamIds.includes(option.value);
@@ -125,7 +130,9 @@ export function TeamMemberModal({
                   >
                     ✓
                   </span>
-                  <span className="text-[14px] text-[#111827]">{option.label}</span>
+                  <span className="text-[14px] text-[#111827]">
+                    {option.label}
+                  </span>
                 </button>
               );
             })}
@@ -157,11 +164,6 @@ export function TeamMemberModal({
             onClick={() => {
               if (!formState.staffId) {
                 setValidationError("กรุณาเลือกผู้ใช้งาน");
-                return;
-              }
-
-              if (formState.teamIds.length === 0) {
-                setValidationError("กรุณาเลือกอย่างน้อย 1 กลุ่ม");
                 return;
               }
 

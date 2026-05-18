@@ -75,6 +75,10 @@ export default function UserGroupsPage() {
     searchValue,
     setSearchValue,
     groupStatusFilter,
+    teamFilter,
+    setTeamFilter,
+    memberGroupFilter,
+    setMemberGroupFilter,
     setGroupStatusFilter,
     groupPage,
     setGroupPage,
@@ -102,7 +106,6 @@ export default function UserGroupsPage() {
     openEditGroupDialog,
     submitGroupDialog,
     deleteSelectedGroup,
-    openCreateMemberDialog,
     openEditMemberDialog,
     submitMemberDialog,
   } = useUserGroupsPage();
@@ -165,12 +168,6 @@ export default function UserGroupsPage() {
           ),
       },
       {
-        key: "status",
-        title: "สถานะ",
-        className: "w-[150px]",
-        render: (value) => renderStatus(String(value)),
-      },
-      {
         key: "actions",
         title: "จัดการ",
         className: "w-[120px]",
@@ -212,6 +209,10 @@ export default function UserGroupsPage() {
               }`}
               onClick={() => {
                 setActiveTab("groups");
+                setGroupPage(1);
+                setSelectedGroupId(null);
+                setGroupStatusFilter("all");
+                setMemberGroupFilter("all");
               }}
             >
               กลุ่ม
@@ -226,7 +227,10 @@ export default function UserGroupsPage() {
               }`}
               onClick={() => {
                 setActiveTab("members");
+                setMemberPage(1);
                 setSelectedGroupId(null);
+                setTeamFilter("all");
+                setMemberGroupFilter("all");
               }}
             >
               จัดการคนในกลุ่ม
@@ -263,23 +267,46 @@ export default function UserGroupsPage() {
                 value={groupStatusFilter}
                 placeholder="สถานะทั้งหมด"
                 options={[
-                  {
-                    value: "active",
-                    label: "ใช้งาน",
-                  },
-                  {
-                    value: "inactive",
-                    label: "ปิดใช้งาน",
-                  },
+                  { value: "active", label: "ใช้งาน" },
+                  { value: "inactive", label: "ปิดใช้งาน" },
                 ]}
                 onChange={(value) => {
                   setGroupStatusFilter(value as "all" | "active" | "inactive");
-
                   setGroupPage(1);
                   setSelectedGroupId(null);
                 }}
               />
-            ) : null}
+            ) : (
+              <>
+                <ToolbarSelect
+                  value={String(teamFilter)}
+                  placeholder="ทีมทั้งหมด"
+                  options={activeTeamOptions.map((team) => ({
+                    value: String(team.value),
+                    label: team.label,
+                  }))}
+                  onChange={(value) => {
+                    setTeamFilter(value === "all" ? "all" : Number(value));
+                    setMemberPage(1);
+                  }}
+                />
+                <ToolbarSelect
+                  value={memberGroupFilter}
+                  placeholder="สถานะกลุ่มทั้งหมด"
+                  options={[
+                    { value: "with-group", label: "มีกลุ่ม" },
+                    { value: "without-group", label: "ไม่มีกลุ่ม" },
+                  ]}
+                  minWidthClassName="min-w-[168px]"
+                  onChange={(value) => {
+                    setMemberGroupFilter(
+                      value as "all" | "with-group" | "without-group",
+                    );
+                    setMemberPage(1);
+                  }}
+                />
+              </>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-3">
@@ -302,20 +329,17 @@ export default function UserGroupsPage() {
               />
             ) : null}
 
-            <ProTechButton
-              variant="create"
-              className="h-7.75 px-4 text-[14px]"
-              onClick={() => {
-                if (isGroupsTab) {
+            {isGroupsTab ? (
+              <ProTechButton
+                variant="create"
+                className="h-7.75 px-4 text-[14px]"
+                onClick={() => {
                   openCreateGroupDialog();
-                  return;
-                }
-
-                openCreateMemberDialog();
-              }}
-            >
-              {isGroupsTab ? "สร้าง" : "เพิ่มคนเข้าทีม"}
-            </ProTechButton>
+                }}
+              >
+                สร้าง
+              </ProTechButton>
+            ) : null}
           </div>
         </div>
 

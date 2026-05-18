@@ -19,10 +19,19 @@ import {
   GetTeamsQuery,
   PermissionIdRow,
   PublicAdminTeamList,
+  StaffOption,
+  StaffOptionRow,
+  TeamMemberManagementItem,
+  TeamMemberManagementMembership,
+  TeamMemberManagementQuery,
+  TeamMemberManagementResponse,
+  TeamMemberManagementRow,
   TeamPermissionDetail,
   TeamPermissionItem,
   TeamPermissionSection,
   TeamPermissionRow,
+  TeamMemberOption,
+  TeamOptionRow,
 } from './interfaces/admin.interface';
 
 const PERMISSION_SECTION_TITLES: Record<string, string> = {
@@ -64,6 +73,7 @@ type TeamUsageCountRow = CountRow;
 @Injectable()
 export class TeamsService {
   constructor(@Inject('DB') private readonly db: Pool) {}
+
   async findAll(query: GetTeamsQuery = {}): Promise<PublicAdminTeamList> {
     const page = positiveIntFromQuery(query.page, 'page', 1);
     const limit = positiveIntFromQuery(query.limit, 'limit', 10, 100);
@@ -118,6 +128,151 @@ export class TeamsService {
         limit,
         total,
         totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async findMemberManagement(
+    query: TeamMemberManagementQuery = {},
+  ): Promise<TeamMemberManagementResponse> {
+    const page = positiveIntFromQuery(query.page, 'page', 1);
+    const limit = positiveIntFromQuery(query.limit, 'limit', 10, 100);
+    const offset = (page - 1) * limit;
+    const search = optionalText(query.search, 'search', 255) ?? '';
+    const teamId = query.teamId
+      ? positiveIntFromQuery(query.teamId, 'teamId', 1)
+      : undefined;
+    const groupFilter = optionalText(query.groupFilter, 'groupFilter', 32);
+
+    const whereClauses: string[] = [];
+    const params: Array<string | number> = [];
+
+    if (search) {
+      whereClauses.push(
+        `(CONCAT(staffs.name, ' ', staffs.surname) LIKE ? OR staffs.email LIKE ? OR teams.name LIKE ?)`,
+      );
+
+      const like = `%${search}%`;
+      params.push(like, like, like);
+    }
+
+    if (teamId !== undefined) {
+      whereClauses.push('staff_team_roles.team_id = ?');
+      params.push(teamId);
+    }
+
+    const whereSql =
+      whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+    const havingSql =
+      groupFilter === 'with-group'
+        ? 'HAVING COUNT(DISTINCT staff_team_roles.id) > 0'
+        : groupFilter === 'without-group'
+          ? 'HAVING COUNT(DISTINCT staff_team_roles.id) = 0'
+          : '';
+
+    const [countRows] = await this.db.query<CountRow[]>(
+      `
+      SELECT COUNT(*) AS total
+      FROM (
+        SELECT staffs.id
+        FROM staffs
+        LEFT JOIN staff_team_roles ON staff_team_roles.staff_id = staffs.id
+        LEFT JOIN teams ON teams.id = staff_team_roles.team_id
+        ${whereSql}
+        GROUP BY staffs.id, staffs.name, staffs.surname, staffs.email, staffs.status
+        ${havingSql}
+      ) AS member_management_count
+    `,
+      params,
+    );
+
+    const [rows] = await this.db.query<TeamMemberManagementRow[]>(
+      `
+      SELECT
+        staffs.id,
+        CONCAT(staffs.name, ' ', staffs.surname) AS fullName,
+        staffs.email,
+        staffs.status,
+        GROUP_CONCAT(DISTINCT staff_team_roles.id ORDER BY staff_team_roles.id SEPARATOR ',') AS membershipIds,
+        GROUP_CONCAT(DISTINCT teams.id ORDER BY teams.id SEPARATOR ',') AS teamIds,
+        GROUP_CONCAT(DISTINCT teams.name ORDER BY teams.id SEPARATOR '||') AS teamNames
+      FROM staffs
+      LEFT JOIN staff_team_roles ON staff_team_roles.staff_id = staffs.id
+      LEFT JOIN teams ON teams.id = staff_team_roles.team_id
+      ${whereSql}
+      GROUP BY staffs.id, staffs.name, staffs.surname, staffs.email, staffs.status
+      ${havingSql}
+      ORDER BY staffs.id ASC
+      LIMIT ? OFFSET ?
+    `,
+      [...params, limit, offset],
+    );
+
+    const [[teamOptionRows], [staffOptionRows]] = await Promise.all([
+      this.db.query<TeamOptionRow[]>(
+        `
+        SELECT
+          teams.id AS value,
+          teams.name AS label,
+          teams.status
+        FROM teams
+        ORDER BY teams.created_at ASC
+      `,
+      ),
+      this.db.query<StaffOptionRow[]>(
+        `
+        SELECT
+          staffs.id AS value,
+          CONCAT(staffs.name, ' ', staffs.surname) AS label
+        FROM staffs
+        ORDER BY staffs.name ASC, staffs.surname ASC, staffs.id ASC
+      `,
+      ),
+    ]);
+
+    const items: TeamMemberManagementItem[] = rows.map((row) => ({
+      memberships: (row.membershipIds ? row.membershipIds.split(',') : []).map(
+        (membershipId, index): TeamMemberManagementMembership => ({
+          id: Number(membershipId),
+          teamId: Number(row.teamIds?.split(',')[index] ?? 0),
+          teamName: row.teamNames?.split('||')[index] ?? '',
+        }),
+      ),
+      id: row.id,
+      fullName: row.fullName,
+      email: row.email,
+      status: row.status,
+      teams: row.teamNames ? row.teamNames.split('||') : [],
+      teamIds: row.teamIds
+        ? row.teamIds
+            .split(',')
+            .map((value) => Number(value))
+            .filter((value) => Number.isInteger(value) && value > 0)
+        : [],
+    }));
+
+    const teams: TeamMemberOption[] = teamOptionRows.map((row) => ({
+      value: row.value,
+      label: row.label,
+      status: row.status,
+    }));
+    const staffs: StaffOption[] = staffOptionRows.map((row) => ({
+      value: row.value,
+      label: row.label,
+    }));
+    const total = getCountTotal(countRows, 0);
+
+    return {
+      items,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+      filterOptions: {
+        teams,
+        staffs,
       },
     };
   }

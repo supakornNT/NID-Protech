@@ -9,10 +9,10 @@ import {
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
-const TABLE_LIMIT = 10;
 
 export type UserGroupTabKey = "groups" | "members";
 export type StatusFilter = "all" | "active" | "inactive";
+export type MemberGroupFilter = "all" | "with-group" | "without-group";
 
 export type TeamApiItem = {
   id: number;
@@ -31,30 +31,6 @@ export type TeamListResponse = {
   };
 };
 
-export type StaffApiItem = {
-  id: number;
-  name: string;
-  surname: string;
-  email: string;
-  phone: string;
-  status: string;
-};
-
-export type RoleApiItem = {
-  id: number;
-  name: string;
-};
-
-export type StaffTeamRoleApiItem = {
-  id: number;
-  staff_id: number;
-  staff_name: string;
-  team_id: number;
-  team_name: string;
-  role_id: number;
-  role_name: string;
-};
-
 export type GroupRow = {
   id: number;
   order: number;
@@ -62,6 +38,12 @@ export type GroupRow = {
   groupName: string;
   status: string;
   memberCount: number;
+};
+
+export type MemberMembership = {
+  id: number;
+  teamId: number;
+  teamName: string;
 };
 
 export type MemberRow = {
@@ -72,7 +54,7 @@ export type MemberRow = {
   teams: string[];
   status: string;
   teamIds: number[];
-  roleId: number | null;
+  memberships: MemberMembership[];
 };
 
 export type GroupFormValue = {
@@ -84,7 +66,37 @@ export type GroupFormValue = {
 export type MemberFormValue = {
   staffId: number | null;
   teamIds: number[];
-  roleId: number | null;
+};
+
+type Option = {
+  value: number;
+  label: string;
+};
+
+type MemberManagementResponse = {
+  items: Array<{
+    id: number;
+    fullName: string;
+    email: string;
+    status: string;
+    teams: string[];
+    teamIds: number[];
+    memberships: MemberMembership[];
+  }>;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  filterOptions: {
+    teams: Array<{
+      value: number;
+      label: string;
+      status: string;
+    }>;
+    staffs: Option[];
+  };
 };
 
 type GroupDialogState =
@@ -98,23 +110,10 @@ type MemberDialogState =
   | {
       mode: "create" | "edit";
       staffName: string;
+      memberships: MemberMembership[];
       value: MemberFormValue;
     }
   | null;
-
-function paginateRows<T>(rows: T[], page: number) {
-  const totalItems = rows.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / TABLE_LIMIT));
-  const safePage = Math.min(Math.max(page, 1), totalPages);
-  const startIndex = (safePage - 1) * TABLE_LIMIT;
-
-  return {
-    page: safePage,
-    totalItems,
-    totalPages,
-    items: rows.slice(startIndex, startIndex + TABLE_LIMIT),
-  };
-}
 
 async function getResponseErrorMessage(
   response: Response,
@@ -141,15 +140,18 @@ export function useUserGroupsPage() {
   const [appliedSearch, setAppliedSearch] = useState("");
   const [groupStatusFilter, setGroupStatusFilter] =
     useState<StatusFilter>("all");
+  const [teamFilter, setTeamFilter] = useState<number | "all">("all");
+  const [memberGroupFilter, setMemberGroupFilter] =
+    useState<MemberGroupFilter>("all");
   const [groupPage, setGroupPage] = useState(1);
   const [memberPage, setMemberPage] = useState(1);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
   const [teams, setTeams] = useState<TeamApiItem[]>([]);
-  const [staffs, setStaffs] = useState<StaffApiItem[]>([]);
-  const [roles, setRoles] = useState<RoleApiItem[]>([]);
-  const [staffTeamRoles, setStaffTeamRoles] = useState<StaffTeamRoleApiItem[]>(
-    [],
-  );
+  const [memberRows, setMemberRows] = useState<MemberRow[]>([]);
+  const [memberTotalItems, setMemberTotalItems] = useState(0);
+  const [memberTotalPages, setMemberTotalPages] = useState(1);
+  const [staffOptions, setStaffOptions] = useState<Option[]>([]);
+  const [memberTeamOptions, setMemberTeamOptions] = useState<Option[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -158,54 +160,84 @@ export function useUserGroupsPage() {
   const [memberDialogState, setMemberDialogState] =
     useState<MemberDialogState>(null);
 
+  const loadGroupsData = useCallback(async () => {
+    const response = await fetch(`${API_BASE_URL}/admin/teams?page=1&limit=100`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to load teams (${response.status})`);
+    }
+
+    const result = (await response.json()) as TeamListResponse;
+    setTeams(result.items);
+  }, []);
+
+  const loadMembersData = useCallback(async () => {
+    const params = new URLSearchParams({
+      page: String(memberPage),
+      limit: "10",
+    });
+
+    if (appliedSearch.trim()) {
+      params.set("search", normalizeSearchKeyword(appliedSearch));
+    }
+
+    if (teamFilter !== "all") {
+      params.set("teamId", String(teamFilter));
+    }
+
+    if (memberGroupFilter !== "all") {
+      params.set("groupFilter", memberGroupFilter);
+    }
+
+    const response = await fetch(
+      `${API_BASE_URL}/admin/teams/member-management?${params.toString()}`,
+      {
+        cache: "no-store",
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to load member management (${response.status})`);
+    }
+
+    const result = (await response.json()) as MemberManagementResponse;
+
+    setMemberRows(
+      result.items.map((item, index) => ({
+        id: item.id,
+        order: (result.pagination.page - 1) * result.pagination.limit + index + 1,
+        fullName: item.fullName,
+        email: item.email,
+        teams: item.teams,
+        status: item.status,
+        teamIds: item.teamIds,
+        memberships: item.memberships,
+      })),
+    );
+    setMemberTotalItems(result.pagination.total);
+    setMemberTotalPages(Math.max(1, result.pagination.totalPages));
+    setStaffOptions(result.filterOptions.staffs);
+    setMemberTeamOptions(
+      result.filterOptions.teams.map((team) => ({
+        value: team.value,
+        label:
+          team.status === "inactive" ? `${team.label} (ปิดใช้งาน)` : team.label,
+      })),
+    );
+  }, [appliedSearch, memberGroupFilter, memberPage, teamFilter]);
+
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
 
-      const [teamsResponse, staffsResponse, rolesResponse, teamRolesResponse] =
-        await Promise.all([
-          fetch(`${API_BASE_URL}/admin/teams?page=1&limit=100`, {
-            cache: "no-store",
-          }),
-          fetch(`${API_BASE_URL}/admin/staffs`, {
-            cache: "no-store",
-          }),
-          fetch(`${API_BASE_URL}/admin/roles`, {
-            cache: "no-store",
-          }),
-          fetch(`${API_BASE_URL}/admin/staff-team-roles`, {
-            cache: "no-store",
-          }),
-        ]);
-
-      if (!teamsResponse.ok) {
-        throw new Error(`Failed to load teams (${teamsResponse.status})`);
+      if (activeTab === "groups") {
+        await loadGroupsData();
+      } else {
+        await loadMembersData();
       }
 
-      if (!staffsResponse.ok) {
-        throw new Error(`Failed to load staffs (${staffsResponse.status})`);
-      }
-
-      if (!rolesResponse.ok) {
-        throw new Error(`Failed to load roles (${rolesResponse.status})`);
-      }
-
-      if (!teamRolesResponse.ok) {
-        throw new Error(
-          `Failed to load staff team roles (${teamRolesResponse.status})`,
-        );
-      }
-
-      const teamsResult = (await teamsResponse.json()) as TeamListResponse;
-      const staffsResult = (await staffsResponse.json()) as StaffApiItem[];
-      const rolesResult = (await rolesResponse.json()) as RoleApiItem[];
-      const teamRolesResult =
-        (await teamRolesResponse.json()) as StaffTeamRoleApiItem[];
-
-      setTeams(teamsResult.items);
-      setStaffs(staffsResult);
-      setRoles(rolesResult);
-      setStaffTeamRoles(teamRolesResult);
       setError(null);
     } catch (loadError) {
       console.error(loadError);
@@ -213,7 +245,7 @@ export function useUserGroupsPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeTab, loadGroupsData, loadMembersData]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -228,14 +260,16 @@ export function useUserGroupsPage() {
   const membershipsByTeamId = useMemo(() => {
     const result = new Map<number, Set<number>>();
 
-    for (const item of staffTeamRoles) {
-      const current = result.get(item.team_id) ?? new Set<number>();
-      current.add(item.staff_id);
-      result.set(item.team_id, current);
+    for (const member of memberRows) {
+      for (const membership of member.memberships) {
+        const current = result.get(membership.teamId) ?? new Set<number>();
+        current.add(member.id);
+        result.set(membership.teamId, current);
+      }
     }
 
     return result;
-  }, [staffTeamRoles]);
+  }, [memberRows]);
 
   const groupRows = useMemo<GroupRow[]>(() => {
     const normalizedSearch = normalizeSearchKeyword(appliedSearch).toLowerCase();
@@ -258,83 +292,26 @@ export function useUserGroupsPage() {
       status: team.status,
       memberCount: membershipsByTeamId.get(team.id)?.size ?? 0,
     }));
-  }, [appliedSearch, groupStatusFilter, membershipsByTeamId, selectedGroupId, teams]);
+  }, [
+    appliedSearch,
+    groupStatusFilter,
+    membershipsByTeamId,
+    selectedGroupId,
+    teams,
+  ]);
 
-  const memberRows = useMemo<MemberRow[]>(() => {
-    const normalizedSearch = normalizeSearchKeyword(appliedSearch).toLowerCase();
-    const membershipsByStaffId = new Map<number, StaffTeamRoleApiItem[]>();
+  const groupTotalItems = groupRows.length;
+  const groupTotalPages = Math.max(1, Math.ceil(groupTotalItems / 10));
+  const pagedGroupRows = useMemo(() => {
+    const safePage = Math.min(Math.max(groupPage, 1), groupTotalPages);
+    const startIndex = (safePage - 1) * 10;
+    return groupRows.slice(startIndex, startIndex + 10);
+  }, [groupPage, groupRows, groupTotalPages]);
 
-    for (const item of staffTeamRoles) {
-      const current = membershipsByStaffId.get(item.staff_id) ?? [];
-      current.push(item);
-      membershipsByStaffId.set(item.staff_id, current);
-    }
-
-    const filtered = staffs.filter((staff) => {
-      const fullName = `${staff.name} ${staff.surname}`.trim();
-      const memberships = membershipsByStaffId.get(staff.id) ?? [];
-      const teamNames = memberships.map((item) => item.team_name);
-
-      return (
-        normalizedSearch.length === 0 ||
-        fullName.toLowerCase().includes(normalizedSearch) ||
-        staff.email.toLowerCase().includes(normalizedSearch) ||
-        teamNames.some((teamName) =>
-          teamName.toLowerCase().includes(normalizedSearch),
-        )
-      );
-    });
-
-    return filtered.map((staff, index) => {
-      const memberships = membershipsByStaffId.get(staff.id) ?? [];
-      const uniqueTeams = Array.from(
-        new Map(
-          memberships.map((item) => [item.team_id, item.team_name]),
-        ).values(),
-      );
-
-      return {
-        id: staff.id,
-        order: index + 1,
-        fullName: `${staff.name} ${staff.surname}`.trim(),
-        email: staff.email,
-        teams: uniqueTeams,
-        status: staff.status,
-        teamIds: Array.from(new Set(memberships.map((item) => item.team_id))),
-        roleId: memberships[0]?.role_id ?? roles[0]?.id ?? null,
-      };
-    });
-  }, [appliedSearch, roles, staffs, staffTeamRoles]);
-
-  const pagedGroups = useMemo(
-    () => paginateRows(groupRows, groupPage),
-    [groupPage, groupRows],
-  );
-  const pagedMembers = useMemo(
-    () => paginateRows(memberRows, memberPage),
-    [memberPage, memberRows],
-  );
-
-  const activeTeamOptions = useMemo(
-    () =>
-      teams.map((team) => ({
-        value: team.id,
-        label:
-          team.status === "inactive"
-            ? `${team.name} (ปิดใช้งาน)`
-            : team.name,
-      })),
-    [teams],
-  );
-
-  const staffOptions = useMemo(
-    () =>
-      staffs.map((staff) => ({
-        value: staff.id,
-        label: `${staff.name} ${staff.surname}`.trim(),
-      })),
-    [staffs],
-  );
+  const activeTeamOptions = activeTab === "members" ? memberTeamOptions : teams.map((team) => ({
+    value: team.id,
+    label: team.status === "inactive" ? `${team.name} (ปิดใช้งาน)` : team.name,
+  }));
 
   function search() {
     setAppliedSearch(searchValue);
@@ -407,7 +384,10 @@ export function useUserGroupsPage() {
       }
 
       setGroupDialogState(null);
-      await loadData();
+      await loadGroupsData();
+      if (activeTab === "members") {
+        await loadMembersData();
+      }
     } catch (submitError) {
       console.error(submitError);
       setError(
@@ -429,9 +409,12 @@ export function useUserGroupsPage() {
       setSaving(true);
       setError(null);
 
-      const response = await fetch(`${API_BASE_URL}/admin/teams/${selectedGroupId}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/admin/teams/${selectedGroupId}`,
+        {
+          method: "DELETE",
+        },
+      );
 
       if (!response.ok) {
         throw new Error(
@@ -443,7 +426,10 @@ export function useUserGroupsPage() {
       }
 
       setSelectedGroupId(null);
-      await loadData();
+      await loadGroupsData();
+      if (activeTab === "members") {
+        await loadMembersData();
+      }
     } catch (deleteError) {
       console.error(deleteError);
       setError(
@@ -460,36 +446,34 @@ export function useUserGroupsPage() {
     setMemberDialogState({
       mode: "create",
       staffName: "",
+      memberships: [],
       value: {
         staffId: null,
         teamIds: [],
-        roleId: roles[0]?.id ?? null,
       },
     });
   }
 
   function openEditMemberDialog(staffId: number) {
-    const staff = staffs.find((item) => item.id === staffId);
+    const member = memberRows.find((item) => item.id === staffId);
 
-    if (!staff) {
+    if (!member) {
       return;
     }
 
-    const memberships = staffTeamRoles.filter((item) => item.staff_id === staffId);
-
     setMemberDialogState({
       mode: "edit",
-      staffName: `${staff.name} ${staff.surname}`.trim(),
+      staffName: member.fullName,
+      memberships: member.memberships,
       value: {
         staffId,
-        teamIds: Array.from(new Set(memberships.map((item) => item.team_id))),
-        roleId: memberships[0]?.role_id ?? roles[0]?.id ?? null,
+        teamIds: member.teamIds,
       },
     });
   }
 
   async function submitMemberDialog(value: MemberFormValue) {
-    if (!value.staffId || !value.roleId) {
+    if (!value.staffId) {
       return;
     }
 
@@ -497,16 +481,14 @@ export function useUserGroupsPage() {
       setSaving(true);
       setError(null);
 
-      const currentMemberships = staffTeamRoles.filter(
-        (item) => item.staff_id === value.staffId,
-      );
+      const currentMemberships = memberDialogState?.memberships ?? [];
       const currentByTeamId = new Map(
-        currentMemberships.map((item) => [item.team_id, item]),
+        currentMemberships.map((item) => [item.teamId, item]),
       );
       const nextTeamIdSet = new Set(value.teamIds);
 
       for (const currentMembership of currentMemberships) {
-        if (!nextTeamIdSet.has(currentMembership.team_id)) {
+        if (!nextTeamIdSet.has(currentMembership.teamId)) {
           const deleteResponse = await fetch(
             `${API_BASE_URL}/admin/staff-team-roles/${currentMembership.id}`,
             {
@@ -522,32 +504,6 @@ export function useUserGroupsPage() {
               ),
             );
           }
-
-          continue;
-        }
-
-        if (currentMembership.role_id !== value.roleId) {
-          const patchResponse = await fetch(
-            `${API_BASE_URL}/admin/staff-team-roles/${currentMembership.id}`,
-            {
-              method: "PATCH",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                roleId: value.roleId,
-              }),
-            },
-          );
-
-          if (!patchResponse.ok) {
-            throw new Error(
-              await getResponseErrorMessage(
-                patchResponse,
-                "ไม่สามารถอัปเดตข้อมูลคนในกลุ่มได้",
-              ),
-            );
-          }
         }
       }
 
@@ -556,17 +512,20 @@ export function useUserGroupsPage() {
           continue;
         }
 
-        const createResponse = await fetch(`${API_BASE_URL}/admin/staff-team-roles`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+        const createResponse = await fetch(
+          `${API_BASE_URL}/admin/staff-team-roles`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              staffId: value.staffId,
+              teamId,
+              roleId: null,
+            }),
           },
-          body: JSON.stringify({
-            staffId: value.staffId,
-            teamId,
-            roleId: value.roleId,
-          }),
-        });
+        );
 
         if (!createResponse.ok) {
           throw new Error(
@@ -579,7 +538,8 @@ export function useUserGroupsPage() {
       }
 
       setMemberDialogState(null);
-      await loadData();
+      await loadMembersData();
+      await loadGroupsData();
     } catch (submitError) {
       console.error(submitError);
       setError(
@@ -599,18 +559,22 @@ export function useUserGroupsPage() {
     setSearchValue,
     groupStatusFilter,
     setGroupStatusFilter,
-    groupPage: pagedGroups.page,
+    teamFilter,
+    setTeamFilter,
+    memberGroupFilter,
+    setMemberGroupFilter,
+    groupPage,
     setGroupPage,
-    memberPage: pagedMembers.page,
+    memberPage,
     setMemberPage,
     selectedGroupId,
     setSelectedGroupId,
-    groupRows: pagedGroups.items,
-    groupTotalItems: pagedGroups.totalItems,
-    groupTotalPages: pagedGroups.totalPages,
-    memberRows: pagedMembers.items,
-    memberTotalItems: pagedMembers.totalItems,
-    memberTotalPages: pagedMembers.totalPages,
+    groupRows: pagedGroupRows,
+    groupTotalItems,
+    groupTotalPages,
+    memberRows,
+    memberTotalItems,
+    memberTotalPages,
     loading,
     saving,
     error,

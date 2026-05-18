@@ -10,6 +10,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { CreateTeamDto } from './dto/create-team.dto';
+import { TeamMemberManagementQueryDto } from './dto/team-member-management-query.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
 import { UpdateTeamPermissionsDto } from './dto/update-team-permissions.dto';
 import { TeamsService } from './teams.service';
@@ -22,6 +23,11 @@ export class TeamsController {
   @Get()
   findAll(@Query() query: GetTeamsQuery) {
     return this.team.findAll(query);
+  }
+
+  @Get('member-management')
+  findMemberManagement(@Query() query: TeamMemberManagementQueryDto) {
+    return this.team.findMemberManagement(query);
   }
 
   @Get(':id/permissions')
