@@ -3,21 +3,19 @@ export class CreateTicketDto {
 
   requestId!: number;
 
-  parentTicketId?: number;
-
   assignedTeamId?: number;
 
   assignedStaffId?: number;
 
   assignedBy?: number;
 
+  dueAt?: string;
+
   title!: string;
 
   description!: string;
 
   status!: string;
-
-  resolvedAt?: string;
 
   closedAt?: string;
 }

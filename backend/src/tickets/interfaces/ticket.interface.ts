@@ -22,3 +22,35 @@ export interface Ticket extends RowDataPacket {
   resolved_at: Date | null;
   closed_at: Date | null;
 }
+
+export interface TicketByRequest extends RowDataPacket {
+  id: number;
+  assignedStaffName: string;
+  title: string;
+  detail: string;
+  status: string;
+  resolvedAt: Date | null;
+  problemName: string;
+  requestType: string;
+}
+
+export interface SubTicket extends RowDataPacket {
+  ticketNo: string;
+  requestId: number;
+  assignedTeamId: number;
+  assignedStafId: number;
+  assignedBy: number;
+  dueAt: Date;
+  assigedNote: string;
+  title: string;
+  description: string;
+  status: string;
+  createdAt: Date;
+}
+
+export interface findById extends RowDataPacket {
+  fullName: string;
+  title: string;
+  description: string;
+  dueAt: Date;
+}

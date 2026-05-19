@@ -1,13 +1,14 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
+
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { TicketsService } from './tickets.service';
@@ -16,28 +17,36 @@ import { TicketsService } from './tickets.service';
 export class TicketsController {
   constructor(private readonly ticket: TicketsService) {}
 
-  @Get()
-  findAll() {
-    return this.ticket.findAll();
+  @Get('request')
+  findAllByRequest(@Query('id', ParseIntPipe) id: number) {
+    return this.ticket.findAllByRequest(id);
   }
 
-  @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.ticket.findOne(id);
+  @Get('by-staff')
+  findByStaff(@Query('staffId', ParseIntPipe) staffId: number) {
+    return this.ticket.findByStaff(staffId);
+  }
+
+  @Get('id')
+  findById(@Query('id', ParseIntPipe) id: number) {
+    return this.ticket.findById(id);
   }
 
   @Post()
-  create(@Body() body: CreateTicketDto) {
-    return this.ticket.create(body);
+  createSubTicket(@Body() dto: CreateTicketDto) {
+    return this.ticket.createSubTicket(dto);
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateTicketDto) {
-    return this.ticket.update(id, body);
+  updateSubTicket(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateTicketDto,
+  ) {
+    return this.ticket.updateSubTicket(id, dto);
   }
 
-  @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.ticket.remove(id);
+  @Patch(':id/cancel')
+  deletedSubTicket(@Param('id', ParseIntPipe) id: number) {
+    return this.ticket.deleteSubticket(id);
   }
 }

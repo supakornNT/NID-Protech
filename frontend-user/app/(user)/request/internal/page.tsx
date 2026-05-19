@@ -6,13 +6,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { FormInput } from "@/components/ui/form-input";
-import { useProblemTypes } from "@/hooks/useProblemTypes";
-import { useCustomer } from "@/hooks/useCustomer";
-import { useOrganizations } from "@/hooks/useOrganizations";
-import { useSystems } from "@/hooks/useSystems";
+import { useProblemTypes } from "@/hooks/use-problem-types";
+import { useCustomer } from "@/hooks/use-customer";
+import { useOrganizations } from "@/hooks/use-organizations";
+import { useSystems } from "@/hooks/use-systems";
 import styles from "../request.module.css";
 import { SuccessDialog } from "@/components/ui/success-dialog";
-import { useSubmit } from "@/hooks/useSubmit";
+import { useSubmit } from "@/hooks/use-submit";
 
 const CUSTOMER_ID = 1;
 

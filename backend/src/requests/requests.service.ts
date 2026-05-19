@@ -1,6 +1,10 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { renderToBuffer } from '@react-pdf/renderer';
+import { existsSync, mkdirSync } from 'fs';
+import { writeFile } from 'fs/promises';
+import { join } from 'path';
+import React from 'react';
 import type { Pool, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
-import { extname } from 'path';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { CreateExternalRequestDto } from './dto/create-request-external.dto';
 import { CreateInternalRequestDto } from './dto/create-request-internal.dto';
@@ -12,10 +16,16 @@ import type {
   RequestsDetail,
   RequestsScreening,
 } from './interfaces/requests.interface';
+import { RequestTemplate, type RequestData } from './templates/report.template';
 
 @Injectable()
-export class RequestsService {
+export class RequestsService implements OnModuleInit {
   constructor(@Inject('DB') private readonly db: Pool) {}
+  private readonly pdfDir = join(process.cwd(), '..', 'uploads', 'pdf');
+
+  onModuleInit() {
+    mkdirSync(this.pdfDir, { recursive: true });
+  }
 
   async findAll(): Promise<RequestRecord[]> {
     const [rows] = await this.db.query<RequestRecord[]>(
@@ -75,8 +85,9 @@ export class RequestsService {
         problem_types.name AS problemName,
         requests.title AS title,
         requests.detail AS detail,
-        requests.closed_at AS closedAt
-      FROM requests
+        requests.closed_at AS closedAt,
+        requests.due_at AS dueAt
+      FROM requests 
       LEFT JOIN systems ON systems.id = requests.system_id
       LEFT JOIN problem_types ON problem_types.id = requests.problem_type_id
       LEFT JOIN customers ON customers.id = requests.customer_id
@@ -119,13 +130,9 @@ export class RequestsService {
 
   async findAttachments(requestId: number) {
     const [rows] = await this.db.query<RowDataPacket[]>(
-      `SELECT
-        id,
-        original_name,
-        original_name AS saved_name,
-        file_ext
-      FROM attachments
-      WHERE request_id = ?`,
+      `SELECT id, original_name AS originalName, saved_name AS savedName, file_ext AS fileExt
+       FROM attachments
+       WHERE request_id = ?`,
       [requestId],
     );
 
@@ -231,123 +238,111 @@ export class RequestsService {
     return rows;
   }
 
+  private async insertAttachments(
+    requestId: number,
+    files: Express.Multer.File[],
+  ) {
+    for (const file of files) {
+      const ext = file.originalname.split('.').pop() ?? '';
+      await this.db.query(
+        'INSERT INTO attachments (request_id, original_name, saved_name, file_ext) VALUES (?, ?, ?, ?)',
+        [requestId, file.originalname, file.filename, ext],
+      );
+    }
+  }
+
   async createRequestInternal(
     dto: CreateInternalRequestDto,
     files: Express.Multer.File[],
-  ): Promise<RequestRecord | null> {
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const [countRows] = await this.db.query<RowDataPacket[]>(
-      'SELECT COUNT(*) as total FROM requests WHERE DATE(created_at) = CURDATE()',
-    );
-    const seq = String((countRows[0].total as number) + 1).padStart(3, '0');
-    const requestNo = `RPT-${dateStr}-${seq}`;
+  ) {
+    const requestNo = `REQ-${Date.now()}`;
     const [result] = await this.db.query<ResultSetHeader>(
-      `INSERT INTO requests
-      (request_no, customer_id, organization, system_id, problem_type_id, title, detail, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'screening')`,
+      `INSERT INTO requests (request_no, customer_id, organization, system_id, problem_type_id, title, detail, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'screening')`,
       [
         requestNo,
-        Number(dto.customer_id),
+        dto.customer_id,
         dto.organization,
-        Number(dto.system_id),
-        Number(dto.problem_type_id),
+        dto.system_id,
+        dto.problem_type_id,
         dto.title,
         dto.detail,
       ],
     );
-    const requestId = result.insertId;
-
-    for (const file of files) {
-      await this.db.query<ResultSetHeader>(
-        `INSERT INTO attachments (request_id, attachment_type, original_name, file_ext)
-        VALUES (?, 'request_evidence', ?, ?)`,
-        [
-          requestId,
-          file.originalname,
-          extname(file.originalname).replace('.', '').toLowerCase(),
-        ],
-      );
-    }
-
-    return this.findOne(requestId);
+    await this.insertAttachments(result.insertId, files);
+    return { id: result.insertId, requestNo };
   }
 
   async createRequestExternal(
     dto: CreateExternalRequestDto,
     files: Express.Multer.File[],
-  ): Promise<RequestRecord | null> {
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const [countRows] = await this.db.query<RowDataPacket[]>(
-      'SELECT COUNT(*) as total FROM requests WHERE DATE(created_at) = CURDATE()',
-    );
-    const seq = String((countRows[0].total as number) + 1).padStart(3, '0');
-    const requestNo = `RPT-${dateStr}-${seq}`;
+  ) {
+    const requestNo = `REQ-${Date.now()}`;
     const [result] = await this.db.query<ResultSetHeader>(
-      `INSERT INTO requests
-      (request_no, customer_id, system_id, problem_type_id, title, detail, status)
-      VALUES (?, ?, ?, ?, ?, ?, 'screening')`,
+      `INSERT INTO requests (request_no, customer_id, system_id, problem_type_id, title, detail, status)
+       VALUES (?, ?, ?, ?, ?, ?, 'screening')`,
       [
         requestNo,
-        Number(dto.customer_id),
-        Number(dto.system_id),
-        Number(dto.problem_type_id),
+        dto.customer_id,
+        dto.system_id,
+        dto.problem_type_id,
         dto.title,
         dto.detail,
       ],
     );
-    const requestId = result.insertId;
-
-    for (const file of files) {
-      await this.db.query<ResultSetHeader>(
-        `INSERT INTO attachments (request_id, attachment_type, original_name, file_ext)
-        VALUES (?, 'request_evidence', ?, ?)`,
-        [
-          requestId,
-          file.originalname,
-          extname(file.originalname).replace('.', '').toLowerCase(),
-        ],
-      );
-    }
-
-    return this.findOne(requestId);
+    await this.insertAttachments(result.insertId, files);
+    return { id: result.insertId, requestNo };
   }
 
   async createRequestService(
     dto: CreateServiceRequestDto,
     files: Express.Multer.File[],
-  ): Promise<RequestRecord | null> {
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const [countRows] = await this.db.query<RowDataPacket[]>(
-      'SELECT COUNT(*) as total FROM requests WHERE DATE(created_at) = CURDATE()',
-    );
-    const seq = String((countRows[0].total as number) + 1).padStart(3, '0');
-    const requestNo = `CP-${dateStr}-${seq}`;
+  ) {
+    const requestNo = `REQ-${Date.now()}`;
     const [result] = await this.db.query<ResultSetHeader>(
-      `INSERT INTO requests
-      (request_no, customer_id, problem_type_id, title, detail, status)
-      VALUES (?, ?, ?, ?, ?, 'screening')`,
+      `INSERT INTO requests (request_no, customer_id, problem_type_id, title, detail, status)
+       VALUES (?, ?, ?, ?, ?, 'screening')`,
       [
         requestNo,
-        dto.customer_id ? Number(dto.customer_id) : null,
-        Number(dto.problem_type_id),
+        dto.customer_id ?? null,
+        dto.problem_type_id,
         dto.title,
         dto.detail,
       ],
     );
-    const requestId = result.insertId;
+    await this.insertAttachments(result.insertId, files);
+    return { id: result.insertId, requestNo };
+  }
 
-    for (const file of files) {
-      await this.db.query<ResultSetHeader>(
-        `INSERT INTO attachments (request_id, attachment_type, original_name, file_ext)
-        VALUES (?, 'request_evidence', ?, ?)`,
-        [
-          requestId,
-          file.originalname,
-          extname(file.originalname).replace('.', '').toLowerCase(),
-        ],
-      );
+  async updateResolved(id: number, resolved: string) {
+    const [rows] = await this.db.query<RowDataPacket[]>(
+      `
+      UPDATE
+      requests SET resolved_at = ? WHERE id = ?
+      `,
+      [resolved, id],
+    );
+    return rows;
+  }
+
+  async updateDueAt(id: number, dueAt: string) {
+    await this.db.query(`UPDATE requests SET due_at = ? WHERE id = ?`, [
+      dueAt,
+      id,
+    ]);
+  }
+
+  async getOrGenerate(data: RequestData): Promise<string> {
+    const filePath = join(this.pdfDir, `${data.id}.pdf`);
+
+    if (!existsSync(filePath)) {
+      const element = React.createElement(RequestTemplate, {
+        data,
+      }) as unknown as React.ReactElement<any>;
+      const buffer = await renderToBuffer(element);
+      await writeFile(filePath, buffer);
     }
 
-    return this.findOne(requestId);
+    return filePath;
   }
 }

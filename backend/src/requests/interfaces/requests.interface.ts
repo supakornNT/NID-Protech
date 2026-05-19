@@ -16,7 +16,11 @@ export interface RequestsDetail extends RowDataPacket {
   problemName: string;
   title: string;
   detail: string;
+  status: string;
+  assignedStaffName: string | null;
+  dueAt: string | null;
   closedAt: Date | null;
+  resolvedAt: string | null;
 }
 
 export interface RequestsAssign extends RowDataPacket {

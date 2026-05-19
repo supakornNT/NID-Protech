@@ -8,7 +8,7 @@ import styles from "../auth.module.css";
 import { FormInputIcon } from "@/components/ui/form-input";
 import { OtpInput } from "@/components/ui/otp-input";
 import { Button } from "@/components/ui/button";
-import { useOrganizations } from "@/hooks/useOrganizations";
+import { useOrganizations } from "@/hooks/use-organizations";
 import { fetchJson } from "@/lib/fetch";
 import { SuccessDialog } from "@/components/ui/success-dialog";
 
