@@ -15,6 +15,7 @@ export class TicketsService {
         tickets.title,
         requests.detail,
         tickets.resolved_at AS resolvedAt,
+        tickets.due_at AS dueAt,
         problem_types.name AS problemName,
         problem_types.request_type AS requestType
       FROM tickets
@@ -81,13 +82,13 @@ export class TicketsService {
     const [rows] = await this.db.query<findById[]>(
       `
       SELECT
-        CONCAT(staff.name,' ',staff.surname) AS fullName,
+        CONCAT(staffs.name,' ',staffs.surname) AS fullName,
         tickets.title,
         tickets.description,
         tickets.due_at AS dueAt
       FROM tickets
-      LEFT JOIN staff ON staff.id = tickets.assigned_staff_id
-      WHERE id = ?
+      LEFT JOIN staffs ON staffs.id = tickets.assigned_staff_id
+      WHERE tickets.id = ?
       `,
       [id],
     );

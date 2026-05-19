@@ -3,14 +3,17 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   Param,
   ParseIntPipe,
   Patch,
   Post,
   Query,
+  Res,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { mkdirSync } from 'fs';
 import { diskStorage } from 'multer';
@@ -126,5 +129,34 @@ export class RequestsController {
     @Body('resolved') resolved: string,
   ) {
     return this.request.updateResolved(id, resolved);
+  }
+
+  @Patch('update/due-at')
+  updateDueAt(
+    @Query('id', ParseIntPipe) id: number,
+    @Body('dueAt') dueAt: string,
+  ) {
+    return this.request.updateDueAt(id, dueAt);
+  }
+
+  @Get(':id/pdf')
+  @Header('Content-Type', 'application/pdf')
+  @Header('Content-Disposition', 'inline; filename="report.pdf"')
+  async getPdf(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
+    const data = await this.request.findDetail(id);
+    if (!data) {
+      res.status(404).send('Not found');
+      return;
+    }
+    const filePath = await this.request.getOrGenerate({
+      id: data.id,
+      title: data.title,
+      detail: data.detail,
+      customerName: data.customerName,
+      systemName: data.systemName,
+      assignedStaffName: data.assignedStaffName ?? null,
+      dueAt: data.dueAt ?? null,
+    });
+    res.sendFile(filePath);
   }
 }

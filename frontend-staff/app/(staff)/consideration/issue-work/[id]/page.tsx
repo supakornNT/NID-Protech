@@ -11,6 +11,8 @@ import { useTicketsByRequest } from "@/hooks/use-tickets-by-request";
 import { useUpdateRequestStatus } from "@/hooks/use-update-request-status";
 import { useUpdateTicket } from "@/hooks/assign/use-update-ticket";
 import { useDeleteTicket } from "@/hooks/assign/use-delete-ticket";
+import { useUpdateRequestDueDate } from "@/hooks/use-update-request-due-date";
+import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -37,11 +39,17 @@ export default function ManageWorkDetailPage() {
   const { lightbox, setLightbox } = useLightbox();
   const { tickets, refetch } = useTicketsByRequest(id);
   const { updateStatus } = useUpdateRequestStatus();
+  const { updateDueDate, loading: dueDateLoading } = useUpdateRequestDueDate();
   const [subPage, setSubPage] = useState(1);
+  const [subSearch, setSubSearch] = useState("");
   const [editedDueDate, setDueDate] = useState<string | undefined>(undefined);
-  const dueDate = editedDueDate ?? (data?.resolvedAt ? data.resolvedAt.slice(0, 10) : "");
-  const totalSubPages = Math.max(1, Math.ceil(tickets.length / SUBTASK_LIMIT));
-  const pagedSub = tickets.slice((subPage - 1) * SUBTASK_LIMIT, subPage * SUBTASK_LIMIT);
+  const dueDate = editedDueDate ?? (data?.dueAt ? new Date(data.dueAt).toLocaleDateString("en-CA") : "");
+  const filteredSub = tickets.filter(
+    (t) => subSearch === "" || t.title.includes(subSearch) || (t.assignedStaffName ?? "").includes(subSearch),
+  );
+  const totalSubPages = Math.max(1, Math.ceil(filteredSub.length / SUBTASK_LIMIT));
+  const pagedSub = filteredSub.slice((subPage - 1) * SUBTASK_LIMIT, subPage * SUBTASK_LIMIT);
+  const uniqueAssignees = new Set(tickets.map((t) => t.assignedStaffName).filter(Boolean)).size;
 
   const [editModal, setEditModal] = useState<EditModal>({
     open: false,
@@ -128,92 +136,75 @@ export default function ManageWorkDetailPage() {
       )}
 
       {/* Edit Modal */}
-      {editModal.open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          onClick={() => setEditModal({ open: false, ticketId: null, detail: null, detailLoading: false })}
-        >
-          <div
-            className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-[18px] font-bold text-gray-900">แก้ไขงานย่อย</h2>
-              <button
-                onClick={() => setEditModal({ open: false, ticketId: null, detail: null, detailLoading: false })}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {editModal.detailLoading ? (
-              <div className="flex items-center justify-center py-10 text-gray-400">
-                กำลังโหลด...
-              </div>
-            ) : (
-              <div className="flex flex-col gap-4">
-                {editModal.detail?.fullName && (
-                  <div>
-                    <p className="mb-1 text-[13px] text-gray-500">ผู้รับผิดชอบ</p>
-                    <p className="text-[14px] font-semibold text-gray-800">{editModal.detail.fullName}</p>
-                  </div>
-                )}
-
-                <div>
-                  <label className="mb-1 block text-[13px] text-gray-500">ชื่องาน</label>
-                  <input
-                    type="text"
-                    value={editForm.title}
-                    onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-[14px] outline-none focus:border-[#366DBD]"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-1 block text-[13px] text-gray-500">รายละเอียด</label>
-                  <textarea
-                    rows={4}
-                    value={editForm.description}
-                    onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
-                    className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-[14px] outline-none focus:border-[#366DBD]"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-1 block text-[13px] text-gray-500">กำหนดวันส่ง</label>
-                  <input
-                    type="date"
-                    value={editForm.dueAt}
-                    onChange={(e) => setEditForm((f) => ({ ...f, dueAt: e.target.value }))}
-                    min={new Date().toISOString().split("T")[0]}
-                    className="rounded-lg border border-gray-300 px-3 py-2 text-[14px] outline-none focus:border-[#366DBD]"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setEditModal({ open: false, ticketId: null, detail: null, detailLoading: false })}
-                    className="rounded-lg border border-gray-300 px-4 py-2 text-[13px] text-gray-600 hover:bg-gray-50"
-                  >
-                    ยกเลิก
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSaveEdit}
-                    disabled={updateLoading}
-                    className="rounded-lg bg-[#366DBD] px-5 py-2 text-[13px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-60"
-                  >
-                    {updateLoading ? "กำลังบันทึก..." : "บันทึก"}
-                  </button>
-                </div>
+      <AdminModalShell
+        open={editModal.open}
+        onOpenChange={(open) => { if (!open) setEditModal({ open: false, ticketId: null, detail: null, detailLoading: false }); }}
+        title="แก้ไขงานย่อย"
+      >
+        {editModal.detailLoading ? (
+          <div className="flex items-center justify-center py-10 text-gray-400">
+            กำลังโหลด...
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {editModal.detail?.fullName && (
+              <div>
+                <p className="mb-1 text-[13px] text-gray-500">ผู้รับผิดชอบ</p>
+                <p className="text-[14px] font-semibold text-gray-800">{editModal.detail.fullName}</p>
               </div>
             )}
-          </div>
-        </div>
-      )}
 
+            <div>
+              <label className="mb-1 block text-[13px] text-gray-500">ชื่องาน</label>
+              <input
+                type="text"
+                value={editForm.title}
+                onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-[14px] outline-none focus:border-[#366DBD]"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-[13px] text-gray-500">รายละเอียด</label>
+              <textarea
+                rows={4}
+                value={editForm.description}
+                onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
+                className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-[14px] outline-none focus:border-[#366DBD]"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-[13px] text-gray-500">กำหนดวันส่ง</label>
+              <input
+                type="date"
+                value={editForm.dueAt}
+                onChange={(e) => setEditForm((f) => ({ ...f, dueAt: e.target.value }))}
+                min={new Date().toISOString().split("T")[0]}
+                className="rounded-lg border border-gray-300 px-3 py-2 text-[14px] outline-none focus:border-[#366DBD]"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setEditModal({ open: false, ticketId: null, detail: null, detailLoading: false })}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-[13px] text-gray-600 hover:bg-gray-50"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveEdit}
+                disabled={updateLoading}
+                className="rounded-lg bg-[#366DBD] px-5 py-2 text-[13px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-60"
+              >
+                {updateLoading ? "กำลังบันทึก..." : "บันทึก"}
+              </button>
+            </div>
+          </div>
+        )}
+      </AdminModalShell>
       <div className="flex flex-1 flex-col gap-4 bg-[#F0F4FA] p-8">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -302,7 +293,7 @@ export default function ManageWorkDetailPage() {
             <div className="flex gap-4">
               {[
                 { value: tickets.length, label: "งานย่อย" },
-                { value: 3, label: "ผู้รับผิดชอบ" },
+                { value: uniqueAssignees, label: "ผู้รับผิดชอบ" },
                 { value: daysLeft !== null ? `${daysLeft} วัน` : "ยังไม่กำหนด", label: "ครบกำหนด" },
               ].map((stat) => (
                 <div
@@ -333,11 +324,14 @@ export default function ManageWorkDetailPage() {
             <div className="flex gap-2">
               <input
                 type="text"
+                value={subSearch}
+                onChange={(e) => { setSubSearch(e.target.value); setSubPage(1); }}
                 placeholder="ค้นหา..."
                 className="h-9 flex-1 rounded-lg border border-[#000000] bg-white px-3 text-[14px] outline-none focus:border-[#366DBD]"
               />
               <button
                 type="button"
+                onClick={() => setSubPage(1)}
                 className="h-9 rounded-lg bg-[#366DBD] px-4 text-[14px] font-semibold text-white hover:bg-[#2d5da3]"
               >
                 ค้นหา
@@ -422,9 +416,11 @@ export default function ManageWorkDetailPage() {
             <div className="flex justify-end mt-auto">
               <button
                 type="button"
-                className="rounded-lg bg-[#366DBD] px-6 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3]"
+                disabled={dueDateLoading || !editedDueDate}
+                onClick={() => updateDueDate(id, editedDueDate!)}
+                className="rounded-lg bg-[#366DBD] px-6 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-50"
               >
-                บันทึกการเปลี่ยนแปลง
+                {dueDateLoading ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
               </button>
             </div>
           </div>

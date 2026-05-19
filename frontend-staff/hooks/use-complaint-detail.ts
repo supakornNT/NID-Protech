@@ -12,7 +12,7 @@ type Detail = {
   title: string;
   detail: string;
   closedAt: string | null;
-  resolvedAt: string | null;
+  dueAt: string | null;
 };
 
 type Attachment = {

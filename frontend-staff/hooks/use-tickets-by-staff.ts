@@ -4,7 +4,7 @@ export type StaffTicket = {
   id: number;
   title: string;
   detail: string;
-  resolvedAt: string | null;
+  dueAt: string | null;
   problemName: string;
   requestType: string;
 };
