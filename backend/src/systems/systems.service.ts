@@ -1,5 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
-import type { Pool, ResultSetHeader } from 'mysql2/promise';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import type { Pool, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 
 import { getCountTotal, optionalEnumValue, optionalText, positiveIntFromQuery } from '@/common/validation/input-rules';
 import { CreateSystemDto } from './dto/create-system.dto';
@@ -205,15 +205,33 @@ export class SystemsService {
   }
 
   async remove(id: number): Promise<System | null> {
-    await this.db.query<ResultSetHeader>(
+    const [relationRows] = await this.db.query<
+      Array<RowDataPacket & { total: number }>
+    >(
       `
-        UPDATE systems
-        SET status = ?
-        WHERE id = ?
+        SELECT COUNT(*) AS total
+        FROM requests
+        WHERE system_id = ?
       `,
-      ['inactive', id],
+      [id],
     );
 
-    return this.findOne(id);
+    if (Number(relationRows[0]?.total ?? 0) > 0) {
+      throw new BadRequestException(
+        'ไม่สามารถลบระบบนี้ได้ เนื่องจากมีคำขอที่ใช้งานระบบนี้อยู่',
+      );
+    }
+
+    const deleted = await this.findOne(id);
+
+    await this.db.query<ResultSetHeader>(
+      `
+        DELETE FROM systems
+        WHERE id = ?
+      `,
+      [id],
+    );
+
+    return deleted;
   }
 }

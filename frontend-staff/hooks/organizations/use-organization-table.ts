@@ -122,7 +122,6 @@ export function useOrganizationTable({
       if (isAbortError(fetchError)) {
         return;
       }
-      console.error(fetchError);
       setError("ไม่สามารถโหลดข้อมูลองค์กรได้");
     } finally {
       setLoading(false);
@@ -156,7 +155,6 @@ export function useOrganizationTable({
         if (isAbortError(fetchError)) {
           return;
         }
-        console.error(fetchError);
         setError("ไม่สามารถโหลดข้อมูลองค์กรได้");
       } finally {
         if (!controller.signal.aborted) {
@@ -191,7 +189,6 @@ export function useOrganizationTable({
         await fetchOrganizations();
         return true;
       } catch (removeError) {
-        console.error(removeError);
         setError("ไม่สามารถลบข้อมูลองค์กรได้");
         return false;
       } finally {
@@ -227,7 +224,6 @@ export function useOrganizationTable({
         await fetchOrganizations();
         return true;
       } catch (createError) {
-        console.error(createError);
         setError("ไม่สามารถสร้างข้อมูลองค์กรได้");
         return false;
       } finally {
@@ -263,7 +259,6 @@ export function useOrganizationTable({
         await fetchOrganizations();
         return true;
       } catch (updateError) {
-        console.error(updateError);
         setError("ไม่สามารถแก้ไขข้อมูลองค์กรได้");
         return false;
       } finally {

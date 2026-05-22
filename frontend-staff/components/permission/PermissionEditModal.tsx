@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { ProTechButton } from "@/components/tables/protech-button";
@@ -60,6 +60,14 @@ export function PermissionEditModal({
   onSubmit,
 }: PermissionEditModalProps) {
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setValidationError(null);
+  }, [open, value]);
 
   function closeModal() {
     setValidationError(null);

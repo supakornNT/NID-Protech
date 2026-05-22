@@ -5,43 +5,41 @@ import { useEffect, useState } from "react";
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { ProTechButton } from "@/components/tables/protech-button";
 import type {
-  ProblemTypeFormInput,
-  ProblemTypeRequestType,
-  ProblemTypeStatus,
-} from "@/hooks/problem-types/use-problem-type-table";
+  SystemFormInput,
+  SystemStatus,
+} from "@/hooks/systems/use-system-type-table";
 import { normalizeTextInput } from "@/lib/form-utils";
 
-type ProblemTypeModalProps = {
+type OrganizationOption = {
+  id: number;
+  name: string;
+};
+
+type SystemModalProps = {
   open: boolean;
   saving: boolean;
   mode: "create" | "edit";
-  initialValue: ProblemTypeFormInput;
+  initialValue: SystemFormInput;
+  organizationOptions: OrganizationOption[];
   onOpenChange: (open: boolean) => void;
-  onSubmit: (payload: ProblemTypeFormInput) => void;
+  onSubmit: (payload: SystemFormInput) => void;
 };
 
-const REQUEST_TYPE_OPTIONS: Array<{
-  label: string;
-  value: ProblemTypeRequestType;
-}> = [
-  { label: "ปัญหา", value: "issue" },
-  { label: "ข้อร้องเรียน", value: "complaint" },
+const STATUS_OPTIONS: Array<{ label: string; value: SystemStatus }> = [
+  { label: "active", value: "active" },
+  { label: "inactive", value: "inactive" },
 ];
 
-const STATUS_OPTIONS: Array<{ label: string; value: ProblemTypeStatus }> = [
-  { label: "ใช้งาน", value: "active" },
-  { label: "ปิดใช้งาน", value: "inactive" },
-];
-
-export function ProblemTypeModal({
+export function SystemModal({
   open,
   saving,
   mode,
   initialValue,
+  organizationOptions,
   onOpenChange,
   onSubmit,
-}: ProblemTypeModalProps) {
-  const [formState, setFormState] = useState<ProblemTypeFormInput>(initialValue);
+}: SystemModalProps) {
+  const [formState, setFormState] = useState<SystemFormInput>(initialValue);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -62,42 +60,46 @@ export function ProblemTypeModal({
         }
         onOpenChange(nextOpen);
       }}
-      title={
-        mode === "edit"
-          ? "แก้ไขรูปแบบปัญหาและข้อร้องเรียน"
-          : "สร้างรูปแบบปัญหาและข้อร้องเรียน"
-      }
-      widthClassName="max-w-[920px]"
+      title={mode === "edit" ? "แก้ไขข้อมูลระบบ" : "สร้างข้อมูลระบบ"}
+      widthClassName="max-w-[720px]"
     >
-      <div className="rounded-[50px] px-4 py-14">
+      <div className="px-4 py-10">
         <div className="grid grid-cols-1 gap-6">
           <div className="space-y-2">
-            <label className="block text-[16px] text-[#111827]">รหัส</label>
+            <label className="block text-[16px] text-[#111827]">ชื่อระบบ</label>
             <input
-              className="h-8.25 w-full rounded-md border border-[#A8B1C2] bg-[#F8FAFC] px-3 text-[#64748B] outline-none"
-              value={formState.code || ""}
-              placeholder={mode === "create" ? "ระบบจะสร้างรหัสอัตโนมัติ" : ""}
-              disabled
-              readOnly
+              type="text"
+              maxLength={255}
+              className="h-8.25 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none"
+              value={formState.name}
+              placeholder="กรอกชื่อระบบ"
+              onChange={(event) =>
+                setFormState((current) => ({
+                  ...current,
+                  name: event.target.value,
+                }))
+              }
             />
           </div>
 
           <div className="space-y-2">
-            <label className="block text-[16px] text-[#111827]">หมวด</label>
+            <label className="block text-[16px] text-[#111827]">องค์กร</label>
             <select
               className="h-8.25 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none"
-              value={formState.requestType}
-              disabled={mode === "edit"}
+              value={formState.organizationId ?? ""}
               onChange={(event) =>
                 setFormState((current) => ({
                   ...current,
-                  requestType: event.target.value as ProblemTypeRequestType,
+                  organizationId: event.target.value
+                    ? Number(event.target.value)
+                    : null,
                 }))
               }
             >
-              {REQUEST_TYPE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+              <option value="">เลือกองค์กร</option>
+              {organizationOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.name}
                 </option>
               ))}
             </select>
@@ -111,7 +113,7 @@ export function ProblemTypeModal({
               onChange={(event) =>
                 setFormState((current) => ({
                   ...current,
-                  status: event.target.value as ProblemTypeStatus,
+                  status: event.target.value as SystemStatus,
                 }))
               }
             >
@@ -122,26 +124,6 @@ export function ProblemTypeModal({
               ))}
             </select>
           </div>
-
-          <div className="space-y-2">
-            <label className="block text-[16px] text-[#111827]">ประเภท</label>
-            <input
-              type="text"
-              autoComplete="off"
-              maxLength={100}
-              className="h-8.25 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none"
-              value={formState.name}
-              placeholder="กรอกชื่อประเภท เช่น ปัญหาระบบ, ขอแก้ไขข้อมูล"
-              onChange={(event) =>
-                setFormState((current) => ({
-                  ...current,
-                  name: event.target.value,
-                }))
-              }
-            />
-            
-           
-          </div>
         </div>
 
         {validationError ? (
@@ -150,7 +132,7 @@ export function ProblemTypeModal({
           </p>
         ) : null}
 
-        <div className="mt-16 flex justify-end gap-3">
+        <div className="mt-10 flex justify-end gap-3">
           <ProTechButton
             variant="delete"
             className="h-8.25 min-w-19 text-[14px]"
@@ -166,7 +148,12 @@ export function ProblemTypeModal({
               const trimmedName = normalizeTextInput(formState.name);
 
               if (!trimmedName) {
-                setValidationError("กรุณากรอกชื่อประเภท");
+                setValidationError("กรุณากรอกชื่อระบบ");
+                return;
+              }
+
+              if (!formState.organizationId) {
+                setValidationError("กรุณาเลือกองค์กร");
                 return;
               }
 
@@ -183,5 +170,4 @@ export function ProblemTypeModal({
       </div>
     </AdminModalShell>
   );
-  
 }

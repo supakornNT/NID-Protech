@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { ProTechButton } from "@/components/tables/protech-button";
@@ -31,6 +31,15 @@ export function TeamGroupModal({
 }: TeamGroupModalProps) {
   const [formState, setFormState] = useState<UserGroupFormInput>(initialValue);
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setFormState(initialValue);
+    setValidationError(null);
+  }, [initialValue, open]);
 
   return (
     <AdminModalShell

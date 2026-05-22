@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { ProTechButton } from "@/components/tables/protech-button";
@@ -36,6 +36,15 @@ export function TeamMemberModal({
 }: TeamMemberModalProps) {
   const [formState, setFormState] = useState<UserGroupMemberFormInput>(initialValue);
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setFormState(initialValue);
+    setValidationError(null);
+  }, [initialValue, open]);
 
   const resolvedStaffName = useMemo(() => {
     if (mode === "edit" && staffName) {

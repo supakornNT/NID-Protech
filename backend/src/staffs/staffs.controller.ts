@@ -1,20 +1,32 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CreateStaffDto } from './dto/create-staff.dto';
+import { ResetStaffPasswordDto } from './dto/reset-staff-password.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
 import { StaffsService } from './staffs.service';
+import type { GetAdminStaffsQuery } from './interfaces/admin.interface';
 
 @Controller('admin/staffs')
 export class StaffsController {
   constructor(private readonly staff: StaffsService) {}
+
+  @Get('users')
+  findAdminUsers(@Query() query: GetAdminStaffsQuery) {
+    return this.staff.findAdminUsers(query);
+  }
+
+  @Get('users/options')
+  findAdminUserOptions() {
+    return this.staff.findAdminUserOptions();
+  }
 
   @Get()
   findAll() {
@@ -41,9 +53,17 @@ export class StaffsController {
     return this.staff.update(id, body);
   }
 
-  @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.staff.remove(id);
+  @Post(':id/send-password-otp')
+  sendPasswordOtp(@Param('id', ParseIntPipe) id: number) {
+    return this.staff.sendPasswordResetOtp(id);
+  }
+
+  @Post(':id/reset-password')
+  resetPassword(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: ResetStaffPasswordDto,
+  ) {
+    return this.staff.resetPasswordWithOtp(id, body);
   }
 
   @Patch(':id/inactive')

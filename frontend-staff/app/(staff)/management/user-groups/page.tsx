@@ -128,7 +128,7 @@ export default function UserGroupsPage() {
           />
         ),
       },
-      { key: "order", title: "ลำดับ", className: "w-[100px]" },
+      // { key: "order", title: "ลำดับ", className: "w-[100px]" },
       { key: "groupName", title: "กลุ่ม", className: "w-[220px]" },
 
       {
@@ -242,8 +242,10 @@ export default function UserGroupsPage() {
             <span className="absolute inset-x-0 bottom-0 h-px bg-[#111827]" />
             <button
               type="button"
-              className={`relative pb-1 text-[16px] ${
-                isGroupsTab ? "text-[#3F73BB]" : "text-[#111827]"
+              className={`relative pb-1 pt-1 text-[16px] font-medium transition-colors duration-150 ${
+                isGroupsTab
+                  ? "text-[#3F73BB]"
+                  : "text-[#111827] hover:text-[#3F73BB]"
               }`}
               onClick={() => {
                 setActiveTab("groups");
@@ -260,8 +262,10 @@ export default function UserGroupsPage() {
             </button>
             <button
               type="button"
-              className={`relative pb-1 text-[16px] ${
-                !isGroupsTab ? "text-[#3F73BB]" : "text-[#111827]"
+              className={`relative pb-1 pt-1 text-[16px] font-medium transition-colors duration-150 ${
+                !isGroupsTab
+                  ? "text-[#3F73BB]"
+                  : "text-[#111827] hover:text-[#3F73BB]"
               }`}
               onClick={() => {
                 setActiveTab("members");

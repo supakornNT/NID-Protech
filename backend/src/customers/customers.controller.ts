@@ -10,6 +10,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { CreateCustomerDto } from './dto/create-customer.dto';
+import { ResetCustomerPasswordDto } from './dto/reset-customer-password.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import type { GetCustomersQuery } from './interfaces/admin.interface';
 import { CustomersService } from './customers.service';
@@ -48,6 +49,19 @@ export class CustomersController {
     @Body() body: UpdateCustomerDto,
   ) {
     return this.customer.update(id, body);
+  }
+
+  @Post(':id/send-password-otp')
+  sendPasswordOtp(@Param('id', ParseIntPipe) id: number) {
+    return this.customer.sendPasswordResetOtp(id);
+  }
+
+  @Post(':id/reset-password')
+  resetPassword(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: ResetCustomerPasswordDto,
+  ) {
+    return this.customer.resetPasswordWithOtp(id, body);
   }
 
   @Delete(':id')

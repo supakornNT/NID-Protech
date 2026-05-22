@@ -100,7 +100,6 @@ export function useUnapprovedCustomers(search = "") {
       if (isAbortError(fetchError)) {
         return;
       }
-      console.error(fetchError);
       setError("ไม่สามารถโหลดข้อมูลลูกค้าที่รออนุมัติได้");
     } finally {
       setLoading(false);
@@ -134,7 +133,6 @@ export function useUnapprovedCustomers(search = "") {
         if (isAbortError(fetchError)) {
           return;
         }
-        console.error(fetchError);
         setError("ไม่สามารถโหลดข้อมูลลูกค้าที่รออนุมัติได้");
       } finally {
         if (!controller.signal.aborted) {
@@ -172,7 +170,6 @@ export function useUnapprovedCustomers(search = "") {
         await fetchCustomers();
         return true;
       } catch (updateError) {
-        console.error(updateError);
         setError("ไม่สามารถอัปเดตสถานะลูกค้าได้");
         return false;
       } finally {

@@ -115,7 +115,6 @@ export function useSystemTable({
         return;
       }
 
-      console.error(fetchError);
       setError("ไม่สามารถโหลดข้อมูลระบบได้");
     } finally {
       setLoading(false);
@@ -150,7 +149,6 @@ export function useSystemTable({
           return;
         }
 
-        console.error(fetchError);
         setError("ไม่สามารถโหลดข้อมูลระบบได้");
       } finally {
         if (!controller.signal.aborted) {
@@ -179,14 +177,24 @@ export function useSystemTable({
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to remove system (${response.status})`);
+          const errorResult = (await response.json().catch(() => null)) as
+            | { message?: string | string[] }
+            | null;
+          const message = Array.isArray(errorResult?.message)
+            ? errorResult?.message[0]
+            : errorResult?.message;
+
+          throw new Error(message || `Failed to remove system (${response.status})`);
         }
 
         await fetchSystems();
         return true;
       } catch (removeError) {
-        console.error(removeError);
-        setError("ไม่สามารถลบข้อมูลระบบได้");
+        setError(
+          removeError instanceof Error
+            ? removeError.message
+            : "ไม่สามารถลบข้อมูลระบบได้",
+        );
         return false;
       } finally {
         setActiveId(null);
@@ -220,7 +228,6 @@ export function useSystemTable({
         await fetchSystems();
         return true;
       } catch (createError) {
-        console.error(createError);
         setError("ไม่สามารถสร้างข้อมูลระบบได้");
         return false;
       } finally {
@@ -255,7 +262,6 @@ export function useSystemTable({
         await fetchSystems();
         return true;
       } catch (updateError) {
-        console.error(updateError);
         setError("ไม่สามารถแก้ไขข้อมูลระบบได้");
         return false;
       } finally {

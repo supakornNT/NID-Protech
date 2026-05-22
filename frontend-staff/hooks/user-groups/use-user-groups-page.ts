@@ -322,7 +322,6 @@ export function useUserGroupsPage() {
         if (isAbortError(loadError)) {
           return;
         }
-        console.error(loadError);
         setError("ไม่สามารถโหลดข้อมูลการจัดการกลุ่มผู้ใช้ได้");
       } finally {
         if (!controller.signal.aborted) {
@@ -432,7 +431,6 @@ export function useUserGroupsPage() {
         await loadMembersData();
       }
     } catch (submitError) {
-      console.error(submitError);
       setError(
         submitError instanceof Error
           ? submitError.message
@@ -474,7 +472,6 @@ export function useUserGroupsPage() {
         await loadMembersData();
       }
     } catch (deleteError) {
-      console.error(deleteError);
       setError(
         deleteError instanceof Error
           ? deleteError.message
@@ -547,7 +544,6 @@ export function useUserGroupsPage() {
       setMemberDialogState(null);
       await Promise.all([loadMembersData(), loadGroupsData()]);
     } catch (submitError) {
-      console.error(submitError);
       setError(
         submitError instanceof Error
           ? submitError.message

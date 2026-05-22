@@ -151,7 +151,6 @@ export function useTeamPermissionsPage() {
       if (isAbortError(fetchError)) {
         return;
       }
-      console.error(fetchError);
       setError("ไม่สามารถโหลดข้อมูลทีมได้");
     } finally {
       setLoading(false);
@@ -185,7 +184,6 @@ export function useTeamPermissionsPage() {
         if (isAbortError(fetchError)) {
           return;
         }
-        console.error(fetchError);
         setError("ไม่สามารถโหลดข้อมูลทีมได้");
       } finally {
         if (!controller.signal.aborted) {
@@ -238,7 +236,6 @@ export function useTeamPermissionsPage() {
           })),
         });
       } catch (fetchError) {
-        console.error(fetchError);
         setError("ไม่สามารถโหลดข้อมูลสิทธิ์ของทีมได้");
       } finally {
         setDialogLoading(false);
@@ -277,7 +274,6 @@ export function useTeamPermissionsPage() {
       setDialogState(null);
       await fetchTeams();
     } catch (submitError) {
-      console.error(submitError);
       setError("ไม่สามารถบันทึกสิทธิ์ของทีมได้");
     } finally {
       setSaving(false);

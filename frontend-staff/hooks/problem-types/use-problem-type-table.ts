@@ -112,7 +112,6 @@ export function useProblemTypeTable({
       if (isAbortError(fetchError)) {
         return;
       }
-      console.error(fetchError);
       setError("ไม่สามารถโหลดข้อมูลประเภทเรื่องได้");
     } finally {
       setLoading(false);
@@ -146,7 +145,6 @@ export function useProblemTypeTable({
         if (isAbortError(fetchError)) {
           return;
         }
-        console.error(fetchError);
         setError("ไม่สามารถโหลดข้อมูลประเภทเรื่องได้");
       } finally {
         if (!controller.signal.aborted) {
@@ -185,7 +183,6 @@ export function useProblemTypeTable({
         await fetchProblemTypes();
         return true;
       } catch (createError) {
-        console.error(createError);
         setError("ไม่สามารถสร้างข้อมูลประเภทเรื่องได้");
         return false;
       } finally {
@@ -220,7 +217,6 @@ export function useProblemTypeTable({
         await fetchProblemTypes();
         return true;
       } catch (updateError) {
-        console.error(updateError);
         setError("ไม่สามารถแก้ไขข้อมูลประเภทเรื่องได้");
         return false;
       } finally {

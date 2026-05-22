@@ -1,127 +1,390 @@
 "use client";
 
-import type { Column } from "@/types/table";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronDown } from "lucide-react";
+
 import {
   ActionIcons,
+  AdminTablePage,
   CheckCell,
   StatusBadge,
 } from "@/components/admin/admin-table-page";
+import { DeleteConfirmDialog } from "@/components/admin/delete-confirm-dialog";
+import { SystemModal } from "@/components/systems/system-modal";
 import { ProTechButton } from "@/components/tables/protech-button";
-import {  ProTechSearchBar } from "@/components/tables/protech-search";
-import { ProTechTable } from "@/components/tables/protech-table";
-import { useState } from "react";
+import {
+  useSystemTable,
+  type SystemFormInput,
+  type SystemListApiItem,
+  type SystemStatusFilter,
+} from "@/hooks/systems/use-system-type-table";
+import type { Column } from "@/types/table";
+import { formatThaiDateTime } from "../organizations/page";
 
-type ProjectRow = {
-  order: number;
-  organization: string;
-  systemName: string;
-  type: string;
-  status: "ใช้งาน" | "ไม่ใช้งาน" ;
-  createdAt: string;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
+type DialogMode = "create" | "edit";
+
+type DialogState = {
+  mode: DialogMode;
+  item?: SystemListApiItem;
+} | null;
+
+type OrganizationOption = {
+  id: number;
+  name: string;
 };
 
+type SystemTableRow = {
+  id: number;
+  checked: boolean;
+  name: string;
+  organizationName: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+};
 
-const columns: Column<ProjectRow>[] = [
-  { key: "check", title: "", render: () => <CheckCell /> },
-  { key: "order", title: "ลำดับ" },
-  { key: "organization", title: "ชื่อองค์กร" },
-  { key: "systemName", title: "ชื่อโครงการ" },
-  { key: "type", title: "ประเภท" },
-  {
-    key: "status",
-    title: "สถานะ",
-    render: (value) => (
-      <StatusBadge
-        label={String(value)}
-        tone={
-          value === "ใช้งาน"
-            ? "success"
-            : value === "พัฒนา"
-              ? "neutral"
-              : "danger"
+export default function SystemsPage() {
+  const [page, setPage] = useState(1);
+  const [searchValue, setSearchValue] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<SystemStatusFilter>("all");
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [dialogState, setDialogState] = useState<DialogState>(null);
+  const [organizationOptions, setOrganizationOptions] = useState<OrganizationOption[]>([]);
+  const [organizationError, setOrganizationError] = useState<string | null>(null);
+
+  const {
+    items,
+    pagination,
+    loading,
+    error,
+    clearError,
+    activeId,
+    saving,
+    statusOptions,
+    createSystem,
+    updateSystem,
+    removeSystem,
+  } = useSystemTable({
+    page,
+    search: appliedSearch,
+    statusFilter,
+  });
+
+  const safePage = Math.min(page, Math.max(pagination.totalPages, 1));
+  const resolvedSelectedId =
+    selectedId !== null && items.some((item) => item.id === selectedId)
+      ? selectedId
+      : null;
+
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      clearError();
+    }, 2500);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [clearError, error]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    void (async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/admin-organizations/active`, {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to load organizations (${response.status})`);
         }
-      />
-    ),
-  },
-  {
-    key: "actions",
-    title: "จัดการ",
-    render: () => <ActionIcons showInfo={false} />,
-  },
-];
-function mapCustomerRow(item: CustomerListApiItem): CustomerTableRow {
-  return {
-   
-  };
-}
-// eturn {
-//     items,
-//     pagination,
-//     loading,
-//     error,
-//     clearError,
-//     activeId,
-//     saving,
-//     statusOptions: STATUS_OPTIONS,
-//     fetchSystems,
-//     createSystem,
-//     updateSystem,
-//     removeSystem,
-export default function ProjectsPage() {
- const [items,] = useState<ProjectRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-// const rows = useMemo(() => items.map(mapCustomerRow), [items]);
+
+        const result = (await response.json()) as Array<{
+          id: number;
+          name: string;
+        }>;
+
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        setOrganizationOptions(
+          result.map((item) => ({
+            id: item.id,
+            name: item.name,
+          })),
+        );
+        setOrganizationError(null);
+      } catch (fetchError) {
+        if (fetchError instanceof Error && fetchError.name === "AbortError") {
+          return;
+        }
+
+        setOrganizationError("ไม่สามารถโหลดรายการองค์กรได้");
+      }
+    })();
+
+    return () => {
+      controller.abort();
+    };
+  }, []);
+
+  const rows = useMemo<SystemTableRow[]>(() => {
+    return items.map((item) => ({
+      id: item.id,
+      checked: item.id === resolvedSelectedId,
+      name: item.name || "-",
+      organizationName: item.organizationName || "-",
+      status: item.status || "-",
+      createdAt: formatThaiDateTime(item.createdAt),
+      updatedAt: formatThaiDateTime(item.updatedAt),
+    }));
+  }, [items, resolvedSelectedId]);
+
+  function resetSelection() {
+    setSelectedId(null);
+  }
+
+  function resetToFirstPage() {
+    setPage(1);
+  }
+
+  function buildInitialValue(dialogState: DialogState): SystemFormInput {
+    if (dialogState?.mode === "edit" && dialogState.item) {
+      return {
+        name: dialogState.item.name || "",
+        organizationId: dialogState.item.organizationId ?? null,
+        status: dialogState.item.status === "inactive" ? "inactive" : "active",
+      };
+    }
+
+    return {
+      name: "",
+      organizationId: null,
+      status: "active",
+    };
+  }
+
+  function handleToggleSelect(id: number) {
+    setSelectedId((current) => (current === id ? null : id));
+  }
+
+  async function handleDeleteSelected() {
+    if (resolvedSelectedId === null) {
+      return;
+    }
+
+    const success = await removeSystem(resolvedSelectedId);
+
+    if (success) {
+      resetSelection();
+    }
+  }
+
+  async function handleSubmit(payload: SystemFormInput) {
+    const success =
+      dialogState?.mode === "edit" && dialogState.item
+        ? await updateSystem(dialogState.item.id, payload)
+        : await createSystem(payload);
+
+    if (!success) {
+      return;
+    }
+
+    setDialogState(null);
+  }
+
+  const columns: Column<SystemTableRow>[] = [
+    {
+      key: "checked",
+      title: "",
+      className: "w-[72px]",
+      render: (_, row) => (
+        <CheckCell
+          checked={row.checked}
+          onClick={() => {
+            handleToggleSelect(row.id);
+          }}
+        />
+      ),
+    },
+    { key: "name", title: "ชื่อระบบ" },
+    { key: "organizationName", title: "ชื่อองค์กร" },
+    {
+      key: "status",
+      title: "สถานะ",
+      className: "w-[124px]",
+      render: (value) => {
+        const status = String(value ?? "-");
+        const tone =
+          status === "active"
+            ? "success"
+            : status === "inactive"
+              ? "danger"
+              : "neutral";
+
+        return <StatusBadge label={status} tone={tone} />;
+      },
+    },
+    { key: "createdAt", title: "วันที่สร้าง", className: "w-[180px]" },
+    { key: "updatedAt", title: "วันที่แก้ไข", className: "w-[180px]" },
+    {
+      key: "actions",
+      title: "จัดการ",
+      className: "w-[64px]",
+      render: (_, row) => {
+        const currentItem = items.find((item) => item.id === row.id);
+
+        if (!currentItem) {
+          return null;
+        }
+
+        return (
+          <ActionIcons
+            showInfo={false}
+            onEdit={() => {
+              setDialogState({ mode: "edit", item: currentItem });
+            }}
+          />
+        );
+      },
+    },
+  ];
+
   return (
     <div className="min-h-full w-full rounded-xl px-5 py-7 sm:px-6 sm:py-8 lg:px-8 lg:py-9">
-      <div className="space-y-5">
-        <div>
-          <h1 className="text-[32px] font-bold leading-none text-[#111827]">
-            จัดการข้อมูลโครงการ
-          </h1>
-          <p className="mt-2 text-[16px] text-[#8B95A7]">
-            จัดการข้อมูลโครงการที่เกี่ยวข้อง
-          </p>
-        </div>
+      <AdminTablePage
+        title="จัดการข้อมูลระบบ"
+        subtitle="จัดการข้อมูลระบบที่เกี่ยวข้อง"
+        columns={columns}
+        data={rows}
+        searchValue={searchValue}
+        searchInputProps={{
+          type: "search",
+          inputMode: "search",
+          autoComplete: "off",
+          maxLength: 120,
+          title: "ค้นหาด้วยชื่อระบบหรือชื่อองค์กร",
+        }}
+        searchPlaceholder="ชื่อระบบ/ชื่อองค์กร"
+        onSearchClick={(value) => {
+          setSearchValue(value);
+          setAppliedSearch(value);
+          resetToFirstPage();
+          resetSelection();
+        }}
+        page={safePage}
+        totalPages={Math.max(pagination.totalPages, 1)}
+        totalItems={pagination.total}
+        onPageChange={setPage}
+        disableClientFiltering
+        disableClientPagination
+        showCreate={false}
+        showDelete={false}
+        renderToolbar={({ searchBar }) => (
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+              <div className="flex flex-1 flex-wrap items-center gap-3">
+                {searchBar}
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-3">
-            <ProTechSearchBar
-              value=""
-              onValueChange={() => {}}
-              onSearch={() => {}}
-              placeholder=""
-              className="gap-3"
-              inputClassName="h-[31px] rounded-md border border-[#A8B1C2] px-3 text-[14px]"
-              buttonClassName="h-[31px] min-w-[74px] px-4 text-[14px]"
-            />
-            <ToolbarSelect placeholder="สถานะทั้งหมด" />
-            <ToolbarSelect placeholder="ประเภททั้งหมด" />
+                <div className="relative">
+                  <select
+                    value={statusFilter}
+                    onChange={(event) => {
+                      setStatusFilter(event.target.value as SystemStatusFilter);
+                      resetToFirstPage();
+                      resetSelection();
+                    }}
+                    className="h-[31px] min-w-[124px] appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-left text-[14px] text-[#6B7280] outline-none"
+                  >
+                    <option value="all">สถานะทั้งหมด</option>
+                    {statusOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-[#8B95A7]" />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3">
+                <DeleteConfirmDialog
+                  title="ยืนยันการลบข้อมูล"
+                  description="เมื่อลบข้อมูลแล้วจะไม่สามารถกู้คืนกลับได้"
+                  onConfirm={() => {
+                    void handleDeleteSelected();
+                  }}
+                  trigger={
+                    <ProTechButton
+                      variant="delete"
+                      className="h-[31px] px-4 text-[14px]"
+                      disabled={resolvedSelectedId === null || activeId !== null}
+                    >
+                      ลบ
+                    </ProTechButton>
+                  }
+                />
+
+                <ProTechButton
+                  variant="create"
+                  className="h-[31px] px-4 text-[14px]"
+                  onClick={() => {
+                    setDialogState({ mode: "create" });
+                  }}
+                >
+                  สร้าง
+                </ProTechButton>
+              </div>
+            </div>
+
+            {error ? (
+              <div className="max-w-[420px] rounded-md border border-[#FFB4C0] bg-[#FFF5F7] px-3 py-2 text-sm text-[#D1435B]">
+                {error}
+              </div>
+            ) : null}
+
+            {organizationError ? (
+              <div className="max-w-[420px] rounded-md border border-[#FFB4C0] bg-[#FFF5F7] px-3 py-2 text-sm text-[#D1435B]">
+                {organizationError}
+              </div>
+            ) : null}
           </div>
-          <ProTechButton variant="delete" className="h-[31px] px-4 text-[14px]">
-            ลบ
-          </ProTechButton>
-        </div>
+        )}
+      />
 
-        <ProTechTable
-          columns={columns}
-          data={[]}
-          page={2}
-          totalPages={3}
-          totalItems={50}
-          onPageChange={() => {}}
-        />
-      </div>
-    </div>
-  );
-}
+      {loading ? (
+        <p className="mt-4 text-sm text-[#8B95A7]">กำลังโหลดข้อมูลระบบ...</p>
+      ) : null}
 
-function ToolbarSelect({ placeholder }: { placeholder: string }) {
-  return (
-    <div className="flex h-[31px] min-w-[132px] items-center justify-between rounded-md border border-[#A8B1C2] bg-white px-4 text-[14px] text-[#6B7280]">
-      <span>{placeholder}</span>
-      <span>⌄</span>
+      <SystemModal
+        key={
+          dialogState?.mode === "edit" && dialogState.item
+            ? `edit-${dialogState.item.id}`
+            : "create"
+        }
+        open={dialogState !== null}
+        saving={saving || activeId !== null}
+        mode={dialogState?.mode ?? "create"}
+        initialValue={buildInitialValue(dialogState)}
+        organizationOptions={organizationOptions}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDialogState(null);
+          }
+        }}
+        onSubmit={(payload) => {
+          void handleSubmit(payload);
+        }}
+      />
     </div>
   );
 }
