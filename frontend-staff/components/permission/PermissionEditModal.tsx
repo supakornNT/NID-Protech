@@ -5,8 +5,8 @@ import { useState } from "react";
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { ProTechButton } from "@/components/tables/protech-button";
 import {
-  EditDialogState,
-  PermissionSection,
+  PermissionEditDialogValue,
+  PermissionSectionApiItem,
 } from "@/hooks/permission/useTeamPermissionsPage";
 
 function getSectionDisplayTitle(sectionId: string, fallbackTitle: string) {
@@ -14,7 +14,7 @@ function getSectionDisplayTitle(sectionId: string, fallbackTitle: string) {
   if (sectionId === "report") return "รายงาน";
   if (sectionId === "tracking") return "การติดตาม";
   if (sectionId === "operation") return "การปฏิบัติงาน";
-  if (sectionId === "assignment") return "การพิจารณา";
+  if (sectionId === "assignment") return "การมอบหมาย";
   if (sectionId === "management") return "การจัดการ";
 
   return fallbackTitle;
@@ -44,10 +44,10 @@ type PermissionEditModalProps = {
   open: boolean;
   loading: boolean;
   saving: boolean;
-  value: EditDialogState;
+  value: PermissionEditDialogValue;
   onOpenChange: (open: boolean) => void;
-  onChange: (value: EditDialogState) => void;
-  onSubmit: (value: NonNullable<EditDialogState>) => void;
+  onChange: (value: PermissionEditDialogValue) => void;
+  onSubmit: (value: NonNullable<PermissionEditDialogValue>) => void;
 };
 
 export function PermissionEditModal({
@@ -84,7 +84,7 @@ export function PermissionEditModal({
   }
 
   const sectionsForDisplay = value
-    ? value.sections.reduce<PermissionSection[]>((result, section) => {
+    ? value.sections.reduce<PermissionSectionApiItem[]>((result, section) => {
         if (section.id === "other") {
           const reportSection = result.find(
             (currentSection) => currentSection.id === "report",
@@ -189,7 +189,6 @@ export function PermissionEditModal({
                 }
 
                 setValidationError(null);
-
                 onSubmit(value);
               }}
             >

@@ -10,15 +10,17 @@ const apiBaseUrl =
 
 export const pageLimit = 10;
 
-export type TeamApiItem = {
+export type PermissionTeamListApiItem = {
   id: number;
   name: string;
   status: string;
-  createdAt?: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  assignedPermissionCount: number;
 };
 
-export type TeamListResponse = {
-  items: TeamApiItem[];
+export type PermissionTeamListApiResponse = {
+  items: PermissionTeamListApiItem[];
   pagination: {
     page: number;
     limit: number;
@@ -34,120 +36,168 @@ export type PermissionApiItem = {
   assigned: boolean;
 };
 
-export type TeamPermissionDetailResponse = {
+export type TeamPermissionDetailApiResponse = {
   team: {
     id: number;
     name: string;
     status: string;
   };
-  sections: PermissionSection[];
+  sections: PermissionSectionApiItem[];
 };
 
-export type PermissionSection = {
+export type PermissionSectionApiItem = {
   id: string;
   title: string;
   className?: string;
   items: PermissionApiItem[];
 };
 
-export type PermissionTableRow = {
+export type PermissionTeamTableRow = {
   id: number;
   order: number;
   teamName: string;
+  status: string;
+  assignedPermissionCount: number;
+  createdAt: string | null;
+  updatedAt: string | null;
 };
 
-export type EditDialogState = {
+export type PermissionEditDialogValue = {
   id: number;
   teamName: string;
   status: string;
   permissionIds: number[];
-  sections: PermissionSection[];
+  sections: PermissionSectionApiItem[];
 } | null;
 
 const sectionTitleMap: Record<string, string> = {
-  screening: "รับเรื่องและคัดกรอง",
-  report: "รายงาน",
-  tracking: "การติดตาม",
-  operation: "การปฏิบัติงาน",
-  assignment: "การพิจารณา",
-  management: "การจัดการ",
+  screening: "เธฃเธฑเธเน€เธฃเธทเนเธญเธเนเธฅเธฐเธเธฑเธ”เธเธฃเธญเธ",
+  report: "เธฃเธฒเธขเธเธฒเธ",
+  tracking: "เธเธฒเธฃเธ•เธดเธ”เธ•เธฒเธก",
+  operation: "เธเธฒเธฃเธเธเธดเธเธฑเธ•เธดเธเธฒเธ",
+  assignment: "เธเธฒเธฃเธเธดเธเธฒเธฃเธ“เธฒ",
+  management: "เธเธฒเธฃเธเธฑเธ”เธเธฒเธฃ",
 };
+
+function isAbortError(error: unknown) {
+  return error instanceof Error && error.name === "AbortError";
+}
 
 export function useTeamPermissionsPage() {
   const [page, setPage] = useState(1);
   const [searchValue, setSearchValue] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
-  const [rows, setRows] = useState<PermissionTableRow[]>([]);
+  const [rows, setRows] = useState<PermissionTeamTableRow[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [dialogState, setDialogState] = useState<EditDialogState>(null);
+  const [dialogState, setDialogState] = useState<PermissionEditDialogValue>(null);
   const [dialogLoading, setDialogLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const buildListUrl = useCallback(() => {
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(pageLimit),
+    });
+
+    const normalizedSearch = normalizeSearchKeyword(appliedSearch);
+
+    if (normalizedSearch) {
+      params.set("search", normalizedSearch);
+    }
+
+    return `${apiBaseUrl}/admin/teams?${params.toString()}`;
+  }, [appliedSearch, page]);
+
+  const applyListResult = useCallback((result: PermissionTeamListApiResponse) => {
+    setRows(
+      result.items.map((item, index) => ({
+        id: item.id,
+        order:
+          (result.pagination.page - 1) *
+            result.pagination.limit +
+          index +
+          1,
+        teamName: item.name,
+        status: item.status,
+        assignedPermissionCount: item.assignedPermissionCount,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+      })),
+    );
+    setTotalItems(result.pagination.total);
+    setTotalPages(
+      Math.max(result.pagination.totalPages, 1),
+    );
+    setError(null);
+  }, []);
 
   const fetchTeams = useCallback(async () => {
     setLoading(true);
 
     try {
-      const params = new URLSearchParams({
-        page: String(page),
-        limit: String(pageLimit),
+      const response = await fetch(buildListUrl(), {
+        cache: "no-store",
       });
-
-      const normalizedSearch = normalizeSearchKeyword(appliedSearch);
-
-      if (normalizedSearch) {
-        params.set("search", normalizedSearch);
-      }
-
-      const response = await fetch(
-        `${apiBaseUrl}/admin/teams?${params.toString()}`,
-        {
-          cache: "no-store",
-        },
-      );
 
       if (!response.ok) {
         throw new Error(`Failed to load teams (${response.status})`);
       }
 
-      const result =
-        (await response.json()) as TeamListResponse;
-
-      setRows(
-        result.items.map((item, index) => ({
-          id: item.id,
-          order:
-            (result.pagination.page - 1) *
-              result.pagination.limit +
-            index +
-            1,
-          teamName: item.name,
-        })),
-      );
-      setTotalItems(result.pagination.total);
-      setTotalPages(
-        Math.max(result.pagination.totalPages, 1),
-      );
-      setError(null);
+      applyListResult((await response.json()) as PermissionTeamListApiResponse);
     } catch (fetchError) {
+      if (isAbortError(fetchError)) {
+        return;
+      }
       console.error(fetchError);
-      setError("ไม่สามารถโหลดข้อมูลกลุ่มผู้ใช้งานได้");
+      setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเธเธฅเธธเนเธกเธเธนเนเนเธเนเธเธฒเธเนเธ”เน");
     } finally {
       setLoading(false);
     }
-  }, [appliedSearch, page]);
+  }, [applyListResult, buildListUrl]);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void fetchTeams();
-    }, 0);
+    const controller = new AbortController();
+
+    void (async () => {
+      setLoading(true);
+
+      try {
+        const response = await fetch(buildListUrl(), {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to load teams (${response.status})`);
+        }
+
+        const result = (await response.json()) as PermissionTeamListApiResponse;
+
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        applyListResult(result);
+      } catch (fetchError) {
+        if (isAbortError(fetchError)) {
+          return;
+        }
+        console.error(fetchError);
+        setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเธเธฅเธธเนเธกเธเธนเนเนเธเนเธเธฒเธเนเธ”เน");
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    })();
 
     return () => {
-      window.clearTimeout(timeoutId);
+      controller.abort();
     };
-  }, [fetchTeams]);
+  }, [applyListResult, buildListUrl]);
 
   const openEditDialog = useCallback(
     async (teamId: number) => {
@@ -170,7 +220,7 @@ export function useTeamPermissionsPage() {
         }
 
         const result =
-          (await response.json()) as TeamPermissionDetailResponse;
+          (await response.json()) as TeamPermissionDetailApiResponse;
 
         setDialogState({
           id: result.team.id,
@@ -189,7 +239,7 @@ export function useTeamPermissionsPage() {
         });
       } catch (fetchError) {
         console.error(fetchError);
-        setError("ไม่สามารถโหลดข้อมูลสิทธิ์ของกลุ่มได้");
+        setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเธชเธดเธ—เธเธดเนเธเธญเธเธเธฅเธธเนเธกเนเธ”เน");
       } finally {
         setDialogLoading(false);
       }
@@ -198,7 +248,7 @@ export function useTeamPermissionsPage() {
   );
 
   async function submitDialog(
-    nextValue: NonNullable<EditDialogState>,
+    nextValue: NonNullable<PermissionEditDialogValue>,
   ) {
     try {
       setSaving(true);
@@ -228,15 +278,15 @@ export function useTeamPermissionsPage() {
       await fetchTeams();
     } catch (submitError) {
       console.error(submitError);
-      setError("ไม่สามารถบันทึกข้อมูลกลุ่มผู้ใช้งานได้");
+      setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธเธฑเธเธ—เธถเธเธเนเธญเธกเธนเธฅเธเธฅเธธเนเธกเธเธนเนเนเธเนเธเธฒเธเนเธ”เน");
     } finally {
       setSaving(false);
     }
   }
 
-  function search() {
+  function search(nextSearchValue?: string) {
     setAppliedSearch(
-      normalizeSearchKeyword(searchValue),
+      normalizeSearchKeyword(nextSearchValue ?? searchValue),
     );
     setPage(1);
   }

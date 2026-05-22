@@ -5,11 +5,22 @@ export interface Adminteam extends RowDataPacket {
   id: number;
   name: string;
   status: string;
+  createdAt: Date | null;
   updatedAt: Date | null;
+  assignedPermissionCount: number;
+}
+
+export interface AdminTeamListItem {
+  id: number;
+  name: string;
+  status: string;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+  assignedPermissionCount: number;
 }
 
 export interface PublicAdminTeamList {
-  items: Adminteam[];
+  items: AdminTeamListItem[];
   pagination: PaginationMeta;
 }
 
@@ -17,6 +28,7 @@ export interface GetTeamsQuery {
   page?: string;
   limit?: string;
   search?: string;
+  status?: string;
 }
 
 export interface TeamMemberManagementQuery {
@@ -32,6 +44,8 @@ export interface TeamMemberManagementRow extends RowDataPacket {
   fullName: string;
   email: string;
   status: string;
+  createdAt: Date | null;
+  updatedAt: Date | null;
   membershipIds: string | null;
   teamIds: string | null;
   teamNames: string | null;
@@ -48,6 +62,8 @@ export interface TeamMemberManagementItem {
   fullName: string;
   email: string;
   status: string;
+  createdAt: Date | null;
+  updatedAt: Date | null;
   teams: string[];
   teamIds: number[];
   memberships: TeamMemberManagementMembership[];
@@ -82,6 +98,20 @@ export interface TeamMemberManagementResponse {
     teams: TeamMemberOption[];
     staffs: StaffOption[];
   };
+}
+
+export interface TeamListItem extends RowDataPacket {
+  id: number;
+  name: string;
+  status: string;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+  memberCount: number;
+}
+
+export interface TeamListResponse {
+  items: TeamListItem[];
+  pagination: PaginationMeta;
 }
 
 export interface TeamPermissionRow extends RowDataPacket {

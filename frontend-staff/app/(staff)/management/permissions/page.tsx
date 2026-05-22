@@ -5,17 +5,18 @@ import { useMemo } from "react";
 import {
   ActionIcons,
   AdminTablePage,
+  StatusBadge,
 } from "@/components/admin/admin-table-page";
 import { PermissionEditModal } from "@/components/permission/PermissionEditModal";
 import {
-  PermissionTableRow,
+  PermissionTeamTableRow,
   useTeamPermissionsPage,
 } from "@/hooks/permission/useTeamPermissionsPage";
 import type { Column } from "@/types/table";
+import { formatThaiDateTime } from "../organizations/page";
 
 export default function PermissionsPage() {
   const {
-    pageLimit,
     page,
     setPage,
     searchValue,
@@ -34,25 +35,54 @@ export default function PermissionsPage() {
     submitDialog,
   } = useTeamPermissionsPage();
 
-  const columns: Column<PermissionTableRow>[] = useMemo(
+  const columns: Column<PermissionTeamTableRow>[] = useMemo(
     () => [
-      {
-        key: "order",
-        title: "ลำดับ",
-        className: "w-[180px]",
-      },
+      { key: "order", title: "ลำดับ", className: "w-[100px]" },
       {
         key: "teamName",
         title: "กลุ่ม",
-        className: "w-[340px]",
+        className: "w-[220px]",
         render: (value) => (
           <span className="font-medium text-[#111827]">{String(value)}</span>
         ),
       },
       {
+        key: "status",
+        title: "สถานะ",
+        className: "w-[120px]",
+        render: (value) => {
+          const status = String(value ?? "-");
+          const tone =
+            status === "active"
+              ? "success"
+              : status === "inactive"
+                ? "danger"
+                : "neutral";
+
+          return <StatusBadge label={status} tone={tone} />;
+        },
+      },
+      {
+        key: "assignedPermissionCount",
+        title: "จำนวนสิทธิ์",
+        className: "w-[120px]",
+      },
+      {
+        key: "createdAt",
+        title: "วันที่สร้าง",
+        className: "w-[180px]",
+        render: (value) => formatThaiDateTime((value as string | null) ?? null),
+      },
+      {
+        key: "updatedAt",
+        title: "วันที่แก้ไข",
+        className: "w-[180px]",
+        render: (value) => formatThaiDateTime((value as string | null) ?? null),
+      },
+      {
         key: "actions",
         title: "จัดการ",
-        className: "w-[160px]",
+        className: "w-[100px]",
         render: (_, row) => (
           <ActionIcons
             showInfo={false}
@@ -93,7 +123,7 @@ export default function PermissionsPage() {
           showDelete={false}
           onSearchClick={(value) => {
             setSearchValue(value);
-            search();
+            search(value);
           }}
         />
 
@@ -104,9 +134,7 @@ export default function PermissionsPage() {
         ) : null}
 
         {loading ? (
-          <p className="text-sm text-[#8B95A7]">
-            กำลังโหลดข้อมูลสิทธิ์ผู้ใช้งาน...
-          </p>
+          <p className="text-sm text-[#8B95A7]">กำลังโหลดข้อมูลสิทธิ์ผู้ใช้งาน...</p>
         ) : null}
       </div>
 

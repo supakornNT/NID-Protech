@@ -4,16 +4,16 @@ import { useState } from "react";
 
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { ProTechButton } from "@/components/tables/protech-button";
-import type { GroupFormValue } from "@/hooks/user-groups/use-user-groups-page";
+import type { UserGroupFormInput } from "@/hooks/user-groups/use-user-groups-page";
 import { normalizeTextInput } from "@/lib/form-utils";
 
 type TeamGroupModalProps = {
   open: boolean;
   saving: boolean;
   mode: "create" | "edit";
-  initialValue: GroupFormValue;
+  initialValue: UserGroupFormInput;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (value: GroupFormValue) => void;
+  onSubmit: (value: UserGroupFormInput) => void;
 };
 
 const STATUS_OPTIONS = [
@@ -29,7 +29,7 @@ export function TeamGroupModal({
   onOpenChange,
   onSubmit,
 }: TeamGroupModalProps) {
-  const [formState, setFormState] = useState<GroupFormValue>(initialValue);
+  const [formState, setFormState] = useState<UserGroupFormInput>(initialValue);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   return (
@@ -71,7 +71,7 @@ export function TeamGroupModal({
             onChange={(event) =>
               setFormState((current) => ({
                 ...current,
-                status: event.target.value as GroupFormValue["status"],
+                status: event.target.value as UserGroupFormInput["status"],
               }))
             }
             className="h-8.5 w-full rounded-md border border-[#A8B1C2] bg-white px-3 text-[14px] text-[#111827] outline-none"

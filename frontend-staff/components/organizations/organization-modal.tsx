@@ -5,7 +5,7 @@ import { useState } from "react";
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { ProTechButton } from "@/components/tables/protech-button";
 import type {
-  OrganizationPayload,
+  OrganizationFormInput,
   OrganizationStatus,
   OrganizationType,
 } from "@/hooks/organizations/use-organization-table";
@@ -20,9 +20,9 @@ type OrganizationModalProps = {
   open: boolean;
   saving: boolean;
   mode: "create" | "edit";
-  initialValue: OrganizationPayload;
+  initialValue: OrganizationFormInput;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (payload: OrganizationPayload) => void;
+  onSubmit: (payload: OrganizationFormInput) => void;
 };
 
 const TYPE_OPTIONS: Array<{ label: string; value: OrganizationType }> = [
@@ -44,7 +44,7 @@ export function OrganizationModal({
   onOpenChange,
   onSubmit,
 }: OrganizationModalProps) {
-  const [formState, setFormState] = useState<OrganizationPayload>(initialValue);
+  const [formState, setFormState] = useState<OrganizationFormInput>(initialValue);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   return (

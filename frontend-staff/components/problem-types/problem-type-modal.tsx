@@ -5,7 +5,7 @@ import { useState } from "react";
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { ProTechButton } from "@/components/tables/protech-button";
 import type {
-  ProblemTypePayload,
+  ProblemTypeFormInput,
   ProblemTypeRequestType,
   ProblemTypeStatus,
 } from "@/hooks/problem-types/use-problem-type-table";
@@ -15,9 +15,9 @@ type ProblemTypeModalProps = {
   open: boolean;
   saving: boolean;
   mode: "create" | "edit";
-  initialValue: ProblemTypePayload;
+  initialValue: ProblemTypeFormInput;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (payload: ProblemTypePayload) => void;
+  onSubmit: (payload: ProblemTypeFormInput) => void;
 };
 
 const REQUEST_TYPE_OPTIONS: Array<{
@@ -41,7 +41,7 @@ export function ProblemTypeModal({
   onOpenChange,
   onSubmit,
 }: ProblemTypeModalProps) {
-  const [formState, setFormState] = useState<ProblemTypePayload>(initialValue);
+  const [formState, setFormState] = useState<ProblemTypeFormInput>(initialValue);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   return (

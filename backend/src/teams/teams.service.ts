@@ -15,6 +15,7 @@ import {
   requireText,
 } from '@/common/validation/input-rules';
 import {
+  AdminTeamListItem,
   Adminteam,
   GetTeamsQuery,
   PermissionIdRow,
@@ -32,6 +33,8 @@ import {
   TeamPermissionRow,
   TeamMemberOption,
   TeamOptionRow,
+  TeamListItem,
+  TeamListResponse,
 } from './interfaces/admin.interface';
 
 const PERMISSION_SECTION_TITLES: Record<string, string> = {
@@ -76,9 +79,13 @@ export class TeamsService {
 
   async findAll(query: GetTeamsQuery = {}): Promise<PublicAdminTeamList> {
     const page = positiveIntFromQuery(query.page, 'page', 1);
-    const limit = positiveIntFromQuery(query.limit, 'limit', 10, 100);
+    const limit = positiveIntFromQuery(query.limit, 'limit', 10, 10);
     const offset = (page - 1) * limit;
     const search = optionalText(query.search, 'search', 255) ?? '';
+    const status =
+      query.status === undefined
+        ? undefined
+        : requireEnumValue(query.status, 'status', ACTIVE_STATUS_VALUES);
 
     const whereClauses: string[] = [];
     const params: Array<string | number> = [];
@@ -90,6 +97,11 @@ export class TeamsService {
 
       const like = `%${search}%`;
       params.push(like);
+    }
+
+    if (status) {
+      whereClauses.push('teams.status = ?');
+      params.push(status);
     }
 
     const whereSql =
@@ -110,10 +122,91 @@ export class TeamsService {
         teams.id,
         teams.name,
         teams.status,
-        teams.created_at AS createdAt
+        teams.created_at AS createdAt,
+        teams.updated_at AS updatedAt,
+        COUNT(DISTINCT team_permissions.permission_id) AS assignedPermissionCount
+      FROM teams
+      LEFT JOIN team_permissions
+        ON team_permissions.team_id = teams.id
+      ${whereSql}
+      GROUP BY teams.id, teams.name, teams.status, teams.created_at, teams.updated_at
+      ORDER BY teams.created_at ASC
+      LIMIT ? OFFSET ?
+    `,
+      [...params, limit, offset],
+    );
+
+    const total = getCountTotal(countRows, 0);
+    const items: AdminTeamListItem[] = rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      status: row.status,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      assignedPermissionCount: row.assignedPermissionCount,
+    }));
+
+    return {
+      items,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async findTable(query: GetTeamsQuery = {}): Promise<TeamListResponse> {
+    const page = positiveIntFromQuery(query.page, 'page', 1);
+    const limit = positiveIntFromQuery(query.limit, 'limit', 10, 10);
+    const offset = (page - 1) * limit;
+    const search = optionalText(query.search, 'search', 255) ?? '';
+    const status =
+      query.status === undefined
+        ? undefined
+        : requireEnumValue(query.status, 'status', ACTIVE_STATUS_VALUES);
+
+    const whereClauses: string[] = [];
+    const params: Array<string | number> = [];
+
+    if (search) {
+      whereClauses.push('teams.name LIKE ?');
+      params.push(`%${search}%`);
+    }
+
+    if (status) {
+      whereClauses.push('teams.status = ?');
+      params.push(status);
+    }
+
+    const whereSql =
+      whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+    const [countRows] = await this.db.query<CountRow[]>(
+      `
+      SELECT COUNT(*) AS total
       FROM teams
       ${whereSql}
-      ORDER BY teams.created_at ASC
+    `,
+      params,
+    );
+
+    const [rows] = await this.db.query<TeamListItem[]>(
+      `
+      SELECT
+        teams.id,
+        teams.name,
+        teams.status,
+        teams.created_at AS createdAt,
+        teams.updated_at AS updatedAt,
+        COUNT(DISTINCT staff_team_roles.staff_id) AS memberCount
+      FROM teams
+      LEFT JOIN staff_team_roles
+        ON staff_team_roles.team_id = teams.id
+      ${whereSql}
+      GROUP BY teams.id, teams.name, teams.status, teams.created_at, teams.updated_at
+      ORDER BY teams.created_at ASC, teams.id ASC
       LIMIT ? OFFSET ?
     `,
       [...params, limit, offset],
@@ -136,7 +229,7 @@ export class TeamsService {
     query: TeamMemberManagementQuery = {},
   ): Promise<TeamMemberManagementResponse> {
     const page = positiveIntFromQuery(query.page, 'page', 1);
-    const limit = positiveIntFromQuery(query.limit, 'limit', 10, 100);
+    const limit = positiveIntFromQuery(query.limit, 'limit', 10, 10);
     const offset = (page - 1) * limit;
     const search = optionalText(query.search, 'search', 255) ?? '';
     const teamId = query.teamId
@@ -193,6 +286,8 @@ export class TeamsService {
         CONCAT(staffs.name, ' ', staffs.surname) AS fullName,
         staffs.email,
         staffs.status,
+        staffs.created_at AS createdAt,
+        staffs.updated_at AS updatedAt,
         GROUP_CONCAT(DISTINCT staff_team_roles.id ORDER BY staff_team_roles.id SEPARATOR ',') AS membershipIds,
         GROUP_CONCAT(DISTINCT teams.id ORDER BY teams.id SEPARATOR ',') AS teamIds,
         GROUP_CONCAT(DISTINCT teams.name ORDER BY teams.id SEPARATOR '||') AS teamNames
@@ -200,7 +295,7 @@ export class TeamsService {
       LEFT JOIN staff_team_roles ON staff_team_roles.staff_id = staffs.id
       LEFT JOIN teams ON teams.id = staff_team_roles.team_id
       ${whereSql}
-      GROUP BY staffs.id, staffs.name, staffs.surname, staffs.email, staffs.status
+      GROUP BY staffs.id, staffs.name, staffs.surname, staffs.email, staffs.status, staffs.created_at, staffs.updated_at
       ${havingSql}
       ORDER BY staffs.id ASC
       LIMIT ? OFFSET ?
@@ -242,6 +337,8 @@ export class TeamsService {
       fullName: row.fullName,
       email: row.email,
       status: row.status,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
       teams: row.teamNames ? row.teamNames.split('||') : [],
       teamIds: row.teamIds
         ? row.teamIds

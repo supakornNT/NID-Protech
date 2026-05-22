@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { ProTechButton } from "@/components/tables/protech-button";
-import type { MemberFormValue } from "@/hooks/user-groups/use-user-groups-page";
+import type { UserGroupMemberFormInput } from "@/hooks/user-groups/use-user-groups-page";
 
 type Option = {
   value: number;
@@ -15,12 +15,12 @@ type TeamMemberModalProps = {
   open: boolean;
   saving: boolean;
   mode: "create" | "edit";
-  initialValue: MemberFormValue;
+  initialValue: UserGroupMemberFormInput;
   staffName: string;
   staffOptions: Option[];
   teamOptions: Option[];
   onOpenChange: (open: boolean) => void;
-  onSubmit: (value: MemberFormValue) => void;
+  onSubmit: (value: UserGroupMemberFormInput) => void;
 };
 
 export function TeamMemberModal({
@@ -34,7 +34,7 @@ export function TeamMemberModal({
   onOpenChange,
   onSubmit,
 }: TeamMemberModalProps) {
-  const [formState, setFormState] = useState<MemberFormValue>(initialValue);
+  const [formState, setFormState] = useState<UserGroupMemberFormInput>(initialValue);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const resolvedStaffName = useMemo(() => {

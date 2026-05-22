@@ -13,12 +13,12 @@ import {
 } from "@/components/ui/dialog";
 import {
   useUnapprovedCustomers,
-  type CustomerApiItem,
+  type CustomerListApiItem,
 } from "@/hooks/customers/use-unapproved-customers";
 import { formatPhoneNumber } from "@/lib/utils";
 import type { Column } from "@/types/table";
 
-type CustomerRow = {
+type CustomerTableRow = {
   id: number;
   date: string;
   name: string;
@@ -66,7 +66,7 @@ function mapCustomerTypeLabel(type: string): string {
   }
 }
 
-function mapCustomerRow(item: CustomerApiItem): CustomerRow {
+function mapCustomerRow(item: CustomerListApiItem): CustomerTableRow {
   return {
     id: item.id,
     date: formatThaiDateTime(item.createdAt),
@@ -116,7 +116,7 @@ export default function CustomersPage() {
     await updateCustomerStatus(id, action);
   }
 
-  const columns: Column<CustomerRow>[] = [
+  const columns: Column<CustomerTableRow>[] = [
     { key: "date", title: "วันที/เวลา" },
     { key: "name", title: "ชื่อ-นามสกุล" },
     { key: "role", title: "ประเภท" },

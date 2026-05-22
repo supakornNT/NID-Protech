@@ -9,20 +9,24 @@ import {
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const GROUP_PAGE_LIMIT = 10;
+const MEMBER_PAGE_LIMIT = 10;
 
 export type UserGroupTabKey = "groups" | "members";
 export type StatusFilter = "all" | "active" | "inactive";
 export type MemberGroupFilter = "all" | "with-group" | "without-group";
 
-export type TeamApiItem = {
+export type UserGroupListApiItem = {
   id: number;
   name: string;
   status: string;
-  createdAt?: string | null;
+  memberCount: number;
+  createdAt: string | null;
+  updatedAt: string | null;
 };
 
-export type TeamListResponse = {
-  items: TeamApiItem[];
+export type UserGroupListApiResponse = {
+  items: UserGroupListApiItem[];
   pagination: {
     page: number;
     limit: number;
@@ -31,57 +35,63 @@ export type TeamListResponse = {
   };
 };
 
-export type GroupRow = {
+export type UserGroupTableRow = {
   id: number;
   order: number;
   checked: boolean;
   groupName: string;
   status: string;
   memberCount: number;
+  createdAt: string | null;
+  updatedAt: string | null;
 };
 
-export type MemberMembership = {
+export type UserGroupMembershipApiItem = {
   id: number;
   teamId: number;
   teamName: string;
 };
 
-export type MemberRow = {
+export type UserGroupMemberTableRow = {
   id: number;
   order: number;
   fullName: string;
   email: string;
   teams: string[];
   status: string;
+  createdAt: string | null;
+  updatedAt: string | null;
   teamIds: number[];
-  memberships: MemberMembership[];
+  memberships: UserGroupMembershipApiItem[];
 };
 
-export type GroupFormValue = {
+export type UserGroupFormInput = {
   id?: number;
   name: string;
   status: "active" | "inactive";
 };
 
-export type MemberFormValue = {
+export type UserGroupMemberFormInput = {
   staffId: number | null;
   teamIds: number[];
 };
 
-type Option = {
+type SelectOption = {
   value: number;
   label: string;
 };
 
-type MemberManagementResponse = {
+type UserGroupMemberManagementApiResponse = {
   items: Array<{
     id: number;
     fullName: string;
     email: string;
     status: string;
+    createdAt: string | null;
+    updatedAt: string | null;
     teams: string[];
     teamIds: number[];
-    memberships: MemberMembership[];
+    memberships: UserGroupMembershipApiItem[];
   }>;
   pagination: {
     page: number;
@@ -95,14 +105,14 @@ type MemberManagementResponse = {
       label: string;
       status: string;
     }>;
-    staffs: Option[];
+    staffs: SelectOption[];
   };
 };
 
 type GroupDialogState =
   | {
       mode: "create" | "edit";
-      value: GroupFormValue;
+      value: UserGroupFormInput;
     }
   | null;
 
@@ -110,10 +120,14 @@ type MemberDialogState =
   | {
       mode: "create" | "edit";
       staffName: string;
-      memberships: MemberMembership[];
-      value: MemberFormValue;
+      memberships: UserGroupMembershipApiItem[];
+      value: UserGroupMemberFormInput;
     }
   | null;
+
+function isAbortError(error: unknown) {
+  return error instanceof Error && error.name === "AbortError";
+}
 
 async function getResponseErrorMessage(
   response: Response,
@@ -146,12 +160,14 @@ export function useUserGroupsPage() {
   const [groupPage, setGroupPage] = useState(1);
   const [memberPage, setMemberPage] = useState(1);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
-  const [teams, setTeams] = useState<TeamApiItem[]>([]);
-  const [memberRows, setMemberRows] = useState<MemberRow[]>([]);
+  const [groupItems, setGroupItems] = useState<UserGroupListApiItem[]>([]);
+  const [groupTotalItems, setGroupTotalItems] = useState(0);
+  const [groupTotalPages, setGroupTotalPages] = useState(1);
+  const [memberRows, setMemberRows] = useState<UserGroupMemberTableRow[]>([]);
   const [memberTotalItems, setMemberTotalItems] = useState(0);
   const [memberTotalPages, setMemberTotalPages] = useState(1);
-  const [staffOptions, setStaffOptions] = useState<Option[]>([]);
-  const [memberTeamOptions, setMemberTeamOptions] = useState<Option[]>([]);
+  const [staffOptions, setStaffOptions] = useState<SelectOption[]>([]);
+  const [memberTeamOptions, setMemberTeamOptions] = useState<SelectOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -160,27 +176,34 @@ export function useUserGroupsPage() {
   const [memberDialogState, setMemberDialogState] =
     useState<MemberDialogState>(null);
 
-  const loadGroupsData = useCallback(async () => {
-    const response = await fetch(`${API_BASE_URL}/admin/teams?page=1&limit=100`, {
-      cache: "no-store",
+  const buildGroupListUrl = useCallback(() => {
+    const params = new URLSearchParams({
+      page: String(groupPage),
+      limit: String(GROUP_PAGE_LIMIT),
     });
+    const normalizedSearch = normalizeSearchKeyword(appliedSearch);
 
-    if (!response.ok) {
-      throw new Error(`Failed to load teams (${response.status})`);
+    if (normalizedSearch) {
+      params.set("search", normalizedSearch);
     }
 
-    const result = (await response.json()) as TeamListResponse;
-    setTeams(result.items);
-  }, []);
+    if (groupStatusFilter !== "all") {
+      params.set("status", groupStatusFilter);
+    }
 
-  const loadMembersData = useCallback(async () => {
+    return `${API_BASE_URL}/admin/teams/table?${params.toString()}`;
+  }, [appliedSearch, groupPage, groupStatusFilter]);
+
+  const buildMemberListUrl = useCallback(() => {
     const params = new URLSearchParams({
       page: String(memberPage),
-      limit: "10",
+      limit: String(MEMBER_PAGE_LIMIT),
     });
 
-    if (appliedSearch.trim()) {
-      params.set("search", normalizeSearchKeyword(appliedSearch));
+    const normalizedSearch = normalizeSearchKeyword(appliedSearch);
+
+    if (normalizedSearch) {
+      params.set("search", normalizedSearch);
     }
 
     if (teamFilter !== "all") {
@@ -191,19 +214,17 @@ export function useUserGroupsPage() {
       params.set("groupFilter", memberGroupFilter);
     }
 
-    const response = await fetch(
-      `${API_BASE_URL}/admin/teams/member-management?${params.toString()}`,
-      {
-        cache: "no-store",
-      },
-    );
+    return `${API_BASE_URL}/admin/teams/member-management?${params.toString()}`;
+  }, [appliedSearch, memberGroupFilter, memberPage, teamFilter]);
 
-    if (!response.ok) {
-      throw new Error(`Failed to load member management (${response.status})`);
-    }
+  const applyGroupResult = useCallback((result: UserGroupListApiResponse) => {
+    setGroupItems(result.items);
+    setGroupTotalItems(result.pagination.total);
+    setGroupTotalPages(Math.max(1, result.pagination.totalPages));
+    setError(null);
+  }, []);
 
-    const result = (await response.json()) as MemberManagementResponse;
-
+  const applyMemberResult = useCallback((result: UserGroupMemberManagementApiResponse) => {
     setMemberRows(
       result.items.map((item, index) => ({
         id: item.id,
@@ -212,6 +233,8 @@ export function useUserGroupsPage() {
         email: item.email,
         teams: item.teams,
         status: item.status,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
         teamIds: item.teamIds,
         memberships: item.memberships,
       })),
@@ -223,98 +246,118 @@ export function useUserGroupsPage() {
       result.filterOptions.teams.map((team) => ({
         value: team.value,
         label:
-          team.status === "inactive" ? `${team.label} (ปิดใช้งาน)` : team.label,
+          team.status === "inactive" ? `${team.label} (เธเธดเธ”เนเธเนเธเธฒเธ)` : team.label,
       })),
     );
-  }, [appliedSearch, memberGroupFilter, memberPage, teamFilter]);
+    setError(null);
+  }, []);
 
-  const loadData = useCallback(async () => {
-    try {
-      setLoading(true);
-
-      if (activeTab === "groups") {
-        await loadGroupsData();
-      } else {
-        await loadMembersData();
-      }
-
-      setError(null);
-    } catch (loadError) {
-      console.error(loadError);
-      setError("ไม่สามารถโหลดข้อมูลกลุ่มผู้ใช้งานได้");
-    } finally {
-      setLoading(false);
-    }
-  }, [activeTab, loadGroupsData, loadMembersData]);
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void loadData();
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [loadData]);
-
-  const membershipsByTeamId = useMemo(() => {
-    const result = new Map<number, Set<number>>();
-
-    for (const member of memberRows) {
-      for (const membership of member.memberships) {
-        const current = result.get(membership.teamId) ?? new Set<number>();
-        current.add(member.id);
-        result.set(membership.teamId, current);
-      }
-    }
-
-    return result;
-  }, [memberRows]);
-
-  const groupRows = useMemo<GroupRow[]>(() => {
-    const normalizedSearch = normalizeSearchKeyword(appliedSearch).toLowerCase();
-
-    const filtered = teams.filter((team) => {
-      const matchesSearch =
-        normalizedSearch.length === 0 ||
-        team.name.toLowerCase().includes(normalizedSearch);
-      const matchesStatus =
-        groupStatusFilter === "all" || team.status === groupStatusFilter;
-
-      return matchesSearch && matchesStatus;
+  const loadGroupsData = useCallback(async () => {
+    const response = await fetch(buildGroupListUrl(), {
+      cache: "no-store",
     });
 
-    return filtered.map((team, index) => ({
-      id: team.id,
-      order: index + 1,
-      checked: team.id === selectedGroupId,
-      groupName: team.name,
-      status: team.status,
-      memberCount: membershipsByTeamId.get(team.id)?.size ?? 0,
-    }));
-  }, [
-    appliedSearch,
-    groupStatusFilter,
-    membershipsByTeamId,
-    selectedGroupId,
-    teams,
-  ]);
+    if (!response.ok) {
+      throw new Error(`Failed to load teams (${response.status})`);
+    }
 
-  const groupTotalItems = groupRows.length;
-  const groupTotalPages = Math.max(1, Math.ceil(groupTotalItems / 10));
-  const pagedGroupRows = useMemo(() => {
-    const safePage = Math.min(Math.max(groupPage, 1), groupTotalPages);
-    const startIndex = (safePage - 1) * 10;
-    return groupRows.slice(startIndex, startIndex + 10);
-  }, [groupPage, groupRows, groupTotalPages]);
+    applyGroupResult((await response.json()) as UserGroupListApiResponse);
+  }, [applyGroupResult, buildGroupListUrl]);
 
-  const activeTeamOptions = activeTab === "members" ? memberTeamOptions : teams.map((team) => ({
-    value: team.id,
-    label: team.status === "inactive" ? `${team.name} (ปิดใช้งาน)` : team.name,
-  }));
+  const loadMembersData = useCallback(async () => {
+    const response = await fetch(buildMemberListUrl(), {
+      cache: "no-store",
+    });
 
-  function search() {
-    setAppliedSearch(searchValue);
+    if (!response.ok) {
+      throw new Error(`Failed to load member management (${response.status})`);
+    }
+
+    applyMemberResult((await response.json()) as UserGroupMemberManagementApiResponse);
+  }, [applyMemberResult, buildMemberListUrl]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    void (async () => {
+      try {
+        setLoading(true);
+
+        if (activeTab === "groups") {
+          const response = await fetch(buildGroupListUrl(), {
+            cache: "no-store",
+            signal: controller.signal,
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to load teams (${response.status})`);
+          }
+
+          const result = (await response.json()) as UserGroupListApiResponse;
+
+          if (controller.signal.aborted) {
+            return;
+          }
+
+          applyGroupResult(result);
+        } else {
+          const response = await fetch(buildMemberListUrl(), {
+            cache: "no-store",
+            signal: controller.signal,
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to load member management (${response.status})`);
+          }
+
+          const result = (await response.json()) as UserGroupMemberManagementApiResponse;
+
+          if (controller.signal.aborted) {
+            return;
+          }
+
+          applyMemberResult(result);
+        }
+      } catch (loadError) {
+        if (isAbortError(loadError)) {
+          return;
+        }
+        console.error(loadError);
+        setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเธเธฅเธธเนเธกเธเธนเนเนเธเนเธเธฒเธเนเธ”เน");
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      controller.abort();
+    };
+  }, [activeTab, applyGroupResult, applyMemberResult, buildGroupListUrl, buildMemberListUrl]);
+
+  const groupRows = useMemo<UserGroupTableRow[]>(
+    () =>
+      groupItems.map((team, index) => ({
+        id: team.id,
+        order: (groupPage - 1) * GROUP_PAGE_LIMIT + index + 1,
+        checked: team.id === selectedGroupId,
+        groupName: team.name,
+        status: team.status,
+        memberCount: team.memberCount,
+        createdAt: team.createdAt,
+        updatedAt: team.updatedAt,
+      })),
+    [groupItems, groupPage, selectedGroupId],
+  );
+
+  const activeTeamOptions = useMemo(
+    () => memberTeamOptions,
+    [memberTeamOptions],
+  );
+
+  function search(nextSearchValue?: string) {
+    setAppliedSearch(normalizeSearchKeyword(nextSearchValue ?? searchValue));
     setGroupPage(1);
     setMemberPage(1);
     setSelectedGroupId(null);
@@ -331,7 +374,7 @@ export function useUserGroupsPage() {
   }
 
   function openEditGroupDialog(groupId: number) {
-    const team = teams.find((item) => item.id === groupId);
+    const team = groupItems.find((item) => item.id === groupId);
 
     if (!team) {
       return;
@@ -347,7 +390,7 @@ export function useUserGroupsPage() {
     });
   }
 
-  async function submitGroupDialog(value: GroupFormValue) {
+  async function submitGroupDialog(value: UserGroupFormInput) {
     try {
       setSaving(true);
       setError(null);
@@ -378,7 +421,7 @@ export function useUserGroupsPage() {
         throw new Error(
           await getResponseErrorMessage(
             response,
-            "ไม่สามารถบันทึกข้อมูลกลุ่มผู้ใช้งานได้",
+            "เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธเธฑเธเธ—เธถเธเธเนเธญเธกเธนเธฅเธเธฅเธธเนเธกเธเธนเนเนเธเนเธเธฒเธเนเธ”เน",
           ),
         );
       }
@@ -393,7 +436,7 @@ export function useUserGroupsPage() {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "ไม่สามารถบันทึกข้อมูลกลุ่มผู้ใช้งานได้",
+          : "เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธเธฑเธเธ—เธถเธเธเนเธญเธกเธนเธฅเธเธฅเธธเนเธกเธเธนเนเนเธเนเธเธฒเธเนเธ”เน",
       );
     } finally {
       setSaving(false);
@@ -420,7 +463,7 @@ export function useUserGroupsPage() {
         throw new Error(
           await getResponseErrorMessage(
             response,
-            "ไม่สามารถลบกลุ่มผู้ใช้งานได้",
+            "เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธฅเธเธเธฅเธธเนเธกเธเธนเนเนเธเนเธเธฒเธเนเธ”เน",
           ),
         );
       }
@@ -435,7 +478,7 @@ export function useUserGroupsPage() {
       setError(
         deleteError instanceof Error
           ? deleteError.message
-          : "ไม่สามารถลบกลุ่มผู้ใช้งานได้",
+          : "เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธฅเธเธเธฅเธธเนเธกเธเธนเนเนเธเนเธเธฒเธเนเธ”เน",
       );
     } finally {
       setSaving(false);
@@ -472,7 +515,7 @@ export function useUserGroupsPage() {
     });
   }
 
-  async function submitMemberDialog(value: MemberFormValue) {
+  async function submitMemberDialog(value: UserGroupMemberFormInput) {
     if (!value.staffId) {
       return;
     }
@@ -481,71 +524,34 @@ export function useUserGroupsPage() {
       setSaving(true);
       setError(null);
 
-      const currentMemberships = memberDialogState?.memberships ?? [];
-      const currentByTeamId = new Map(
-        currentMemberships.map((item) => [item.teamId, item]),
-      );
-      const nextTeamIdSet = new Set(value.teamIds);
+      const response = await fetch(`${API_BASE_URL}/admin/staff-team-roles/sync`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          staffId: value.staffId,
+          teamIds: value.teamIds,
+        }),
+      });
 
-      for (const currentMembership of currentMemberships) {
-        if (!nextTeamIdSet.has(currentMembership.teamId)) {
-          const deleteResponse = await fetch(
-            `${API_BASE_URL}/admin/staff-team-roles/${currentMembership.id}`,
-            {
-              method: "DELETE",
-            },
-          );
-
-          if (!deleteResponse.ok) {
-            throw new Error(
-              await getResponseErrorMessage(
-                deleteResponse,
-                "ไม่สามารถลบคนออกจากกลุ่มได้",
-              ),
-            );
-          }
-        }
-      }
-
-      for (const teamId of value.teamIds) {
-        if (currentByTeamId.has(teamId)) {
-          continue;
-        }
-
-        const createResponse = await fetch(
-          `${API_BASE_URL}/admin/staff-team-roles`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              staffId: value.staffId,
-              teamId,
-              roleId: null,
-            }),
-          },
+      if (!response.ok) {
+        throw new Error(
+          await getResponseErrorMessage(
+            response,
+            "เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธเธฑเธเธ—เธถเธเธเนเธญเธกเธนเธฅเธเธเนเธเธเธฅเธธเนเธกเนเธ”เน",
+          ),
         );
-
-        if (!createResponse.ok) {
-          throw new Error(
-            await getResponseErrorMessage(
-              createResponse,
-              "ไม่สามารถเพิ่มคนเข้ากลุ่มได้",
-            ),
-          );
-        }
       }
 
       setMemberDialogState(null);
-      await loadMembersData();
-      await loadGroupsData();
+      await Promise.all([loadMembersData(), loadGroupsData()]);
     } catch (submitError) {
       console.error(submitError);
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "ไม่สามารถบันทึกข้อมูลคนในกลุ่มได้",
+          : "เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธเธฑเธเธ—เธถเธเธเนเธญเธกเธนเธฅเธเธเนเธเธเธฅเธธเนเธกเนเธ”เน",
       );
     } finally {
       setSaving(false);
@@ -569,7 +575,7 @@ export function useUserGroupsPage() {
     setMemberPage,
     selectedGroupId,
     setSelectedGroupId,
-    groupRows: pagedGroupRows,
+    groupRows,
     groupTotalItems,
     groupTotalPages,
     memberRows,

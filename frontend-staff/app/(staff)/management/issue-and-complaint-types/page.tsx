@@ -15,8 +15,8 @@ import { ProTechButton } from "@/components/tables/protech-button";
 import {
   useProblemTypeTable,
   type ProblemTypeFilter,
-  type ProblemTypeApiItem,
-  type ProblemTypePayload,
+  type ProblemTypeFormInput,
+  type ProblemTypeListApiItem,
 } from "@/hooks/problem-types/use-problem-type-table";
 import type { Column } from "@/types/table";
 import { formatThaiDateTime } from "../organizations/page";
@@ -33,11 +33,11 @@ type DialogState =
     }
   | {
       mode: "edit";
-      item: ProblemTypeApiItem;
+      item: ProblemTypeListApiItem;
     }
   | null;
 
-type ProblemTypeRow = {
+type ProblemTypeTableRow = {
   id: number;
   checked: boolean;
   code: string;
@@ -48,12 +48,12 @@ type ProblemTypeRow = {
   status: string;
 };
 
-function mapCategoryLabel(requestType: ProblemTypeApiItem["requestType"]) {
+function mapCategoryLabel(requestType: ProblemTypeListApiItem["requestType"]) {
   return requestType === "complaint" ? "ข้อร้องเรียน" : "ปัญหา";
 }
 
 
-function buildInitialValue(dialogState: DialogState): ProblemTypePayload {
+function buildInitialValue(dialogState: DialogState): ProblemTypeFormInput {
   if (dialogState?.mode === "edit") {
     return {
       code: dialogState.item.code,
@@ -117,7 +117,7 @@ export default function ProblemTypesPage() {
     };
   }, [clearError, error]);
 
-  const rows = useMemo<ProblemTypeRow[]>(
+  const rows = useMemo<ProblemTypeTableRow[]>(
     () =>
       items.map((item) => ({
         id: item.id,
@@ -136,7 +136,7 @@ export default function ProblemTypesPage() {
     setPage(1);
   }
 
-  async function handleSubmit(payload: ProblemTypePayload) {
+  async function handleSubmit(payload: ProblemTypeFormInput) {
     const success =
       dialogState?.mode === "edit"
         ? await updateProblemType(dialogState.item.id, payload)
@@ -161,7 +161,7 @@ export default function ProblemTypesPage() {
     }
   }
 
-  const columns: Column<ProblemTypeRow>[] = [
+  const columns: Column<ProblemTypeTableRow>[] = [
     {
       key: "checked",
       title: "",

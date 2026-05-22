@@ -11,7 +11,7 @@ export type ProblemTypeRequestType = "issue" | "complaint";
 export type ProblemTypeStatus = "active" | "inactive";
 export type ProblemTypeFilter = "all" | ProblemTypeRequestType;
 
-export type ProblemTypeApiItem = {
+export type ProblemTypeListApiItem = {
   id: number;
   code: string | null;
   name: string;
@@ -21,15 +21,15 @@ export type ProblemTypeApiItem = {
   updatedAt: string | null;
 };
 
-export type ProblemTypePayload = {
+export type ProblemTypeFormInput = {
   code?: string | null;
   name: string;
   requestType: ProblemTypeRequestType;
   status: ProblemTypeStatus;
 };
 
-type ProblemTypeListResponse = {
-  items: ProblemTypeApiItem[];
+type ProblemTypeListApiResponse = {
+  items: ProblemTypeListApiItem[];
   pagination: {
     page: number;
     limit: number;
@@ -44,82 +44,124 @@ type UseProblemTypeTableOptions = {
   requestType: ProblemTypeFilter;
 };
 
+function isAbortError(error: unknown) {
+  return error instanceof Error && error.name === "AbortError";
+}
+
 export function useProblemTypeTable({
   page,
   search,
   requestType,
 }: UseProblemTypeTableOptions) {
-  const [items, setItems] = useState<ProblemTypeApiItem[]>([]);
+  const [items, setItems] = useState<ProblemTypeListApiItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
-  const [pagination, setPagination] = useState<ProblemTypeListResponse["pagination"]>({
+  const [pagination, setPagination] = useState<ProblemTypeListApiResponse["pagination"]>({
     page: 1,
     limit: TABLE_LIMIT,
     total: 0,
     totalPages: 1,
   });
 
+  const buildListUrl = useCallback(() => {
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(TABLE_LIMIT),
+    });
+    const normalizedSearch = normalizeSearchKeyword(search);
+
+    if (normalizedSearch) {
+      params.set("search", normalizedSearch);
+    }
+
+    if (requestType !== "all") {
+      params.set("requestType", requestType);
+    }
+
+    const query = params.toString();
+    return `${API_BASE_URL}/admin/problem-types${query ? `?${query}` : ""}`;
+  }, [page, requestType, search]);
+
+  const applyListResult = useCallback((result: ProblemTypeListApiResponse) => {
+    setItems(result.items);
+    setPagination({
+      page: result.pagination.page,
+      limit: result.pagination.limit,
+      total: result.pagination.total,
+      totalPages: Math.max(result.pagination.totalPages, 1),
+    });
+    setError(null);
+  }, []);
+
   const fetchProblemTypes = useCallback(async () => {
     try {
       setLoading(true);
 
-      const params = new URLSearchParams({
-        page: String(page),
-        limit: String(TABLE_LIMIT),
+      const response = await fetch(buildListUrl(), {
+        cache: "no-store",
       });
-      const normalizedSearch = normalizeSearchKeyword(search);
-
-      if (normalizedSearch) {
-        params.set("search", normalizedSearch);
-      }
-
-      if (requestType !== "all") {
-        params.set("requestType", requestType);
-      }
-
-      const query = params.toString();
-      const response = await fetch(
-        `${API_BASE_URL}/admin/problem-types${query ? `?${query}` : ""}`,
-        {
-          cache: "no-store",
-        },
-      );
 
       if (!response.ok) {
         throw new Error(`Failed to load problem types (${response.status})`);
       }
 
-      const result = (await response.json()) as ProblemTypeListResponse;
-      setItems(result.items);
-      setPagination({
-        page: result.pagination.page,
-        limit: result.pagination.limit,
-        total: result.pagination.total,
-        totalPages: Math.max(result.pagination.totalPages, 1),
-      });
-      setError(null);
+      applyListResult((await response.json()) as ProblemTypeListApiResponse);
     } catch (fetchError) {
+      if (isAbortError(fetchError)) {
+        return;
+      }
       console.error(fetchError);
-      setError("ไม่สามารถโหลดข้อมูลประเภทประเด็นและคำร้องได้");
+      setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเธเธฃเธฐเน€เธ เธ—เธเธฃเธฐเน€เธ”เนเธเนเธฅเธฐเธเธณเธฃเนเธญเธเนเธ”เน");
     } finally {
       setLoading(false);
     }
-  }, [page, requestType, search]);
+  }, [applyListResult, buildListUrl]);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void fetchProblemTypes();
-    }, 0);
+    const controller = new AbortController();
+
+    void (async () => {
+      try {
+        setLoading(true);
+
+        const response = await fetch(buildListUrl(), {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to load problem types (${response.status})`);
+        }
+
+        const result = (await response.json()) as ProblemTypeListApiResponse;
+
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        applyListResult(result);
+      } catch (fetchError) {
+        if (isAbortError(fetchError)) {
+          return;
+        }
+        console.error(fetchError);
+        setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเธเธฃเธฐเน€เธ เธ—เธเธฃเธฐเน€เธ”เนเธเนเธฅเธฐเธเธณเธฃเนเธญเธเนเธ”เน");
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    })();
 
     return () => {
-      window.clearTimeout(timeoutId);
+      controller.abort();
     };
-  }, [fetchProblemTypes]);
+  }, [applyListResult, buildListUrl]);
 
   const createProblemType = useCallback(
-    async (payload: ProblemTypePayload) => {
+    async (payload: ProblemTypeFormInput) => {
       try {
         setSaving(true);
         setError(null);
@@ -144,7 +186,7 @@ export function useProblemTypeTable({
         return true;
       } catch (createError) {
         console.error(createError);
-        setError("ไม่สามารถสร้างประเภทประเด็นหรือคำร้องได้");
+        setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธชเธฃเนเธฒเธเธเธฃเธฐเน€เธ เธ—เธเธฃเธฐเน€เธ”เนเธเธซเธฃเธทเธญเธเธณเธฃเนเธญเธเนเธ”เน");
         return false;
       } finally {
         setSaving(false);
@@ -154,7 +196,7 @@ export function useProblemTypeTable({
   );
 
   const updateProblemType = useCallback(
-    async (id: number, payload: ProblemTypePayload) => {
+    async (id: number, payload: ProblemTypeFormInput) => {
       try {
         setActiveId(id);
         setError(null);
@@ -179,7 +221,7 @@ export function useProblemTypeTable({
         return true;
       } catch (updateError) {
         console.error(updateError);
-        setError("ไม่สามารถแก้ไขประเภทประเด็นหรือคำร้องได้");
+        setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เนเธเนเนเธเธเธฃเธฐเน€เธ เธ—เธเธฃเธฐเน€เธ”เนเธเธซเธฃเธทเธญเธเธณเธฃเนเธญเธเนเธ”เน");
         return false;
       } finally {
         setActiveId(null);
@@ -221,7 +263,7 @@ export function useProblemTypeTable({
         setError(
           removeError instanceof Error
             ? removeError.message
-            : "ไม่สามารถลบประเภทประเด็นหรือคำร้องได้",
+            : "เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธฅเธเธเธฃเธฐเน€เธ เธ—เธเธฃเธฐเน€เธ”เนเธเธซเธฃเธทเธญเธเธณเธฃเนเธญเธเนเธ”เน",
         );
         return false;
       } finally {

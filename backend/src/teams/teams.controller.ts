@@ -25,6 +25,11 @@ export class TeamsController {
     return this.team.findAll(query);
   }
 
+  @Get('table')
+  findTable(@Query() query: GetTeamsQuery) {
+    return this.team.findTable(query);
+  }
+
   @Get('member-management')
   findMemberManagement(@Query() query: TeamMemberManagementQueryDto) {
     return this.team.findMemberManagement(query);

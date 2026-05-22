@@ -14,8 +14,8 @@ import { OrganizationModal } from "@/components/organizations/organization-modal
 import { ProTechButton } from "@/components/tables/protech-button";
 import {
   useOrganizationTable,
-  type OrganizationApiItem,
-  type OrganizationPayload,
+  type OrganizationListApiItem,
+  type OrganizationFormInput,
   type OrganizationStatusFilter,
   type OrganizationTypeFilter,
 } from "@/hooks/organizations/use-organization-table";
@@ -26,10 +26,10 @@ type DialogMode = "create" | "edit";
 
 type DialogState = {
   mode: DialogMode;
-  item?: OrganizationApiItem;
+  item?: OrganizationListApiItem;
 } | null;
 
-type OrganizationRow = {
+type OrganizationTableRow = {
   id: number;
   checked: boolean;
   organizationName: string;
@@ -110,7 +110,7 @@ export default function OrganizationsPage() {
     };
   }, [clearError, error]);
 
-  const rows = useMemo<OrganizationRow[]>(() => {
+  const rows = useMemo<OrganizationTableRow[]>(() => {
     return items.map((item) => ({
       id: item.id,
       checked: item.id === resolvedSelectedId,
@@ -132,7 +132,7 @@ export default function OrganizationsPage() {
     setPage(1);
   }
 
-  function buildInitialValue(dialogState: DialogState): OrganizationPayload {
+  function buildInitialValue(dialogState: DialogState): OrganizationFormInput {
     if (dialogState?.mode === "edit" && dialogState.item) {
       return {
         name: dialogState.item.organizationName || "",
@@ -172,7 +172,7 @@ export default function OrganizationsPage() {
     }
   }
 
-  async function handleSubmit(payload: OrganizationPayload) {
+  async function handleSubmit(payload: OrganizationFormInput) {
     const success =
       dialogState?.mode === "edit" && dialogState.item
         ? await updateOrganization(dialogState.item.id, payload)
@@ -185,7 +185,7 @@ export default function OrganizationsPage() {
     setDialogState(null);
   }
 
-  const columns: Column<OrganizationRow>[] = [
+  const columns: Column<OrganizationTableRow>[] = [
     {
       key: "checked",
       title: "",

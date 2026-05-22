@@ -7,7 +7,7 @@ import { normalizeSearchKeyword } from "@/lib/form-utils";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 const DEFAULT_LIMIT = 10;
 
-export type CustomerApiItem = {
+export type CustomerListApiItem = {
   id: number;
   name: string;
   email: string;
@@ -19,8 +19,8 @@ export type CustomerApiItem = {
   updatedAt: string | null;
 };
 
-export type CustomerListResponse = {
-  items: CustomerApiItem[];
+export type CustomerListApiResponse = {
+  items: CustomerListApiItem[];
   pagination: {
     page: number;
     limit: number;
@@ -29,10 +29,14 @@ export type CustomerListResponse = {
   };
 };
 
-type CustomerPagination = CustomerListResponse["pagination"];
+type CustomerPagination = CustomerListApiResponse["pagination"];
+
+function isAbortError(error: unknown) {
+  return error instanceof Error && error.name === "AbortError";
+}
 
 export function useUnapprovedCustomers(search = "") {
-  const [items, setItems] = useState<CustomerApiItem[]>([]);
+  const [items, setItems] = useState<CustomerListApiItem[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,30 +48,22 @@ export function useUnapprovedCustomers(search = "") {
     totalPages: 1,
   });
 
-  const fetchCustomers = useCallback(async () => {
-    try {
-      setLoading(true);
+  const buildListUrl = useCallback(() => {
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(DEFAULT_LIMIT),
+    });
+    const normalizedSearch = normalizeSearchKeyword(search);
 
-      const params = new URLSearchParams({
-        page: String(page),
-        limit: String(DEFAULT_LIMIT),
-      });
-      const normalizedSearch = normalizeSearchKeyword(search);
+    if (normalizedSearch) {
+      params.set("search", normalizedSearch);
+    }
 
-      if (normalizedSearch) {
-        params.set("search", normalizedSearch);
-      }
+    return `${API_BASE_URL}/customers/unapproved?${params.toString()}`;
+  }, [page, search]);
 
-      const response = await fetch(
-        `${API_BASE_URL}/customers/unapproved?${params.toString()}`,
-        { cache: "no-store" },
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to load customers (${response.status})`);
-      }
-
-      const result = (await response.json()) as CustomerListResponse;
+  const applyListResult = useCallback(
+    (result: CustomerListApiResponse) => {
       const nextTotalPages = Math.max(result.pagination.totalPages, 1);
 
       setItems(result.items);
@@ -85,23 +81,72 @@ export function useUnapprovedCustomers(search = "") {
       }
 
       setError(null);
+    },
+    [page],
+  );
+
+  const fetchCustomers = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      const response = await fetch(buildListUrl(), { cache: "no-store" });
+
+      if (!response.ok) {
+        throw new Error(`Failed to load customers (${response.status})`);
+      }
+
+      applyListResult((await response.json()) as CustomerListApiResponse);
     } catch (fetchError) {
+      if (isAbortError(fetchError)) {
+        return;
+      }
       console.error(fetchError);
-      setError("ไม่สามารถโหลดข้อมูลผู้ใช้งานได้");
+      setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเธเธนเนเนเธเนเธเธฒเธเนเธ”เน");
     } finally {
       setLoading(false);
     }
-  }, [page, search]);
+  }, [applyListResult, buildListUrl]);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void fetchCustomers();
-    }, 0);
+    const controller = new AbortController();
+
+    void (async () => {
+      try {
+        setLoading(true);
+
+        const response = await fetch(buildListUrl(), {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to load customers (${response.status})`);
+        }
+
+        const result = (await response.json()) as CustomerListApiResponse;
+
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        applyListResult(result);
+      } catch (fetchError) {
+        if (isAbortError(fetchError)) {
+          return;
+        }
+        console.error(fetchError);
+        setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเธเธนเนเนเธเนเธเธฒเธเนเธ”เน");
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    })();
 
     return () => {
-      window.clearTimeout(timeoutId);
+      controller.abort();
     };
-  }, [fetchCustomers]);
+  }, [applyListResult, buildListUrl]);
 
   const updateCustomerStatus = useCallback(
     async (id: number, action: "approve" | "reject") => {
@@ -128,7 +173,7 @@ export function useUnapprovedCustomers(search = "") {
         return true;
       } catch (updateError) {
         console.error(updateError);
-        setError("ไม่สามารถอัปเดตสถานะผู้ใช้งานได้");
+        setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธญเธฑเธเน€เธ”เธ•เธชเธ–เธฒเธเธฐเธเธนเนเนเธเนเธเธฒเธเนเธ”เน");
         return false;
       } finally {
         setActiveId(null);

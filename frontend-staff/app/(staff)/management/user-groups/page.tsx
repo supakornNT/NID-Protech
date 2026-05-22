@@ -16,11 +16,12 @@ import { ProTechButton } from "@/components/tables/protech-button";
 import { ProTechSearchBar } from "@/components/tables/protech-search";
 import { ProTechTable } from "@/components/tables/protech-table";
 import {
-  GroupRow,
-  MemberRow,
+  UserGroupMemberTableRow,
+  UserGroupTableRow,
   useUserGroupsPage,
 } from "@/hooks/user-groups/use-user-groups-page";
 import type { Column } from "@/types/table";
+import { formatThaiDateTime } from "../organizations/page";
 
 function renderStatus(status: string) {
   if (status === "active") {
@@ -110,7 +111,7 @@ export default function UserGroupsPage() {
     submitMemberDialog,
   } = useUserGroupsPage();
 
-  const groupColumns: Column<GroupRow>[] = useMemo(
+  const groupColumns: Column<UserGroupTableRow>[] = useMemo(
     () => [
       {
         key: "checked",
@@ -127,13 +128,30 @@ export default function UserGroupsPage() {
           />
         ),
       },
-      { key: "order", title: "ลำดับ", className: "w-[140px]" },
-      { key: "groupName", title: "กลุ่ม" },
+      { key: "order", title: "ลำดับ", className: "w-[100px]" },
+      { key: "groupName", title: "กลุ่ม", className: "w-[220px]" },
       {
         key: "status",
         title: "สถานะ",
-        className: "w-[180px]",
+        className: "w-[140px]",
         render: (value) => renderStatus(String(value)),
+      },
+      {
+        key: "memberCount",
+        title: "จำนวนสมาชิก",
+        className: "w-[140px]",
+      },
+      {
+        key: "createdAt",
+        title: "วันที่สร้าง",
+        className: "w-[180px]",
+        render: (value) => formatThaiDateTime((value as string | null) ?? null),
+      },
+      {
+        key: "updatedAt",
+        title: "วันที่แก้ไข",
+        className: "w-[180px]",
+        render: (value) => formatThaiDateTime((value as string | null) ?? null),
       },
       {
         key: "actions",
@@ -152,20 +170,39 @@ export default function UserGroupsPage() {
     [openEditGroupDialog, setSelectedGroupId],
   );
 
-  const memberColumns: Column<MemberRow>[] = useMemo(
+  const memberColumns: Column<UserGroupMemberTableRow>[] = useMemo(
     () => [
-      { key: "order", title: "ลำดับ", className: "w-[120px]" },
-      { key: "fullName", title: "ชื่อ-นามสกุล", className: "w-[260px]" },
-      { key: "email", title: "อีเมล", className: "w-[240px]" },
+      { key: "order", title: "ลำดับ", className: "w-[100px]" },
+      { key: "fullName", title: "ชื่อ-นามสกุล", className: "w-[220px]" },
+      { key: "email", title: "อีเมล", className: "w-[220px]" },
+      {
+        key: "status",
+        title: "สถานะ",
+        className: "w-[140px]",
+        render: (value) => renderStatus(String(value)),
+      },
       {
         key: "teams",
         title: "กลุ่ม",
+        className: "w-[260px]",
         render: (_, row) =>
           row.teams.length > 0 ? (
             <PermissionTags items={row.teams} />
           ) : (
             <span className="text-[#8B95A7]">-</span>
           ),
+      },
+      {
+        key: "createdAt",
+        title: "วันที่สร้าง",
+        className: "w-[180px]",
+        render: (value) => formatThaiDateTime((value as string | null) ?? null),
+      },
+      {
+        key: "updatedAt",
+        title: "วันที่แก้ไข",
+        className: "w-[180px]",
+        render: (value) => formatThaiDateTime((value as string | null) ?? null),
       },
       {
         key: "actions",
@@ -194,8 +231,7 @@ export default function UserGroupsPage() {
             จัดการกลุ่มผู้ใช้งาน
           </h1>
           <p className="mt-2 text-[16px] text-[#8B95A7]">
-            จัดการกลุ่มผู้ใช้งาน เพิ่มคนเข้าทีม
-            และตรวจสอบว่าผู้ใช้งานอยู่กลุ่มใดบ้าง
+            จัดการกลุ่มผู้ใช้งาน เพิ่มคนเข้ากลุ่ม และตรวจสอบว่าผู้ใช้งานอยู่ในกลุ่มใดบ้าง
           </p>
         </div>
 
