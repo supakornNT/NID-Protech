@@ -152,21 +152,21 @@ export default function UsersPage() {
   );
 
   const staffColumns: Column<StaffTableRow>[] = [
-    { key: "order", title: "ลำดับ", className: "w-[84px]" },
-    { key: "fullName", title: "ชื่อ-นามสกุล", className: "min-w-[220px]" },
-    { key: "email", title: "อีเมล", className: "min-w-[220px]" },
-    { key: "phone", title: "เบอร์โทร", className: "w-[140px]" },
-    { key: "citizenId", title: "เลขบัตรประชาชน", className: "w-[190px]" },
+    { key: "order", title: "ลำดับ", className: "w-[84px] text-lg font-medium" },
+    { key: "fullName", title: "ชื่อ-นามสกุล", className: "min-w-[220px] text-lg font-medium" },
+    { key: "email", title: "อีเมล", className: "min-w-[220px] text-lg font-medium" },
+    { key: "phone", title: "เบอร์โทร", className: "w-[140px] text-lg font-medium" },
+    { key: "citizenId", title: "เลขบัตรประชาชน", className: "w-[190px] text-lg font-medium" },
     {
       key: "status",
       title: "สถานะ",
-      className: "w-[120px]",
+      className: "w-[120px] text-lg font-medium",
       render: (value) => renderStatus(String(value)),
     },
     {
       key: "actions",
       title: "จัดการ",
-      className: "w-[140px]",
+      className: "w-[140px] text-lg font-medium",
       render: (_, row) => {
         const currentItem = items.find(
           (item) => item.id === row.id && item.userType === "staff",
@@ -205,22 +205,22 @@ export default function UsersPage() {
   ];
 
   const customerColumns: Column<CustomerTableRow>[] = [
-    { key: "order", title: "ลำดับ", className: "w-[84px]" },
-    { key: "fullName", title: "ชื่อ-นามสกุล", className: "min-w-[220px]" },
-    { key: "email", title: "อีเมล", className: "min-w-[220px]" },
-    { key: "phone", title: "เบอร์โทร", className: "w-[140px]" },
-    { key: "customerType", title: "ประเภทลูกค้า", className: "w-[140px]" },
-    { key: "organizationName", title: "องค์กร", className: "min-w-[180px]" },
+    { key: "order", title: "ลำดับ", className: "w-[84px] text-lg font-medium" },
+    { key: "fullName", title: "ชื่อ-นามสกุล", className: "min-w-[220px] text-lg font-medium" },
+    { key: "email", title: "อีเมล", className: "min-w-[220px] text-lg font-medium" },
+    { key: "phone", title: "เบอร์โทร", className: "w-[140px] text-lg font-medium" },
+    { key: "customerType", title: "ประเภทลูกค้า", className: "w-[140px] text-lg font-medium" },
+    { key: "organizationName", title: "องค์กร", className: "min-w-[180px] text-lg font-medium" },
     {
       key: "status",
       title: "สถานะ",
-      className: "w-[120px]",
+      className: "w-[120px] text-lg font-medium",
       render: (value) => renderStatus(String(value)),
     },
     {
       key: "actions",
       title: "จัดการ",
-      className: "w-[140px]",
+      className: "w-[140px] text-lg font-medium",
       render: (_, row) => {
         const currentItem = items.find(
           (item) => item.id === row.id && item.userType === "customer",
@@ -296,7 +296,7 @@ export default function UsersPage() {
             >
               เจ้าหน้าที่
               {activeTab === "staff" ? (
-                <span className="absolute inset-x-0 -bottom-2 h-0.5 bg-[#3F73BB]" />
+                <span className="absolute inset-x-0 bottom-0 h-0.5 bg-[#3F73BB]" />
               ) : null}
             </button>
             <button
@@ -316,7 +316,7 @@ export default function UsersPage() {
             >
               ลูกค้า
               {activeTab === "customer" ? (
-                <span className="absolute inset-x-0 -bottom-2 h-0.5 bg-[#3F73BB]" />
+                <span className="absolute inset-x-0 bottom-0 h-0.5 bg-[#3F73BB]" />
               ) : null}
             </button>
           </div>

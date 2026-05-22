@@ -37,11 +37,11 @@ export default function PermissionsPage() {
 
   const columns: Column<PermissionTeamTableRow>[] = useMemo(
     () => [
-      { key: "order", title: "ลำดับ", className: "w-[100px]" },
+      { key: "order", title: "ลำดับ", className: "w-[100px]  text-lg font-medium" },
       {
         key: "teamName",
         title: "กลุ่ม",
-        className: "w-[220px]",
+        className: "w-[220px]  text-lg font-medium",
         render: (value) => (
           <span className="font-medium text-[#111827]">{String(value)}</span>
         ),
@@ -49,7 +49,7 @@ export default function PermissionsPage() {
       {
         key: "status",
         title: "สถานะ",
-        className: "w-[120px]",
+        className: "w-[120px]  text-lg font-medium",
         render: (value) => {
           const status = String(value ?? "-");
           const tone =
@@ -65,24 +65,24 @@ export default function PermissionsPage() {
       {
         key: "assignedPermissionCount",
         title: "จำนวนสิทธิ์",
-        className: "w-[120px]",
+        className: "w-[120px]  text-lg font-medium",
       },
       {
         key: "createdAt",
         title: "วันที่สร้าง",
-        className: "w-[180px]",
+        className: "w-[180px]  text-lg font-medium",
         render: (value) => formatThaiDateTime((value as string | null) ?? null),
       },
       {
         key: "updatedAt",
         title: "วันที่แก้ไข",
-        className: "w-[180px]",
+        className: "w-[180px]  text-lg font-medium",
         render: (value) => formatThaiDateTime((value as string | null) ?? null),
       },
       {
         key: "actions",
         title: "จัดการ",
-        className: "w-[100px]",
+        className: "w-[100px]  text-lg font-medium",
         render: (_, row) => (
           <ActionIcons
             showInfo={false}

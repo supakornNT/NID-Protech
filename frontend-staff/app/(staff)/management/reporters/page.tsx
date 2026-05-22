@@ -117,15 +117,16 @@ export default function CustomersPage() {
   }
 
   const columns: Column<CustomerTableRow>[] = [
-    { key: "date", title: "วันที/เวลา" },
-    { key: "name", title: "ชื่อ-นามสกุล" },
-    { key: "role", title: "ประเภท" },
-    { key: "organizationName", title: "บริษัท" },
-    { key: "email", title: "อีเมล" },
-    { key: "phone", title: "เบอร์โทร" },
+    { key: "date", title: "วันที/เวลา" , className: "w-[90px] text-lg font-medium"},
+    { key: "name", title: "ชื่อ-นามสกุล" , className: "w-[90px] text-lg font-medium"},
+    { key: "role", title: "ประเภท" , className: "w-[90px] text-lg font-medium"},
+    { key: "organizationName", title: "บริษัท" , className: "w-[120px] text-lg font-medium"},
+    { key: "email", title: "อีเมล" , className: "w-[150px] text-lg font-medium"},
+    { key: "phone", title: "เบอร์โทร" , className: "w-[120px] text-lg font-medium"},
     {
       key: "status",
       title: "สถานะ",
+      className: "w-[120px] text-lg font-medium",
       render: (_, row) => (
         <div className="flex items-center justify-center gap-2">
           <StatusBadge

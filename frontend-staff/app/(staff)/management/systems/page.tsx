@@ -206,7 +206,7 @@ export default function SystemsPage() {
     {
       key: "checked",
       title: "",
-      className: "w-[72px]",
+      className: "w-[72px] text-lg font-medium",
       render: (_, row) => (
         <CheckCell
           checked={row.checked}
@@ -216,12 +216,12 @@ export default function SystemsPage() {
         />
       ),
     },
-    { key: "name", title: "ชื่อระบบ" },
-    { key: "organizationName", title: "ชื่อองค์กร" },
+    { key: "name", title: "ชื่อระบบ", className: "w-[120px] text-lg font-medium" },
+    { key: "organizationName", title: "ชื่อองค์กร", className: "w-[120px] text-lg font-medium" },
     {
       key: "status",
       title: "สถานะ",
-      className: "w-[124px]",
+      className: "w-[124px] text-lg font-medium",
       render: (value) => {
         const status = String(value ?? "-");
         const tone =
@@ -234,12 +234,12 @@ export default function SystemsPage() {
         return <StatusBadge label={status} tone={tone} />;
       },
     },
-    { key: "createdAt", title: "วันที่สร้าง", className: "w-[180px]" },
-    { key: "updatedAt", title: "วันที่แก้ไข", className: "w-[180px]" },
+    { key: "createdAt", title: "วันที่สร้าง", className: "w-[180px] text-lg font-medium" },
+    { key: "updatedAt", title: "วันที่แก้ไข", className: "w-[180px] text-lg font-medium" },
     {
       key: "actions",
       title: "จัดการ",
-      className: "w-[64px]",
+      className: "w-[64px] text-lg font-medium",
       render: (_, row) => {
         const currentItem = items.find((item) => item.id === row.id);
 

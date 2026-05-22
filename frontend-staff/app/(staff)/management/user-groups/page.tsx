@@ -116,7 +116,7 @@ export default function UserGroupsPage() {
       {
         key: "checked",
         title: "",
-        className: "w-[72px]",
+        className: "w-[72px] text-lg font-medium",
         render: (_, row) => (
           <CheckCell
             checked={row.checked}
@@ -129,35 +129,35 @@ export default function UserGroupsPage() {
         ),
       },
       // { key: "order", title: "ลำดับ", className: "w-[100px]" },
-      { key: "groupName", title: "กลุ่ม", className: "w-[220px]" },
+      { key: "groupName", title: "กลุ่ม", className: "w-[220px] text-lg font-medium" },
 
       {
         key: "memberCount",
         title: "จำนวนสมาชิก",
-        className: "w-[140px]",
+        className: "w-[140px] text-lg font-medium",
       },
       {
         key: "status",
         title: "สถานะ",
-        className: "w-[140px]",
+        className: "w-[140px] text-lg font-medium",
         render: (value) => renderStatus(String(value)),
       },
       {
         key: "createdAt",
         title: "วันที่สร้าง",
-        className: "w-[180px]",
+        className: "w-[180px] text-lg font-medium",
         render: (value) => formatThaiDateTime((value as string | null) ?? null),
       },
       {
         key: "updatedAt",
         title: "วันที่แก้ไข",
-        className: "w-[180px]",
+        className: "w-[180px] text-lg font-medium",
         render: (value) => formatThaiDateTime((value as string | null) ?? null),
       },
       {
         key: "actions",
         title: "จัดการ",
-        className: "w-[120px]",
+        className: "w-[120px] text-lg font-medium",
         render: (_, row) => (
           <ActionIcons
             showInfo={false}
@@ -173,19 +173,19 @@ export default function UserGroupsPage() {
 
   const memberColumns: Column<UserGroupMemberTableRow>[] = useMemo(
     () => [
-      { key: "order", title: "ลำดับ", className: "w-[100px]" },
-      { key: "fullName", title: "ชื่อ-นามสกุล", className: "w-[220px]" },
-      { key: "email", title: "อีเมล", className: "w-[220px]" },
+      { key: "order", title: "ลำดับ", className: "w-[100px] text-lg font-medium" },
+      { key: "fullName", title: "ชื่อ-นามสกุล", className: "w-[220px] text-lg font-medium" },
+      { key: "email", title: "อีเมล", className: "w-[220px] text-lg font-medium" },
       {
         key: "status",
         title: "สถานะ",
-        className: "w-[140px]",
+        className: "w-[140px] text-lg font-medium",
         render: (value) => renderStatus(String(value)),
       },
       {
         key: "teams",
         title: "กลุ่ม",
-        className: "w-[260px]",
+        className: "w-[260px] text-lg font-medium",
         render: (_, row) =>
           row.teams.length > 0 ? (
             <PermissionTags items={row.teams} />
@@ -196,19 +196,19 @@ export default function UserGroupsPage() {
       {
         key: "createdAt",
         title: "วันที่สร้าง",
-        className: "w-[180px]",
+        className: "w-[180px] text-lg font-medium",
         render: (value) => formatThaiDateTime((value as string | null) ?? null),
       },
       {
         key: "updatedAt",
         title: "วันที่แก้ไข",
-        className: "w-[180px]",
+        className: "w-[180px] text-lg font-medium",
         render: (value) => formatThaiDateTime((value as string | null) ?? null),
       },
       {
         key: "actions",
         title: "จัดการ",
-        className: "w-[120px]",
+        className: "w-[120px] text-lg font-medium",
         render: (_, row) => (
           <ActionIcons
             showInfo={false}
@@ -257,7 +257,7 @@ export default function UserGroupsPage() {
             >
               กลุ่ม
               {isGroupsTab ? (
-                <span className="absolute inset-x-0 -bottom-2 h-0.5 bg-[#3F73BB]" />
+                <span className="absolute inset-x-0 bottom-0 h-0.5 bg-[#3F73BB]" />
               ) : null}
             </button>
             <button
@@ -277,7 +277,7 @@ export default function UserGroupsPage() {
             >
               จัดการคนในกลุ่ม
               {!isGroupsTab ? (
-                <span className="absolute inset-x-0 -bottom-2 h-0.5 bg-[#3F73BB]" />
+                <span className="absolute inset-x-0 bottom-0 h-0.5 bg-[#3F73BB]" />
               ) : null}
             </button>
           </div>

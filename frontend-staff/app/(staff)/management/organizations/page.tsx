@@ -199,14 +199,14 @@ export default function OrganizationsPage() {
         />
       ),
     },
-    { key: "organizationName", title: "ชื่อองค์กร" },
-    { key: "email", title: "อีเมล" },
-    { key: "phone", title: "เบอร์โทร" },
-    { key: "organizationType", title: "ประเภท" },
+    { key: "organizationName", title: "ชื่อองค์กร", className: "w-[90px] text-lg font-medium" },
+    { key: "email", title: "อีเมล", className: "w-[90px] text-lg font-medium" },
+    { key: "phone", title: "เบอร์โทร", className: "w-[90px] text-lg font-medium" },
+    { key: "organizationType", title: "ประเภท", className: "w-[90px] text-lg font-medium" },
     {
       key: "status",
       title: "สถานะ",
-      className: "w-[124px]",
+      className: "w-[124px] text-lg font-medium",
       render: (value) => {
         const status = String(value ?? "-");
         const tone =
@@ -219,12 +219,12 @@ export default function OrganizationsPage() {
         return <StatusBadge label={status} tone={tone} />;
       },
     },
-    { key: "createdAt", title: "วันที่สร้าง", className: "w-[180px]" },
-    { key: "updatedAt", title: "วันที่แก้ไข", className: "w-[180px]" },
+    { key: "createdAt", title: "วันที่สร้าง", className: "w-[180px] text-lg font-medium" },
+    { key: "updatedAt", title: "วันที่แก้ไข", className: "w-[180px] text-lg font-medium" },
     {
       key: "actions",
       title: "จัดการ",
-      className: "w-[64px]",
+      className: "w-[64px] text-lg font-medium",
       render: (_, row) => {
         const currentItem = items.find((item) => item.id === row.id);
 

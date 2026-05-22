@@ -109,7 +109,7 @@ export function ProTechSearchBar({
         inputProps={inputProps}
       />
       <ProTechButton
-        variant="primary"
+        variant="search"
         className={`h-7.75 min-w-18.5 px-4 text-[14px] ${buttonClassName}`}
         onClick={() => onSearch?.(resolvedValue)}
       >

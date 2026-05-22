@@ -165,7 +165,7 @@ export default function ProblemTypesPage() {
     {
       key: "checked",
       title: "",
-      className: "w-[72px]",
+      className: "w-[72px] ",
       render: (_, row) => (
         <CheckCell
           checked={row.checked}
@@ -175,14 +175,14 @@ export default function ProblemTypesPage() {
         />
       ),
     },
-    { key: "code", title: "รหัส", className: "w-[90px]" },
-    { key: "categoryLabel", title: "หมวด", className: "w-[90px]" },
-    { key: "name", title: "ประเภท", className: "w-[200px]" },
+    { key: "code", title: "รหัส", className: "w-[90px] text-lg font-medium" },
+    { key: "categoryLabel", title: "หมวด", className: "w-[90px] text-lg font-medium" },
+    { key: "name", title: "ประเภท", className: "w-[200px] text-lg font-medium" },
      
     {
       key: "status",
       title: "สถานะ",
-      className: "w-[80px]",
+      className: "w-[80px] text-lg font-medium",
       render: (value) => {
         const status = String(value ?? "-");
         const tone = status === "active" ? "success" : "danger";
@@ -190,12 +190,12 @@ export default function ProblemTypesPage() {
         return <StatusBadge label={status} tone={tone} />;
       },
     },
-    { key: "createdAt", title: "วันที่สร้าง", className: "w-[90px]" },
-      { key: "updatedAt", title: "วันที่แก้ไข", className: "w-[90px]" },
+    { key: "createdAt", title: "วันที่สร้าง", className: "w-[90px] text-lg font-medium" },
+      { key: "updatedAt", title: "วันที่แก้ไข", className: "w-[90px] text-lg font-medium" },
     {
       key: "actions",
       title: "จัดการ",
-      className: "w-[64px]",
+      className: "w-[64px] text-lg font-medium",
       render: (_, row) => (
         <ActionIcons
           showInfo={false}
