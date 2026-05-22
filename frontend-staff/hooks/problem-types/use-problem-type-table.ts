@@ -113,7 +113,7 @@ export function useProblemTypeTable({
         return;
       }
       console.error(fetchError);
-      setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเธเธฃเธฐเน€เธ เธ—เธเธฃเธฐเน€เธ”เนเธเนเธฅเธฐเธเธณเธฃเนเธญเธเนเธ”เน");
+      setError("ไม่สามารถโหลดข้อมูลประเภทเรื่องได้");
     } finally {
       setLoading(false);
     }
@@ -147,7 +147,7 @@ export function useProblemTypeTable({
           return;
         }
         console.error(fetchError);
-        setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเธเธฃเธฐเน€เธ เธ—เธเธฃเธฐเน€เธ”เนเธเนเธฅเธฐเธเธณเธฃเนเธญเธเนเธ”เน");
+        setError("ไม่สามารถโหลดข้อมูลประเภทเรื่องได้");
       } finally {
         if (!controller.signal.aborted) {
           setLoading(false);
@@ -186,7 +186,7 @@ export function useProblemTypeTable({
         return true;
       } catch (createError) {
         console.error(createError);
-        setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธชเธฃเนเธฒเธเธเธฃเธฐเน€เธ เธ—เธเธฃเธฐเน€เธ”เนเธเธซเธฃเธทเธญเธเธณเธฃเนเธญเธเนเธ”เน");
+        setError("ไม่สามารถสร้างข้อมูลประเภทเรื่องได้");
         return false;
       } finally {
         setSaving(false);
@@ -221,7 +221,7 @@ export function useProblemTypeTable({
         return true;
       } catch (updateError) {
         console.error(updateError);
-        setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เนเธเนเนเธเธเธฃเธฐเน€เธ เธ—เธเธฃเธฐเน€เธ”เนเธเธซเธฃเธทเธญเธเธณเธฃเนเธญเธเนเธ”เน");
+        setError("ไม่สามารถแก้ไขข้อมูลประเภทเรื่องได้");
         return false;
       } finally {
         setActiveId(null);
@@ -263,7 +263,7 @@ export function useProblemTypeTable({
         setError(
           removeError instanceof Error
             ? removeError.message
-            : "เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธฅเธเธเธฃเธฐเน€เธ เธ—เธเธฃเธฐเน€เธ”เนเธเธซเธฃเธทเธญเธเธณเธฃเนเธญเธเนเธ”เน",
+            : "ไม่สามารถลบข้อมูลประเภทเรื่องได้",
         );
         return false;
       } finally {

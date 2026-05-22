@@ -130,16 +130,17 @@ export default function UserGroupsPage() {
       },
       { key: "order", title: "ลำดับ", className: "w-[100px]" },
       { key: "groupName", title: "กลุ่ม", className: "w-[220px]" },
+
+      {
+        key: "memberCount",
+        title: "จำนวนสมาชิก",
+        className: "w-[140px]",
+      },
       {
         key: "status",
         title: "สถานะ",
         className: "w-[140px]",
         render: (value) => renderStatus(String(value)),
-      },
-      {
-        key: "memberCount",
-        title: "จำนวนสมาชิก",
-        className: "w-[140px]",
       },
       {
         key: "createdAt",
@@ -231,7 +232,8 @@ export default function UserGroupsPage() {
             จัดการกลุ่มผู้ใช้งาน
           </h1>
           <p className="mt-2 text-[16px] text-[#8B95A7]">
-            จัดการกลุ่มผู้ใช้งาน เพิ่มคนเข้ากลุ่ม และตรวจสอบว่าผู้ใช้งานอยู่ในกลุ่มใดบ้าง
+            จัดการกลุ่มผู้ใช้งาน เพิ่มคนเข้ากลุ่ม
+            และตรวจสอบว่าผู้ใช้งานอยู่ในกลุ่มใดบ้าง
           </p>
         </div>
 

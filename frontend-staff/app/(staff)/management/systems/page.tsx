@@ -9,33 +9,24 @@ import {
 import { ProTechButton } from "@/components/tables/protech-button";
 import {  ProTechSearchBar } from "@/components/tables/protech-search";
 import { ProTechTable } from "@/components/tables/protech-table";
+import { useState } from "react";
 
 type ProjectRow = {
   order: number;
   organization: string;
-  projectName: string;
+  systemName: string;
   type: string;
-  status: "ใช้งาน" | "ไม่ใช้งาน" | "พัฒนา";
+  status: "ใช้งาน" | "ไม่ใช้งาน" ;
+  createdAt: string;
+
 };
 
-const projectRows: ProjectRow[] = Array.from({ length: 10 }, (_, index) => ({
-  order: index + 1,
-  organization: "บริษัท โปรเทค ซัพพอร์ต จำกัด",
-  projectName: "ProTech Support",
-  type: "web app",
-  status:
-    index === 1 || index === 4 || index === 6 || index === 7 || index === 8
-      ? "ไม่ใช้งาน"
-      : index === 5
-        ? "พัฒนา"
-        : "ใช้งาน",
-}));
 
 const columns: Column<ProjectRow>[] = [
   { key: "check", title: "", render: () => <CheckCell /> },
   { key: "order", title: "ลำดับ" },
   { key: "organization", title: "ชื่อองค์กร" },
-  { key: "projectName", title: "ชื่อโครงการ" },
+  { key: "systemName", title: "ชื่อโครงการ" },
   { key: "type", title: "ประเภท" },
   {
     key: "status",
@@ -59,8 +50,29 @@ const columns: Column<ProjectRow>[] = [
     render: () => <ActionIcons showInfo={false} />,
   },
 ];
-
+function mapCustomerRow(item: CustomerListApiItem): CustomerTableRow {
+  return {
+   
+  };
+}
+// eturn {
+//     items,
+//     pagination,
+//     loading,
+//     error,
+//     clearError,
+//     activeId,
+//     saving,
+//     statusOptions: STATUS_OPTIONS,
+//     fetchSystems,
+//     createSystem,
+//     updateSystem,
+//     removeSystem,
 export default function ProjectsPage() {
+ const [items,] = useState<ProjectRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+// const rows = useMemo(() => items.map(mapCustomerRow), [items]);
   return (
     <div className="min-h-full w-full rounded-xl px-5 py-7 sm:px-6 sm:py-8 lg:px-8 lg:py-9">
       <div className="space-y-5">
@@ -94,7 +106,7 @@ export default function ProjectsPage() {
 
         <ProTechTable
           columns={columns}
-          data={projectRows}
+          data={[]}
           page={2}
           totalPages={3}
           totalItems={50}

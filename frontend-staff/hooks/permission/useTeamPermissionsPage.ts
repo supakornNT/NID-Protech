@@ -71,12 +71,12 @@ export type PermissionEditDialogValue = {
 } | null;
 
 const sectionTitleMap: Record<string, string> = {
-  screening: "เธฃเธฑเธเน€เธฃเธทเนเธญเธเนเธฅเธฐเธเธฑเธ”เธเธฃเธญเธ",
-  report: "เธฃเธฒเธขเธเธฒเธ",
-  tracking: "เธเธฒเธฃเธ•เธดเธ”เธ•เธฒเธก",
-  operation: "เธเธฒเธฃเธเธเธดเธเธฑเธ•เธดเธเธฒเธ",
-  assignment: "เธเธฒเธฃเธเธดเธเธฒเธฃเธ“เธฒ",
-  management: "เธเธฒเธฃเธเธฑเธ”เธเธฒเธฃ",
+  screening: "คัดกรอง",
+  report: "รายงาน",
+  tracking: "ติดตามงาน",
+  operation: "ปฏิบัติงาน",
+  assignment: "มอบหมายงาน",
+  management: "จัดการระบบ",
 };
 
 function isAbortError(error: unknown) {
@@ -152,7 +152,7 @@ export function useTeamPermissionsPage() {
         return;
       }
       console.error(fetchError);
-      setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเธเธฅเธธเนเธกเธเธนเนเนเธเนเธเธฒเธเนเธ”เน");
+      setError("ไม่สามารถโหลดข้อมูลทีมได้");
     } finally {
       setLoading(false);
     }
@@ -186,7 +186,7 @@ export function useTeamPermissionsPage() {
           return;
         }
         console.error(fetchError);
-        setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเธเธฅเธธเนเธกเธเธนเนเนเธเนเธเธฒเธเนเธ”เน");
+        setError("ไม่สามารถโหลดข้อมูลทีมได้");
       } finally {
         if (!controller.signal.aborted) {
           setLoading(false);
@@ -239,7 +239,7 @@ export function useTeamPermissionsPage() {
         });
       } catch (fetchError) {
         console.error(fetchError);
-        setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเธชเธดเธ—เธเธดเนเธเธญเธเธเธฅเธธเนเธกเนเธ”เน");
+        setError("ไม่สามารถโหลดข้อมูลสิทธิ์ของทีมได้");
       } finally {
         setDialogLoading(false);
       }
@@ -278,7 +278,7 @@ export function useTeamPermissionsPage() {
       await fetchTeams();
     } catch (submitError) {
       console.error(submitError);
-      setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธเธฑเธเธ—เธถเธเธเนเธญเธกเธนเธฅเธเธฅเธธเนเธกเธเธนเนเนเธเนเธเธฒเธเนเธ”เน");
+      setError("ไม่สามารถบันทึกสิทธิ์ของทีมได้");
     } finally {
       setSaving(false);
     }

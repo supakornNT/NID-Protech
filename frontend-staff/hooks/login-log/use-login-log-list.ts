@@ -79,7 +79,7 @@ export function useLoginLogList(params: UseLoginLogListParams) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let active = true;
+    const controller = new AbortController();
 
     async function fetchList() {
       try {
@@ -88,6 +88,7 @@ export function useLoginLogList(params: UseLoginLogListParams) {
         const query = buildQuery(params);
         const response = await fetch(`${API_BASE_URL}/admin/login-logs?${query}`, {
           cache: "no-store",
+          signal: controller.signal,
         });
 
         if (!response.ok) {
@@ -95,23 +96,17 @@ export function useLoginLogList(params: UseLoginLogListParams) {
         }
 
         const result = (await response.json()) as LoginLogListResponse;
-
-        if (!active) {
-          return;
-        }
-
         setData(result);
         setError(null);
       } catch (fetchError) {
-        console.error(fetchError);
-
-        if (!active) {
+        if (fetchError instanceof Error && fetchError.name === "AbortError") {
           return;
         }
 
+        console.error(fetchError);
         setError("ไม่สามารถโหลดประวัติการเข้าสู่ระบบได้");
       } finally {
-        if (active) {
+        if (!controller.signal.aborted) {
           setLoading(false);
         }
       }
@@ -120,7 +115,7 @@ export function useLoginLogList(params: UseLoginLogListParams) {
     void fetchList();
 
     return () => {
-      active = false;
+      controller.abort();
     };
   }, [
     params.filters.endDate,

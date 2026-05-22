@@ -1,7 +1,11 @@
 import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
 
 import { LoginLogsService } from './login_logs.service';
-import type { GetLoginLogsQuery } from './interfaces/admin.interface';
+import type {
+  GetLoginLogChartQuery,
+  GetLoginLogsQuery,
+  LoginLogDateScopeQuery,
+} from './interfaces/admin.interface';
 
 @Controller('admin/login-logs')
 export class LoginLogsController {
@@ -13,8 +17,18 @@ export class LoginLogsController {
   }
 
   @Get('summary')
-  getSummary() {
-    return this.loginLog.getSummary();
+  getSummary(@Query() query: LoginLogDateScopeQuery) {
+    return this.loginLog.getSummary(query);
+  }
+
+  @Get('meta')
+  getMeta() {
+    return this.loginLog.getMeta();
+  }
+
+  @Get('chart')
+  getChart(@Query() query: GetLoginLogChartQuery) {
+    return this.loginLog.getChart(query);
   }
 
   @Get(':id')

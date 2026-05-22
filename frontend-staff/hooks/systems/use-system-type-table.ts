@@ -7,34 +7,28 @@ import { normalizeSearchKeyword, normalizeTextInput } from "@/lib/form-utils";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 const TABLE_LIMIT = 10;
 const STATUS_OPTIONS = ["active", "inactive"] as const;
-const TYPE_OPTIONS = ["company", "government", "other"] as const;
 
-export type OrganizationStatus = (typeof STATUS_OPTIONS)[number];
-export type OrganizationType = (typeof TYPE_OPTIONS)[number];
-export type OrganizationStatusFilter = "all" | OrganizationStatus;
-export type OrganizationTypeFilter = "all" | OrganizationType;
+export type SystemStatus = (typeof STATUS_OPTIONS)[number];
+export type SystemStatusFilter = "all" | SystemStatus;
 
-export type OrganizationListApiItem = {
+export type SystemListApiItem = {
   id: number;
+  name: string;
+  organizationId: number | null;
   organizationName: string | null;
-  email: string;
-  phone: string;
-  organizationType: string;
-  status: string;
+  status: SystemStatus;
   createdAt: string | null;
   updatedAt: string | null;
 };
 
-export type OrganizationFormInput = {
+export type SystemFormInput = {
   name: string;
-  type: OrganizationType;
-  email: string;
-  phone: string;
-  status: OrganizationStatus;
+  organizationId: number | null;
+  status: SystemStatus;
 };
 
-export type OrganizationListApiResponse = {
-  items: OrganizationListApiItem[];
+export type SystemListApiResponse = {
+  items: SystemListApiItem[];
   pagination: {
     page: number;
     limit: number;
@@ -43,30 +37,28 @@ export type OrganizationListApiResponse = {
   };
 };
 
-type UseOrganizationTableOptions = {
+type UseSystemTableOptions = {
   page: number;
   search: string;
-  statusFilter: OrganizationStatusFilter;
-  typeFilter: OrganizationTypeFilter;
+  statusFilter: SystemStatusFilter;
 };
 
 function isAbortError(error: unknown) {
   return error instanceof Error && error.name === "AbortError";
 }
 
-export function useOrganizationTable({
+export function useSystemTable({
   page,
   search,
   statusFilter,
-  typeFilter,
-}: UseOrganizationTableOptions) {
-  const [items, setItems] = useState<OrganizationListApiItem[]>([]);
+}: UseSystemTableOptions) {
+  const [items, setItems] = useState<SystemListApiItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [pagination, setPagination] = useState<
-    OrganizationListApiResponse["pagination"]
+    SystemListApiResponse["pagination"]
   >({
     page: 1,
     limit: TABLE_LIMIT,
@@ -79,6 +71,7 @@ export function useOrganizationTable({
       page: String(page),
       limit: String(TABLE_LIMIT),
     });
+
     const normalizedSearch = normalizeSearchKeyword(search);
 
     if (normalizedSearch) {
@@ -89,14 +82,10 @@ export function useOrganizationTable({
       params.set("status", statusFilter);
     }
 
-    if (typeFilter !== "all") {
-      params.set("type", typeFilter);
-    }
+    return `${API_BASE_URL}/admin/systems/table?${params.toString()}`;
+  }, [page, search, statusFilter]);
 
-    return `${API_BASE_URL}/admin-organizations/table?${params.toString()}`;
-  }, [page, search, statusFilter, typeFilter]);
-
-  const applyListResult = useCallback((result: OrganizationListApiResponse) => {
+  const applyListResult = useCallback((result: SystemListApiResponse) => {
     setItems(result.items);
     setPagination({
       page: result.pagination.page,
@@ -107,23 +96,27 @@ export function useOrganizationTable({
     setError(null);
   }, []);
 
-  const fetchOrganizations = useCallback(async () => {
+  const fetchSystems = useCallback(async () => {
     try {
       setLoading(true);
 
-      const response = await fetch(buildListUrl(), { cache: "no-store" });
+      const response = await fetch(buildListUrl(), {
+        cache: "no-store",
+      });
 
       if (!response.ok) {
-        throw new Error(`Failed to load organizations (${response.status})`);
+        throw new Error(`Failed to load systems (${response.status})`);
       }
 
-      applyListResult((await response.json()) as OrganizationListApiResponse);
+      const result = (await response.json()) as SystemListApiResponse;
+      applyListResult(result);
     } catch (fetchError) {
       if (isAbortError(fetchError)) {
         return;
       }
+
       console.error(fetchError);
-      setError("ไม่สามารถโหลดข้อมูลองค์กรได้");
+      setError("ไม่สามารถโหลดข้อมูลระบบได้");
     } finally {
       setLoading(false);
     }
@@ -142,10 +135,10 @@ export function useOrganizationTable({
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to load organizations (${response.status})`);
+          throw new Error(`Failed to load systems (${response.status})`);
         }
 
-        const result = (await response.json()) as OrganizationListApiResponse;
+        const result = (await response.json()) as SystemListApiResponse;
 
         if (controller.signal.aborted) {
           return;
@@ -156,8 +149,9 @@ export function useOrganizationTable({
         if (isAbortError(fetchError)) {
           return;
         }
+
         console.error(fetchError);
-        setError("ไม่สามารถโหลดข้อมูลองค์กรได้");
+        setError("ไม่สามารถโหลดข้อมูลระบบได้");
       } finally {
         if (!controller.signal.aborted) {
           setLoading(false);
@@ -170,7 +164,7 @@ export function useOrganizationTable({
     };
   }, [applyListResult, buildListUrl]);
 
-  const removeOrganization = useCallback(
+  const removeSystem = useCallback(
     async (id: number) => {
       if (activeId !== null) {
         return false;
@@ -180,97 +174,95 @@ export function useOrganizationTable({
         setActiveId(id);
         setError(null);
 
-        const response = await fetch(`${API_BASE_URL}/admin-organizations/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/admin/systems/${id}`, {
           method: "DELETE",
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to remove organization (${response.status})`);
+          throw new Error(`Failed to remove system (${response.status})`);
         }
 
-        await fetchOrganizations();
+        await fetchSystems();
         return true;
       } catch (removeError) {
         console.error(removeError);
-        setError("ไม่สามารถลบข้อมูลองค์กรได้");
+        setError("ไม่สามารถลบข้อมูลระบบได้");
         return false;
       } finally {
         setActiveId(null);
       }
     },
-    [activeId, fetchOrganizations],
+    [activeId, fetchSystems],
   );
 
-  const createOrganization = useCallback(
-    async (payload: OrganizationFormInput) => {
+  const createSystem = useCallback(
+    async (payload: SystemFormInput) => {
       try {
         setSaving(true);
         setError(null);
 
-        const response = await fetch(`${API_BASE_URL}/admin-organizations`, {
+        const response = await fetch(`${API_BASE_URL}/admin/systems`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            ...payload,
+            organizationId: payload.organizationId,
             name: normalizeTextInput(payload.name),
-            email: normalizeTextInput(payload.email),
-            phone: normalizeTextInput(payload.phone),
+            status: payload.status,
           }),
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to create organization (${response.status})`);
+          throw new Error(`Failed to create system (${response.status})`);
         }
 
-        await fetchOrganizations();
+        await fetchSystems();
         return true;
       } catch (createError) {
         console.error(createError);
-        setError("ไม่สามารถสร้างข้อมูลองค์กรได้");
+        setError("ไม่สามารถสร้างข้อมูลระบบได้");
         return false;
       } finally {
         setSaving(false);
       }
     },
-    [fetchOrganizations],
+    [fetchSystems],
   );
 
-  const updateOrganization = useCallback(
-    async (id: number, payload: OrganizationFormInput) => {
+  const updateSystem = useCallback(
+    async (id: number, payload: SystemFormInput) => {
       try {
         setActiveId(id);
         setError(null);
 
-        const response = await fetch(`${API_BASE_URL}/admin-organizations/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/admin/systems/${id}`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            ...payload,
+            organizationId: payload.organizationId,
             name: normalizeTextInput(payload.name),
-            email: normalizeTextInput(payload.email),
-            phone: normalizeTextInput(payload.phone),
+            status: payload.status,
           }),
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to update organization (${response.status})`);
+          throw new Error(`Failed to update system (${response.status})`);
         }
 
-        await fetchOrganizations();
+        await fetchSystems();
         return true;
       } catch (updateError) {
         console.error(updateError);
-        setError("ไม่สามารถแก้ไขข้อมูลองค์กรได้");
+        setError("ไม่สามารถแก้ไขข้อมูลระบบได้");
         return false;
       } finally {
         setActiveId(null);
       }
     },
-    [fetchOrganizations],
+    [fetchSystems],
   );
 
   const clearError = useCallback(() => {
@@ -286,10 +278,9 @@ export function useOrganizationTable({
     activeId,
     saving,
     statusOptions: STATUS_OPTIONS,
-    typeOptions: TYPE_OPTIONS,
-    fetchOrganizations,
-    createOrganization,
-    updateOrganization,
-    removeOrganization,
+    fetchSystems,
+    createSystem,
+    updateSystem,
+    removeSystem,
   };
 }

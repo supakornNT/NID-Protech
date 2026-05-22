@@ -246,7 +246,7 @@ export function useUserGroupsPage() {
       result.filterOptions.teams.map((team) => ({
         value: team.value,
         label:
-          team.status === "inactive" ? `${team.label} (เธเธดเธ”เนเธเนเธเธฒเธ)` : team.label,
+          team.status === "inactive" ? `${team.label} (ปิดใช้งาน)` : team.label,
       })),
     );
     setError(null);
@@ -323,7 +323,7 @@ export function useUserGroupsPage() {
           return;
         }
         console.error(loadError);
-        setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเธเธฅเธธเนเธกเธเธนเนเนเธเนเธเธฒเธเนเธ”เน");
+        setError("ไม่สามารถโหลดข้อมูลการจัดการกลุ่มผู้ใช้ได้");
       } finally {
         if (!controller.signal.aborted) {
           setLoading(false);
@@ -421,7 +421,7 @@ export function useUserGroupsPage() {
         throw new Error(
           await getResponseErrorMessage(
             response,
-            "เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธเธฑเธเธ—เธถเธเธเนเธญเธกเธนเธฅเธเธฅเธธเนเธกเธเธนเนเนเธเนเธเธฒเธเนเธ”เน",
+            "ไม่สามารถบันทึกข้อมูลกลุ่มผู้ใช้ได้",
           ),
         );
       }
@@ -436,7 +436,7 @@ export function useUserGroupsPage() {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธเธฑเธเธ—เธถเธเธเนเธญเธกเธนเธฅเธเธฅเธธเนเธกเธเธนเนเนเธเนเธเธฒเธเนเธ”เน",
+          : "ไม่สามารถบันทึกข้อมูลกลุ่มผู้ใช้ได้",
       );
     } finally {
       setSaving(false);
@@ -463,7 +463,7 @@ export function useUserGroupsPage() {
         throw new Error(
           await getResponseErrorMessage(
             response,
-            "เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธฅเธเธเธฅเธธเนเธกเธเธนเนเนเธเนเธเธฒเธเนเธ”เน",
+            "ไม่สามารถลบข้อมูลกลุ่มผู้ใช้ได้",
           ),
         );
       }
@@ -478,7 +478,7 @@ export function useUserGroupsPage() {
       setError(
         deleteError instanceof Error
           ? deleteError.message
-          : "เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธฅเธเธเธฅเธธเนเธกเธเธนเนเนเธเนเธเธฒเธเนเธ”เน",
+          : "ไม่สามารถลบข้อมูลกลุ่มผู้ใช้ได้",
       );
     } finally {
       setSaving(false);
@@ -539,7 +539,7 @@ export function useUserGroupsPage() {
         throw new Error(
           await getResponseErrorMessage(
             response,
-            "เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธเธฑเธเธ—เธถเธเธเนเธญเธกเธนเธฅเธเธเนเธเธเธฅเธธเนเธกเนเธ”เน",
+            "ไม่สามารถบันทึกข้อมูลสมาชิกกลุ่มได้",
           ),
         );
       }
@@ -551,7 +551,7 @@ export function useUserGroupsPage() {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธเธฑเธเธ—เธถเธเธเนเธญเธกเธนเธฅเธเธเนเธเธเธฅเธธเนเธกเนเธ”เน",
+          : "ไม่สามารถบันทึกข้อมูลสมาชิกกลุ่มได้",
       );
     } finally {
       setSaving(false);

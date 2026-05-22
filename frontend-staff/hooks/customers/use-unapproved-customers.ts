@@ -101,7 +101,7 @@ export function useUnapprovedCustomers(search = "") {
         return;
       }
       console.error(fetchError);
-      setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเธเธนเนเนเธเนเธเธฒเธเนเธ”เน");
+      setError("ไม่สามารถโหลดข้อมูลลูกค้าที่รออนุมัติได้");
     } finally {
       setLoading(false);
     }
@@ -135,7 +135,7 @@ export function useUnapprovedCustomers(search = "") {
           return;
         }
         console.error(fetchError);
-        setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเธเธนเนเนเธเนเธเธฒเธเนเธ”เน");
+        setError("ไม่สามารถโหลดข้อมูลลูกค้าที่รออนุมัติได้");
       } finally {
         if (!controller.signal.aborted) {
           setLoading(false);
@@ -173,7 +173,7 @@ export function useUnapprovedCustomers(search = "") {
         return true;
       } catch (updateError) {
         console.error(updateError);
-        setError("เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธญเธฑเธเน€เธ”เธ•เธชเธ–เธฒเธเธฐเธเธนเนเนเธเนเธเธฒเธเนเธ”เน");
+        setError("ไม่สามารถอัปเดตสถานะลูกค้าได้");
         return false;
       } finally {
         setActiveId(null);
