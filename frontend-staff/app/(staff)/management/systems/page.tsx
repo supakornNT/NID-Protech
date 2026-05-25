@@ -274,7 +274,7 @@ export default function SystemsPage() {
           maxLength: 120,
           title: "ค้นหาด้วยชื่อระบบหรือชื่อองค์กร",
         }}
-        searchPlaceholder="ชื่อระบบ/ชื่อองค์กร"
+        searchPlaceholder="ค้นหาระบบ องค์กร"
         onSearchClick={(value) => {
           setSearchValue(value);
           setAppliedSearch(value);

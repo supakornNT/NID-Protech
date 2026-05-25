@@ -510,82 +510,120 @@ export class StaffsService {
       code,
       'รหัส OTP สำหรับลงทะเบียนเจ้าหน้าที่',
     );
+    console.log(`Generated OTP for ${email}: ${code} (expires at ${new Date(expiresAt).toISOString()})`);
     return { message: 'sent' };
   }
+async register(dto: RegisterStaffDto): Promise<Staff | null> {
+  const prefixId = parsePositiveOptionalId(dto.prefixId, 'prefixId');
+  const name = requireText(dto.name, 'name', 255);
+  const surname = optionalText(dto.surname, 'surname', 255) ?? null;
+  const email = parseRequiredEmail(dto.email);
+  const phone = optionalPhone(dto.phone, 'phone', 20) ?? null;
+  const citizenId = parseCitizenId(dto.citizenId);
+  const password = requireText(dto.password, 'password', 255);
+  const otp = requireText(dto.otp, 'otp', 12);
+  const teamIds = parseTeamIds(dto.teamIds);
 
-  async register(dto: RegisterStaffDto): Promise<Staff | null> {
-    const prefixId = parsePositiveOptionalId(dto.prefixId, 'prefixId');
-    const name = requireText(dto.name, 'name', 255);
-    const surname = optionalText(dto.surname, 'surname', 255) ?? null;
-    const email = parseRequiredEmail(dto.email);
-    const phone = optionalPhone(dto.phone, 'phone', 20) ?? null;
-    const citizenId = parseCitizenId(dto.citizenId);
-    const password = requireText(dto.password, 'password', 255);
-    const otp = requireText(dto.otp, 'otp', 12);
-    const teamIds = parseTeamIds(dto.teamIds);
-    const status =
-      dto.status === undefined
-        ? 'active'
-        : requireEnumValue(dto.status, 'status', ACTIVE_STATUS_VALUES);
+  const status =
+    dto.status === undefined
+      ? 'active'
+      : requireEnumValue(dto.status, 'status', ACTIVE_STATUS_VALUES);
 
-    if (password.length < 8) {
-      throw new BadRequestException('password must be at least 8 characters');
-    }
+  if (password.length < 8) {
+    throw new BadRequestException(
+      'password must be at least 8 characters',
+    );
+  }
 
-    await this.ensurePrefixExists(prefixId);
-    await this.ensureUniqueEmail(email);
-    await this.ensureUniqueCitizenId(citizenId);
-    this.verifyRegistrationOtp(email, otp);
+  await this.ensurePrefixExists(prefixId);
+  await this.ensureUniqueEmail(email);
+  await this.ensureUniqueCitizenId(citizenId);
 
-    const passwordHash = await bcrypt.hash(password, 10);
-    const connection = await this.db.getConnection();
+  this.verifyRegistrationOtp(email, otp);
 
-    try {
-      await connection.beginTransaction();
+  const passwordHash = await bcrypt.hash(password, 10);
 
+  const connection = await this.db.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    // ตรวจสอบ team
+    if (teamIds.length > 0) {
       const [teamRows] = await connection.query<RowDataPacket[]>(
-        `SELECT id FROM teams WHERE id IN (${teamIds.map(() => '?').join(', ')})`,
+        `SELECT id FROM teams WHERE id IN (${teamIds
+          .map(() => '?')
+          .join(', ')})`,
         teamIds,
       );
 
       if (teamRows.length !== teamIds.length) {
-        throw new BadRequestException('Some teamIds do not exist');
+        throw new BadRequestException(
+          'Some teamIds do not exist',
+        );
       }
+    }
 
-      const [result] = await connection.query<ResultSetHeader>(
-        `
-        INSERT INTO staffs (
-          prefix_id,
-          name,
-          surname,
-          email,
-          phone,
-          citizen_id,
-          password_hash,
-          status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    // insert staff
+    const [result] = await connection.query<ResultSetHeader>(
+      `
+      INSERT INTO staffs (
+        prefix_id,
+        name,
+        surname,
+        email,
+        phone,
+        citizen_id,
+        password_hash,
+        status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `,
-        [prefixId, name, surname, email, phone, citizenId, passwordHash, status],
-      );
+      [
+        prefixId,
+        name,
+        surname,
+        email,
+        phone,
+        citizenId,
+        passwordHash,
+        status,
+      ],
+    );
 
-      const insertId = result.insertId;
-      const values = teamIds.map(() => '(?, ?, ?)').join(', ');
-      const params = teamIds.flatMap((teamId) => [insertId, teamId, null]);
+    const insertId = result.insertId;
+
+    // insert staff_team_roles
+    if (teamIds.length > 0) {
+      const values = teamIds
+        .map(() => '(?, ?)')
+        .join(', ');
+
+      const params = teamIds.flatMap((teamId) => [
+        insertId,
+        teamId,
+      ]);
 
       await connection.query<ResultSetHeader>(
-        `INSERT INTO staff_team_roles (staff_id, team_id, role_id) VALUES ${values}`,
+        `
+        INSERT INTO staff_team_roles (
+          staff_id,
+          team_id
+        ) VALUES ${values}
+        `,
         params,
       );
-
-      await connection.commit();
-      return this.findOne(insertId);
-    } catch (error) {
-      await connection.rollback();
-      throw error;
-    } finally {
-      connection.release();
     }
+
+    await connection.commit();
+
+    return this.findOne(insertId);
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
   }
+}
 
   async update(id: number, dto: UpdateStaffDto): Promise<Staff | null> {
     const current = await this.findOne(id);

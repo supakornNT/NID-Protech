@@ -259,7 +259,7 @@ export default function OrganizationsPage() {
           maxLength: 120,
           title: "ค้นหาด้วยชื่อองค์กร อีเมล หรือเบอร์โทร",
         }}
-        searchPlaceholder="องค์กร/อีเมล/เบอร์โทร"
+        searchPlaceholder="ค้นหาองค์กร อีเมล เบอร์โทร"
         onSearchClick={(value) => {
           setSearchValue(value);
           setAppliedSearch(value);

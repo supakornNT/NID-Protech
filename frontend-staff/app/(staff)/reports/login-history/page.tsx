@@ -625,7 +625,7 @@ export default function ReportLoginHistoryPage() {
                       keyword: event.target.value,
                     }));
                   }}
-                  placeholder="ค้นหาชื่อผู้ใช้/อีเมล"
+                  placeholder="ค้นหาชื่อผู้ใช้ อีเมล"
                   className="w-56 flex-none"
                   inputClassName="h-[31px] rounded-md border border-[#A8B1C2] px-3 text-[14px]"
                 />

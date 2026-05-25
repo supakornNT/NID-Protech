@@ -177,7 +177,7 @@ export default function CustomersPage() {
           maxLength: 100,
           title: "ค้นหาด้วยชื่อผู้ใช้ อีเมล หรือเบอร์โทร",
         }}
-        searchPlaceholder="ชื่อ/อีเมล/เบอร์โทร"
+        searchPlaceholder="ค้นหาชื่อ อีเมล เบอร์โทร"
         onSearchClick={(value) => {
           setSearchValue(value);
           setAppliedSearch(value);

@@ -260,8 +260,8 @@ export default function UsersPage() {
 
   const searchPlaceholder =
     activeTab === "staff"
-      ? "ชื่อเจ้าหน้าที่/อีเมล/เบอร์โทร/เลขบัตรประชาชน"
-      : "ชื่อลูกค้า/อีเมล/เบอร์โทร/เลขบัตรประชาชน";
+      ? "ชื่อเจ้าหน้าที่ อีเมล เบอร์โทร เลขบัตรประชาชน"
+      : "ค้นหาลูกค้า อีเมล เบอร์โทร เลขบัตรประชาชน";
 
   return (
     <div className="min-h-full w-full rounded-xl px-5 py-7 sm:px-6 sm:py-8 lg:px-8 lg:py-9">
