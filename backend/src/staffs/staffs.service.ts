@@ -421,39 +421,24 @@ export class StaffsService {
     };
   }
 
-  async findAdminUserOptions(): Promise<AdminStaffOptionsResponse> {
-    const [[prefixRows], [roleRows]] = await Promise.all([
-      this.db.query<PrefixOptionRow[]>(
-        `
-        SELECT
-          prefixes.id AS value,
-          prefixes.name AS label
-        FROM prefixes
-        ORDER BY prefixes.id ASC
-      `,
-      ),
-      this.db.query<RoleOptionRow[]>(
-        `
-        SELECT
-          roles.id AS value,
-          roles.name AS label
-        FROM roles
-        ORDER BY roles.id ASC
-      `,
-      ),
-    ]);
+ async findAdminUserOptions(): Promise<AdminStaffOptionsResponse> {
+  const [prefixRows] = await this.db.query<PrefixOptionRow[]>(
+    `
+    SELECT
+      prefixes.id AS value,
+      prefixes.name AS label
+    FROM prefixes
+    ORDER BY prefixes.id ASC
+    `,
+  );
 
-    return {
-      prefixes: prefixRows.map((row) => ({
-        value: row.value,
-        label: row.label,
-      })),
-      roles: roleRows.map((row) => ({
-        value: row.value,
-        label: row.label,
-      })),
-    };
-  }
+  return {
+    prefixes: prefixRows.map((row) => ({
+      value: row.value,
+      label: row.label,
+    })),
+  };
+}
 
   async create(dto: CreateStaffDto): Promise<Staff | null> {
     const prefixId = parsePositiveOptionalId(dto.prefixId, 'prefixId');

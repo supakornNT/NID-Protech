@@ -84,8 +84,4 @@ export type AdminStaffOptionsResponse = {
     value: number;
     label: string;
   }>;
-  roles: Array<{
-    value: number;
-    label: string;
-  }>;
 };
