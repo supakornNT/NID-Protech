@@ -14,7 +14,9 @@ import {
   requireText,
 } from '@/common/validation/input-rules';
 import { CreateStaffDto } from './dto/create-staff.dto';
+import { RegisterStaffDto } from './dto/register-staff.dto';
 import { ResetStaffPasswordDto } from './dto/reset-staff-password.dto';
+import { SendStaffRegistrationOtpDto } from './dto/send-staff-registration-otp.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
 import type {
   AdminStaffListItem,
@@ -69,8 +71,27 @@ function splitPipeList(value: string | null) {
   return value ? value.split('||').filter(Boolean) : [];
 }
 
+function parseTeamIds(value: unknown) {
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new BadRequestException('teamIds must contain at least one item');
+  }
+
+  const teamIds = [...new Set(value.map((teamId) => Number(teamId)))];
+
+  if (!teamIds.every((teamId) => Number.isInteger(teamId) && teamId > 0)) {
+    throw new BadRequestException('teamIds must contain positive integers');
+  }
+
+  return teamIds;
+}
+
 @Injectable()
 export class StaffsService {
+  private registrationOtpStore = new Map<
+    string,
+    { code: string; expiresAt: number }
+  >();
+
   constructor(
     @Inject('DB') private readonly db: Pool,
     private readonly authService: AuthService,
@@ -162,6 +183,25 @@ export class StaffsService {
       roleNames: splitPipeList(row.roleNames),
       teamNames: splitPipeList(row.teamNames),
     };
+  }
+
+  private verifyRegistrationOtp(email: string, otp: string) {
+    const entry = this.registrationOtpStore.get(email);
+
+    if (!entry) {
+      throw new BadRequestException('ไม่พบ OTP กรุณาขอ OTP ใหม่');
+    }
+
+    if (Date.now() > entry.expiresAt) {
+      this.registrationOtpStore.delete(email);
+      throw new BadRequestException('OTP หมดอายุแล้ว กรุณาขอ OTP ใหม่');
+    }
+
+    if (entry.code !== otp) {
+      throw new BadRequestException('OTP ไม่ถูกต้อง');
+    }
+
+    this.registrationOtpStore.delete(email);
   }
 
   async findAll(): Promise<Staff[]> {
@@ -422,15 +462,21 @@ export class StaffsService {
     const email = parseRequiredEmail(dto.email);
     const phone = optionalPhone(dto.phone, 'phone', 20) ?? null;
     const citizenId = parseCitizenId(dto.citizenId);
-    const passwordHash = requireText(dto.passwordHash, 'passwordHash', 255);
+    const password = requireText(dto.passwordHash, 'passwordHash', 255);
     const status =
       dto.status === undefined
         ? 'active'
         : requireEnumValue(dto.status, 'status', ACTIVE_STATUS_VALUES);
 
+    if (password.length < 8) {
+      throw new BadRequestException('password must be at least 8 characters');
+    }
+
     await this.ensurePrefixExists(prefixId);
     await this.ensureUniqueEmail(email);
     await this.ensureUniqueCitizenId(citizenId);
+
+    const passwordHash = await bcrypt.hash(password, 10);
 
     const [result] = await this.db.query<ResultSetHeader>(
       `
@@ -449,6 +495,96 @@ export class StaffsService {
     );
 
     return this.findOne(result.insertId);
+  }
+
+  async sendRegistrationOtp(dto: SendStaffRegistrationOtpDto) {
+    const email = parseRequiredEmail(dto.email);
+    await this.ensureUniqueEmail(email);
+
+    const code = Math.floor(10000 + Math.random() * 90000).toString();
+    const expiresAt = Date.now() + 5 * 60 * 1000;
+
+    this.registrationOtpStore.set(email, { code, expiresAt });
+    await this.authService.sendCustomOtpToEmail(
+      email,
+      code,
+      'รหัส OTP สำหรับลงทะเบียนเจ้าหน้าที่',
+    );
+    return { message: 'sent' };
+  }
+
+  async register(dto: RegisterStaffDto): Promise<Staff | null> {
+    const prefixId = parsePositiveOptionalId(dto.prefixId, 'prefixId');
+    const name = requireText(dto.name, 'name', 255);
+    const surname = optionalText(dto.surname, 'surname', 255) ?? null;
+    const email = parseRequiredEmail(dto.email);
+    const phone = optionalPhone(dto.phone, 'phone', 20) ?? null;
+    const citizenId = parseCitizenId(dto.citizenId);
+    const password = requireText(dto.password, 'password', 255);
+    const otp = requireText(dto.otp, 'otp', 12);
+    const teamIds = parseTeamIds(dto.teamIds);
+    const status =
+      dto.status === undefined
+        ? 'active'
+        : requireEnumValue(dto.status, 'status', ACTIVE_STATUS_VALUES);
+
+    if (password.length < 8) {
+      throw new BadRequestException('password must be at least 8 characters');
+    }
+
+    await this.ensurePrefixExists(prefixId);
+    await this.ensureUniqueEmail(email);
+    await this.ensureUniqueCitizenId(citizenId);
+    this.verifyRegistrationOtp(email, otp);
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const connection = await this.db.getConnection();
+
+    try {
+      await connection.beginTransaction();
+
+      const [teamRows] = await connection.query<RowDataPacket[]>(
+        `SELECT id FROM teams WHERE id IN (${teamIds.map(() => '?').join(', ')})`,
+        teamIds,
+      );
+
+      if (teamRows.length !== teamIds.length) {
+        throw new BadRequestException('Some teamIds do not exist');
+      }
+
+      const [result] = await connection.query<ResultSetHeader>(
+        `
+        INSERT INTO staffs (
+          prefix_id,
+          name,
+          surname,
+          email,
+          phone,
+          citizen_id,
+          password_hash,
+          status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+        [prefixId, name, surname, email, phone, citizenId, passwordHash, status],
+      );
+
+      const insertId = result.insertId;
+      const values = teamIds.map(() => '(?, ?, ?)').join(', ');
+      const params = teamIds.flatMap((teamId) => [insertId, teamId, null]);
+
+      await connection.query<ResultSetHeader>(
+        `INSERT INTO staff_team_roles (staff_id, team_id, role_id) VALUES ${values}`,
+        params,
+      );
+
+      await connection.commit();
+      return this.findOne(insertId);
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
   }
 
   async update(id: number, dto: UpdateStaffDto): Promise<Staff | null> {

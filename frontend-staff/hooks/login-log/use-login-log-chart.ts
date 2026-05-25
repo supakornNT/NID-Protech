@@ -41,12 +41,20 @@ export function useLoginLogChart(scope: LoginLogChartScope) {
       try {
         setLoading(true);
 
-        const params = new URLSearchParams({
-          period: scope.period,
-          date: scope.date,
-          month: scope.month,
-          year: String(scope.year),
-        });
+        const params = new URLSearchParams();
+        params.set("period", scope.period);
+
+        if (scope.date) {
+          params.set("date", scope.date);
+        }
+
+        if (scope.month) {
+          params.set("month", scope.month);
+        }
+
+        if (Number.isInteger(scope.year)) {
+          params.set("year", String(scope.year));
+        }
 
         const response = await fetch(
           `${API_BASE_URL}/admin/login-logs/chart?${params.toString()}`,
@@ -72,8 +80,6 @@ export function useLoginLogChart(scope: LoginLogChartScope) {
         if (fetchError instanceof Error && fetchError.name === "AbortError") {
           return;
         }
-
-        console.error(fetchError);
 
         if (!controller.signal.aborted) {
           setError("ไม่สามารถโหลดข้อมูลกราฟการเข้าสู่ระบบได้");

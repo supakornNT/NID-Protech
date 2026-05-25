@@ -9,7 +9,9 @@ import {
   Query,
 } from '@nestjs/common';
 import { CreateStaffDto } from './dto/create-staff.dto';
+import { RegisterStaffDto } from './dto/register-staff.dto';
 import { ResetStaffPasswordDto } from './dto/reset-staff-password.dto';
+import { SendStaffRegistrationOtpDto } from './dto/send-staff-registration-otp.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
 import { StaffsService } from './staffs.service';
 import type { GetAdminStaffsQuery } from './interfaces/admin.interface';
@@ -46,6 +48,16 @@ export class StaffsController {
   @Post()
   create(@Body() body: CreateStaffDto) {
     return this.staff.create(body);
+  }
+
+  @Post('send-registration-otp')
+  sendRegistrationOtp(@Body() body: SendStaffRegistrationOtpDto) {
+    return this.staff.sendRegistrationOtp(body);
+  }
+
+  @Post('register')
+  register(@Body() body: RegisterStaffDto) {
+    return this.staff.register(body);
   }
 
   @Patch(':id')

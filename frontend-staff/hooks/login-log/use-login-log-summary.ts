@@ -43,11 +43,19 @@ export function useLoginLogSummary(scope: LoginLogSummaryScope) {
       try {
         setLoading(true);
 
-        const params = new URLSearchParams({
-          date: scope.date,
-          month: scope.month,
-          year: String(scope.year),
-        });
+        const params = new URLSearchParams();
+
+        if (scope.date) {
+          params.set("date", scope.date);
+        }
+
+        if (scope.month) {
+          params.set("month", scope.month);
+        }
+
+        if (Number.isInteger(scope.year)) {
+          params.set("year", String(scope.year));
+        }
 
         const response = await fetch(
           `${API_BASE_URL}/admin/login-logs/summary?${params.toString()}`,
@@ -62,6 +70,11 @@ export function useLoginLogSummary(scope: LoginLogSummaryScope) {
         }
 
         const result = (await response.json()) as LoginLogSummary;
+
+        if (controller.signal.aborted) {
+          return;
+        }
+
         setData(result);
         setError(null);
       } catch (fetchError) {
@@ -69,8 +82,9 @@ export function useLoginLogSummary(scope: LoginLogSummaryScope) {
           return;
         }
 
-        console.error(fetchError);
-        setError("ไม่สามารถโหลดข้อมูลสรุปได้");
+        if (!controller.signal.aborted) {
+          setError("ไม่สามารถโหลดข้อมูลสรุปได้");
+        }
       } finally {
         if (!controller.signal.aborted) {
           setLoading(false);

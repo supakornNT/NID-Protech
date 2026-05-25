@@ -19,7 +19,10 @@ import { ProTechButton } from "@/components/tables/protech-button";
 import { ProTechSearch } from "@/components/tables/protech-search";
 import { ProTechTable } from "@/components/tables/protech-table";
 import { Card, CardContent } from "@/components/ui/card";
-import { useLoginLogChart, type LoginLogChartPeriod } from "@/hooks/login-log/use-login-log-chart";
+import {
+  useLoginLogChart,
+  type LoginLogChartPeriod,
+} from "@/hooks/login-log/use-login-log-chart";
 import { useLoginLogList } from "@/hooks/login-log/use-login-log-list";
 import type {
   LoginLogFilters,
@@ -31,20 +34,19 @@ import { isValidDateRange } from "@/lib/form-utils";
 import type { Column } from "@/types/table";
 import { formatThaiDateTime } from "../../management/organizations/page";
 
-const DEFAULT_FILTERS: LoginLogFilters = {
-  keyword: "",
-  userType: "all",
-  status: "all",
-  startDate: "",
-  endDate: "",
-};
+function createDefaultFilters(): LoginLogFilters {
+  return {
+    keyword: "",
+    userType: "all",
+    status: "all",
+    startDate: "",
+    endDate: "",
+  };
+}
 
 const PAGE_LIMIT = 10;
 
-const PERIOD_OPTIONS: Array<{
-  value: LoginLogChartPeriod;
-  label: string;
-}> = [
+const PERIOD_OPTIONS: Array<{ value: LoginLogChartPeriod; label: string }> = [
   { value: "day", label: "วัน" },
   { value: "month", label: "เดือน" },
   { value: "year", label: "ปี" },
@@ -143,9 +145,22 @@ function formatSelectedDateLabel(date: string) {
 }
 
 function formatSelectedMonthLabel(monthValue: string) {
+  if (!monthValue || !/^\d{4}-\d{2}$/.test(monthValue)) {
+    return "-";
+  }
+
   const [year, month] = monthValue.split("-").map(Number);
   const monthName = THAI_MONTH_NAMES[month - 1] ?? month;
   return `${monthName} ${year}`;
+}
+
+function extractYearFromMonthValue(value: string) {
+  if (!/^\d{4}-\d{2}$/.test(value)) {
+    return null;
+  }
+
+  const nextYear = Number(value.slice(0, 4));
+  return Number.isInteger(nextYear) ? nextYear : null;
 }
 
 function SummaryCard({
@@ -218,9 +233,14 @@ export default function ReportLoginHistoryPage() {
   const currentYear = Number(today.slice(0, 4));
 
   const [page, setPage] = useState(1);
-  const [draftFilters, setDraftFilters] = useState<LoginLogFilters>(DEFAULT_FILTERS);
-  const [appliedFilters, setAppliedFilters] = useState<LoginLogFilters>(DEFAULT_FILTERS);
-  const [selectedPeriod, setSelectedPeriod] = useState<LoginLogChartPeriod>("day");
+  const [draftFilters, setDraftFilters] = useState<LoginLogFilters>(
+    createDefaultFilters,
+  );
+  const [appliedFilters, setAppliedFilters] = useState<LoginLogFilters>(
+    createDefaultFilters,
+  );
+  const [selectedPeriod, setSelectedPeriod] =
+    useState<LoginLogChartPeriod>("day");
   const [selectedDate, setSelectedDate] = useState(today);
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [selectedYear, setSelectedYear] = useState(currentYear);
@@ -256,13 +276,12 @@ export default function ReportLoginHistoryPage() {
     totalPages: 1,
   };
 
-  const activeSummary =
-    summary?.[selectedPeriod] ?? {
-      success: 0,
-      failed: 0,
-      staff: 0,
-      customer: 0,
-    };
+  const activeSummary = summary?.[selectedPeriod] ?? {
+    success: 0,
+    failed: 0,
+    staff: 0,
+    customer: 0,
+  };
 
   const chartItems = useMemo(
     () =>
@@ -275,7 +294,9 @@ export default function ReportLoginHistoryPage() {
 
   const availableYears = useMemo(() => {
     const baseYears = meta?.availableYears ?? [];
-    const merged = Array.from(new Set([selectedYear, currentYear, ...baseYears]));
+    const merged = Array.from(
+      new Set([selectedYear, currentYear, ...baseYears]),
+    );
     return merged.sort((left, right) => right - left);
   }, [currentYear, meta?.availableYears, selectedYear]);
 
@@ -392,7 +413,9 @@ export default function ReportLoginHistoryPage() {
               <div className="flex flex-wrap items-center gap-3">
                 {selectedPeriod === "day" ? (
                   <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2 ring-1 ring-[#D5E0F0]">
-                    <span className="text-sm font-medium text-[#64748B]">เลือกวันที่</span>
+                    <span className="text-sm font-medium text-[#64748B]">
+                      เลือกวันที่
+                    </span>
                     <input
                       type="date"
                       value={selectedDate}
@@ -406,14 +429,28 @@ export default function ReportLoginHistoryPage() {
 
                 {selectedPeriod === "month" ? (
                   <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2 ring-1 ring-[#D5E0F0]">
-                    <span className="text-sm font-medium text-[#64748B]">เลือกเดือน</span>
+                    <span className="text-sm font-medium text-[#64748B]">
+                      เลือกเดือน
+                    </span>
                     <input
                       type="month"
                       value={selectedMonth}
                       onChange={(event) => {
                         const nextMonth = event.target.value;
+
+                        if (!nextMonth) {
+                          setSelectedMonth("");
+                          return;
+                        }
+
+                        const nextYear = extractYearFromMonthValue(nextMonth);
+
+                        if (nextYear === null) {
+                          return;
+                        }
+
                         setSelectedMonth(nextMonth);
-                        setSelectedYear(Number(nextMonth.slice(0, 4)));
+                        setSelectedYear(nextYear);
                       }}
                       className="border-0 bg-transparent text-sm font-semibold text-[#174F9F] outline-none"
                     />
@@ -422,7 +459,9 @@ export default function ReportLoginHistoryPage() {
 
                 {selectedPeriod === "year" ? (
                   <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2 ring-1 ring-[#D5E0F0]">
-                    <span className="text-sm font-medium text-[#64748B]">เลือกปี</span>
+                    <span className="text-sm font-medium text-[#64748B]">
+                      เลือกปี
+                    </span>
                     <select
                       value={selectedYear}
                       onChange={(event) => {
@@ -482,7 +521,12 @@ export default function ReportLoginHistoryPage() {
               <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-lg font-bold text-[#111827]">
-                    กราฟการเข้าสู่ระบบราย{PERIOD_OPTIONS.find((item) => item.value === selectedPeriod)?.label}
+                    กราฟการเข้าสู่ระบบราย
+                    {
+                      PERIOD_OPTIONS.find(
+                        (item) => item.value === selectedPeriod,
+                      )?.label
+                    }
                   </h2>
                   <p className="text-sm text-[#8B95A7]">
                     ช่วงที่เลือก: {scopeTitle}
@@ -592,7 +636,8 @@ export default function ReportLoginHistoryPage() {
                     onChange={(event) => {
                       setDraftFilters((current: LoginLogFilters) => ({
                         ...current,
-                        userType: event.target.value as LoginLogFilters["userType"],
+                        userType:
+                          event.target.value as LoginLogFilters["userType"],
                       }));
                     }}
                     className="h-7.75 min-w-31 appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-[14px] text-[#6B7280] outline-none"
@@ -621,7 +666,9 @@ export default function ReportLoginHistoryPage() {
                 </div>
 
                 <div className="flex items-center gap-2 rounded-md border border-[#A8B1C2] bg-white px-3">
-                  <span className="text-[13px] text-[#6B7280]">วันที่เริ่มต้น</span>
+                  <span className="text-[13px] text-[#6B7280]">
+                    วันที่เริ่มต้น
+                  </span>
                   <input
                     type="date"
                     value={draftFilters.startDate}
@@ -632,12 +679,14 @@ export default function ReportLoginHistoryPage() {
                         startDate: event.target.value,
                       }));
                     }}
-                    className="h-7.75 border-0 bg-transparent text-[14px] text-[#6B7280] outline-none"
+                    className="h-7.75 border-0 bg-transparent text-[14px] text-[#6B7280] outline-none [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-clear-button]:hidden [&::-webkit-inner-spin-button]:hidden"
                   />
                 </div>
 
                 <div className="flex items-center gap-2 rounded-md border border-[#A8B1C2] bg-white px-3">
-                  <span className="text-[13px] text-[#6B7280]">วันที่สิ้นสุด</span>
+                  <span className="text-[13px] text-[#6B7280]">
+                    วันที่สิ้นสุด
+                  </span>
                   <input
                     type="date"
                     value={draftFilters.endDate}
@@ -648,7 +697,7 @@ export default function ReportLoginHistoryPage() {
                         endDate: event.target.value,
                       }));
                     }}
-                    className="h-7.75 border-0 bg-transparent text-[14px] text-[#6B7280] outline-none"
+                    className="h-7.75 border-0 bg-transparent text-[14px] text-[#6B7280] outline-none [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-clear-button]:hidden [&::-webkit-inner-spin-button]:hidden"
                   />
                 </div>
 
@@ -662,29 +711,18 @@ export default function ReportLoginHistoryPage() {
                         draftFilters.endDate,
                       )
                     ) {
-                      setFilterError("วันที่เริ่มต้นต้องไม่มากกว่าวันที่สิ้นสุด");
+                      setFilterError(
+                        "วันที่เริ่มต้นต้องไม่มากกว่าวันที่สิ้นสุด",
+                      );
                       return;
                     }
 
                     setFilterError(null);
                     setPage(1);
-                    setAppliedFilters(draftFilters);
+                    setAppliedFilters({ ...draftFilters });
                   }}
                 >
                   ค้นหา
-                </ProTechButton>
-
-                <ProTechButton
-                  variant="delete"
-                  className="h-7.75 px-4 text-[14px]"
-                  onClick={() => {
-                    setFilterError(null);
-                    setDraftFilters(DEFAULT_FILTERS);
-                    setAppliedFilters(DEFAULT_FILTERS);
-                    setPage(1);
-                  }}
-                >
-                  ล้างค่า
                 </ProTechButton>
               </div>
             </div>
@@ -707,7 +745,9 @@ export default function ReportLoginHistoryPage() {
 
         <section className="space-y-4">
           <div>
-            <h2 className="text-xl font-bold text-[#111827]">ประวัติการเข้าสู่ระบบ</h2>
+            <h2 className="text-xl font-bold text-[#111827]">
+              ประวัติการเข้าสู่ระบบ
+            </h2>
             <p className="mt-1 text-sm text-[#8B95A7]">
               เรียงจากรายการล่าสุดก่อน
             </p>
@@ -744,12 +784,25 @@ export default function ReportLoginHistoryPage() {
         >
           {selectedRow ? (
             <div className="space-y-3">
-              <DetailRow label="วันเวลา" value={formatThaiDateTime(selectedRow.loginAt)} />
-              <DetailRow label="ประเภทผู้ใช้" value={mapUserTypeLabel(selectedRow.userType)} />
+              <DetailRow
+                label="วันเวลา"
+                value={formatThaiDateTime(selectedRow.loginAt)}
+              />
+              <DetailRow
+                label="ประเภทผู้ใช้"
+                value={mapUserTypeLabel(selectedRow.userType)}
+              />
               <DetailRow label="ชื่อ" value={selectedRow.userName || "-"} />
               <DetailRow label="อีเมล" value={selectedRow.userEmail || "-"} />
-              <DetailRow label="IP Address" value={selectedRow.ipAddress || "-"} />
-              <DetailRow label="User Agent" value={selectedRow.userAgent || "-"} multiline />
+              <DetailRow
+                label="IP Address"
+                value={selectedRow.ipAddress || "-"}
+              />
+              <DetailRow
+                label="User Agent"
+                value={selectedRow.userAgent || "-"}
+                multiline
+              />
               <DetailRow
                 label="สถานะ"
                 value={mapStatusLabel(selectedRow.status)}

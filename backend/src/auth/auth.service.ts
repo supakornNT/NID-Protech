@@ -28,6 +28,25 @@ export class AuthService {
     const expiresAt = Date.now() + 5 * 60 * 1000;
 
     this.otpStore.set(email, { code, expiresAt });
+    await this.sendOtpMail(email, code, subject);
+  }
+
+  async sendCustomOtpToEmail(
+    email: string,
+    code: string,
+    subject = 'รหัส OTP สำหรับยืนยันตัวตน',
+  ): Promise<void> {
+    await this.sendOtpMail(email, code, subject);
+  }
+
+  private async sendOtpMail(
+    email: string,
+    code: string,
+    subject: string,
+  ): Promise<void> {
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      throw new BadRequestException('ยังไม่ได้ตั้งค่า SMTP สำหรับส่ง OTP');
+    }
 
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST ?? 'smtp.gmail.com',
@@ -37,10 +56,6 @@ export class AuthService {
         pass: process.env.SMTP_PASS,
       },
     });
-
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      throw new BadRequestException('ยังไม่ได้ตั้งค่า SMTP สำหรับส่ง OTP');
-    }
 
     try {
       await transporter.sendMail({
@@ -81,6 +96,7 @@ export class AuthService {
       'SELECT id FROM customers WHERE email = ?',
       [dto.email],
     );
+
     if (existing.length > 0) {
       throw new BadRequestException('อีเมลนี้ถูกใช้งานแล้ว');
     }

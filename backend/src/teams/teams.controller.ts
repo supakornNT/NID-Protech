@@ -35,6 +35,11 @@ export class TeamsController {
     return this.team.findMemberManagement(query);
   }
 
+  @Get('options')
+  findOptions() {
+    return this.team.findOptions();
+  }
+
   @Get(':id/permissions')
   findPermissions(@Param('id', ParseIntPipe) id: number) {
     return this.team.findPermissions(id);

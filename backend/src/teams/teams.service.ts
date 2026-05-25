@@ -374,6 +374,25 @@ export class TeamsService {
     };
   }
 
+  async findOptions(): Promise<TeamMemberOption[]> {
+    const [rows] = await this.db.query<TeamOptionRow[]>(
+      `
+        SELECT
+          teams.id AS value,
+          teams.name AS label,
+          teams.status
+        FROM teams
+        ORDER BY teams.created_at ASC, teams.id ASC
+      `,
+    );
+
+    return rows.map((row) => ({
+      value: row.value,
+      label: row.label,
+      status: row.status,
+    }));
+  }
+
   async findOne(id: number): Promise<Team | null> {
     const [rows] = await this.db.query<Team[]>(
       `SELECT
