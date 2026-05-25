@@ -721,10 +721,11 @@ export function TeamRegistrationForm() {
                     >
                       ส่ง OTP
                     </button>
-                  </div>
-                  <p className="pl-1 text-[14px] text-[#8B95A7]">
+                    <p className="pl-1 text-[14px] text-[#8B95A7] ">
                     เหลือเวลา {formatOtpCountdown(otpCountdown)}
                   </p>
+                  </div>
+                  
                 </div>
               </FormSection>
             </div>
