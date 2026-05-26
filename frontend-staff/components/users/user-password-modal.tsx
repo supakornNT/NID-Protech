@@ -18,7 +18,7 @@ type UserPasswordModalProps = {
   ) => Promise<{ success: boolean; message: string }>;
 };
 
-const OTP_LENGTH = 6;
+const OTP_LENGTH = 5;
 const OTP_TIMEOUT_SECONDS = 300;
 
 function formatRemainingTime(value: number) {

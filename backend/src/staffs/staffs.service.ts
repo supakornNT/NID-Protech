@@ -67,6 +67,16 @@ function parseRequiredEmail(value: unknown) {
   return normalized;
 }
 
+function requireFiveDigitOtp(value: unknown) {
+  const normalized = requireText(value, 'otp', 5);
+
+  if (!/^\d{5}$/.test(normalized)) {
+    throw new BadRequestException('otp must contain exactly 5 digits');
+  }
+
+  return normalized;
+}
+
 function splitPipeList(value: string | null) {
   return value ? value.split('||').filter(Boolean) : [];
 }
@@ -506,7 +516,7 @@ async register(dto: RegisterStaffDto): Promise<Staff | null> {
   const phone = optionalPhone(dto.phone, 'phone', 20) ?? null;
   const citizenId = parseCitizenId(dto.citizenId);
   const password = requireText(dto.password, 'password', 255);
-  const otp = requireText(dto.otp, 'otp', 12);
+  const otp = requireFiveDigitOtp(dto.otp);
   const teamIds = parseTeamIds(dto.teamIds);
 
   const status =
@@ -693,7 +703,7 @@ async register(dto: RegisterStaffDto): Promise<Staff | null> {
     }
 
     const password = requireText(dto.password, 'password', 255);
-    const otp = requireText(dto.otp, 'otp', 12);
+    const otp = requireFiveDigitOtp(dto.otp);
 
     if (password.length < 8) {
       throw new BadRequestException('password must be at least 8 characters');
