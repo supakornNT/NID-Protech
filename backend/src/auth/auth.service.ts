@@ -1,9 +1,10 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import type { Pool, ResultSetHeader } from 'mysql2/promise';
 import * as nodemailer from 'nodemailer';
 import * as bcrypt from 'bcrypt';
 import { SendOtpDto } from './dto/send-otp.dto';
 import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 
 interface OtpEntry {
   code: string;
@@ -116,5 +117,16 @@ export class AuthService {
         'pending',
       ],
     );
+  }
+
+    async login(dto: LoginDto) {
+    if (dto.email !== 'test@gmail.com' || dto.password !== '1234') {
+      throw new UnauthorizedException('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+    }
+
+    return {
+      id: 1,
+      email: dto.email,
+    };
   }
 }
