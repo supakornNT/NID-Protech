@@ -115,7 +115,7 @@ export class UserPortalMaintenanceService
             SELECT rsl.created_at
             FROM request_status_logs rsl
             WHERE rsl.request_id = r.id
-              AND rsl.new_status = 'waiting_confirm'
+              AND rsl.status = 'waiting_confirm'
             ORDER BY rsl.id DESC
             LIMIT 1
           ) AS waitingConfirmAt
@@ -134,7 +134,7 @@ export class UserPortalMaintenanceService
             SELECT rsl.created_at
             FROM request_status_logs rsl
             WHERE rsl.request_id = r.id
-              AND rsl.new_status = 'waiting_confirm'
+              AND rsl.status = 'waiting_confirm'
             ORDER BY rsl.id DESC
             LIMIT 1
           ) IS NOT NULL
@@ -143,7 +143,7 @@ export class UserPortalMaintenanceService
               SELECT rsl.created_at
               FROM request_status_logs rsl
               WHERE rsl.request_id = r.id
-                AND rsl.new_status = 'waiting_confirm'
+                AND rsl.status = 'waiting_confirm'
               ORDER BY rsl.id DESC
               LIMIT 1
             ),
@@ -171,13 +171,12 @@ export class UserPortalMaintenanceService
         await connection.query<ResultSetHeader>(
           `INSERT INTO request_status_logs (
             request_id,
-            old_status,
-            new_status,
+            status,
             changed_by_type,
             changed_by_id,
             note
-          ) VALUES (?, ?, 'closed', 'system', NULL, ?)`,
-          [row.requestId, row.requestStatus, AUTO_CLOSE_NOTE],
+          ) VALUES (?, 'closed', 'system', NULL, ?)`,
+          [row.requestId, AUTO_CLOSE_NOTE],
         );
 
         await connection.query<ResultSetHeader>(

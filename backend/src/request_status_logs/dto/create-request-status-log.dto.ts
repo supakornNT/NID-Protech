@@ -1,9 +1,7 @@
 export class CreateRequestStatusLogDto {
   requestId!: number;
 
-  oldStatus!: string;
-
-  newStatus!: string;
+  status!: string;
 
   changedByType!: string;
 

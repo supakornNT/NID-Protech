@@ -90,18 +90,12 @@ export class UserPortalActionService {
       await connection.query<ResultSetHeader>(
         `INSERT INTO request_status_logs (
           request_id,
-          old_status,
-          new_status,
+          status,
           changed_by_type,
           changed_by_id,
           note
-        ) VALUES (?, ?, 'closed', 'customer', ?, ?)`,
-        [
-          identity.id,
-          identity.status,
-          identity.customerId,
-          dto.comment ?? null,
-        ],
+        ) VALUES (?, 'closed', 'customer', ?, ?)`,
+        [identity.id, identity.customerId, dto.comment ?? null],
       );
 
       for (const ticket of ticketRows) {
@@ -269,13 +263,12 @@ export class UserPortalActionService {
       await connection.query<ResultSetHeader>(
         `INSERT INTO request_status_logs (
           request_id,
-          old_status,
-          new_status,
+          status,
           changed_by_type,
           changed_by_id,
           note
-        ) VALUES (?, ?, 'assigned', 'customer', ?, ?)`,
-        [identity.id, identity.status, identity.customerId, dto.reason],
+        ) VALUES (?, 'assigned', 'customer', ?, ?)`,
+        [identity.id, identity.customerId, dto.reason],
       );
 
       for (const ticket of ticketRows) {

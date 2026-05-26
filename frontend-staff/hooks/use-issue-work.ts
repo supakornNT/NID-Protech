@@ -10,6 +10,7 @@ export type WorkItem = {
   customerSurname: string;
   probleTypeName: string;
   problemName: string;
+  wasRejected: number;
 };
 
 export function useIssueWork() {

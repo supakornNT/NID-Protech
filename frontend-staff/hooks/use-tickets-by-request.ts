@@ -4,7 +4,9 @@ export type Ticket = {
   id: number;
   assignedStaffName: string | null;
   title: string;
+  description: string | null;
   status: string;
+  dueAt: string | null;
   resolvedAt: string | null;
 };
 

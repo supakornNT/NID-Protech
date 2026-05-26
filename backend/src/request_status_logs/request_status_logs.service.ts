@@ -13,8 +13,7 @@ export class RequestStatusLogsService {
       `SELECT
       request_status_logs.id,
       request_status_logs.request_id,
-      request_status_logs.old_status,
-      request_status_logs.new_status,
+      request_status_logs.status,
       request_status_logs.changed_by_type,
       request_status_logs.changed_by_id,
       request_status_logs.note,
@@ -31,8 +30,7 @@ export class RequestStatusLogsService {
       `SELECT
       request_status_logs.id,
       request_status_logs.request_id,
-      request_status_logs.old_status,
-      request_status_logs.new_status,
+      request_status_logs.status,
       request_status_logs.changed_by_type,
       request_status_logs.changed_by_id,
       request_status_logs.note,
@@ -50,15 +48,8 @@ export class RequestStatusLogsService {
     dto: CreateRequestStatusLogDto,
   ): Promise<RequestStatusLog | null> {
     const [result] = await this.db.query<ResultSetHeader>(
-      'INSERT INTO request_status_logs (request_id, old_status, new_status, changed_by_type, changed_by_id, note) VALUES (?, ?, ?, ?, ?, ?)',
-      [
-        dto.requestId,
-        dto.oldStatus,
-        dto.newStatus,
-        dto.changedByType,
-        dto.changedById,
-        dto.note,
-      ],
+      'INSERT INTO request_status_logs (request_id, status, changed_by_type, changed_by_id, note) VALUES (?, ?, ?, ?, ?)',
+      [dto.requestId, dto.status, dto.changedByType, dto.changedById, dto.note],
     );
 
     return this.findOne(result.insertId);
@@ -78,16 +69,14 @@ export class RequestStatusLogsService {
       `UPDATE request_status_logs
       SET
         request_id = ?,
-        old_status = ?,
-        new_status = ?,
+        status = ?,
         changed_by_type = ?,
         changed_by_id = ?,
         note = ?
       WHERE id = ?`,
       [
         dto.requestId ?? current.request_id,
-        dto.oldStatus ?? current.old_status,
-        dto.newStatus ?? current.new_status,
+        dto.status ?? current.status,
         dto.changedByType ?? current.changed_by_type,
         dto.changedById ?? current.changed_by_id,
         dto.note ?? current.note,

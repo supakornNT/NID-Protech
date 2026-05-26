@@ -65,6 +65,11 @@ export class RequestsController {
     return this.request.findAll();
   }
 
+  @Get('tracking')
+  findTracking() {
+    return this.request.findTracking();
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.request.findOne(id);
@@ -100,6 +105,23 @@ export class RequestsController {
     @UploadedFiles() files: Express.Multer.File[],
   ) {
     return this.request.createRequestService(body, files ?? []);
+  }
+
+  @Patch(':id/submit-work')
+  submitWork(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('staffId') staffId: number,
+  ) {
+    return this.request.submitWork(id, Number(staffId));
+  }
+
+  @Patch(':id/reject-work')
+  rejectWork(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('operatorId') operatorId: number,
+    @Body('note') note: string,
+  ) {
+    return this.request.rejectWork(id, Number(operatorId), note ?? '');
   }
 
   @Patch('update/status')

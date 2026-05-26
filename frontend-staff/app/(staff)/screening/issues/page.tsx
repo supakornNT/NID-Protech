@@ -70,7 +70,7 @@ export default function IssuesPage() {
   const { rejectId, rejectReason, setRejectReason, openReject, handleReject, closeReject } =
     useRejectComplaint((id) => setRows((prev) => prev.filter((r) => r.id !== id)));
   const { acceptId, acceptReason, setAcceptReason, openAccept, handleAccept, closeAccept } =
-    useAcceptComplaint((id) => setRows((prev) => prev.filter((r) => r.id !== id)));
+    useAcceptComplaint((id) => setRows((prev) => prev.filter((r) => r.id !== id)), 0);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 

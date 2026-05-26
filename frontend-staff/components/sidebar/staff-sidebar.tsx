@@ -79,7 +79,7 @@ const menuItems = [
     children: [
       {
         title: "ผลการปฎิบัติงาน",
-        href: "/operations/results",
+        href: "/operations",
         icon: Rss,
       },
     ],

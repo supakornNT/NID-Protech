@@ -5,6 +5,7 @@ import Image from "next/image";
 import { FileText, X } from "lucide-react";
 import { useComplaintDetail, useLightbox } from "@/hooks/use-complaint-detail";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 const IMAGE_EXTS = ["jpg", "jpeg", "png", "gif", "webp"];
 
 function Field({ label, value }: { label: string; value?: string | null }) {
@@ -93,7 +94,7 @@ export default function ComplaintDetailPage() {
                 <div className="flex flex-wrap gap-3">
                   {attachments.map((file) => {
                     const fileName = file.savedName ?? file.originalName;
-                    const url = `http://localhost:4000/uploads/requests/${fileName}`;
+                    const url = `${API_BASE_URL}/uploads/requests/${fileName}`;
                     const isImage = IMAGE_EXTS.includes(file.fileExt.toLowerCase());
                     return isImage ? (
                       <button

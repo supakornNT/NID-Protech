@@ -15,6 +15,9 @@ import type {
   RequestsAssign,
   RequestsDetail,
   RequestsScreening,
+  RequestTracking,
+  RequestTrackingLogRow,
+  RequestTrackingRow,
 } from './interfaces/requests.interface';
 import { RequestTemplate, type RequestData } from './templates/report.template';
 
@@ -65,7 +68,7 @@ export class RequestsService implements OnModuleInit {
         requests.created_at AS createdAt
       FROM requests
       LEFT JOIN systems ON systems.id = requests.system_id
-      LEFT JOIN problem_types ON problem_types.id = requests.problem_type_id
+      INNER JOIN problem_types ON problem_types.id = requests.problem_type_id
       WHERE problem_types.request_type = ?
       AND requests.status = 'screening'`,
       [type],
@@ -85,12 +88,20 @@ export class RequestsService implements OnModuleInit {
         problem_types.name AS problemName,
         requests.title AS title,
         requests.detail AS detail,
+        requests.status AS status,
         requests.closed_at AS closedAt,
-        requests.due_at AS dueAt
-      FROM requests 
+        requests.due_at AS dueAt,
+        CONCAT(s2.name, ' ', s2.surname) AS assignedStaffName
+      FROM requests
       LEFT JOIN systems ON systems.id = requests.system_id
       LEFT JOIN problem_types ON problem_types.id = requests.problem_type_id
       LEFT JOIN customers ON customers.id = requests.customer_id
+      LEFT JOIN tickets t ON t.id = (
+        SELECT t2.id FROM tickets t2
+        WHERE t2.request_id = requests.id
+        ORDER BY t2.id DESC LIMIT 1
+      )
+      LEFT JOIN staffs s2 ON s2.id = t.assigned_staff_id
       WHERE requests.id = ?`,
       [id],
     );
@@ -132,7 +143,7 @@ export class RequestsService implements OnModuleInit {
     const [rows] = await this.db.query<RowDataPacket[]>(
       `SELECT id, original_name AS originalName, saved_name AS savedName, file_ext AS fileExt
        FROM attachments
-       WHERE request_id = ?`,
+       WHERE request_id = ? AND ticket_id IS NULL AND status = 'show'`,
       [requestId],
     );
 
@@ -227,15 +238,40 @@ export class RequestsService implements OnModuleInit {
         customers.name AS customerName,
         customers.surname AS customerSurname,
         problem_types.request_type AS probleTypeName,
-        problem_types.name AS problemName
+        problem_types.name AS problemName,
+        CASE WHEN requests.status = 'in_progress'
+          AND EXISTS (
+            SELECT 1 FROM request_status_logs
+            WHERE request_id = requests.id
+              AND status = 'in_progress'
+              AND changed_by_type = 'operator'
+          )
+        THEN 1 ELSE 0 END AS wasRejected
       FROM requests
       LEFT JOIN systems ON systems.id = requests.system_id
       LEFT JOIN customers ON customers.id = requests.customer_id
       LEFT JOIN problem_types ON problem_types.id = requests.problem_type_id
-      WHERE requests.status = 'assigned'`,
+      WHERE requests.status = 'assigned'
+        OR (
+          requests.status = 'in_progress'
+          AND EXISTS (
+            SELECT 1 FROM request_status_logs
+            WHERE request_id = requests.id
+              AND status = 'in_progress'
+              AND changed_by_type = 'operator'
+          )
+        )`,
     );
 
     return rows;
+  }
+
+  private async insertScreeningLog(requestId: number) {
+    await this.db.query(
+      `INSERT INTO request_status_logs (request_id, status, changed_by_type, changed_by_id, note)
+       VALUES (?, 'screening', 'system', NULL, NULL)`,
+      [requestId],
+    );
   }
 
   private async insertAttachments(
@@ -270,6 +306,7 @@ export class RequestsService implements OnModuleInit {
       ],
     );
     await this.insertAttachments(result.insertId, files);
+    await this.insertScreeningLog(result.insertId);
     return { id: result.insertId, requestNo };
   }
 
@@ -291,6 +328,7 @@ export class RequestsService implements OnModuleInit {
       ],
     );
     await this.insertAttachments(result.insertId, files);
+    await this.insertScreeningLog(result.insertId);
     return { id: result.insertId, requestNo };
   }
 
@@ -311,6 +349,7 @@ export class RequestsService implements OnModuleInit {
       ],
     );
     await this.insertAttachments(result.insertId, files);
+    await this.insertScreeningLog(result.insertId);
     return { id: result.insertId, requestNo };
   }
 
@@ -323,6 +362,32 @@ export class RequestsService implements OnModuleInit {
       [resolved, id],
     );
     return rows;
+  }
+
+  async submitWork(requestId: number, staffId: number) {
+    await this.db.query(
+      `UPDATE requests SET status = 'waiting_confirm' WHERE id = ?`,
+      [requestId],
+    );
+    await this.db.query(
+      `INSERT INTO request_status_logs (request_id, status, changed_by_type, changed_by_id, note)
+       VALUES (?, 'waiting_confirm', 'staff', ?, NULL)`,
+      [requestId, staffId],
+    );
+    return { success: true };
+  }
+
+  async rejectWork(requestId: number, operatorId: number, note: string) {
+    await this.db.query(
+      `UPDATE requests SET status = 'in_progress' WHERE id = ?`,
+      [requestId],
+    );
+    await this.db.query(
+      `INSERT INTO request_status_logs (request_id, status, changed_by_type, changed_by_id, note)
+       VALUES (?, 'in_progress', 'operator', ?, ?)`,
+      [requestId, operatorId, note],
+    );
+    return { success: true };
   }
 
   async updateDueAt(id: number, dueAt: string) {
@@ -344,5 +409,102 @@ export class RequestsService implements OnModuleInit {
     }
 
     return filePath;
+  }
+
+  async findTracking(): Promise<RequestTracking[]> {
+    const [requests] = await this.db.query<RequestTrackingRow[]>(
+      `SELECT
+        r.id,
+        r.title,
+        r.status,
+        r.created_at AS createdAt,
+        r.due_at AS dueAt,
+        CONCAT(c.name, ' ', c.surname) AS customerName,
+        s.name AS systemName,
+        pt.name AS problemName,
+        CASE WHEN
+          (SELECT COUNT(*) FROM tickets t2 WHERE t2.request_id = r.id
+           AND t2.status NOT IN ('resolved', 'waiting_confirm', 'closed', 'cancelled')) = 0
+          AND
+          (SELECT COUNT(*) FROM tickets t2 WHERE t2.request_id = r.id
+           AND t2.status != 'cancelled') > 0
+        THEN 1 ELSE 0 END AS allResolved,
+        CASE WHEN r.status = 'in_progress'
+          AND EXISTS (
+            SELECT 1 FROM request_status_logs
+            WHERE request_id = r.id
+              AND status = 'in_progress'
+              AND changed_by_type = 'operator'
+          )
+        THEN 1 ELSE 0 END AS wasRejected
+      FROM requests r
+      LEFT JOIN customers c ON c.id = r.customer_id
+      LEFT JOIN systems s ON s.id = r.system_id
+      LEFT JOIN problem_types pt ON pt.id = r.problem_type_id
+      WHERE r.status NOT IN ('screening', 'rejected')
+      ORDER BY r.created_at DESC`,
+    );
+
+    if (requests.length === 0) return [];
+
+    const ids = requests.map((r) => r.id);
+    const [logs] = await this.db.query<RequestTrackingLogRow[]>(
+      `SELECT request_id, status, created_at
+       FROM request_status_logs
+       WHERE request_id IN (?)
+       ORDER BY created_at ASC`,
+      [ids],
+    );
+
+    const logMap = new Map<number, RequestTrackingLogRow[]>();
+    for (const log of logs) {
+      if (!logMap.has(log.request_id)) logMap.set(log.request_id, []);
+      logMap.get(log.request_id)!.push(log);
+    }
+
+    const fmt = (d: Date | string | undefined, label: string) => {
+      if (!d) return null;
+      const dt = new Date(d);
+      const h = String(dt.getHours()).padStart(2, '0');
+      const m = String(dt.getMinutes()).padStart(2, '0');
+      return {
+        label,
+        date: `${dt.getDate()}/${dt.getMonth() + 1}`,
+        time: `${h}:${m}`,
+      };
+    };
+
+    return requests.map((r) => {
+      const rLogs = logMap.get(r.id) ?? [];
+      return {
+        id: r.id,
+        title: r.title,
+        status: r.status,
+        customerName: r.customerName,
+        systemName: r.systemName,
+        problemName: r.problemName,
+        dueAt: r.dueAt ? new Date(r.dueAt).toISOString() : null,
+        allResolved: r.allResolved,
+        wasRejected: r.wasRejected,
+        steps: [
+          fmt(
+            rLogs.find((l) => l.status === 'screening')?.created_at,
+            'ยื่นเรื่อง',
+          ),
+          fmt(
+            rLogs.find((l) => l.status === 'assigned')?.created_at,
+            'ตรวจสอบ',
+          ),
+          fmt(
+            rLogs.find((l) => l.status === 'in_progress')?.created_at,
+            'ดำเนินการแก้ไข',
+          ),
+          fmt(
+            rLogs.find((l) => l.status === 'closed')?.created_at,
+            'เสร็จสิ้น',
+          ),
+        ],
+      };
+    });
   }
 }

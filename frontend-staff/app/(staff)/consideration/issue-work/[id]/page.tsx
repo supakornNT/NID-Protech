@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
 
 const IMAGE_EXTS = ["jpg", "jpeg", "png", "gif", "webp"];
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { useComplaintDetail, useLightbox } from "@/hooks/use-complaint-detail";
 import { useTicketsByRequest } from "@/hooks/use-tickets-by-request";
@@ -13,6 +13,7 @@ import { useUpdateTicket } from "@/hooks/assign/use-update-ticket";
 import { useDeleteTicket } from "@/hooks/assign/use-delete-ticket";
 import { useUpdateRequestDueDate } from "@/hooks/use-update-request-due-date";
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
+import { useRequestStatusLog } from "@/hooks/use-request-status-log";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -39,17 +40,31 @@ export default function ManageWorkDetailPage() {
   const { lightbox, setLightbox } = useLightbox();
   const { tickets, refetch } = useTicketsByRequest(id);
   const { updateStatus } = useUpdateRequestStatus();
+  const { logStatus } = useRequestStatusLog(0);
   const { updateDueDate, loading: dueDateLoading } = useUpdateRequestDueDate();
   const [subPage, setSubPage] = useState(1);
   const [subSearch, setSubSearch] = useState("");
   const [editedDueDate, setDueDate] = useState<string | undefined>(undefined);
-  const dueDate = editedDueDate ?? (data?.dueAt ? new Date(data.dueAt).toLocaleDateString("en-CA") : "");
+  const dueDate =
+    editedDueDate ??
+    (data?.dueAt ? new Date(data.dueAt).toLocaleDateString("en-CA") : "");
   const filteredSub = tickets.filter(
-    (t) => subSearch === "" || t.title.includes(subSearch) || (t.assignedStaffName ?? "").includes(subSearch),
+    (t) =>
+      subSearch === "" ||
+      t.title.includes(subSearch) ||
+      (t.assignedStaffName ?? "").includes(subSearch),
   );
-  const totalSubPages = Math.max(1, Math.ceil(filteredSub.length / SUBTASK_LIMIT));
-  const pagedSub = filteredSub.slice((subPage - 1) * SUBTASK_LIMIT, subPage * SUBTASK_LIMIT);
-  const uniqueAssignees = new Set(tickets.map((t) => t.assignedStaffName).filter(Boolean)).size;
+  const totalSubPages = Math.max(
+    1,
+    Math.ceil(filteredSub.length / SUBTASK_LIMIT),
+  );
+  const pagedSub = filteredSub.slice(
+    (subPage - 1) * SUBTASK_LIMIT,
+    subPage * SUBTASK_LIMIT,
+  );
+  const uniqueAssignees = new Set(
+    tickets.map((t) => t.assignedStaffName).filter(Boolean),
+  ).size;
 
   const [editModal, setEditModal] = useState<EditModal>({
     open: false,
@@ -57,10 +72,19 @@ export default function ManageWorkDetailPage() {
     detail: null,
     detailLoading: false,
   });
-  const [editForm, setEditForm] = useState({ title: "", description: "", dueAt: "" });
+  const [editForm, setEditForm] = useState({
+    title: "",
+    description: "",
+    dueAt: "",
+  });
 
   const { updateTicket, loading: updateLoading } = useUpdateTicket(() => {
-    setEditModal({ open: false, ticketId: null, detail: null, detailLoading: false });
+    setEditModal({
+      open: false,
+      ticketId: null,
+      detail: null,
+      detailLoading: false,
+    });
     refetch();
   });
 
@@ -68,10 +92,20 @@ export default function ManageWorkDetailPage() {
     refetch();
   });
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   async function openEditModal(ticketId: number) {
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setEditModal({ open: true, ticketId, detail: null, detailLoading: true });
     try {
-      const res = await fetch(`${API_BASE_URL}/admin/tickets/id?id=${ticketId}`);
+      const res = await fetch(
+        `${API_BASE_URL}/admin/tickets/id?id=${ticketId}`,
+        { signal: controller.signal },
+      );
+      if (!res.ok) throw new Error();
       const detail: TicketDetail = await res.json();
       setEditForm({
         title: detail.title ?? "",
@@ -79,8 +113,14 @@ export default function ManageWorkDetailPage() {
         dueAt: detail.dueAt ? detail.dueAt.slice(0, 10) : "",
       });
       setEditModal({ open: true, ticketId, detail, detailLoading: false });
-    } catch {
-      setEditModal({ open: false, ticketId: null, detail: null, detailLoading: false });
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      setEditModal({
+        open: false,
+        ticketId: null,
+        detail: null,
+        detailLoading: false,
+      });
     }
   }
 
@@ -94,14 +134,21 @@ export default function ManageWorkDetailPage() {
   }
 
   async function handleSave() {
-    await updateStatus(id, "in_progress");
+    const requestId = Number(Array.isArray(id) ? id[0] : id);
+    await Promise.all([
+      updateStatus(id, "in_progress"),
+      logStatus(requestId, "assigned"),
+    ]);
     router.push(`/consideration/issue-work`);
   }
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const daysLeft = dueDate
-    ? Math.max(0, Math.ceil((new Date(dueDate).getTime() - today.getTime()) / 86400000))
+    ? Math.max(
+        0,
+        Math.ceil((new Date(dueDate).getTime() - today.getTime()) / 86400000),
+      )
     : null;
 
   if (loading)
@@ -126,11 +173,21 @@ export default function ManageWorkDetailPage() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
           onClick={() => setLightbox(null)}
         >
-          <button className="absolute top-4 right-4 text-white hover:text-gray-300" onClick={() => setLightbox(null)}>
+          <button
+            className="absolute top-4 right-4 text-white hover:text-gray-300"
+            onClick={() => setLightbox(null)}
+          >
             <X size={32} />
           </button>
           <div onClick={(e) => e.stopPropagation()}>
-            <Image src={lightbox} alt="preview" width={900} height={700} unoptimized className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain" />
+            <Image
+              src={lightbox}
+              alt="preview"
+              width={900}
+              height={700}
+              unoptimized
+              className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain"
+            />
           </div>
         </div>
       )}
@@ -138,7 +195,17 @@ export default function ManageWorkDetailPage() {
       {/* Edit Modal */}
       <AdminModalShell
         open={editModal.open}
-        onOpenChange={(open) => { if (!open) setEditModal({ open: false, ticketId: null, detail: null, detailLoading: false }); }}
+        onOpenChange={(open) => {
+          if (!open) {
+            abortControllerRef.current?.abort();
+            setEditModal({
+              open: false,
+              ticketId: null,
+              detail: null,
+              detailLoading: false,
+            });
+          }
+        }}
         title="แก้ไขงานย่อย"
       >
         {editModal.detailLoading ? (
@@ -150,36 +217,50 @@ export default function ManageWorkDetailPage() {
             {editModal.detail?.fullName && (
               <div>
                 <p className="mb-1 text-[13px] text-gray-500">ผู้รับผิดชอบ</p>
-                <p className="text-[14px] font-semibold text-gray-800">{editModal.detail.fullName}</p>
+                <p className="text-[14px] font-semibold text-gray-800">
+                  {editModal.detail.fullName}
+                </p>
               </div>
             )}
 
             <div>
-              <label className="mb-1 block text-[13px] text-gray-500">ชื่องาน</label>
+              <label className="mb-1 block text-[13px] text-gray-500">
+                ชื่องาน
+              </label>
               <input
                 type="text"
                 value={editForm.title}
-                onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
+                onChange={(e) =>
+                  setEditForm((f) => ({ ...f, title: e.target.value }))
+                }
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-[14px] outline-none focus:border-[#366DBD]"
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-[13px] text-gray-500">รายละเอียด</label>
+              <label className="mb-1 block text-[13px] text-gray-500">
+                รายละเอียด
+              </label>
               <textarea
                 rows={4}
                 value={editForm.description}
-                onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
+                onChange={(e) =>
+                  setEditForm((f) => ({ ...f, description: e.target.value }))
+                }
                 className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-[14px] outline-none focus:border-[#366DBD]"
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-[13px] text-gray-500">กำหนดวันส่ง</label>
+              <label className="mb-1 block text-[13px] text-gray-500">
+                กำหนดวันส่ง
+              </label>
               <input
                 type="date"
                 value={editForm.dueAt}
-                onChange={(e) => setEditForm((f) => ({ ...f, dueAt: e.target.value }))}
+                onChange={(e) =>
+                  setEditForm((f) => ({ ...f, dueAt: e.target.value }))
+                }
                 min={new Date().toISOString().split("T")[0]}
                 className="rounded-lg border border-gray-300 px-3 py-2 text-[14px] outline-none focus:border-[#366DBD]"
               />
@@ -188,7 +269,14 @@ export default function ManageWorkDetailPage() {
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => setEditModal({ open: false, ticketId: null, detail: null, detailLoading: false })}
+                onClick={() =>
+                  setEditModal({
+                    open: false,
+                    ticketId: null,
+                    detail: null,
+                    detailLoading: false,
+                  })
+                }
                 className="rounded-lg border border-gray-300 px-4 py-2 text-[13px] text-gray-600 hover:bg-gray-50"
               >
                 ยกเลิก
@@ -209,7 +297,9 @@ export default function ManageWorkDetailPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-[28px] font-bold text-gray-900">การจัดการงาน</h1>
+            <h1 className="text-[28px] font-bold text-gray-900">
+              การจัดการงาน
+            </h1>
             <p className="text-[14px] text-gray-500">งานที่ต้องมอบหมาย</p>
           </div>
           <div className="flex gap-2">
@@ -225,13 +315,13 @@ export default function ManageWorkDetailPage() {
               onClick={handleSave}
               className="rounded-lg bg-[#366DBD] px-5 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3]"
             >
-              ส่งมอบ
+              ส่งต่อ
             </button>
           </div>
         </div>
 
         {/* Main content */}
-        <div className="flex gap-16">
+        <div className="flex min-h-[700px] gap-12">
           {/* Left panel */}
           <div className="flex flex-1 shrink-0 flex-col gap-4 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
             <div className="flex items-start justify-between">
@@ -249,17 +339,21 @@ export default function ManageWorkDetailPage() {
             <textarea
               readOnly
               value={data.detail}
-              rows={8}
+              rows={12}
               className="w-full resize-none rounded-lg border border-[#000000] bg-gray-50 p-3 text-l text-gray-700 outline-none"
             />
 
             {attachments.length > 0 && (
               <div className="flex flex-col gap-2">
-                <p className="text-l text-gray-500">ไฟล์แนบ ({attachments.length})</p>
+                <p className="text-l text-gray-500">
+                  ไฟล์แนบ ({attachments.length})
+                </p>
                 <div className="flex flex-wrap gap-3">
                   {attachments.map((file) => {
-                    const url = `http://localhost:4000/uploads/reports/${file.savedName}.${file.fileExt}`;
-                    const isImage = IMAGE_EXTS.includes((file.fileExt ?? "").toLowerCase());
+                    const url = `${API_BASE_URL}/uploads/reports/${file.savedName}.${file.fileExt}`;
+                    const isImage = IMAGE_EXTS.includes(
+                      (file.fileExt ?? "").toLowerCase(),
+                    );
                     return isImage ? (
                       <button
                         key={file.id}
@@ -267,7 +361,14 @@ export default function ManageWorkDetailPage() {
                         onClick={() => setLightbox(url)}
                         className="overflow-hidden rounded-lg border border-gray-200 hover:opacity-80 transition-opacity"
                       >
-                        <Image src={url} alt={file.originalName} width={128} height={128} unoptimized className="h-32 w-32 object-cover" />
+                        <Image
+                          src={url}
+                          alt={file.originalName}
+                          width={128}
+                          height={128}
+                          unoptimized
+                          className="h-32 w-32 object-cover"
+                        />
                       </button>
                     ) : (
                       <a
@@ -278,7 +379,9 @@ export default function ManageWorkDetailPage() {
                         className="flex h-32 w-32 flex-col items-center justify-center gap-2 rounded-lg border border-gray-200 bg-gray-50 text-[12px] text-gray-500 hover:bg-gray-100"
                       >
                         <FileText size={32} className="text-gray-400" />
-                        <span className="w-full truncate px-2 text-center">{file.originalName}</span>
+                        <span className="w-full truncate px-2 text-center">
+                          {file.originalName}
+                        </span>
                       </a>
                     );
                   })}
@@ -294,14 +397,21 @@ export default function ManageWorkDetailPage() {
               {[
                 { value: tickets.length, label: "งานย่อย" },
                 { value: uniqueAssignees, label: "ผู้รับผิดชอบ" },
-                { value: daysLeft !== null ? `${daysLeft} วัน` : "ยังไม่กำหนด", label: "ครบกำหนด" },
+                {
+                  value: daysLeft !== null ? `${daysLeft} วัน` : "ยังไม่กำหนด",
+                  label: "ครบกำหนด",
+                },
               ].map((stat) => (
                 <div
                   key={stat.label}
                   className="flex flex-1 flex-col items-center justify-center rounded-xl border border-[#000000] py-4"
                 >
-                  <span className="text-[22px] font-bold text-gray-800">{stat.value}</span>
-                  <span className="text-[13px] text-gray-500">{stat.label}</span>
+                  <span className="text-[22px] font-bold text-gray-800">
+                    {stat.value}
+                  </span>
+                  <span className="text-[13px] text-gray-500">
+                    {stat.label}
+                  </span>
                 </div>
               ))}
             </div>
@@ -325,7 +435,10 @@ export default function ManageWorkDetailPage() {
               <input
                 type="text"
                 value={subSearch}
-                onChange={(e) => { setSubSearch(e.target.value); setSubPage(1); }}
+                onChange={(e) => {
+                  setSubSearch(e.target.value);
+                  setSubPage(1);
+                }}
                 placeholder="ค้นหา..."
                 className="h-9 flex-1 rounded-lg border border-[#000000] bg-white px-3 text-[14px] outline-none focus:border-[#366DBD]"
               />
@@ -338,7 +451,11 @@ export default function ManageWorkDetailPage() {
               </button>
               <button
                 type="button"
-                onClick={() => router.push(`/consideration/issue-work/${Array.isArray(id) ? id[0] : id}/assign`)}
+                onClick={() =>
+                  router.push(
+                    `/consideration/issue-work/${Array.isArray(id) ? id[0] : id}/assign`,
+                  )
+                }
                 className="h-9 rounded-lg border border-[#366DBD] px-4 text-[14px] font-semibold text-[#366DBD] hover:bg-blue-50"
               >
                 + เพิ่ม
@@ -346,32 +463,55 @@ export default function ManageWorkDetailPage() {
             </div>
 
             {/* Sub-task list */}
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 ">
+              {pagedSub.length === 0 && (
+                <p className="py-10 text-center text-gray-400">ไม่มีข้อมูล</p>
+              )}
               {pagedSub.map((task) => (
                 <div
                   key={task.id}
-                  className="flex items-start justify-between rounded-xl border border-[#000000] p-4"
+                  className="text-[15px] flex items-start justify-between rounded-xl border border-[#000000] py-6 p-4"
                 >
                   <div className="flex flex-col gap-1">
                     <span className="rounded-md border border-[#000000] px-3 py-0.5 text-[13px] text-gray-700 w-fit">
                       {task.assignedStaffName ?? "ยังไม่มอบหมาย"}
                     </span>
-                    <p className="text-[13px] text-gray-500 mt-1">{task.title}</p>
+                    <p className="text-[17px] px-2 text-gray-500 mt-6">
+                      {task.title}
+                    </p>
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    <span className="text-[13px] text-gray-500">{task.status}</span>
-                    <div className="flex gap-1">
+                    <span className="text-[17px] text-gray-500">
+                      {task.dueAt
+                        ? (() => {
+                            const days = Math.ceil(
+                              (new Date(task.dueAt).getTime() - Date.now()) /
+                                86400000,
+                            );
+                            return days > 0 ? (
+                              <span className="text-gray-400">
+                                เหลือ {days} วัน
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">
+                                เกินกำหนด {Math.abs(days)} วัน
+                              </span>
+                            );
+                          })()
+                        : ""}
+                    </span>
+                    <div className="flex gap-1 mt-6">
                       <button
                         type="button"
                         onClick={() => openEditModal(task.id)}
-                        className="rounded-md border border-gray-300 px-3 py-1 text-[12px] text-gray-600 hover:bg-gray-50"
+                        className="rounded-md border border-gray-300 px-3 text-[14px] text-gray-600 hover:bg-gray-50"
                       >
                         แก้ไข
                       </button>
                       <button
                         type="button"
                         onClick={() => deleteTicket(task.id)}
-                        className="rounded-md bg-[#D9534F] px-3 py-1 text-[12px] text-white hover:bg-red-600"
+                        className="rounded-md bg-[#D9534F] px-3  text-[14px] text-white hover:bg-red-600"
                       >
                         ลบ
                       </button>
@@ -381,47 +521,51 @@ export default function ManageWorkDetailPage() {
               ))}
             </div>
 
-            {/* Sub-task pagination */}
-            <div className="flex items-center justify-end gap-1 text-sm text-gray-600">
-              <button
-                onClick={() => setSubPage((p) => Math.max(1, p - 1))}
-                disabled={subPage === 1}
-                className="flex h-8 items-center gap-1 rounded-md px-2 text-gray-500 hover:text-[#366DBD] disabled:opacity-40"
-              >
-                <ChevronLeft size={14} /> Previous
-              </button>
-              {Array.from({ length: totalSubPages }, (_, i) => i + 1).map((p) => (
+            {/* Pagination + Save button */}
+            <div className="mt-auto flex flex-col gap-2">
+              <div className="flex items-center justify-end gap-1 text-sm text-gray-600">
                 <button
-                  key={p}
-                  onClick={() => setSubPage(p)}
-                  className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
-                    subPage === p
-                      ? "border-[#7FA7E8] bg-[#EEF4FF] text-[#3A6FCF]"
-                      : "border-transparent text-gray-600 hover:border-[#7FA7E8]"
-                  }`}
+                  onClick={() => setSubPage((p) => Math.max(1, p - 1))}
+                  disabled={subPage === 1}
+                  className="flex h-8 items-center gap-1 rounded-md px-2 text-gray-500 hover:text-[#366DBD] disabled:opacity-40"
                 >
-                  {p}
+                  <ChevronLeft size={14} /> Previous
                 </button>
-              ))}
-              <button
-                onClick={() => setSubPage((p) => Math.min(totalSubPages, p + 1))}
-                disabled={subPage === totalSubPages}
-                className="flex h-8 items-center gap-1 rounded-md px-2 text-gray-500 hover:text-[#366DBD] disabled:opacity-40"
-              >
-                Next <ChevronRight size={14} />
-              </button>
-            </div>
-
-            {/* Save button */}
-            <div className="flex justify-end mt-auto">
-              <button
-                type="button"
-                disabled={dueDateLoading || !editedDueDate}
-                onClick={() => updateDueDate(id, editedDueDate!)}
-                className="rounded-lg bg-[#366DBD] px-6 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-50"
-              >
-                {dueDateLoading ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
-              </button>
+                {Array.from({ length: totalSubPages }, (_, i) => i + 1).map(
+                  (p) => (
+                    <button
+                      key={p}
+                      onClick={() => setSubPage(p)}
+                      className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
+                        subPage === p
+                          ? "border-[#7FA7E8] bg-[#EEF4FF] text-[#3A6FCF]"
+                          : "border-transparent text-gray-600 hover:border-[#7FA7E8]"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ),
+                )}
+                <button
+                  onClick={() =>
+                    setSubPage((p) => Math.min(totalSubPages, p + 1))
+                  }
+                  disabled={subPage === totalSubPages}
+                  className="flex h-8 items-center gap-1 rounded-md px-2 text-gray-500 hover:text-[#366DBD] disabled:opacity-40"
+                >
+                  Next <ChevronRight size={14} />
+                </button>
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  disabled={dueDateLoading || !editedDueDate}
+                  onClick={() => updateDueDate(id, editedDueDate!)}
+                  className="rounded-lg bg-[#366DBD] px-6 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-50"
+                >
+                  {dueDateLoading ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

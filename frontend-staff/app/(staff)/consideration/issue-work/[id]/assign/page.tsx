@@ -7,6 +7,7 @@ import { useStaffList } from "@/hooks/use-staff-list";
 import { useTicketsByStaff } from "@/hooks/use-tickets-by-staff";
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { useCreateTicket } from "@/hooks/assign/use-create-ticket";
+import { useComplaintDetail } from "@/hooks/use-complaint-detail";
 
 const STAFF_LIMIT = 5;
 const TICKET_LIMIT = 5;
@@ -15,6 +16,8 @@ export default function AssignWorkPage() {
   const router = useRouter();
   const params = useParams();
   const requestId = Number(params.id);
+  const { data: requestData } = useComplaintDetail(params.id);
+  const requestDueAt = requestData?.dueAt ? requestData.dueAt.slice(0, 10) : undefined;
   const { staffs, loading, refetch: refetchStaffs } = useStaffList();
   const [search, setSearch] = useState("");
   const [staffPage, setStaffPage] = useState(1);
@@ -97,7 +100,7 @@ export default function AssignWorkPage() {
         </button>
       </div>
 
-      <div className="flex gap-6">
+      <div className="flex min-h-[700px] gap-6">
         {/* Left panel — staff list */}
         <div className="flex flex-1 shrink-0 flex-col gap-4 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
           <div className="flex gap-2">
@@ -336,6 +339,7 @@ export default function AssignWorkPage() {
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
               min={new Date().toISOString().split("T")[0]}
+              max={requestDueAt}
               className="h-9 rounded-lg border border-gray-300 px-3 text-[14px] outline-none focus:border-[#366DBD]"
             />
           </div>
@@ -360,7 +364,7 @@ export default function AssignWorkPage() {
                   dueAt: dueDate,
                   title,
                   description: detail,
-                  status: "open",
+                  status: "in_progress",
                 });
               }}
               className="rounded-lg bg-[#366DBD] px-5 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-50"

@@ -11,6 +11,7 @@ type Detail = {
   problemName: string;
   title: string;
   detail: string;
+  status: string;
   closedAt: string | null;
   dueAt: string | null;
 };
@@ -26,20 +27,32 @@ export function useComplaintDetail(id: string | string[] | undefined) {
   const [data, setData] = useState<Detail | null>(null);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
+    if (!id) return;
+    setLoading(true);
+    setError(false);
+
     Promise.all([
-      fetch(`${API_BASE_URL}/requests/detail?id=${id}`).then((r) => r.json()),
-      fetch(`${API_BASE_URL}/requests/attachments?id=${id}`).then((r) => r.json()),
+      fetch(`${API_BASE_URL}/requests/detail?id=${id}`).then((r) => {
+        if (!r.ok) throw new Error("detail fetch failed");
+        return r.json();
+      }),
+      fetch(`${API_BASE_URL}/requests/attachments?id=${id}`).then((r) => {
+        if (!r.ok) throw new Error("attachments fetch failed");
+        return r.json();
+      }),
     ])
       .then(([detail, files]) => {
         setData(detail);
         setAttachments(Array.isArray(files) ? files : []);
       })
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, [id]);
 
-  return { data, attachments, loading };
+  return { data, attachments, loading, error };
 }
 
 export function useLightbox() {

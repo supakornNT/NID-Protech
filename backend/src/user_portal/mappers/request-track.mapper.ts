@@ -25,13 +25,13 @@ export function mapTrackResponse(
 ): PublicRequestTrack {
   const currentStep = getCurrentStepHelper(request.requestStatus);
   const firstInProgressLog = requestStatusLogs.find(
-    (log) => log.new_status === 'assigned' || log.new_status === 'in_progress',
+    (log) => log.status === 'assigned' || log.status === 'in_progress',
   );
   const waitingConfirmLog = requestStatusLogs.find(
-    (log) => log.new_status === 'waiting_confirm',
+    (log) => log.status === 'waiting_confirm',
   );
   const screeningLog = requestStatusLogs.find(
-    (log) => log.new_status === 'screening',
+    (log) => log.status === 'screening',
   );
 
   const requestedAt = toDateTimePartsUtil(request.requestCreatedAt);

@@ -10,7 +10,12 @@
       "Bash(curl -s \"http://localhost:4000/requests/screening?type=issue\")",
       "Bash(grep -A 30 \"CREATE TABLE \\\\`requests\\\\`\" \"c:/Users/deadc/NID-Protech/support_system \\(7\\).sql\")",
       "Bash(grep -A 30 \"CREATE TABLE \\\\`reports\\\\`\" \"c:/Users/deadc/NID-Protech/support_system \\(7\\).sql\")",
-      "Bash(curl -s \"http://localhost:4000/admin/tickets\")"
+      "Bash(curl -s \"http://localhost:4000/admin/tickets\")",
+      "Bash(netstat -ano)",
+      "Bash(taskkill /PID 8136 /F)",
+      "PowerShell(Stop-Process -Id 8136 -Force)",
+      "Bash(npm uninstall *)",
+      "Bash(grep -r \"console\\\\\\\\.log\" app --include=\"*.tsx\" --include=\"*.ts\")"
     ]
   }
 }

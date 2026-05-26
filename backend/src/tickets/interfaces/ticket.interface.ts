@@ -27,8 +27,9 @@ export interface TicketByRequest extends RowDataPacket {
   id: number;
   assignedStaffName: string;
   title: string;
-  detail: string;
+  description: string | null;
   status: string;
+  dueAt: Date | null;
   resolvedAt: Date | null;
   problemName: string;
   requestType: string;
@@ -53,4 +54,59 @@ export interface findById extends RowDataPacket {
   title: string;
   description: string;
   dueAt: Date;
+}
+
+export interface WorkDetail extends RowDataPacket {
+  ticketId: number;
+  requestId: number;
+  ticketStatus: string;
+  resolution: string | null;
+  dueAt: Date | null;
+  requestNo: string;
+  title: string;
+  detail: string;
+  customerName: string;
+  systemName: string | null;
+  problemName: string;
+  requestType: string;
+  rejectNote: string | null;
+}
+
+export interface MyWorkItem extends RowDataPacket {
+  id: number;
+  requestId: number;
+  title: string;
+  status: string;
+  dueAt: Date | null;
+  customerName: string;
+  systemName: string | null;
+  problemName: string;
+  requestType: string;
+}
+
+export interface MyRequestItem extends RowDataPacket {
+  requestId: number;
+  ticketId: number;
+  title: string;
+  requestStatus: string;
+  dueAt: Date | null;
+  customerName: string;
+  systemName: string | null;
+  problemName: string;
+  requestType: string;
+  allResolved: number;
+}
+
+export interface PendingCloseItem extends RowDataPacket {
+  id: number;
+  requestId: number;
+  title: string;
+  resolvedAt: Date | null;
+  dueAt: Date | null;
+  assignedStaffName: string;
+  customerName: string;
+  systemName: string | null;
+  problemName: string;
+  requestType: string;
+  resolution: string | null;
 }

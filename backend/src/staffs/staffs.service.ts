@@ -134,8 +134,8 @@ export class StaffsService {
       LEFT JOIN staff_team_roles ON staff_team_roles.staff_id = staffs.id
       LEFT JOIN teams ON teams.id = staff_team_roles.team_id
       LEFT JOIN tickets ON tickets.assigned_staff_id = staffs.id
-        AND tickets.status NOT IN ('resolved', 'closed')
-      WHERE staffs.status = 'active' AND tickets.status != 'cancelled'
+        AND tickets.status NOT IN ('resolved', 'closed', 'cancelled')
+      WHERE staffs.status = 'active'
       GROUP BY staffs.id, staffs.name, staffs.surname`,
     );
     return rows;
