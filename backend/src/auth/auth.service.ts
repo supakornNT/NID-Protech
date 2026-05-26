@@ -10,6 +10,8 @@ interface OtpEntry {
   expiresAt: number;
 }
 
+const OTP_LENGTH = 5;
+
 @Injectable()
 export class AuthService {
   private otpStore = new Map<string, OtpEntry>();
@@ -24,7 +26,9 @@ export class AuthService {
     email: string,
     subject = 'รหัส OTP สำหรับยืนยันตัวตน',
   ): Promise<void> {
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const min = 10 ** (OTP_LENGTH - 1);
+    const max = 10 ** OTP_LENGTH;
+    const code = Math.floor(min + Math.random() * (max - min)).toString();
     const expiresAt = Date.now() + 5 * 60 * 1000;
 
     this.otpStore.set(email, { code, expiresAt });

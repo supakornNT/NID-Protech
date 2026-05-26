@@ -17,13 +17,10 @@ export class StaffTeamRolesService {
       CONCAT(staffs.name, ' ', staffs.surname) AS staff_name,
       staff_team_roles.team_id,
       teams.name AS team_name,
-      staff_team_roles.role_id,
-      roles.name AS role_name,
       staff_team_roles.created_at
       FROM staff_team_roles
       LEFT JOIN staffs ON staffs.id = staff_team_roles.staff_id
       LEFT JOIN teams ON teams.id = staff_team_roles.team_id
-      LEFT JOIN roles ON roles.id = staff_team_roles.role_id
       `,
     );
 
@@ -38,13 +35,10 @@ export class StaffTeamRolesService {
       CONCAT(staffs.name, ' ', staffs.surname) AS staff_name,
       staff_team_roles.team_id,
       teams.name AS team_name,
-      staff_team_roles.role_id,
-      roles.name AS role_name,
       staff_team_roles.created_at
       FROM staff_team_roles
       LEFT JOIN staffs ON staffs.id = staff_team_roles.staff_id
       LEFT JOIN teams ON teams.id = staff_team_roles.team_id
-      LEFT JOIN roles ON roles.id = staff_team_roles.role_id
       WHERE staff_team_roles.id = ?
       `,
       [id],
@@ -55,8 +49,8 @@ export class StaffTeamRolesService {
 
   async create(dto: CreateStaffTeamRoleDto): Promise<StaffTeamRole | null> {
     const [result] = await this.db.query<ResultSetHeader>(
-      'INSERT INTO staff_team_roles (staff_id, team_id, role_id) VALUES (?, ?, ?)',
-      [dto.staffId, dto.teamId, dto.roleId],
+      'INSERT INTO staff_team_roles (staff_id, team_id) VALUES (?, ?)',
+      [dto.staffId, dto.teamId],
     );
 
     return this.findOne(result.insertId);
@@ -129,15 +123,11 @@ export class StaffTeamRolesService {
         );
 
         if (teamIdsToInsert.length > 0) {
-          const values = teamIdsToInsert.map(() => '(?, ?, ?)').join(', ');
-          const params = teamIdsToInsert.flatMap((teamId) => [
-            staffId,
-            teamId,
-            null,
-          ]);
+          const values = teamIdsToInsert.map(() => '(?, ?)').join(', ');
+          const params = teamIdsToInsert.flatMap((teamId) => [staffId, teamId]);
 
           await connection.query<ResultSetHeader>(
-            `INSERT INTO staff_team_roles (staff_id, team_id, role_id) VALUES ${values}`,
+            `INSERT INTO staff_team_roles (staff_id, team_id) VALUES ${values}`,
             params,
           );
         }
@@ -172,13 +162,11 @@ export class StaffTeamRolesService {
       `UPDATE staff_team_roles
       SET
         staff_id = ?,
-        team_id = ?,
-        role_id = ?
+        team_id = ?
       WHERE id = ?`,
       [
         dto.staffId ?? current.staff_id,
         dto.teamId ?? current.team_id,
-        dto.roleId ?? current.role_id,
         id,
       ],
     );
