@@ -5,8 +5,18 @@ export const redisClient =
     url:
       process.env.REDIS_URL ||
       'redis://localhost:6379',
+    socket: {
+      reconnectStrategy: false,
+    },
   });
 
+let hasLoggedRedisError = false;
+
 redisClient.on('error', (err) => {
-  console.log('Redis Error', err);
+  if (hasLoggedRedisError) {
+    return;
+  }
+
+  hasLoggedRedisError = true;
+  console.warn('Redis unavailable, falling back without Redis session store.', err);
 });

@@ -13,7 +13,17 @@ dotenv.config({ path: resolve(process.cwd(), '.env.local') });
 dotenv.config({ path: resolve(process.cwd(), '.env') });
 
 async function bootstrap() {
-  await redisClient.connect();
+  let redisEnabled = false;
+
+  try {
+    await redisClient.connect();
+    redisEnabled = true;
+  } catch (error) {
+    console.warn(
+      'Redis connection failed. Using in-memory session store instead.',
+      error,
+    );
+  }
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
@@ -28,21 +38,24 @@ async function bootstrap() {
     prefix: '/uploads',
   });
 
-  app.use(
-    session({
-      store: new RedisStore({
-        client: redisClient,
-      }),
-      secret: process.env.SESSION_SECRET || 'my-secret',
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        secure: false,
-        httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24,
-      },
-    }),
-  );
+  const sessionConfig: session.SessionOptions = {
+    secret: process.env.SESSION_SECRET || 'my-secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: false,
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24,
+    },
+  };
+
+  if (redisEnabled) {
+    sessionConfig.store = new RedisStore({
+      client: redisClient,
+    });
+  }
+
+  app.use(session(sessionConfig));
 
   await app.listen(process.env.PORT ?? 4000);
 }
