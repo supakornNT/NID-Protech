@@ -17,14 +17,36 @@ export class AuthService {
   constructor(@Inject('DB') private readonly db: Pool) {}
 
   async sendOtp(dto: SendOtpDto): Promise<void> {
+    await this.sendOtpToEmail(dto.email);
+  }
+
+  async sendOtpToEmail(
+    email: string,
+    subject = 'รหัส OTP สำหรับยืนยันตัวตน',
+  ): Promise<void> {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = Date.now() + 5 * 60 * 1000; // หมดอายุใน 5 นาที
+    const expiresAt = Date.now() + 5 * 60 * 1000;
 
-    this.otpStore.set(dto.email, { code, expiresAt });
+    this.otpStore.set(email, { code, expiresAt });
+    await this.sendOtpMail(email, code, subject);
+  }
 
-    // log ไว้ทดสอบก่อน
-    console.log(`${code}`);
-    console.log(`OTP for ${dto.email}: ${code}`);
+  async sendCustomOtpToEmail(
+    email: string,
+    code: string,
+    subject = 'รหัส OTP สำหรับยืนยันตัวตน',
+  ): Promise<void> {
+    await this.sendOtpMail(email, code, subject);
+  }
+
+  private async sendOtpMail(
+    email: string,
+    code: string,
+    subject: string,
+  ): Promise<void> {
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      throw new BadRequestException('ยังไม่ได้ตั้งค่า SMTP สำหรับส่ง OTP');
+    }
 
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST ?? 'smtp.gmail.com',
@@ -38,32 +60,46 @@ export class AuthService {
     try {
       await transporter.sendMail({
         from: process.env.SMTP_USER,
-        to: dto.email,
-        subject: 'รหัส OTP สำหรับลงทะเบียน',
+        to: email,
+        subject,
         text: `รหัส OTP ของคุณคือ: ${code} (หมดอายุใน 5 นาที)`,
       });
-    } catch (e) {
-      console.error('ส่งอีเมลไม่สำเร็จ:', e);
+    } catch (error) {
+      console.error('ส่งอีเมลไม่สำเร็จ:', error);
+      throw new BadRequestException('ไม่สามารถส่งอีเมล OTP ได้');
     }
   }
 
-  async register(dto: RegisterDto): Promise<void> {
-    const entry = this.otpStore.get(dto.email);
+  verifyOtp(email: string, otp: string) {
+    const entry = this.otpStore.get(email);
 
-    if (!entry) throw new BadRequestException('ไม่พบ OTP กรุณาขอ OTP ใหม่');
+    if (!entry) {
+      throw new BadRequestException('ไม่พบ OTP กรุณาขอ OTP ใหม่');
+    }
+
     if (Date.now() > entry.expiresAt) {
-      this.otpStore.delete(dto.email);
+      this.otpStore.delete(email);
       throw new BadRequestException('OTP หมดอายุแล้ว กรุณาขอ OTP ใหม่');
     }
-    if (entry.code !== dto.otp) throw new BadRequestException('OTP ไม่ถูกต้อง');
 
-    // เช็คว่า email ซ้ำไหม
+    if (entry.code !== otp) {
+      throw new BadRequestException('OTP ไม่ถูกต้อง');
+    }
+
+    this.otpStore.delete(email);
+  }
+
+  async register(dto: RegisterDto): Promise<void> {
+    this.verifyOtp(dto.email, dto.otp);
+
     const [existing] = await this.db.query<any[]>(
       'SELECT id FROM customers WHERE email = ?',
       [dto.email],
     );
-    if (existing.length > 0)
+
+    if (existing.length > 0) {
       throw new BadRequestException('อีเมลนี้ถูกใช้งานแล้ว');
+    }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
@@ -80,7 +116,5 @@ export class AuthService {
         'pending',
       ],
     );
-
-    this.otpStore.delete(dto.email);
   }
 }

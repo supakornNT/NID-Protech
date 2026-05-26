@@ -5,27 +5,65 @@ import { useEffect, useState } from "react";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 export type LoginLogSummary = {
-  todaySuccess: number;
-  todayFailed: number;
-  staff: number;
-  customer: number;
+  day: {
+    success: number;
+    failed: number;
+    staff: number;
+    customer: number;
+  };
+  month: {
+    success: number;
+    failed: number;
+    staff: number;
+    customer: number;
+  };
+  year: {
+    success: number;
+    failed: number;
+    staff: number;
+    customer: number;
+  };
 };
 
-export function useLoginLogSummary() {
+type LoginLogSummaryScope = {
+  date: string;
+  month: string;
+  year: number;
+};
+
+export function useLoginLogSummary(scope: LoginLogSummaryScope) {
   const [data, setData] = useState<LoginLogSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let active = true;
+    const controller = new AbortController();
 
     async function fetchSummary() {
       try {
         setLoading(true);
 
-        const response = await fetch(`${API_BASE_URL}/admin/login-logs/summary`, {
-          cache: "no-store",
-        });
+        const params = new URLSearchParams();
+
+        if (scope.date) {
+          params.set("date", scope.date);
+        }
+
+        if (scope.month) {
+          params.set("month", scope.month);
+        }
+
+        if (Number.isInteger(scope.year)) {
+          params.set("year", String(scope.year));
+        }
+
+        const response = await fetch(
+          `${API_BASE_URL}/admin/login-logs/summary?${params.toString()}`,
+          {
+            cache: "no-store",
+            signal: controller.signal,
+          },
+        );
 
         if (!response.ok) {
           throw new Error(`Failed to load login log summary (${response.status})`);
@@ -33,22 +71,22 @@ export function useLoginLogSummary() {
 
         const result = (await response.json()) as LoginLogSummary;
 
-        if (!active) {
+        if (controller.signal.aborted) {
           return;
         }
 
         setData(result);
         setError(null);
       } catch (fetchError) {
-        console.error(fetchError);
-
-        if (!active) {
+        if (fetchError instanceof Error && fetchError.name === "AbortError") {
           return;
         }
 
-        setError("ไม่สามารถโหลดข้อมูลสรุปได้");
+        if (!controller.signal.aborted) {
+          setError("ไม่สามารถโหลดข้อมูลสรุปได้");
+        }
       } finally {
-        if (active) {
+        if (!controller.signal.aborted) {
           setLoading(false);
         }
       }
@@ -57,9 +95,9 @@ export function useLoginLogSummary() {
     void fetchSummary();
 
     return () => {
-      active = false;
+      controller.abort();
     };
-  }, []);
+  }, [scope.date, scope.month, scope.year]);
 
   return {
     data,

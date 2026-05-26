@@ -12,10 +12,11 @@ import { CreateRequestConfirmationDto } from './dto/create-request-confirmation.
 import { UpdateRequestConfirmationDto } from './dto/update-request-confirmation.dto';
 import { RequestConfirmationsService } from './request_confirmations.service';
 
-
 @Controller('admin/request-confirmations')
 export class RequestConfirmationsController {
-  constructor(private readonly requestConfirmation: RequestConfirmationsService) {}
+  constructor(
+    private readonly requestConfirmation: RequestConfirmationsService,
+  ) {}
 
   @Get()
   findAll() {
@@ -33,7 +34,10 @@ export class RequestConfirmationsController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateRequestConfirmationDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateRequestConfirmationDto,
+  ) {
     return this.requestConfirmation.update(id, body);
   }
 
@@ -41,5 +45,4 @@ export class RequestConfirmationsController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.requestConfirmation.remove(id);
   }
-
 }

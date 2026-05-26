@@ -5,7 +5,7 @@ import { DatabaseModule } from './database/database.module';
 import { CustomersModule } from './customers/customers.module';
 import { StaffsModule } from './staffs/staffs.module';
 import { TeamsModule } from './teams/teams.module';
-import { RolesModule } from './roles/roles.module';
+
 import { StaffTeamRolesModule } from './staff_team_roles/staff_team_roles.module';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { SystemsModule } from './systems/systems.module';
@@ -33,7 +33,6 @@ import { ReportsModule } from './reports/reports.module';
     CustomersModule,
     StaffsModule,
     TeamsModule,
-    RolesModule,
     StaffTeamRolesModule,
     OrganizationsModule,
     SystemsModule,

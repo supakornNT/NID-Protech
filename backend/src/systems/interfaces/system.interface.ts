@@ -1,11 +1,16 @@
-import type { RowDataPacket } from 'mysql2/promise';
+import type { RowDataPacket } from 'mysql2';
 
 export interface System extends RowDataPacket {
   id: number;
   name: string;
-  organization_id: number;
-  organization_name: string;
+  organizationId: number;
+  organizationName: string | null;
   status: string;
-  created_at: Date | null;
-  updated_at: Date | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+}
+
+export interface SystemOption extends RowDataPacket {
+  id: number;
+  name: string;
 }

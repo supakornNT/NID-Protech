@@ -3,5 +3,5 @@ export class CreateStaffTeamRoleDto {
 
   teamId!: number;
 
-  roleId!: number;
+  roleId!: number | null;
 }

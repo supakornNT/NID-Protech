@@ -1,9 +1,24 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import type { Pool, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { CreateProblemTypeDto } from './dto/create-problem-type.dto';
 import { QueryProblemTypeDto } from './dto/query-problem-type.dto';
 import { UpdateProblemTypeDto } from './dto/update-problem-type.dto';
-import type { ProblemType } from './interfaces/problem-type.interface';
+import type {
+  ProblemType,
+  ProblemTypeCountRow,
+  PublicProblemTypeList,
+} from './interfaces/problem-type.interface';
+import {
+  ACTIVE_STATUS_VALUES,
+  PROBLEM_TYPE_REQUEST_TYPES,
+  normalizeOptionalString,
+  optionalEnumValue,
+  optionalText,
+  positiveIntFromQuery,
+  requireEnumValue,
+  requireText,
+  getCountTotal,
+} from '@/common/validation/input-rules';
 
 @Injectable()
 export class ProblemTypesService {
@@ -14,21 +29,65 @@ export class ProblemTypesService {
       problem_types.id,
       problem_types.code,
       problem_types.name,
-      problem_types.request_type,
+      problem_types.request_type AS requestType,
       problem_types.status,
-      problem_types.created_at,
-      problem_types.updated_at
+      problem_types.created_at AS createdAt,
+      problem_types.updated_at AS updatedAt
     FROM problem_types
   `;
 
-  async findAll(query: QueryProblemTypeDto = {}): Promise<ProblemType[]> {
+  private normalizeListQuery(query: QueryProblemTypeDto) {
+    return {
+      page: positiveIntFromQuery(query.page, 'page', 1),
+      limit: positiveIntFromQuery(query.limit, 'limit', 10, 100),
+      search: optionalText(query.search, 'search', 255),
+      requestType: optionalEnumValue(
+        query.requestType ?? query.request_type,
+        'requestType',
+        PROBLEM_TYPE_REQUEST_TYPES,
+      ),
+    };
+  }
+
+  private normalizeProblemTypePayload(
+    dto: CreateProblemTypeDto | UpdateProblemTypeDto,
+  ) {
+    const requestTypeInput = normalizeOptionalString(
+      dto.requestType ?? dto.request_type,
+    );
+
+    return {
+      name:
+        dto.name === undefined ? undefined : requireText(dto.name, 'name', 255),
+      requestType:
+        requestTypeInput === undefined
+          ? undefined
+          : requireEnumValue(
+              requestTypeInput,
+              'requestType',
+              PROBLEM_TYPE_REQUEST_TYPES,
+            ),
+      status:
+        dto.status === undefined
+          ? undefined
+          : requireEnumValue(dto.status, 'status', ACTIVE_STATUS_VALUES),
+    };
+  }
+
+  async findAll(
+    query: QueryProblemTypeDto = {},
+  ): Promise<PublicProblemTypeList> {
+    const normalizedQuery = this.normalizeListQuery(query);
+    const page = normalizedQuery.page;
+    const limit = normalizedQuery.limit;
+    const offset = (page - 1) * limit;
     const where: string[] = [];
     const params: Array<number | string> = [];
-    const search = query.search?.trim();
-    const requestType = query.requestType ?? query.request_type;
+    const search = normalizedQuery.search;
+    const requestType = normalizedQuery.requestType;
 
     if (requestType) {
-      where.push('pt.request_type = ?');
+      where.push('pt.requestType = ?');
       params.push(requestType);
     }
 
@@ -37,16 +96,37 @@ export class ProblemTypesService {
       params.push(`%${search}%`, `%${search}%`);
     }
 
-    const [rows] = await this.db.query<ProblemType[]>(
-      `SELECT pt.*
+    const whereSql = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
+
+    const [countRows] = await this.db.query<ProblemTypeCountRow[]>(
+      `SELECT COUNT(*) AS total
        FROM (${this.problemTypesBaseSelect}) AS pt
-       ${where.length > 0 ? `WHERE ${where.join(' AND ')}` : ''}
-       ORDER BY pt.created_at ASC, pt.id ASC
+       ${whereSql}
       `,
       params,
     );
 
-    return rows;
+    const [rows] = await this.db.query<ProblemType[]>(
+      `SELECT pt.*
+       FROM (${this.problemTypesBaseSelect}) AS pt
+       ${whereSql}
+       ORDER BY pt.createdAt ASC, pt.id ASC
+       LIMIT ? OFFSET ?
+      `,
+      [...params, limit, offset],
+    );
+
+    const total = getCountTotal(countRows, 0);
+
+    return {
+      items: rows,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: number): Promise<ProblemType | null> {
@@ -63,14 +143,12 @@ export class ProblemTypesService {
 
   private async generateCode(requestType: string): Promise<string> {
     type ProblemTypeCodeAggregate = RowDataPacket & {
-      total: number | null;
       maxCodeNumber: number | null;
     };
 
     const prefix = requestType === 'complaint' ? 'CO' : 'IS';
     const [rows] = await this.db.query<ProblemTypeCodeAggregate[]>(
       `SELECT
-         COUNT(*) AS total,
          MAX(
            CASE
              WHEN code REGEXP ? THEN CAST(SUBSTRING(code, 3) AS UNSIGNED)
@@ -81,23 +159,21 @@ export class ProblemTypesService {
        WHERE request_type = ?`,
       [`^${prefix}[0-9]{3}$`, requestType],
     );
-    const nextNumber =
-      Math.max(
-        Number(rows[0]?.total ?? 0),
-        Number(rows[0]?.maxCodeNumber ?? 0),
-      ) + 1;
+    const nextNumber = Number(rows[0]?.maxCodeNumber ?? 0) + 1;
 
     return `${prefix}${String(nextNumber).padStart(3, '0')}`;
   }
 
   async create(dto: CreateProblemTypeDto): Promise<ProblemType | null> {
-    const name = dto.name?.trim();
-    const requestType = dto.requestType ?? dto.request_type ?? 'issue';
+    const payload = this.normalizeProblemTypePayload(dto);
+    const name = payload.name ?? requireText(dto.name, 'name', 255);
+    const requestType = payload.requestType ?? 'issue';
+    const status = payload.status ?? 'active';
     const code = await this.generateCode(requestType);
 
     const [result] = await this.db.query<ResultSetHeader>(
       'INSERT INTO problem_types (code, name, request_type, status) VALUES (?, ?, ?, ?)',
-      [code, name, requestType, dto.status ?? 'active'],
+      [code, name, requestType, status],
     );
 
     return this.findOne(result.insertId);
@@ -113,6 +189,8 @@ export class ProblemTypesService {
       return null;
     }
 
+    const payload = this.normalizeProblemTypePayload(dto);
+
     await this.db.query<ResultSetHeader>(
       `UPDATE problem_types
       SET
@@ -121,9 +199,9 @@ export class ProblemTypesService {
         status = ?
       WHERE id = ?`,
       [
-        dto.name?.trim() ?? current.name,
-        dto.requestType ?? dto.request_type ?? current.request_type,
-        dto.status ?? current.status,
+        payload.name ?? current.name,
+        payload.requestType ?? current.requestType,
+        payload.status ?? current.status,
         id,
       ],
     );
@@ -132,19 +210,36 @@ export class ProblemTypesService {
   }
 
   async remove(id: number) {
-    await this.db.query<ResultSetHeader>(
-      'UPDATE problem_types SET status = ? WHERE id = ?',
-      ['inactive', id],
+    const [relationRows] = await this.db.query<
+      Array<RowDataPacket & { total: number }>
+    >(
+      `SELECT COUNT(*) AS total
+       FROM requests
+       WHERE problem_type_id = ?`,
+      [id],
     );
 
-    return this.findOne(id);
+    if (Number(relationRows[0]?.total ?? 0) > 0) {
+      throw new BadRequestException(
+        'ไม่สามารถลบประเภทนี้ได้ เนื่องจากมีคำขอที่ใช้งานประเภทนี้อยู่',
+      );
+    }
+
+    const deleted = await this.findOne(id);
+
+    await this.db.query<ResultSetHeader>(
+      'DELETE FROM problem_types WHERE id = ?',
+      [id],
+    );
+
+    return deleted;
   }
 
   async findByRequestType(type: string): Promise<ProblemType[]> {
     const [rows] = await this.db.query<ProblemType[]>(
-      `SELECT pt.id, pt.code, pt.name, pt.request_type
+      `SELECT pt.*
        FROM (${this.problemTypesBaseSelect}) AS pt
-       WHERE pt.request_type = ? AND pt.status = 'active'`,
+       WHERE pt.requestType = ? AND pt.status = 'active'`,
       [type],
     );
 

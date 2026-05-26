@@ -16,6 +16,7 @@ import {
 
 type ButtonVariant =
   | "primary"
+  | "search"
   | "create"
   | "add"
   | "edit"
@@ -69,10 +70,18 @@ export function ProTechButton({
       text-white
 
       hover:bg-[#2557AE]
-
+      
       active:bg-[#1F4B99]
     `,
+    /* SEARCH */
+    search: `
+      bg-[#2F66C5]
+      text-white
 
+      hover:bg-[#2557AE]
+      border border-black
+      active:bg-[#1F4B99]
+    `,
     /* CREATE */
     create: `
       bg-[#2F66C5]
@@ -173,7 +182,7 @@ export function ProTechButton({
     `,
 
     /* DETAIL */
-   detail: `
+    detail: `
   bg-gray-200
   text-gray-700
 
@@ -189,7 +198,7 @@ export function ProTechButton({
 
   const defaultIcons = {
     primary: null,
-
+    search: null,
     create: <Plus size={16} />,
 
     add: <Plus size={16} />,
@@ -204,9 +213,7 @@ export function ProTechButton({
 
     success: <Check size={16} />,
 
-    warning: (
-      <TriangleAlert size={16} />
-    ),
+    warning: <TriangleAlert size={16} />,
 
     detail: null,
     danger: <Trash2 size={16} />,
@@ -220,11 +227,7 @@ export function ProTechButton({
       className={`inline-flex h-[31px] items-center justify-center   gap-2 rounded-md  px-4 text-sm  font-medium
         whitespace-nowrap transition duration-150 disabled:cursor-not-allowed disabled:opacity-50
 
-        ${
-          fullWidth
-            ? "w-full"
-            : "w-auto"
-        }
+        ${fullWidth ? "w-full" : "w-auto"}
 
         ${variantClasses[variant]}
 
@@ -232,33 +235,21 @@ export function ProTechButton({
       `}
     >
       {/* ICON LEFT */}
-      {(icon ||
-        defaultIcons[variant]) &&
-        iconPosition === "left" && (
-          <span className="flex items-center">
-            {icon ||
-              defaultIcons[
-                variant
-              ]}
-          </span>
-        )}
-
-      {/* TEXT */}
-      {children && (
-        <span>{children}</span>
+      {(icon || defaultIcons[variant]) && iconPosition === "left" && (
+        <span className="flex items-center">
+          {icon || defaultIcons[variant]}
+        </span>
       )}
 
+      {/* TEXT */}
+      {children && <span>{children}</span>}
+
       {/* ICON RIGHT */}
-      {(icon ||
-        defaultIcons[variant]) &&
-        iconPosition === "right" && (
-          <span className="flex items-center">
-            {icon ||
-              defaultIcons[
-                variant
-              ]}
-          </span>
-        )}
+      {(icon || defaultIcons[variant]) && iconPosition === "right" && (
+        <span className="flex items-center">
+          {icon || defaultIcons[variant]}
+        </span>
+      )}
     </button>
   );
 }

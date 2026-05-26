@@ -9,19 +9,68 @@ import {
 } from './interfaces/admin.interface';
 import { OrganizationQueryDto } from './dto/query-organization.dto';
 import { CountRow } from '@/customers/interfaces/admin.interface';
+import {
+  ACTIVE_STATUS_VALUES,
+  ORGANIZATION_TYPES,
+  optionalEmail,
+  optionalEnumValue,
+  optionalPhone,
+  optionalText,
+  positiveIntFromQuery,
+  requireEnumValue,
+  requireText,
+  getCountTotal,
+} from '@/common/validation/input-rules';
 
 @Injectable()
 export class OrganizationsService {
   constructor(@Inject('DB') private readonly db: Pool) {}
+
+  private normalizeTableQuery(query: OrganizationQueryDto) {
+    return {
+      page: positiveIntFromQuery(query.page, 'page', 1),
+      limit: positiveIntFromQuery(query.limit, 'limit', 10, 100),
+      search: optionalText(query.search, 'search', 255),
+      status: optionalEnumValue(query.status, 'status', ACTIVE_STATUS_VALUES),
+      type: optionalEnumValue(query.type, 'type', ORGANIZATION_TYPES),
+    };
+  }
+
+  private normalizeOrganizationPayload(
+    dto: CreateOrganizationDto | UpdateOrganizationDto,
+  ) {
+    return {
+      name:
+        dto.name === undefined ? undefined : requireText(dto.name, 'name', 255),
+      type:
+        dto.type === undefined
+          ? undefined
+          : requireEnumValue(dto.type, 'type', ORGANIZATION_TYPES),
+      email:
+        dto.email === undefined
+          ? undefined
+          : (optionalEmail(dto.email, 'email', 255) ?? null),
+      phone:
+        dto.phone === undefined
+          ? undefined
+          : (optionalPhone(dto.phone, 'phone', 20) ?? null),
+      status:
+        dto.status === undefined
+          ? undefined
+          : requireEnumValue(dto.status, 'status', ACTIVE_STATUS_VALUES),
+    };
+  }
+
   async maketable(
     query: OrganizationQueryDto,
   ): Promise<PublicAdminOrganizationList> {
-    const page = Math.max(Number(query.page ?? 1), 1);
-    const limit = Math.min(Math.max(Number(query.limit ?? 10), 1), 100);
+    const normalizedQuery = this.normalizeTableQuery(query);
+    const page = normalizedQuery.page;
+    const limit = normalizedQuery.limit;
     const offset = (page - 1) * limit;
-    const search = query.search?.trim() ?? '';
-    const status = query.status?.trim() ?? '';
-    const organizationType = query.type?.trim() ?? '';
+    const search = normalizedQuery.search ?? '';
+    const status = normalizedQuery.status ?? '';
+    const organizationType = normalizedQuery.type ?? '';
 
     const whereClauses: string[] = [];
     const params: Array<string | number> = [];
@@ -66,6 +115,7 @@ export class OrganizationsService {
           organizations.phone,
           organizations.type AS organizationType,
           organizations.status,
+          organizations.created_at AS createdAt,
           organizations.updated_at AS updatedAt
         FROM organizations
         ${whereSql}
@@ -75,7 +125,7 @@ export class OrganizationsService {
       [...params, limit, offset],
     );
 
-    const total = Number(countRows[0]?.total ?? 0);
+    const total = getCountTotal(countRows, 0);
 
     return {
       items: rows,
@@ -93,6 +143,8 @@ export class OrganizationsService {
       organizations.id,
       organizations.name,
       organizations.type,
+      organizations.email,
+      organizations.phone,
       organizations.status,
       organizations.created_at,
       organizations.updated_at
@@ -109,6 +161,8 @@ export class OrganizationsService {
       organizations.id,
       organizations.name,
       organizations.type,
+      organizations.email,
+      organizations.phone,
       organizations.status,
       organizations.created_at,
       organizations.updated_at
@@ -122,9 +176,17 @@ export class OrganizationsService {
   }
 
   async create(dto: CreateOrganizationDto): Promise<Organization | null> {
+    const payload = this.normalizeOrganizationPayload(dto);
+
     const [result] = await this.db.query<ResultSetHeader>(
-      'INSERT INTO organizations (name, type, status) VALUES (?, ?, ?)',
-      [dto.name, dto.type, dto.status ?? 'active'],
+      'INSERT INTO organizations (name, type, email, phone, status) VALUES (?, ?, ?, ?, ?)',
+      [
+        payload.name ?? requireText(dto.name, 'name', 255),
+        payload.type ?? 'company',
+        payload.email ?? null,
+        payload.phone ?? null,
+        payload.status ?? 'active',
+      ],
     );
 
     return this.findOne(result.insertId);
@@ -140,17 +202,23 @@ export class OrganizationsService {
       return null;
     }
 
+    const payload = this.normalizeOrganizationPayload(dto);
+
     await this.db.query<ResultSetHeader>(
       `UPDATE organizations
       SET
         name = ?,
         type = ?,
+        email = ?,
+        phone = ?,
         status = ?
       WHERE id = ?`,
       [
-        dto.name ?? current.name,
-        dto.type ?? current.type,
-        dto.status ?? current.status,
+        payload.name ?? current.name,
+        payload.type ?? current.type,
+        payload.email === undefined ? current.email : payload.email,
+        payload.phone === undefined ? current.phone : payload.phone,
+        payload.status ?? current.status,
         id,
       ],
     );
@@ -159,17 +227,19 @@ export class OrganizationsService {
   }
 
   async remove(id: number) {
+    const deleted = await this.findOne(id);
+
     await this.db.query<ResultSetHeader>(
-      'UPDATE organizations SET status = ? WHERE id = ?',
-      ['inactive', id],
+      'DELETE FROM organizations WHERE id = ?',
+      [id],
     );
 
-    return this.findOne(id);
+    return deleted;
   }
 
   async findActive(): Promise<Organization[]> {
     const [rows] = await this.db.query<Organization[]>(
-      `SELECT id, name, type FROM organizations WHERE status = 'active'`,
+      `SELECT id, name, type, email, phone FROM organizations WHERE status = 'active'`,
     );
 
     return rows;
@@ -177,7 +247,7 @@ export class OrganizationsService {
 
   async findName(id: number): Promise<Organization | null> {
     const [rows] = await this.db.query<Organization[]>(
-      `SELECT id,name FROM organizations WHERE id = ? `,
+      `SELECT id, name, email, phone FROM organizations WHERE id = ? `,
       [id],
     );
     return rows[0] ?? null;

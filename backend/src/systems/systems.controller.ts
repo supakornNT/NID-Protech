@@ -7,8 +7,11 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
+
 import { CreateSystemDto } from './dto/create-system.dto';
+import { SystemQueryDto } from './dto/query-system.dto';
 import { UpdateSystemDto } from './dto/update-system.dto';
 import { SystemsService } from './systems.service';
 
@@ -19,6 +22,11 @@ export class SystemsController {
   @Get()
   findAll() {
     return this.system.findAll();
+  }
+
+  @Get('table')
+  findTable(@Query() query: SystemQueryDto) {
+    return this.system.findTable(query);
   }
 
   @Get('by-organization/:orgId')

@@ -5,7 +5,10 @@ import { ChevronDown, Edit3, Info, Plus, Trash2 } from "lucide-react";
 
 import { DeleteConfirmDialog } from "@/components/admin/delete-confirm-dialog";
 import { ProTechButton } from "@/components/tables/protech-button";
-import { ProTechSearchBar } from "@/components/tables/protech-search";
+import {
+  ProTechSearchBar,
+  type SearchInputConfig,
+} from "@/components/tables/protech-search";
 import { ProTechTable } from "@/components/tables/protech-table";
 import type { Column } from "@/types/table";
 
@@ -40,6 +43,7 @@ type AdminTablePageProps<T extends Record<string, unknown>> = {
   deleteConfirmDescription?: string;
   deleteDisabled?: boolean;
   searchValue?: string;
+  searchInputProps?: SearchInputConfig;
   filterValues?: Record<string, string>;
   page?: number;
   totalPages?: number;
@@ -73,6 +77,7 @@ export function AdminTablePage<T extends Record<string, unknown>>({
   deleteConfirmDescription,
   deleteDisabled = false,
   searchValue,
+  searchInputProps,
   filterValues,
   page,
   totalPages,
@@ -83,7 +88,7 @@ export function AdminTablePage<T extends Record<string, unknown>>({
   renderToolbar,
 }: AdminTablePageProps<T>) {
   const [internalPage, setInternalPage] = useState(1);
-  const [internalSearch, setInternalSearch] = useState("");
+  const [internalSearch, setInternalSearch] = useState(searchValue ?? "");
   const [internalSelectedFilters, setInternalSelectedFilters] = useState<
     Record<string, string>
   >(Object.fromEntries(filters.map((filter) => [filter.key, "all"])));
@@ -94,7 +99,7 @@ export function AdminTablePage<T extends Record<string, unknown>>({
     typeof totalItems === "number" &&
     typeof onPageChange === "function";
 
-  const resolvedSearch = searchValue ?? internalSearch;
+  const resolvedSearch = internalSearch;
   const resolvedSelectedFilters = filterValues ?? internalSelectedFilters;
 
   const filteredData = useMemo(() => {
@@ -141,20 +146,22 @@ export function AdminTablePage<T extends Record<string, unknown>>({
     disableClientPagination || isControlledPagination
       ? filteredData
       : filteredData.slice((safePage - 1) * limit, safePage * limit);
-  const resolvedTotalItems = isControlledPagination ? totalItems : filteredData.length;
+  const resolvedTotalItems = isControlledPagination
+    ? totalItems
+    : filteredData.length;
   const resolvedShowCreate = hideCreateButton ? false : showCreate;
 
   const searchBar = (
     <ProTechSearchBar
-      value={resolvedSearch}
+      defaultValue={searchValue ?? ""}
       placeholder={searchPlaceholder}
       className="flex-none"
       inputClassName="h-[31px] rounded-md border border-[#A8B1C2] px-3 text-[14px]"
+      inputProps={searchInputProps}
+      onValueChange={(value) => {
+        setInternalSearch(value);
+      }}
       onSearch={(value) => {
-        if (searchValue === undefined) {
-          setInternalSearch(value);
-        }
-
         if (isControlledPagination) {
           onPageChange(1);
         } else {
@@ -186,7 +193,7 @@ export function AdminTablePage<T extends Record<string, unknown>>({
                 setInternalPage(1);
               }
             }}
-            className="h-[31px] min-w-[124px] appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-left text-[14px] text-[#6B7280] outline-none"
+            className="h-7.75 min-w-31 appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-left text-[14px] text-[#6B7280] outline-none"
           >
             <option value="all">{filter.placeholder}</option>
             {filter.options.map((option) => (
@@ -212,7 +219,7 @@ export function AdminTablePage<T extends Record<string, unknown>>({
           trigger={
             <ProTechButton
               variant="delete"
-              className="h-[31px] px-4 text-[14px]"
+              className="h-7.75 px-4 text-[14px]"
               icon={<Trash2 size={16} />}
               disabled={deleteDisabled}
             >
@@ -225,7 +232,7 @@ export function AdminTablePage<T extends Record<string, unknown>>({
       {resolvedShowCreate ? (
         <ProTechButton
           variant="create"
-          className="h-[31px] px-4 text-[14px]"
+          className="h-7.75 px-4 text-[14px]"
           icon={<Plus size={16} />}
           onClick={onCreateClick}
         >
@@ -293,7 +300,7 @@ export function StatusBadge({
   return (
     <button
       type="button"
-      className={`inline-flex min-w-[62px] items-center justify-center rounded-md border px-2 py-1 text-[14px] leading-none transition-all duration-200 ${toneClass[tone]} ${
+      className={`inline-flex min-w-15.5 items-center justify-center rounded-md border px-2 py-1 text-[14px] leading-none transition-all duration-200 ${toneClass[tone]} ${
         onClick
           ? "cursor-pointer hover:opacity-80 hover:shadow-sm"
           : "cursor-default"

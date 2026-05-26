@@ -9,6 +9,7 @@ import {
   Post,
 } from '@nestjs/common';
 import { CreateStaffTeamRoleDto } from './dto/create-staff-team-role.dto';
+import { SyncStaffTeamRolesDto } from './dto/sync-staff-team-roles.dto';
 import { UpdateStaffTeamRoleDto } from './dto/update-staff-team-role.dto';
 import { StaffTeamRolesService } from './staff_team_roles.service';
 
@@ -29,6 +30,11 @@ export class StaffTeamRolesController {
   @Post()
   create(@Body() body: CreateStaffTeamRoleDto) {
     return this.staffTeamRole.create(body);
+  }
+
+  @Post('sync')
+  sync(@Body() body: SyncStaffTeamRolesDto) {
+    return this.staffTeamRole.sync(body);
   }
 
   @Patch(':id')

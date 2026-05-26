@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { AdminTablePage, StatusBadge } from "@/components/admin/admin-table-page";
 import { ProTechButton } from "@/components/tables/protech-button";
@@ -13,12 +13,12 @@ import {
 } from "@/components/ui/dialog";
 import {
   useUnapprovedCustomers,
-  type CustomerApiItem,
+  type CustomerListApiItem,
 } from "@/hooks/customers/use-unapproved-customers";
 import { formatPhoneNumber } from "@/lib/utils";
 import type { Column } from "@/types/table";
 
-type CustomerRow = {
+type CustomerTableRow = {
   id: number;
   date: string;
   name: string;
@@ -66,7 +66,7 @@ function mapCustomerTypeLabel(type: string): string {
   }
 }
 
-function mapCustomerRow(item: CustomerApiItem): CustomerRow {
+function mapCustomerRow(item: CustomerListApiItem): CustomerTableRow {
   return {
     id: item.id,
     date: formatThaiDateTime(item.createdAt),
@@ -80,11 +80,19 @@ function mapCustomerRow(item: CustomerApiItem): CustomerRow {
 }
 
 export default function CustomersPage() {
+  const [searchValue, setSearchValue] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
-  const { items, loading, error, activeId, updateCustomerStatus } =
-    useUnapprovedCustomers();
+  const { items, page, setPage, pagination, loading, error, activeId, updateCustomerStatus } =
+    useUnapprovedCustomers(appliedSearch);
 
-  const rows = items.map(mapCustomerRow);
+  useEffect(() => {
+    if (page > pagination.totalPages) {
+      setPage(pagination.totalPages);
+    }
+  }, [page, pagination.totalPages, setPage]);
+
+  const rows = useMemo(() => items.map(mapCustomerRow), [items]);
 
   function openConfirmDialog(
     id: number,
@@ -108,16 +116,17 @@ export default function CustomersPage() {
     await updateCustomerStatus(id, action);
   }
 
-  const columns: Column<CustomerRow>[] = [
-    { key: "date", title: "วันที/เวลา" },
-    { key: "name", title: "ชื่อ-นามสกุล" },
-    { key: "role", title: "ประเภท" },
-    { key: "organizationName", title: "บริษัท" },
-    { key: "email", title: "อีเมล" },
-    { key: "phone", title: "เบอร์โทร" },
+  const columns: Column<CustomerTableRow>[] = [
+    { key: "date", title: "วันที/เวลา" , className: "w-[90px] text-lg font-medium"},
+    { key: "name", title: "ชื่อ-นามสกุล" , className: "w-[90px] text-lg font-medium"},
+    { key: "role", title: "ประเภท" , className: "w-[90px] text-lg font-medium"},
+    { key: "organizationName", title: "บริษัท" , className: "w-[120px] text-lg font-medium"},
+    { key: "email", title: "อีเมล" , className: "w-[150px] text-lg font-medium"},
+    { key: "phone", title: "เบอร์โทร" , className: "w-[120px] text-lg font-medium"},
     {
       key: "status",
       title: "สถานะ",
+      className: "w-[120px] text-lg font-medium",
       render: (_, row) => (
         <div className="flex items-center justify-center gap-2">
           <StatusBadge
@@ -160,7 +169,26 @@ export default function CustomersPage() {
         subtitle="ตรวจสอบและอนุมัติการลงทะเบียนของผู้ใช้งานที่รอการยืนยัน"
         columns={columns}
         data={rows}
+        searchValue={searchValue}
+        searchInputProps={{
+          type: "search",
+          inputMode: "search",
+          autoComplete: "off",
+          maxLength: 100,
+          title: "ค้นหาด้วยชื่อผู้ใช้ อีเมล หรือเบอร์โทร",
+        }}
         searchPlaceholder="ค้นหาชื่อ อีเมล เบอร์โทร"
+        onSearchClick={(value) => {
+          setSearchValue(value);
+          setAppliedSearch(value);
+          setPage(1);
+        }}
+        page={pagination.page}
+        totalPages={Math.max(pagination.totalPages, 1)}
+        totalItems={pagination.total}
+        onPageChange={setPage}
+        disableClientFiltering
+        disableClientPagination
         showDelete={false}
         showCreate={false}
       />

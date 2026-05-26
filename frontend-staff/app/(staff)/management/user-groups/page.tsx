@@ -1,403 +1,467 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import type { Column } from "@/types/table";
+import { useMemo } from "react";
+import { ChevronDown } from "lucide-react";
+
 import {
   ActionIcons,
   CheckCell,
   PermissionTags,
   StatusBadge,
 } from "@/components/admin/admin-table-page";
-import { AdminModalShell } from "@/components/admin/admin-modal-shell";
+import { DeleteConfirmDialog } from "@/components/admin/delete-confirm-dialog";
+import { TeamGroupModal } from "@/components/user-groups/team-group-modal";
+import { TeamMemberModal } from "@/components/user-groups/team-member-modal";
 import { ProTechButton } from "@/components/tables/protech-button";
-import { ProTechSearch } from "@/components/tables/protech-search";
+import { ProTechSearchBar } from "@/components/tables/protech-search";
 import { ProTechTable } from "@/components/tables/protech-table";
-import { permissionRows, userGroupRows } from "@/lib/admin-mocks";
+import {
+  UserGroupMemberTableRow,
+  UserGroupTableRow,
+  useUserGroupsPage,
+} from "@/hooks/user-groups/use-user-groups-page";
+import type { Column } from "@/types/table";
+import { formatThaiDateTime } from "../organizations/page";
 
-type TabKey = "groups" | "members";
-type GroupRow = (typeof userGroupRows)[number];
-type MemberRow = (typeof permissionRows)[number];
+function renderStatus(status: string) {
+  if (status === "active") {
+    return <StatusBadge label="ใช้งาน" tone="success" />;
+  }
+
+  if (status === "inactive") {
+    return <StatusBadge label="ปิดใช้งาน" tone="danger" />;
+  }
+
+  return <StatusBadge label={status} tone="neutral" />;
+}
+
+function ToolbarSelect({
+  value,
+  options,
+  placeholder,
+  onChange,
+  minWidthClassName = "min-w-[132px]",
+}: {
+  value: string;
+  options: Array<{ value: string; label: string }>;
+  placeholder: string;
+  onChange: (value: string) => void;
+  minWidthClassName?: string;
+}) {
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={(event) => {
+          onChange(event.target.value);
+        }}
+        className={`h-[31px] ${minWidthClassName} appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-left text-[14px] text-[#6B7280] outline-none`}
+      >
+        <option value="all">{placeholder}</option>
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-[#8B95A7]" />
+    </div>
+  );
+}
 
 export default function UserGroupsPage() {
-  const [search, setSearch] = useState("");
-  const [tab, setTab] = useState<TabKey>("groups");
-  const [openCreate, setOpenCreate] = useState(false);
-  const [selectedGroupRows, setSelectedGroupRows] = useState<number[]>([]);
-  const [selectedMemberRows, setSelectedMemberRows] = useState<number[]>([]);
+  const {
+    activeTab,
+    setActiveTab,
+    searchValue,
+    setSearchValue,
+    groupStatusFilter,
+    teamFilter,
+    setTeamFilter,
+    memberGroupFilter,
+    setMemberGroupFilter,
+    setGroupStatusFilter,
+    groupPage,
+    setGroupPage,
+    memberPage,
+    setMemberPage,
+    selectedGroupId,
+    setSelectedGroupId,
+    groupRows,
+    groupTotalItems,
+    groupTotalPages,
+    memberRows,
+    memberTotalItems,
+    memberTotalPages,
+    loading,
+    saving,
+    error,
+    groupDialogState,
+    setGroupDialogState,
+    memberDialogState,
+    setMemberDialogState,
+    staffOptions,
+    activeTeamOptions,
+    search,
+    openCreateGroupDialog,
+    openEditGroupDialog,
+    submitGroupDialog,
+    deleteSelectedGroup,
+    openEditMemberDialog,
+    submitMemberDialog,
+  } = useUserGroupsPage();
 
-  const allGroupSelected = selectedGroupRows.length === userGroupRows.length;
-  const allMemberSelected = selectedMemberRows.length === permissionRows.length;
-
-  const groupColumns: Column<GroupRow>[] = useMemo(
+  const groupColumns: Column<UserGroupTableRow>[] = useMemo(
     () => [
       {
-        key: "check",
-        title: (
-          <CheckCell
-            checked={allGroupSelected}
-            onClick={() =>
-              setSelectedGroupRows(
-                allGroupSelected ? [] : userGroupRows.map((row) => row.order),
-              )
-            }
-          />
-        ),
-        className: "w-[150px]",
+        key: "checked",
+        title: "",
+        className: "w-[72px] text-lg font-medium",
         render: (_, row) => (
           <CheckCell
-            checked={selectedGroupRows.includes(row.order)}
+            checked={row.checked}
             onClick={() => {
-              setSelectedGroupRows((current) =>
-                current.includes(row.order)
-                  ? current.filter((item) => item !== row.order)
-                  : [...current, row.order],
+              setSelectedGroupId((current) =>
+                current === row.id ? null : row.id,
               );
             }}
           />
         ),
       },
-      { key: "order", title: "ลำดับ" },
-      { key: "groupName", title: "กลุ่ม" },
+      // { key: "order", title: "ลำดับ", className: "w-[100px]" },
+      { key: "groupName", title: "กลุ่ม", className: "w-[220px] text-lg font-medium" },
+
+      {
+        key: "memberCount",
+        title: "จำนวนสมาชิก",
+        className: "w-[140px] text-lg font-medium",
+      },
       {
         key: "status",
         title: "สถานะ",
-        render: (value) => <StatusBadge label={String(value)} tone="success" />,
+        className: "w-[140px] text-lg font-medium",
+        render: (value) => renderStatus(String(value)),
+      },
+      {
+        key: "createdAt",
+        title: "วันที่สร้าง",
+        className: "w-[180px] text-lg font-medium",
+        render: (value) => formatThaiDateTime((value as string | null) ?? null),
+      },
+      {
+        key: "updatedAt",
+        title: "วันที่แก้ไข",
+        className: "w-[180px] text-lg font-medium",
+        render: (value) => formatThaiDateTime((value as string | null) ?? null),
       },
       {
         key: "actions",
         title: "จัดการ",
-        render: (_, row) => <GroupActionCell row={row} />,
-      },
-    ],
-    [allGroupSelected, selectedGroupRows],
-  );
-
-  const memberColumns: Column<MemberRow>[] = useMemo(
-    () => [
-      {
-        key: "check",
-        title: (
-          <CheckCell
-            checked={allMemberSelected}
-            onClick={() =>
-              setSelectedMemberRows(
-                allMemberSelected ? [] : permissionRows.map((row) => row.order),
-              )
-            }
-          />
-        ),
-        className: "w-[72px]",
+        className: "w-[120px] text-lg font-medium",
         render: (_, row) => (
-          <CheckCell
-            checked={selectedMemberRows.includes(row.order)}
-            onClick={() => {
-              setSelectedMemberRows((current) =>
-                current.includes(row.order)
-                  ? current.filter((item) => item !== row.order)
-                  : [...current, row.order],
-              );
+          <ActionIcons
+            showInfo={false}
+            onEdit={() => {
+              openEditGroupDialog(row.id);
             }}
           />
         ),
       },
-      { key: "order", title: "ลำดับ" },
-      { key: "fullName", title: "ชื่อ-นามสกุล" },
+    ],
+    [openEditGroupDialog, setSelectedGroupId],
+  );
+
+  const memberColumns: Column<UserGroupMemberTableRow>[] = useMemo(
+    () => [
+      { key: "order", title: "ลำดับ", className: "w-[100px] text-lg font-medium" },
+      { key: "fullName", title: "ชื่อ-นามสกุล", className: "w-[220px] text-lg font-medium" },
+      { key: "email", title: "อีเมล", className: "w-[220px] text-lg font-medium" },
       {
-        key: "permissions",
+        key: "status",
+        title: "สถานะ",
+        className: "w-[140px] text-lg font-medium",
+        render: (value) => renderStatus(String(value)),
+      },
+      {
+        key: "teams",
         title: "กลุ่ม",
-        render: (_, row) => (
-          <PermissionTags
-            items={row.permissions.map((item) => item.replace("ITA", "IT"))}
-          />
-        ),
+        className: "w-[260px] text-lg font-medium",
+        render: (_, row) =>
+          row.teams.length > 0 ? (
+            <PermissionTags items={row.teams} />
+          ) : (
+            <span className="text-[#8B95A7]">-</span>
+          ),
       },
       {
-        key: "status",
-        title: "สถานะ",
-        render: (value) => {
-          const status = String(value);
-
-          if (status === "active") {
-            return <StatusBadge label="ใช้งาน" tone="success" />;
-          }
-
-          if (status === "inactive") {
-            return <StatusBadge label="ปิดใช้งาน" tone="danger" />;
-          }
-
-          return <StatusBadge label={status} tone="neutral" />;
-        },
+        key: "createdAt",
+        title: "วันที่สร้าง",
+        className: "w-[180px] text-lg font-medium",
+        render: (value) => formatThaiDateTime((value as string | null) ?? null),
+      },
+      {
+        key: "updatedAt",
+        title: "วันที่แก้ไข",
+        className: "w-[180px] text-lg font-medium",
+        render: (value) => formatThaiDateTime((value as string | null) ?? null),
       },
       {
         key: "actions",
         title: "จัดการ",
-        render: (_, row) => <MemberActionCell row={row} />,
+        className: "w-[120px] text-lg font-medium",
+        render: (_, row) => (
+          <ActionIcons
+            showInfo={false}
+            onEdit={() => {
+              openEditMemberDialog(row.id);
+            }}
+          />
+        ),
       },
     ],
-    [allMemberSelected, selectedMemberRows],
+    [openEditMemberDialog],
   );
+
+  const isGroupsTab = activeTab === "groups";
 
   return (
     <div className="min-h-full w-full rounded-xl px-5 py-7 sm:px-6 sm:py-8 lg:px-8 lg:py-9">
       <div className="space-y-5">
-      <div>
-        <h1 className="text-[32px] font-bold leading-none text-[#111827]">
-          จัดการกลุ่มผู้ใช้งาน
-        </h1>
-        <p className="mt-2 text-[16px] text-[#8B95A7]">
-          การจัดการแก้ไขข้อมูลกลุ่มผู้ใช้งาน
-        </p>
-      </div>
+        <div>
+          <h1 className="text-[32px] font-bold leading-none text-[#111827]">
+            จัดการกลุ่มผู้ใช้งาน
+          </h1>
+          <p className="mt-2 text-[16px] text-[#8B95A7]">
+            จัดการกลุ่มผู้ใช้งาน เพิ่มคนเข้ากลุ่ม
+            และตรวจสอบว่าผู้ใช้งานอยู่ในกลุ่มใดบ้าง
+          </p>
+        </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <ProTechSearch
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder=""
-          className="w-[222px] flex-none"
-          inputClassName="h-[31px] rounded-md border border-[#A8B1C2] px-3 text-[14px]"
-        />
-        <ProTechButton
-          variant="primary"
-          className="h-[31px] min-w-[74px] px-4 text-[14px]"
-        >
-          ค้นหา
-        </ProTechButton>
-      </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative inline-flex items-end gap-8 px-3 pb-2">
+            <span className="absolute inset-x-0 bottom-0 h-px bg-[#111827]" />
+            <button
+              type="button"
+              className={`relative pb-1 pt-1 text-[16px] font-medium transition-colors duration-150 ${
+                isGroupsTab
+                  ? "text-[#3F73BB]"
+                  : "text-[#111827] hover:text-[#3F73BB]"
+              }`}
+              onClick={() => {
+                setActiveTab("groups");
+                setGroupPage(1);
+                setSelectedGroupId(null);
+                setGroupStatusFilter("all");
+                setMemberGroupFilter("all");
+              }}
+            >
+              กลุ่ม
+              {isGroupsTab ? (
+                <span className="absolute inset-x-0 bottom-0 h-0.5 bg-[#3F73BB]" />
+              ) : null}
+            </button>
+            <button
+              type="button"
+              className={`relative pb-1 pt-1 text-[16px] font-medium transition-colors duration-150 ${
+                !isGroupsTab
+                  ? "text-[#3F73BB]"
+                  : "text-[#111827] hover:text-[#3F73BB]"
+              }`}
+              onClick={() => {
+                setActiveTab("members");
+                setMemberPage(1);
+                setSelectedGroupId(null);
+                setTeamFilter("all");
+                setMemberGroupFilter("all");
+              }}
+            >
+              จัดการคนในกลุ่ม
+              {!isGroupsTab ? (
+                <span className="absolute inset-x-0 bottom-0 h-0.5 bg-[#3F73BB]" />
+              ) : null}
+            </button>
+          </div>
+        </div>
 
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="relative inline-flex items-end gap-8 px-3 pb-2">
-          <span className="absolute inset-x-0 bottom-0 h-px bg-[#111827]" />
-          <button
-            type="button"
-            className={`relative z-10  px-1 pb-1 text-[16px] transition-all duration-200 ${
-              tab === "groups" ? "text-[#3F73BB]" : "text-[#111827] hover:text-[#3F73BB]"
-            }`}
-            onClick={() => setTab("groups")}
-          >
-            กลุ่ม
-            {tab === "groups" && (
-              <span className="absolute bottom-[-2px] left-0 z-20 h-[2px] w-full bg-[#3F73BB]" />
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="flex flex-wrap items-end gap-2">
+            <ProTechSearchBar
+              value={searchValue}
+              onValueChange={setSearchValue}
+              placeholder={
+                isGroupsTab ? "ค้นหาชื่อกลุ่ม" : "ค้นหาชื่อผู้ใช้หรืออีเมล"
+              }
+              onSearch={search}
+              inputProps={{
+                type: "search",
+                inputMode: "search",
+                autoComplete: "off",
+                maxLength: 255,
+                title: isGroupsTab
+                  ? "ค้นหาด้วยชื่อกลุ่ม"
+                  : "ค้นหาด้วยชื่อผู้ใช้ อีเมล หรือชื่อกลุ่ม",
+              }}
+              inputClassName="h-[31px] rounded-md border border-[#A8B1C2] px-3 text-[14px]"
+            />
+
+            {isGroupsTab ? (
+              <ToolbarSelect
+                value={groupStatusFilter}
+                placeholder="สถานะทั้งหมด"
+                options={[
+                  { value: "active", label: "ใช้งาน" },
+                  { value: "inactive", label: "ปิดใช้งาน" },
+                ]}
+                onChange={(value) => {
+                  setGroupStatusFilter(value as "all" | "active" | "inactive");
+                  setGroupPage(1);
+                  setSelectedGroupId(null);
+                }}
+              />
+            ) : (
+              <>
+                <ToolbarSelect
+                  value={String(teamFilter)}
+                  placeholder="ทีมทั้งหมด"
+                  options={activeTeamOptions.map((team) => ({
+                    value: String(team.value),
+                    label: team.label,
+                  }))}
+                  onChange={(value) => {
+                    setTeamFilter(value === "all" ? "all" : Number(value));
+                    setMemberPage(1);
+                  }}
+                />
+                <ToolbarSelect
+                  value={memberGroupFilter}
+                  placeholder="สถานะกลุ่มทั้งหมด"
+                  options={[
+                    { value: "with-group", label: "มีกลุ่ม" },
+                    { value: "without-group", label: "ไม่มีกลุ่ม" },
+                  ]}
+                  minWidthClassName="min-w-[168px]"
+                  onChange={(value) => {
+                    setMemberGroupFilter(
+                      value as "all" | "with-group" | "without-group",
+                    );
+                    setMemberPage(1);
+                  }}
+                />
+              </>
             )}
-          </button>
-          <button
-            type="button"
-            className={`relative z-10  px-1 pb-1 text-[16px] transition-all duration-200 ${
-              tab === "members" ? "text-[#3F73BB]" : "text-[#111827] hover:text-[#3F73BB]"
-            }`}
-            onClick={() => setTab("members")}
-          >
-            จัดการคนในกลุ่ม
-            {tab === "members" && (
-              <span className="absolute bottom-[-2px] left-0 z-20 h-[2px] w-full bg-[#3F73BB]" />
-            )}
-          </button>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            {isGroupsTab ? (
+              <DeleteConfirmDialog
+                title="ยืนยันการลบข้อมูล"
+                description="เมื่อลบกลุ่มผู้ใช้งานแล้วจะไม่สามารถกู้คืนกลับได้ หากกลุ่มถูกใช้งานอยู่ระบบจะไม่อนุญาตให้ลบ"
+                onConfirm={() => {
+                  void deleteSelectedGroup();
+                }}
+                trigger={
+                  <ProTechButton
+                    variant="delete"
+                    className="h-7.75 px-4 text-[14px]"
+                    disabled={saving || selectedGroupId === null}
+                  >
+                    ลบ
+                  </ProTechButton>
+                }
+              />
+            ) : null}
+
+            {isGroupsTab ? (
+              <ProTechButton
+                variant="create"
+                className="h-7.75 px-4 text-[14px]"
+                onClick={() => {
+                  openCreateGroupDialog();
+                }}
+              >
+                สร้าง
+              </ProTechButton>
+            ) : null}
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <ToolbarSelect placeholder="กลุ่มทั้งหมด" />
-          <ToolbarSelect placeholder="สถานะทั้งหมด" />
-          <ProTechButton variant="delete" className="h-[31px] px-4 text-[14px]">
-            ลบ
-          </ProTechButton>
-          <ProTechButton
-            variant="create"
-            className="h-[31px] px-4 text-[14px]"
-            onClick={() => setOpenCreate(true)}
-          >
-            สร้าง
-          </ProTechButton>
-        </div>
+        {error ? (
+          <div className="max-w-130 rounded-md border border-[#FFB4C0] bg-[#FFF5F7] px-3 py-2 text-sm text-[#D1435B]">
+            {error}
+          </div>
+        ) : null}
+
+        {loading ? (
+          <p className="text-sm text-[#8B95A7]">กำลังโหลดข้อมูล...</p>
+        ) : isGroupsTab ? (
+          <ProTechTable
+            columns={groupColumns}
+            data={groupRows}
+            limit={10}
+            page={groupPage}
+            totalPages={groupTotalPages}
+            totalItems={groupTotalItems}
+            onPageChange={setGroupPage}
+          />
+        ) : (
+          <ProTechTable
+            columns={memberColumns}
+            data={memberRows}
+            limit={10}
+            page={memberPage}
+            totalPages={memberTotalPages}
+            totalItems={memberTotalItems}
+            onPageChange={setMemberPage}
+          />
+        )}
       </div>
 
-      {tab === "groups" ? (
-        <ProTechTable
-          columns={groupColumns}
-          data={userGroupRows}
-          page={1}
-          totalPages={3}
-          totalItems={4}
-          onPageChange={() => {}}
+      {groupDialogState ? (
+        <TeamGroupModal
+          key={
+            groupDialogState.mode === "edit" && groupDialogState.value.id
+              ? `group-edit-${groupDialogState.value.id}`
+              : "group-create"
+          }
+          open={groupDialogState !== null}
+          saving={saving}
+          mode={groupDialogState.mode}
+          initialValue={groupDialogState.value}
+          onOpenChange={(open) => {
+            if (!open) {
+              setGroupDialogState(null);
+            }
+          }}
+          onSubmit={(value) => {
+            void submitGroupDialog(value);
+          }}
         />
-      ) : (
-        <ProTechTable
-          columns={memberColumns}
-          data={permissionRows}
-          page={1}
-          totalPages={3}
-          totalItems={4}
-          onPageChange={() => {}}
+      ) : null}
+
+      {memberDialogState ? (
+        <TeamMemberModal
+          key={
+            memberDialogState.mode === "edit" && memberDialogState.value.staffId
+              ? `member-edit-${memberDialogState.value.staffId}`
+              : "member-create"
+          }
+          open={memberDialogState !== null}
+          saving={saving}
+          mode={memberDialogState.mode}
+          initialValue={memberDialogState.value}
+          staffName={memberDialogState.staffName}
+          staffOptions={staffOptions}
+          teamOptions={activeTeamOptions}
+          onOpenChange={(open) => {
+            if (!open) {
+              setMemberDialogState(null);
+            }
+          }}
+          onSubmit={(value) => {
+            void submitMemberDialog(value);
+          }}
         />
-      )}
-
-      <CreateGroupModal open={openCreate} onOpenChange={setOpenCreate} />
-      </div>
-    </div>
-  );
-}
-
-function GroupActionCell({ row }: { row: GroupRow }) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <>
-      <ActionIcons showInfo={false} onEdit={() => setOpen(true)} />
-      <AdminModalShell
-        open={open}
-        onOpenChange={setOpen}
-        title="แก้ไขข้อมูลกลุ่มผู้ใช้งาน"
-        widthClassName="max-w-[382px]"
-      >
-        <div className="space-y-5">
-          <div className="grid grid-cols-[1fr_110px] gap-3">
-            <Field value={row.groupName} label=" " />
-            <SelectField label="สถานะ" value="ใช้งาน" />
-          </div>
-          <div className="flex justify-end gap-3">
-            <ProTechButton
-              variant="delete"
-              className="h-[33px] min-w-[76px] text-[14px]"
-              onClick={() => setOpen(false)}
-            >
-              ยกเลิก
-            </ProTechButton>
-            <ProTechButton
-              variant="primary"
-              className="h-[33px] min-w-[86px] text-[14px]"
-            >
-              แก้ไข
-            </ProTechButton>
-          </div>
-        </div>
-      </AdminModalShell>
-    </>
-  );
-}
-
-function MemberActionCell({ row }: { row: MemberRow }) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <>
-      <ActionIcons showInfo={false} onEdit={() => setOpen(true)} />
-      <AdminModalShell
-        open={open}
-        onOpenChange={setOpen}
-        title="แก้ไขข้อมูลกลุ่มผู้ใช้งาน"
-        widthClassName="max-w-[372px]"
-      >
-        <div className="space-y-5">
-          <div className="grid grid-cols-[1fr_110px] gap-3">
-            <Field value={String(row.fullName)} label="ชื่อ-นามสกุล" />
-            <SelectField label="สถานะ" value="ใช้งาน" />
-          </div>
-          <div>
-            <div className="mb-2 flex items-center gap-2">
-              <span className="text-[14px] text-[#111827]">กลุ่ม</span>
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#3F73BB] text-white">
-                +
-              </span>
-            </div>
-            <div className="flex flex-wrap gap-5">
-              {["support", "network", "IT"].map((item) => (
-                <div key={item} className="flex items-center gap-1">
-                  <div className="flex h-[33px] min-w-[112px] items-center justify-center rounded-md border border-[#A8B1C2] bg-white px-3 text-[14px] text-[#111827]">
-                    {item}
-                  </div>
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#B55E5E] text-xs text-white">
-                    ×
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="flex justify-end gap-3">
-            <ProTechButton
-              variant="delete"
-              className="h-[33px] min-w-[76px] text-[14px]"
-              onClick={() => setOpen(false)}
-            >
-              ยกเลิก
-            </ProTechButton>
-            <ProTechButton
-              variant="primary"
-              className="h-[33px] min-w-[86px] text-[14px]"
-            >
-              แก้ไข
-            </ProTechButton>
-          </div>
-        </div>
-      </AdminModalShell>
-    </>
-  );
-}
-
-function CreateGroupModal({
-  open,
-  onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  return (
-    <AdminModalShell
-      open={open}
-      onOpenChange={onOpenChange}
-      title="สร้างข้อมูลกลุ่มผู้ใช้งาน"
-      widthClassName="max-w-[372px]"
-    >
-      <div className="space-y-7">
-        <div className="flex justify-center">
-          <div className="h-[33px] w-[224px] rounded-md border border-[#A8B1C2] bg-white" />
-        </div>
-        <div className="flex justify-end gap-3">
-          <ProTechButton
-            variant="delete"
-            className="h-[33px] min-w-[76px] text-[14px]"
-            onClick={() => onOpenChange(false)}
-          >
-            ยกเลิก
-          </ProTechButton>
-          <ProTechButton
-            variant="primary"
-            className="h-[33px] min-w-[86px] text-[14px]"
-          >
-            ยืนยัน
-          </ProTechButton>
-        </div>
-      </div>
-    </AdminModalShell>
-  );
-}
-
-function Field({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="space-y-2">
-      <label className="block text-[14px] text-[#111827]">{label}</label>
-      <div className="flex h-[33px] items-center rounded-md border border-[#A8B1C2] bg-white px-3 text-[14px] text-[#111827]">
-        {value}
-      </div>
-    </div>
-  );
-}
-
-function SelectField({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="space-y-2">
-      <label className="block text-[14px] text-[#111827]">{label}</label>
-      <div className="flex h-[33px] items-center justify-between rounded-md border border-[#A8B1C2] bg-white px-3 text-[14px] text-[#111827]">
-        <span>{value}</span>
-        <span>⌄</span>
-      </div>
-    </div>
-  );
-}
-
-function ToolbarSelect({ placeholder }: { placeholder: string }) {
-  return (
-    <div className="flex h-[31px] min-w-[132px] items-center justify-between rounded-md border border-[#A8B1C2] bg-white px-4 text-[14px] text-[#6B7280]">
-      <span>{placeholder}</span>
-      <span>⌄</span>
+      ) : null}
     </div>
   );
 }

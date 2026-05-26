@@ -2,9 +2,12 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+import { normalizeSearchKeyword } from "@/lib/form-utils";
 
-export type CustomerApiItem = {
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const DEFAULT_LIMIT = 10;
+
+export type CustomerListApiItem = {
   id: number;
   name: string;
   email: string;
@@ -16,8 +19,8 @@ export type CustomerApiItem = {
   updatedAt: string | null;
 };
 
-export type CustomerListResponse = {
-  items: CustomerApiItem[];
+export type CustomerListApiResponse = {
+  items: CustomerListApiItem[];
   pagination: {
     page: number;
     limit: number;
@@ -26,39 +29,122 @@ export type CustomerListResponse = {
   };
 };
 
-export function useUnapprovedCustomers() {
-  const [items, setItems] = useState<CustomerApiItem[]>([]);
+type CustomerPagination = CustomerListApiResponse["pagination"];
+
+function isAbortError(error: unknown) {
+  return error instanceof Error && error.name === "AbortError";
+}
+
+export function useUnapprovedCustomers(search = "") {
+  const [items, setItems] = useState<CustomerListApiItem[]>([]);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<number | null>(null);
+  const [pagination, setPagination] = useState<CustomerPagination>({
+    page: 1,
+    limit: DEFAULT_LIMIT,
+    total: 0,
+    totalPages: 1,
+  });
+
+  const buildListUrl = useCallback(() => {
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(DEFAULT_LIMIT),
+    });
+    const normalizedSearch = normalizeSearchKeyword(search);
+
+    if (normalizedSearch) {
+      params.set("search", normalizedSearch);
+    }
+
+    return `${API_BASE_URL}/customers/unapproved?${params.toString()}`;
+  }, [page, search]);
+
+  const applyListResult = useCallback(
+    (result: CustomerListApiResponse) => {
+      const nextTotalPages = Math.max(result.pagination.totalPages, 1);
+
+      setItems(result.items);
+      setPagination({
+        page: result.pagination.page,
+        limit: result.pagination.limit,
+        total: result.pagination.total,
+        totalPages: nextTotalPages,
+      });
+
+      if (result.items.length === 0 && page > nextTotalPages) {
+        window.setTimeout(() => {
+          setPage(nextTotalPages);
+        }, 0);
+      }
+
+      setError(null);
+    },
+    [page],
+  );
 
   const fetchCustomers = useCallback(async () => {
     try {
       setLoading(true);
 
-      const response = await fetch(
-        `${API_BASE_URL}/customers/unapproved?page=1&limit=100`,
-        { cache: "no-store" },
-      );
+      const response = await fetch(buildListUrl(), { cache: "no-store" });
 
       if (!response.ok) {
         throw new Error(`Failed to load customers (${response.status})`);
       }
 
-      const result = (await response.json()) as CustomerListResponse;
-      setItems(result.items);
-      setError(null);
+      applyListResult((await response.json()) as CustomerListApiResponse);
     } catch (fetchError) {
-      console.error(fetchError);
-      setError("ไม่สามารถโหลดข้อมูลผู้ใช้งานได้");
+      if (isAbortError(fetchError)) {
+        return;
+      }
+      setError("ไม่สามารถโหลดข้อมูลลูกค้าที่รออนุมัติได้");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [applyListResult, buildListUrl]);
 
   useEffect(() => {
-    void fetchCustomers();
-  }, [fetchCustomers]);
+    const controller = new AbortController();
+
+    void (async () => {
+      try {
+        setLoading(true);
+
+        const response = await fetch(buildListUrl(), {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to load customers (${response.status})`);
+        }
+
+        const result = (await response.json()) as CustomerListApiResponse;
+
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        applyListResult(result);
+      } catch (fetchError) {
+        if (isAbortError(fetchError)) {
+          return;
+        }
+        setError("ไม่สามารถโหลดข้อมูลลูกค้าที่รออนุมัติได้");
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      controller.abort();
+    };
+  }, [applyListResult, buildListUrl]);
 
   const updateCustomerStatus = useCallback(
     async (id: number, action: "approve" | "reject") => {
@@ -84,8 +170,7 @@ export function useUnapprovedCustomers() {
         await fetchCustomers();
         return true;
       } catch (updateError) {
-        console.error(updateError);
-        setError("ไม่สามารถอัปเดตสถานะผู้ใช้งานได้");
+        setError("ไม่สามารถอัปเดตสถานะลูกค้าได้");
         return false;
       } finally {
         setActiveId(null);
@@ -96,6 +181,9 @@ export function useUnapprovedCustomers() {
 
   return {
     items,
+    page,
+    setPage,
+    pagination,
     loading,
     error,
     activeId,

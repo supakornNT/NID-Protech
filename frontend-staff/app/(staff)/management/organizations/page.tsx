@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 import {
@@ -9,31 +9,27 @@ import {
   CheckCell,
   StatusBadge,
 } from "@/components/admin/admin-table-page";
+import { DeleteConfirmDialog } from "@/components/admin/delete-confirm-dialog";
+import { OrganizationModal } from "@/components/organizations/organization-modal";
 import { ProTechButton } from "@/components/tables/protech-button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   useOrganizationTable,
-  type OrganizationApiItem,
+  type OrganizationListApiItem,
+  type OrganizationFormInput,
+  type OrganizationStatusFilter,
+  type OrganizationTypeFilter,
 } from "@/hooks/organizations/use-organization-table";
 import { formatPhoneNumber } from "@/lib/utils";
 import type { Column } from "@/types/table";
 
-const PAGE_SIZE = 10;
-
-type DialogMode = "create" | "edit" | "info";
+type DialogMode = "create" | "edit";
 
 type DialogState = {
   mode: DialogMode;
-  item?: OrganizationApiItem;
+  item?: OrganizationListApiItem;
 } | null;
 
-type OrganizationRow = {
+type OrganizationTableRow = {
   id: number;
   checked: boolean;
   organizationName: string;
@@ -41,10 +37,11 @@ type OrganizationRow = {
   phone: string;
   organizationType: string;
   status: string;
+  createdAt: string;
   updatedAt: string;
 };
 
-function formatThaiDateTime(value: string | null) {
+export function formatThaiDateTime(value: string | null) {
   if (!value) {
     return "-";
   }
@@ -66,110 +63,150 @@ function formatThaiDateTime(value: string | null) {
 
 export default function OrganizationsPage() {
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [searchValue, setSearchValue] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<OrganizationStatusFilter>("all");
+  const [typeFilter, setTypeFilter] = useState<OrganizationTypeFilter>("all");
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [dialogState, setDialogState] = useState<DialogState>(null);
 
   const {
     items,
+    pagination,
     loading,
     error,
+    clearError,
     activeId,
+    saving,
     statusOptions,
     typeOptions,
+    createOrganization,
+    updateOrganization,
     removeOrganization,
   } = useOrganizationTable({
-    search,
+    page,
+    search: appliedSearch,
     statusFilter,
     typeFilter,
   });
 
-  const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const pagedItems = useMemo(() => {
-    const startIndex = (safePage - 1) * PAGE_SIZE;
-    return items.slice(startIndex, startIndex + PAGE_SIZE);
-  }, [items, safePage]);
+  const safePage = Math.min(page, Math.max(pagination.totalPages, 1));
+  const resolvedSelectedId =
+    selectedId !== null && items.some((item) => item.id === selectedId)
+      ? selectedId
+      : null;
 
-  const rows = useMemo<OrganizationRow[]>(() => {
-    return pagedItems.map((item) => ({
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      clearError();
+    }, 2500);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [clearError, error]);
+
+  const rows = useMemo<OrganizationTableRow[]>(() => {
+    return items.map((item) => ({
       id: item.id,
-      checked: selectedIds.includes(item.id),
+      checked: item.id === resolvedSelectedId,
       organizationName: item.organizationName || "-",
       email: item.email || "-",
       phone: formatPhoneNumber(item.phone) || "-",
       organizationType: item.organizationType || "-",
       status: item.status || "-",
+      createdAt: formatThaiDateTime(item.createdAt),
       updatedAt: formatThaiDateTime(item.updatedAt),
     }));
-  }, [pagedItems, selectedIds]);
+  }, [items, resolvedSelectedId]);
 
   function resetSelection() {
-    setSelectedIds([]);
+    setSelectedId(null);
+  }
+
+  function resetToFirstPage() {
+    setPage(1);
+  }
+
+  function buildInitialValue(dialogState: DialogState): OrganizationFormInput {
+    if (dialogState?.mode === "edit" && dialogState.item) {
+      return {
+        name: dialogState.item.organizationName || "",
+        type:
+          dialogState.item.organizationType === "government" ||
+          dialogState.item.organizationType === "other"
+            ? dialogState.item.organizationType
+            : "company",
+        email: dialogState.item.email || "",
+        phone: dialogState.item.phone || "",
+        status: dialogState.item.status === "inactive" ? "inactive" : "active",
+      };
+    }
+
+    return {
+      name: "",
+      type: "company",
+      email: "",
+      phone: "",
+      status: "active",
+    };
   }
 
   function handleToggleSelect(id: number) {
-    setSelectedIds((current) =>
-      current.includes(id)
-        ? current.filter((itemId) => itemId !== id)
-        : [...current, id],
-    );
-  }
-
-  function handleToggleSelectAll() {
-    const currentPageIds = pagedItems.map((item) => item.id);
-    const hasUnselected = currentPageIds.some((id) => !selectedIds.includes(id));
-
-    if (!hasUnselected) {
-      setSelectedIds((current) =>
-        current.filter((id) => !currentPageIds.includes(id)),
-      );
-      return;
-    }
-
-    setSelectedIds((current) =>
-      Array.from(new Set([...current, ...currentPageIds])),
-    );
+    setSelectedId((current) => (current === id ? null : id));
   }
 
   async function handleDeleteSelected() {
-    if (selectedIds.length === 0) {
+    if (resolvedSelectedId === null) {
       return;
     }
 
-    for (const id of selectedIds) {
-      const success = await removeOrganization(id);
+    const success = await removeOrganization(resolvedSelectedId);
 
-      if (!success) {
-        break;
-      }
+    if (success) {
+      resetSelection();
     }
-
-    resetSelection();
   }
 
-  const allSelected =
-    pagedItems.length > 0 &&
-    pagedItems.every((item) => selectedIds.includes(item.id));
+  async function handleSubmit(payload: OrganizationFormInput) {
+    const success =
+      dialogState?.mode === "edit" && dialogState.item
+        ? await updateOrganization(dialogState.item.id, payload)
+        : await createOrganization(payload);
 
-  const columns: Column<OrganizationRow>[] = [
+    if (!success) {
+      return;
+    }
+
+    setDialogState(null);
+  }
+
+  const columns: Column<OrganizationTableRow>[] = [
     {
       key: "checked",
-      title: <CheckCell checked={allSelected} onClick={handleToggleSelectAll} />,
+      title: "",
+      className: "w-[72px]",
       render: (_, row) => (
-        <CheckCell checked={row.checked} onClick={() => handleToggleSelect(row.id)} />
+        <CheckCell
+          checked={row.checked}
+          onClick={() => {
+            handleToggleSelect(row.id);
+          }}
+        />
       ),
     },
-    { key: "organizationName", title: "ชื่อองค์กร" },
-    { key: "email", title: "อีเมล" },
-    { key: "phone", title: "เบอร์โทร" },
-    { key: "organizationType", title: "ประเภท" },
+    { key: "organizationName", title: "ชื่อองค์กร", className: "w-[90px] text-lg font-medium" },
+    { key: "email", title: "อีเมล", className: "w-[90px] text-lg font-medium" },
+    { key: "phone", title: "เบอร์โทร", className: "w-[90px] text-lg font-medium" },
+    { key: "organizationType", title: "ประเภท", className: "w-[90px] text-lg font-medium" },
     {
       key: "status",
       title: "สถานะ",
-      className: "w-[124px]",
+      className: "w-[124px] text-lg font-medium",
       render: (value) => {
         const status = String(value ?? "-");
         const tone =
@@ -182,13 +219,14 @@ export default function OrganizationsPage() {
         return <StatusBadge label={status} tone={tone} />;
       },
     },
-    { key: "updatedAt", title: "อัปเดตล่าสุด", className: "w-[180px]" },
+    { key: "createdAt", title: "วันที่สร้าง", className: "w-[180px] text-lg font-medium" },
+    { key: "updatedAt", title: "วันที่แก้ไข", className: "w-[180px] text-lg font-medium" },
     {
       key: "actions",
       title: "จัดการ",
-      className: "w-[112px]",
+      className: "w-[64px] text-lg font-medium",
       render: (_, row) => {
-        const currentItem = pagedItems.find((item) => item.id === row.id);
+        const currentItem = items.find((item) => item.id === row.id);
 
         if (!currentItem) {
           return null;
@@ -196,11 +234,9 @@ export default function OrganizationsPage() {
 
         return (
           <ActionIcons
+            showInfo={false}
             onEdit={() => {
               setDialogState({ mode: "edit", item: currentItem });
-            }}
-            onInfo={() => {
-              setDialogState({ mode: "info", item: currentItem });
             }}
           />
         );
@@ -210,100 +246,116 @@ export default function OrganizationsPage() {
 
   return (
     <div className="min-h-full w-full rounded-xl px-5 py-7 sm:px-6 sm:py-8 lg:px-8 lg:py-9">
-      {error ? (
-        <p className="mb-5 rounded-md border border-[#FFB4C0] bg-[#FFF5F7] px-4 py-3 text-sm text-[#D1435B]">
-          {error}
-        </p>
-      ) : null}
-
       <AdminTablePage
         title="จัดการข้อมูลองค์กร"
         subtitle="จัดการข้อมูลองค์กรที่เกี่ยวข้อง"
         columns={columns}
         data={rows}
-        searchValue={search}
-        searchPlaceholder="ค้นหาชื่อองค์กร อีเมล เบอร์โทร"
+        searchValue={searchValue}
+        searchInputProps={{
+          type: "search",
+          inputMode: "search",
+          autoComplete: "off",
+          maxLength: 120,
+          title: "ค้นหาด้วยชื่อองค์กร อีเมล หรือเบอร์โทร",
+        }}
+        searchPlaceholder="ค้นหาองค์กร อีเมล เบอร์โทร"
         onSearchClick={(value) => {
-          setSearch(value);
-          setPage(1);
+          setSearchValue(value);
+          setAppliedSearch(value);
+          resetToFirstPage();
           resetSelection();
         }}
         page={safePage}
-        totalPages={totalPages}
-        totalItems={items.length}
+        totalPages={Math.max(pagination.totalPages, 1)}
+        totalItems={pagination.total}
         onPageChange={setPage}
         disableClientFiltering
         disableClientPagination
         showCreate={false}
         showDelete={false}
         renderToolbar={({ searchBar }) => (
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex flex-1 flex-wrap items-center gap-3">
-              {searchBar}
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+              <div className="flex flex-1 flex-wrap items-center gap-3">
+                {searchBar}
 
-              <div className="relative">
-                <select
-                  value={statusFilter}
-                  onChange={(event) => {
-                    setStatusFilter(event.target.value);
-                    setPage(1);
-                    resetSelection();
-                  }}
-                  className="h-[31px] min-w-[124px] appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-left text-[14px] text-[#6B7280] outline-none"
-                >
-                  <option value="all">สถานะทั้งหมด</option>
-                  {statusOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-[#8B95A7]" />
+                <div className="relative">
+                  <select
+                    value={statusFilter}
+                    onChange={(event) => {
+                      setStatusFilter(event.target.value as OrganizationStatusFilter);
+                      resetToFirstPage();
+                      resetSelection();
+                    }}
+                    className="h-[31px] min-w-[124px] appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-left text-[14px] text-[#6B7280] outline-none"
+                  >
+                    <option value="all">สถานะทั้งหมด</option>
+                    {statusOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-[#8B95A7]" />
+                </div>
+
+                <div className="relative">
+                  <select
+                    value={typeFilter}
+                    onChange={(event) => {
+                      setTypeFilter(event.target.value as OrganizationTypeFilter);
+                      resetToFirstPage();
+                      resetSelection();
+                    }}
+                    className="h-[31px] min-w-[132px] appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-left text-[14px] text-[#6B7280] outline-none"
+                  >
+                    <option value="all">ประเภททั้งหมด</option>
+                    {typeOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-[#8B95A7]" />
+                </div>
               </div>
 
-              <div className="relative">
-                <select
-                  value={typeFilter}
-                  onChange={(event) => {
-                    setTypeFilter(event.target.value);
-                    setPage(1);
-                    resetSelection();
+              <div className="flex items-center justify-end gap-3">
+                <DeleteConfirmDialog
+                  title="ยืนยันการลบข้อมูล"
+                  description="เมื่อลบข้อมูลแล้วจะไม่สามารถกู้คืนกลับได้"
+                  onConfirm={() => {
+                    void handleDeleteSelected();
                   }}
-                  className="h-[31px] min-w-[132px] appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-left text-[14px] text-[#6B7280] outline-none"
+                  trigger={
+                    <ProTechButton
+                      variant="delete"
+                      className="h-[31px] px-4 text-[14px]"
+                      disabled={resolvedSelectedId === null || activeId !== null}
+                    >
+                      ลบ
+                    </ProTechButton>
+                  }
+                />
+
+                <ProTechButton
+                  variant="create"
+                  className="h-[31px] px-4 text-[14px]"
+                  onClick={() => {
+                    setDialogState({ mode: "create" });
+                  }}
                 >
-                  <option value="all">ประเภททั้งหมด</option>
-                  {typeOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-[#8B95A7]" />
+                  สร้าง
+                </ProTechButton>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3">
-              <ProTechButton
-                variant="delete"
-                className="h-[31px] px-4 text-[14px]"
-                disabled={selectedIds.length === 0 || activeId !== null}
-                onClick={() => {
-                  void handleDeleteSelected();
-                }}
-              >
-                ลบ
-              </ProTechButton>
-
-              <ProTechButton
-                variant="create"
-                className="h-[31px] px-4 text-[14px]"
-                onClick={() => {
-                  setDialogState({ mode: "create" });
-                }}
-              >
-                สร้าง
-              </ProTechButton>
-            </div>
+            {error ? (
+              <div className="max-w-[420px] rounded-md border border-[#FFB4C0] bg-[#FFF5F7] px-3 py-2 text-sm text-[#D1435B]">
+                {error}
+              </div>
+            ) : null}
           </div>
         )}
       />
@@ -312,49 +364,25 @@ export default function OrganizationsPage() {
         <p className="mt-4 text-sm text-[#8B95A7]">กำลังโหลดข้อมูลองค์กร...</p>
       ) : null}
 
-      <Dialog
+      <OrganizationModal
+        key={
+          dialogState?.mode === "edit" && dialogState.item
+            ? `edit-${dialogState.item.id}`
+            : "create"
+        }
         open={dialogState !== null}
+        saving={saving || activeId !== null}
+        mode={dialogState?.mode ?? "create"}
+        initialValue={buildInitialValue(dialogState)}
         onOpenChange={(open) => {
           if (!open) {
             setDialogState(null);
           }
         }}
-      >
-        <DialogContent
-          showCloseButton={false}
-          className="max-w-105 rounded-[28px] bg-white p-0 shadow-xl ring-0"
-        >
-          <div className="space-y-6 px-7 py-7">
-            <DialogHeader className="space-y-2 text-center">
-              <DialogTitle className="text-[24px] font-bold normal-case tracking-normal text-[#111827]">
-                {dialogState?.mode === "create" && "สร้างองค์กร"}
-                {dialogState?.mode === "edit" && "แก้ไของค์กร"}
-                {dialogState?.mode === "info" && "รายละเอียดองค์กร"}
-              </DialogTitle>
-              <DialogDescription className="mt-0 text-[16px] text-[#6B7280]">
-                {dialogState?.mode === "create" &&
-                  "ปุ่มนี้เตรียมไว้ตามดีไซน์ สามารถเชื่อมหน้าฟอร์มสร้างองค์กรต่อได้"}
-                {dialogState?.mode === "edit" &&
-                  `เตรียมปุ่มแก้ไขไว้สำหรับ ${dialogState.item?.organizationName || "-"}`}
-                {dialogState?.mode === "info" &&
-                  `ชื่อองค์กร: ${dialogState.item?.organizationName || "-"} | ประเภท: ${dialogState.item?.organizationType || "-"} | สถานะ: ${dialogState.item?.status || "-"}`}
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="flex items-center justify-center gap-3 pt-1">
-              <ProTechButton
-                variant="delete"
-                className="h-10 min-w-26 text-[16px]"
-                onClick={() => {
-                  setDialogState(null);
-                }}
-              >
-                ปิด
-              </ProTechButton>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+        onSubmit={(payload) => {
+          void handleSubmit(payload);
+        }}
+      />
     </div>
   );
 }
