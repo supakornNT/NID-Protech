@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 import {
@@ -9,6 +9,10 @@ import {
   PermissionTags,
   StatusBadge,
 } from "@/components/admin/admin-table-page";
+import {
+  ActionSuccessModal,
+  type ManagementSuccessAction,
+} from "@/components/admin/action-success-modal";
 import { DeleteConfirmDialog } from "@/components/admin/delete-confirm-dialog";
 import { TeamGroupModal } from "@/components/user-groups/team-group-modal";
 import { TeamMemberModal } from "@/components/user-groups/team-member-modal";
@@ -69,7 +73,13 @@ function ToolbarSelect({
   );
 }
 
+type SuccessState = {
+  action: ManagementSuccessAction;
+  subject: string;
+} | null;
+
 export default function UserGroupsPage() {
+  const [successState, setSuccessState] = useState<SuccessState>(null);
   const {
     activeTab,
     setActiveTab,
@@ -357,7 +367,16 @@ export default function UserGroupsPage() {
                 title="ยืนยันการลบข้อมูล"
                 description="เมื่อลบกลุ่มผู้ใช้งานแล้วจะไม่สามารถกู้คืนกลับได้ หากกลุ่มถูกใช้งานอยู่ระบบจะไม่อนุญาตให้ลบ"
                 onConfirm={() => {
-                  void deleteSelectedGroup();
+                  void (async () => {
+                    const success = await deleteSelectedGroup();
+
+                    if (success) {
+                      setSuccessState({
+                        action: "delete",
+                        subject: "ข้อมูลกลุ่มผู้ใช้งาน",
+                      });
+                    }
+                  })();
                 }}
                 trigger={
                   <ProTechButton
@@ -433,7 +452,16 @@ export default function UserGroupsPage() {
             }
           }}
           onSubmit={(value) => {
-            void submitGroupDialog(value);
+            void (async () => {
+              const success = await submitGroupDialog(value);
+
+              if (success) {
+                setSuccessState({
+                  action: groupDialogState.mode === "edit" ? "update" : "create",
+                  subject: "ข้อมูลกลุ่มผู้ใช้งาน",
+                });
+              }
+            })();
           }}
         />
       ) : null}
@@ -458,10 +486,30 @@ export default function UserGroupsPage() {
             }
           }}
           onSubmit={(value) => {
-            void submitMemberDialog(value);
+            void (async () => {
+              const success = await submitMemberDialog(value);
+
+              if (success) {
+                setSuccessState({
+                  action: memberDialogState.mode === "edit" ? "update" : "create",
+                  subject: "ข้อมูลสมาชิกกลุ่ม",
+                });
+              }
+            })();
           }}
         />
       ) : null}
+
+      <ActionSuccessModal
+        open={successState !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSuccessState(null);
+          }
+        }}
+        action={successState?.action ?? "create"}
+        subject={successState?.subject}
+      />
     </div>
   );
 }

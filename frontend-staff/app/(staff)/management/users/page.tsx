@@ -3,6 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, KeyRound, Pencil } from "lucide-react";
 
+import {
+  ActionSuccessModal,
+  type ManagementSuccessAction,
+} from "@/components/admin/action-success-modal";
 import { StatusBadge } from "@/components/admin/admin-table-page";
 import { ProTechSearchBar } from "@/components/tables/protech-search";
 import { ProTechTable } from "@/components/tables/protech-table";
@@ -86,6 +90,8 @@ export default function UsersPage() {
     useState<UserListApiItem | null>(null);
   const [selectedPasswordUser, setSelectedPasswordUser] =
     useState<UserListApiItem | null>(null);
+  const [successAction, setSuccessAction] =
+    useState<ManagementSuccessAction | null>(null);
 
   const activeUserTypeFilter: UserTypeFilter =
     activeTab === "staff" ? "staff" : "customer";
@@ -426,6 +432,7 @@ export default function UsersPage() {
                 }
 
                 setSelectedDetailUser(null);
+                setSuccessAction("update");
               })();
             }}
           />
@@ -448,6 +455,17 @@ export default function UsersPage() {
             }
           />
         ) : null}
+
+        <ActionSuccessModal
+          open={successAction !== null}
+          onOpenChange={(open) => {
+            if (!open) {
+              setSuccessAction(null);
+            }
+          }}
+          action={successAction ?? "update"}
+          subject="ข้อมูลผู้ใช้งาน"
+        />
       </div>
     </div>
   );

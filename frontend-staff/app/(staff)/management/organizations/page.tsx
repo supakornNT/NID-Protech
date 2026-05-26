@@ -9,6 +9,10 @@ import {
   CheckCell,
   StatusBadge,
 } from "@/components/admin/admin-table-page";
+import {
+  ActionSuccessModal,
+  type ManagementSuccessAction,
+} from "@/components/admin/action-success-modal";
 import { DeleteConfirmDialog } from "@/components/admin/delete-confirm-dialog";
 import { OrganizationModal } from "@/components/organizations/organization-modal";
 import { ProTechButton } from "@/components/tables/protech-button";
@@ -69,6 +73,8 @@ export default function OrganizationsPage() {
   const [typeFilter, setTypeFilter] = useState<OrganizationTypeFilter>("all");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [dialogState, setDialogState] = useState<DialogState>(null);
+  const [successAction, setSuccessAction] =
+    useState<ManagementSuccessAction | null>(null);
 
   const {
     items,
@@ -169,10 +175,13 @@ export default function OrganizationsPage() {
 
     if (success) {
       resetSelection();
+      setSuccessAction("delete");
     }
   }
 
   async function handleSubmit(payload: OrganizationFormInput) {
+    const nextAction: ManagementSuccessAction =
+      dialogState?.mode === "edit" ? "update" : "create";
     const success =
       dialogState?.mode === "edit" && dialogState.item
         ? await updateOrganization(dialogState.item.id, payload)
@@ -183,6 +192,7 @@ export default function OrganizationsPage() {
     }
 
     setDialogState(null);
+    setSuccessAction(nextAction);
   }
 
   const columns: Column<OrganizationTableRow>[] = [
@@ -382,6 +392,17 @@ export default function OrganizationsPage() {
         onSubmit={(payload) => {
           void handleSubmit(payload);
         }}
+      />
+
+      <ActionSuccessModal
+        open={successAction !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSuccessAction(null);
+          }
+        }}
+        action={successAction ?? "create"}
+        subject="ข้อมูลองค์กร"
       />
     </div>
   );

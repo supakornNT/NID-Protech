@@ -1,12 +1,16 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import {
   ActionIcons,
   AdminTablePage,
   StatusBadge,
 } from "@/components/admin/admin-table-page";
+import {
+  ActionSuccessModal,
+  type ManagementSuccessAction,
+} from "@/components/admin/action-success-modal";
 import { PermissionEditModal } from "@/components/permission/PermissionEditModal";
 import {
   PermissionTeamTableRow,
@@ -34,6 +38,8 @@ export default function PermissionsPage() {
     openEditDialog,
     submitDialog,
   } = useTeamPermissionsPage();
+  const [successAction, setSuccessAction] =
+    useState<ManagementSuccessAction | null>(null);
 
   const columns: Column<PermissionTeamTableRow>[] = useMemo(
     () => [
@@ -150,8 +156,25 @@ export default function PermissionsPage() {
         }}
         onChange={setDialogState}
         onSubmit={(nextValue) => {
-          void submitDialog(nextValue);
+          void (async () => {
+            const success = await submitDialog(nextValue);
+
+            if (success) {
+              setSuccessAction("update");
+            }
+          })();
         }}
+      />
+
+      <ActionSuccessModal
+        open={successAction !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSuccessAction(null);
+          }
+        }}
+        action={successAction ?? "update"}
+        subject="สิทธิ์ของทีม"
       />
     </div>
   );
