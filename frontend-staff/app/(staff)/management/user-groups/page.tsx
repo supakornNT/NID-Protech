@@ -110,7 +110,6 @@ export default function UserGroupsPage() {
     setGroupDialogState,
     memberDialogState,
     setMemberDialogState,
-    staffOptions,
     activeTeamOptions,
     search,
     openCreateGroupDialog,
@@ -469,16 +468,14 @@ export default function UserGroupsPage() {
       {memberDialogState ? (
         <TeamMemberModal
           key={
-            memberDialogState.mode === "edit" && memberDialogState.value.staffId
+            memberDialogState.value.staffId
               ? `member-edit-${memberDialogState.value.staffId}`
-              : "member-create"
+              : "member-edit"
           }
           open={memberDialogState !== null}
           saving={saving}
-          mode={memberDialogState.mode}
           initialValue={memberDialogState.value}
           staffName={memberDialogState.staffName}
-          staffOptions={staffOptions}
           teamOptions={activeTeamOptions}
           onOpenChange={(open) => {
             if (!open) {
@@ -491,7 +488,7 @@ export default function UserGroupsPage() {
 
               if (success) {
                 setSuccessState({
-                  action: memberDialogState.mode === "edit" ? "update" : "create",
+                  action: "update",
                   subject: "ข้อมูลสมาชิกกลุ่ม",
                 });
               }

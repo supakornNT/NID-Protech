@@ -118,7 +118,7 @@ type GroupDialogState =
 
 type MemberDialogState =
   | {
-      mode: "create" | "edit";
+      mode: "edit";
       staffName: string;
       memberships: UserGroupMembershipApiItem[];
       value: UserGroupMemberFormInput;
@@ -484,18 +484,6 @@ export function useUserGroupsPage() {
     }
   }
 
-  function openCreateMemberDialog() {
-    setMemberDialogState({
-      mode: "create",
-      staffName: "",
-      memberships: [],
-      value: {
-        staffId: null,
-        teamIds: [],
-      },
-    });
-  }
-
   function openEditMemberDialog(staffId: number) {
     const member = memberRows.find((item) => item.id === staffId);
 
@@ -594,7 +582,6 @@ export function useUserGroupsPage() {
     openEditGroupDialog,
     submitGroupDialog,
     deleteSelectedGroup,
-    openCreateMemberDialog,
     openEditMemberDialog,
     submitMemberDialog,
   };

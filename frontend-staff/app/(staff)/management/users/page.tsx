@@ -90,8 +90,13 @@ export default function UsersPage() {
     useState<UserListApiItem | null>(null);
   const [selectedPasswordUser, setSelectedPasswordUser] =
     useState<UserListApiItem | null>(null);
+  const [passwordModalKey, setPasswordModalKey] = useState(0);
   const [successAction, setSuccessAction] =
     useState<ManagementSuccessAction | null>(null);
+  const [successMessage, setSuccessMessage] = useState<{
+    title: string;
+    description: string;
+  } | null>(null);
 
   const activeUserTypeFilter: UserTypeFilter =
     activeTab === "staff" ? "staff" : "customer";
@@ -102,8 +107,11 @@ export default function UsersPage() {
     prefixOptions,
     loading,
     saving,
+    sendingPasswordOtp,
+    resettingPassword,
     error,
     clearError,
+    clearPasswordFlowState,
     updateUser,
     sendPasswordOtp,
     resetPassword,
@@ -127,6 +135,18 @@ export default function UsersPage() {
       window.clearTimeout(timeoutId);
     };
   }, [clearError, error]);
+
+  const openPasswordModal = (user: UserListApiItem) => {
+    clearPasswordFlowState();
+    setPasswordModalKey((current) => current + 1);
+    setSelectedPasswordUser(user);
+  };
+
+  const closePasswordModal = () => {
+    clearPasswordFlowState();
+    setSelectedPasswordUser(null);
+    setPasswordModalKey((current) => current + 1);
+  };
 
   const staffRows = useMemo<StaffTableRow[]>(
     () =>
@@ -199,7 +219,7 @@ export default function UsersPage() {
               className="text-[#D1435B] transition hover:opacity-75"
               title="เปลี่ยนรหัสผ่าน"
               onClick={() => {
-                setSelectedPasswordUser(currentItem);
+                openPasswordModal(currentItem);
               }}
             >
               <KeyRound size={20} />
@@ -253,7 +273,7 @@ export default function UsersPage() {
               className="text-[#D1435B] transition hover:opacity-75"
               title="เปลี่ยนรหัสผ่าน"
               onClick={() => {
-                setSelectedPasswordUser(currentItem);
+                openPasswordModal(currentItem);
               }}
             >
               <KeyRound size={20} />
@@ -440,18 +460,29 @@ export default function UsersPage() {
 
         {selectedPasswordUser ? (
           <UserPasswordModal
-            key={`password-${selectedPasswordUser.userType}-${selectedPasswordUser.id}-${selectedPasswordUser.updatedAt ?? "none"}`}
+            key={`password-${passwordModalKey}-${selectedPasswordUser.userType}-${selectedPasswordUser.id}-${selectedPasswordUser.updatedAt ?? "none"}`}
             open={selectedPasswordUser !== null}
-            saving={saving}
+            sendingOtp={sendingPasswordOtp}
+            resettingPassword={resettingPassword}
             user={selectedPasswordUser}
             onOpenChange={(open) => {
               if (!open) {
-                setSelectedPasswordUser(null);
+                closePasswordModal();
               }
             }}
             onSendOtp={() => sendPasswordOtp(selectedPasswordUser)}
             onSubmit={(password, otp) =>
-              resetPassword(selectedPasswordUser, password, otp)
+              resetPassword(selectedPasswordUser, password, otp).then((result) => {
+                if (result.success) {
+                  setSuccessMessage({
+                    title: "เปลี่ยนรหัสผ่านสำเร็จ",
+                    description: `ระบบได้เปลี่ยนรหัสผ่านของ ${selectedPasswordUser.fullName} เรียบร้อยแล้ว`,
+                  });
+                  setSuccessAction("update");
+                }
+
+                return result;
+              })
             }
           />
         ) : null}
@@ -461,10 +492,13 @@ export default function UsersPage() {
           onOpenChange={(open) => {
             if (!open) {
               setSuccessAction(null);
+              setSuccessMessage(null);
             }
           }}
           action={successAction ?? "update"}
           subject="ข้อมูลผู้ใช้งาน"
+          title={successMessage?.title}
+          description={successMessage?.description}
         />
       </div>
     </div>

@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import {
+  CheckCircle2,
   ChevronDown,
   Eye,
   EyeOff,
@@ -13,7 +14,6 @@ import {
   UserRound,
 } from "lucide-react";
 
-import { ActionSuccessModal } from "@/components/admin/action-success-modal";
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { ProTechButton } from "@/components/tables/protech-button";
 import {

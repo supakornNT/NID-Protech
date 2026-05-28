@@ -6,7 +6,7 @@ const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 export const OTP_LENGTH = 5;
-const OTP_TIMEOUT_SECONDS = 300;
+const OTP_TIMEOUT_SECONDS = 60;
 
 export type PrefixOption = {
   value: number;
@@ -252,20 +252,17 @@ export function useTeamRegistrationForm() {
     }
 
     const timeoutId = window.setTimeout(() => {
-      setOtpCountdown((current) => current - 1);
+      const nextCountdown = Math.max(otpCountdown - 1, 0);
+      setOtpCountdown(nextCountdown);
+
+      if (hasRequestedOtp && nextCountdown === 0) {
+        setValidationMessage("OTP เก่าหมดอายุแล้ว กรุณาส่ง OTP อีกครั้ง");
+      }
     }, 1000);
 
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [otpCountdown]);
-
-  useEffect(() => {
-    if (!hasRequestedOtp || otpCountdown > 0) {
-      return;
-    }
-
-    setValidationMessage("OTP เก่าหมดอายุแล้ว กรุณาส่ง OTP อีกครั้ง");
   }, [hasRequestedOtp, otpCountdown]);
 
   const selectedTeams = useMemo(

@@ -30,7 +30,7 @@ export class AuthService {
     const min = 10 ** (OTP_LENGTH - 1);
     const max = 10 ** OTP_LENGTH;
     const code = Math.floor(min + Math.random() * (max - min)).toString();
-    const expiresAt = Date.now() + 5 * 60 * 1000;
+    const expiresAt = Date.now() + 60 * 1000;
 
     this.otpStore.set(email, { code, expiresAt });
     await this.sendOtpMail(email, code, subject);
@@ -67,7 +67,7 @@ export class AuthService {
         from: process.env.SMTP_USER,
         to: email,
         subject,
-        text: `รหัส OTP ของคุณคือ: ${code} (หมดอายุใน 5 นาที)`,
+        text: `รหัส OTP ของคุณคือ: ${code} (หมดอายุใน 1 นาที)`,
       });
     } catch (error) {
       console.error('ส่งอีเมลไม่สำเร็จ:', error);
