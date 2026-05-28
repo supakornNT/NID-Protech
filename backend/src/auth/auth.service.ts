@@ -230,7 +230,7 @@ export class AuthService {
         id,
         email,
         password_hash AS password,
-        name
+        concat(name, ' ', surname) AS name
       FROM staffs
       WHERE email = ?
         AND status = 'active'
