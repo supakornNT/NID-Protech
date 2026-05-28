@@ -1,24 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { ProTechButton } from "@/components/tables/protech-button";
 import type { UserGroupMemberFormInput } from "@/hooks/user-groups/use-user-groups-page";
 
-type Option = {
-  value: number;
-  label: string;
-};
-
 type TeamMemberModalProps = {
   open: boolean;
   saving: boolean;
-  mode: "create" | "edit";
   initialValue: UserGroupMemberFormInput;
   staffName: string;
-  staffOptions: Option[];
-  teamOptions: Option[];
+  teamOptions: Array<{
+    value: number;
+    label: string;
+  }>;
   onOpenChange: (open: boolean) => void;
   onSubmit: (value: UserGroupMemberFormInput) => void;
 };
@@ -26,36 +22,15 @@ type TeamMemberModalProps = {
 export function TeamMemberModal({
   open,
   saving,
-  mode,
   initialValue,
   staffName,
-  staffOptions,
   teamOptions,
   onOpenChange,
   onSubmit,
 }: TeamMemberModalProps) {
-  const [formState, setFormState] = useState<UserGroupMemberFormInput>(initialValue);
+  const [formState, setFormState] =
+    useState<UserGroupMemberFormInput>(initialValue);
   const [validationError, setValidationError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    setFormState(initialValue);
-    setValidationError(null);
-  }, [initialValue, open]);
-
-  const resolvedStaffName = useMemo(() => {
-    if (mode === "edit" && staffName) {
-      return staffName;
-    }
-
-    return (
-      staffOptions.find((option) => option.value === formState.staffId)?.label ??
-      ""
-    );
-  }, [formState.staffId, mode, staffName, staffOptions]);
 
   function toggleTeam(teamId: number) {
     setFormState((current) => ({
@@ -76,9 +51,7 @@ export function TeamMemberModal({
 
         onOpenChange(nextOpen);
       }}
-      title={
-        mode === "edit" ? "แก้ไขคนในกลุ่มผู้ใช้งาน" : "เพิ่มคนเข้ากลุ่มผู้ใช้งาน"
-      }
+      title="แก้ไขคนในกลุ่มผู้ใช้งาน"
       widthClassName="max-w-[760px]"
     >
       <div className="space-y-5">
@@ -87,29 +60,9 @@ export function TeamMemberModal({
             <label className="block text-[16px] text-[#111827]">
               ผู้ใช้งาน
             </label>
-            {mode === "edit" ? (
-              <div className="flex h-8.5 items-center rounded-md border border-[#A8B1C2] bg-[#F8FAFC] px-3 text-[14px] text-[#111827]">
-                {resolvedStaffName}
-              </div>
-            ) : (
-              <select
-                value={formState.staffId ?? ""}
-                onChange={(event) =>
-                  setFormState((current) => ({
-                    ...current,
-                    staffId: Number(event.target.value) || null,
-                  }))
-                }
-                className="h-8.5 w-full rounded-md border border-[#A8B1C2] bg-white px-3 text-[14px] text-[#111827] outline-none"
-              >
-                <option value="">เลือกผู้ใช้งาน</option>
-                {staffOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            )}
+            <div className="flex h-8.5 items-center rounded-md border border-[#A8B1C2] bg-[#F8FAFC] px-3 text-[14px] text-[#111827]">
+              {staffName}
+            </div>
           </div>
         </div>
 
@@ -147,7 +100,9 @@ export function TeamMemberModal({
             })}
 
             {teamOptions.length === 0 ? (
-              <p className="text-sm text-[#8B95A7]">ไม่พบข้อมูลกลุ่มผู้ใช้งาน</p>
+              <p className="text-sm text-[#8B95A7]">
+                ไม่พบข้อมูลกลุ่มผู้ใช้งาน
+              </p>
             ) : null}
           </div>
         </div>
@@ -180,7 +135,7 @@ export function TeamMemberModal({
               onSubmit(formState);
             }}
           >
-            {saving ? "กำลังบันทึก..." : mode === "edit" ? "แก้ไข" : "ยืนยัน"}
+            {saving ? "กำลังบันทึก..." : "แก้ไข"}
           </ProTechButton>
         </div>
       </div>

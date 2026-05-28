@@ -273,8 +273,10 @@ export function useTeamPermissionsPage() {
 
       setDialogState(null);
       await fetchTeams();
+      return true;
     } catch (submitError) {
       setError("ไม่สามารถบันทึกสิทธิ์ของทีมได้");
+      return false;
     } finally {
       setSaving(false);
     }

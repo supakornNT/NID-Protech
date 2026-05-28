@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { ActionSuccessModal } from "@/components/admin/action-success-modal";
 import { AdminTablePage, StatusBadge } from "@/components/admin/admin-table-page";
 import { ProTechButton } from "@/components/tables/protech-button";
 import {
@@ -31,6 +32,11 @@ type CustomerTableRow = {
 
 type PendingAction = {
   id: number;
+  action: "approve" | "reject";
+  name: string;
+} | null;
+
+type SuccessAction = {
   action: "approve" | "reject";
   name: string;
 } | null;
@@ -83,6 +89,7 @@ export default function CustomersPage() {
   const [searchValue, setSearchValue] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
+  const [successAction, setSuccessAction] = useState<SuccessAction>(null);
   const { items, page, setPage, pagination, loading, error, activeId, updateCustomerStatus } =
     useUnapprovedCustomers(appliedSearch);
 
@@ -112,8 +119,16 @@ export default function CustomersPage() {
     }
 
     const { id, action } = pendingAction;
+    const nextSuccessAction = pendingAction;
     setPendingAction(null);
-    await updateCustomerStatus(id, action);
+    const success = await updateCustomerStatus(id, action);
+
+    if (success) {
+      setSuccessAction({
+        action: nextSuccessAction.action,
+        name: nextSuccessAction.name,
+      });
+    }
   }
 
   const columns: Column<CustomerTableRow>[] = [
@@ -251,6 +266,28 @@ export default function CustomersPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <ActionSuccessModal
+        open={successAction !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSuccessAction(null);
+          }
+        }}
+        action="update"
+        title={
+          successAction?.action === "approve"
+            ? "อนุมัติผู้แจ้งปัญหาสำเร็จ"
+            : "ปฏิเสธผู้แจ้งปัญหาสำเร็จ"
+        }
+        description={
+          successAction
+            ? `ระบบได้${
+                successAction.action === "approve" ? "อนุมัติ" : "ปฏิเสธ"
+              }ผู้แจ้งปัญหา ${successAction.name} เรียบร้อยแล้ว`
+            : undefined
+        }
+      />
     </div>
   );
 }

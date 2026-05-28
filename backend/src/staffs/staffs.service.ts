@@ -497,7 +497,7 @@ export class StaffsService {
     await this.ensureUniqueEmail(email);
 
     const code = Math.floor(10000 + Math.random() * 90000).toString();
-    const expiresAt = Date.now() + 5 * 60 * 1000;
+    const expiresAt = Date.now() + 60 * 1000;
 
     this.registrationOtpStore.set(email, { code, expiresAt });
     await this.authService.sendCustomOtpToEmail(

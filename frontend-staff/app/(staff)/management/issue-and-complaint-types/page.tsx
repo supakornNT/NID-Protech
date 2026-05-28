@@ -9,6 +9,10 @@ import {
   CheckCell,
   StatusBadge,
 } from "@/components/admin/admin-table-page";
+import {
+  ActionSuccessModal,
+  type ManagementSuccessAction,
+} from "@/components/admin/action-success-modal";
 import { DeleteConfirmDialog } from "@/components/admin/delete-confirm-dialog";
 import { ProblemTypeModal } from "@/components/problem-types/problem-type-modal";
 import { ProTechButton } from "@/components/tables/protech-button";
@@ -79,6 +83,8 @@ export default function ProblemTypesPage() {
   const [categoryFilter, setCategoryFilter] = useState<ProblemTypeFilter>("all");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [dialogState, setDialogState] = useState<DialogState>(null);
+  const [successAction, setSuccessAction] =
+    useState<ManagementSuccessAction | null>(null);
 
   const {
     items,
@@ -137,6 +143,8 @@ export default function ProblemTypesPage() {
   }
 
   async function handleSubmit(payload: ProblemTypeFormInput) {
+    const nextAction: ManagementSuccessAction =
+      dialogState?.mode === "edit" ? "update" : "create";
     const success =
       dialogState?.mode === "edit"
         ? await updateProblemType(dialogState.item.id, payload)
@@ -147,6 +155,7 @@ export default function ProblemTypesPage() {
     }
 
     setDialogState(null);
+    setSuccessAction(nextAction);
   }
 
   async function handleDeleteSelected() {
@@ -158,6 +167,7 @@ export default function ProblemTypesPage() {
 
     if (success) {
       setSelectedId(null);
+      setSuccessAction("delete");
     }
   }
 
@@ -335,6 +345,17 @@ export default function ProblemTypesPage() {
         onSubmit={(payload) => {
           void handleSubmit(payload);
         }}
+      />
+
+      <ActionSuccessModal
+        open={successAction !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSuccessAction(null);
+          }
+        }}
+        action={successAction ?? "create"}
+        subject="ข้อมูลประเภทเรื่อง"
       />
     </div>
   );
