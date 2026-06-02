@@ -35,6 +35,23 @@ export default function AdminLayout({
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const [sessionExpiredOpen, setSessionExpiredOpen] = useState(false);
   const [staffModules, setStaffModules] = useState<StaffSidebarModule[]>([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   function clearSessionExpiryTimer() {
     if (sessionExpiryTimerRef.current) {
@@ -247,48 +264,63 @@ export default function AdminLayout({
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="hidden text-right sm:block">
-                <p className="text-sm font-semibold text-gray-700">
-                  {staffName}
-                </p>
-
-                <p className="text-xs text-gray-400">เจ้าหน้าที่</p>
-              </div>
-
-              <div
-                className="
-                  flex h-11 w-11 items-center justify-center
-                  rounded-full bg-white
-                  text-sm font-bold text-[#2F66C5]
-                  shadow-sm
-                "
-              >
-                {avatarInitial}
-              </div>
-
+            <div className="relative" ref={dropdownRef}>
               <button
                 type="button"
-                onClick={() => setLogoutModalOpen(true)}
+                onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="
-                  flex h-10 w-10 items-center justify-center
-                  rounded-xl
-                  border border-gray-200
-                  bg-white
-                  text-gray-500
-                  shadow-sm
-                  transition-all
-                  duration-200
-                  hover:bg-red-50
-                  hover:text-red-500
-                  hover:border-red-200
-                  active:scale-95
-                  focus:outline-none
+                  flex items-center gap-3 rounded-full p-1.5
+                  text-left transition-all duration-200
+                  hover:bg-[#d0daf0]/50 active:scale-98
+                  focus:outline-none cursor-pointer
                 "
-                title="ออกจากระบบ"
               >
-                <LogOut size={18} />
+                <div className="hidden text-right sm:block">
+                  <p className="text-sm font-semibold text-gray-700">
+                    {staffName}
+                  </p>
+                  <p className="text-xs text-gray-400">เจ้าหน้าที่</p>
+                </div>
+
+                <div
+                  className="
+                    flex h-11 w-11 items-center justify-center
+                    rounded-full bg-white
+                    text-sm font-bold text-[#2F66C5]
+                    shadow-sm border border-gray-200/50
+                  "
+                >
+                  {avatarInitial}
+                </div>
               </button>
+
+              {dropdownOpen && (
+                <div
+                  className="
+                    absolute right-0 mt-2 w-48
+                    rounded-2xl border border-gray-200/60 bg-white p-1.5
+                    shadow-xl shadow-gray-200/80 z-50
+                    animate-in fade-in slide-in-from-top-2 duration-150
+                  "
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      setLogoutModalOpen(true);
+                    }}
+                    className="
+                      flex w-full items-center gap-3 rounded-xl px-4 py-2.5
+                      text-left text-sm font-semibold text-gray-600
+                      transition-colors duration-150
+                      hover:bg-red-50 hover:text-red-600 cursor-pointer
+                    "
+                  >
+                    <LogOut size={16} />
+                    ออกจากระบบ
+                  </button>
+                </div>
+              )}
             </div>
           </header>
  
