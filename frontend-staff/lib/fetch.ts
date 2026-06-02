@@ -10,6 +10,10 @@ type JsonValue =
   | boolean
   | null;
 
+type FetchJsonInit = RequestInit & {
+  skipSessionExpiredEvent?: boolean;
+};
+
 function resolveApiUrl(endpoint: string) {
   if (/^https?:\/\//.test(endpoint)) {
     return endpoint;
@@ -20,11 +24,13 @@ function resolveApiUrl(endpoint: string) {
 
 export async function fetchJson<T = JsonValue>(
   endpoint: string,
-  init?: RequestInit,
+  init?: FetchJsonInit,
 ): Promise<T> {
+  const { skipSessionExpiredEvent = false, ...requestInit } = init ?? {};
+
   const response = await fetch(resolveApiUrl(endpoint), {
     credentials: "include",
-    ...init,
+    ...requestInit,
   });
 
   const contentType = response.headers.get("content-type") ?? "";
@@ -33,6 +39,19 @@ export async function fetchJson<T = JsonValue>(
     : null;
 
   if (!response.ok) {
+    if (response.status === 401) {
+      if (!skipSessionExpiredEvent && typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("session:expired"));
+      }
+
+      const message =
+        data && typeof data === "object" && "message" in data
+          ? String((data as { message: unknown }).message)
+          : "Session หมดอายุแล้ว";
+
+      throw new Error(message);
+    }
+
     const message =
       data && typeof data === "object" && "message" in data
         ? String((data as { message: unknown }).message)

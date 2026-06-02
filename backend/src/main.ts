@@ -12,6 +12,8 @@ import { redisClient } from './config/redis.config';
 dotenv.config({ path: resolve(process.cwd(), '.env.local') });
 dotenv.config({ path: resolve(process.cwd(), '.env') });
 
+const SESSION_MAX_AGE_MS = 60 * 60 * 1000;
+
 async function bootstrap() {
   let redisEnabled = false;
 
@@ -45,13 +47,14 @@ async function bootstrap() {
     cookie: {
       secure: false,
       httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24,
+      maxAge: SESSION_MAX_AGE_MS,
     },
   };
 
   if (redisEnabled) {
     sessionConfig.store = new RedisStore({
       client: redisClient,
+      ttl: Math.floor(SESSION_MAX_AGE_MS / 1000),
     });
   }
 

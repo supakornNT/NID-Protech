@@ -24,6 +24,36 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 
+export type StaffSidebarModule = {
+  key: string;
+  label: string;
+  children: {
+    key: string;
+    label: string;
+  }[];
+};
+
+const MENU_PERMISSION_BY_HREF: Record<string, string> = {
+  "/screening/issues": "screening.issue.view",
+  "/screening/complaints": "screening.complaint.view",
+  "/consideration/issue-work": "assignment.ticket.approve",
+  "/consideration/close-work": "assignment.request.approve",
+  "/tracking/status": "tracking.status.view",
+  "/operations": "operation.result.view",
+  "/reports/executive": "report.dashboard.view",
+  "/reports/operations": "report.operation.view",
+  "/reports/edit-history": "report.history.view",
+  "/reports/login-history": "report.login_log.view",
+  "/management/organizations": "admin.organization.manage",
+  "/management/systems": "admin.system.manage",
+  "/management/reporters": "admin.customer.manage",
+  "/management/teams": "admin.staff.manage",
+  "/management/user-groups": "admin.team.manage",
+  "/management/permissions": "admin.permission.manage",
+  "/management/users": "admin.user.manage",
+  "/management/issue-and-complaint-types": "admin.problem_type.manage",
+};
+
 const menuItems = [
   {
     title: "หน้าหลัก",
@@ -161,13 +191,44 @@ const menuItems = [
 type Props = {
   mobileOpen: boolean;
   onMobileOpenChange: (open: boolean) => void;
+  modules: StaffSidebarModule[];
 };
 
 export default function StaffSidebar({
   mobileOpen,
   onMobileOpenChange,
+  modules,
 }: Props) {
   const pathname = usePathname();
+  const allowedPermissionKeys = new Set(
+    modules.flatMap((module) => module.children.map((child) => child.key)),
+  );
+  const visibleMenuItems = menuItems
+    .map((item) => {
+      const children = "children" in item ? item.children : undefined;
+
+      if (!children) {
+        return item;
+      }
+
+      const visibleChildren = children.filter((child) => {
+        const requiredPermission = MENU_PERMISSION_BY_HREF[child.href];
+
+        return requiredPermission
+          ? allowedPermissionKeys.has(requiredPermission)
+          : true;
+      });
+
+      if (visibleChildren.length === 0) {
+        return null;
+      }
+
+      return {
+        ...item,
+        children: visibleChildren,
+      };
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null);
 
   const sidebarContent = (
     <div className="flex min-h-full flex-col px-4 py-8">
@@ -188,7 +249,7 @@ export default function StaffSidebar({
       </div>
 
       <nav className="space-y-2.5 text-[13px] font-semibold">
-        {menuItems.map((item) => {
+        {visibleMenuItems.map((item) => {
           const Icon = item.icon;
 
           if (item.children) {

@@ -39,22 +39,29 @@ export class AuthController {
     return { message: 'ลงทะเบียนสำเร็จ' };
   }
 
- @Post('login')
-@HttpCode(200)
-async login(@Body() dto: LoginDto, @Req() req: SessionRequest) {
-  const staff = await this.authService.login(dto);
+  @Post('login')
+  @HttpCode(200)
+  async login(@Body() dto: LoginDto, @Req() req: SessionRequest) {
+    const ipAddress =
+      (req.headers['x-forwarded-for'] as string) ||
+      req.socket.remoteAddress ||
+      req.ip ||
+      null;
+    const userAgent = req.headers['user-agent'] || null;
 
-  req.session.staff = {
-    id: staff.id,
-    email: staff.email,
-    name: staff.name,
-    modules: staff.modules,
-  };
+    const staff = await this.authService.login(dto, ipAddress, userAgent);
 
-  return {
-    message: 'login success',
-  };
-}
+    req.session.staff = {
+      id: staff.id,
+      email: staff.email,
+      name: staff.name,
+      modules: staff.modules,
+    };
+
+    return {
+      message: 'login success',
+    };
+  }
 
   @Get('me')
   getMe(@Req() req: SessionRequest) {
@@ -62,7 +69,16 @@ async login(@Body() dto: LoginDto, @Req() req: SessionRequest) {
       throw new UnauthorizedException();
     }
 
-    return req.session.staff;
+    const maxAge = req.session.cookie.maxAge;
+    const sessionExpiresAt =
+      typeof maxAge === 'number'
+        ? new Date(Date.now() + maxAge).toISOString()
+        : null;
+
+    return {
+      ...req.session.staff,
+      sessionExpiresAt,
+    };
   }
 
   @Post('logout')

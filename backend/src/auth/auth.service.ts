@@ -22,6 +22,7 @@ interface StaffRow extends RowDataPacket {
   email: string;
   password: string;
   name: string;
+  status: string;
 }
 
 interface PermissionRow extends RowDataPacket {
@@ -90,6 +91,45 @@ function mapPermissionsToModules(permissions: Permission[]): ModuleItem[] {
   }
 
   return Array.from(moduleMap.values());
+}
+
+export function parseUserAgent(ua: string | null): string {
+  if (!ua) return 'Unknown Device';
+
+  let browser = 'Browser';
+  let os = 'Unknown OS';
+
+  // 1. Detect OS
+  if (/windows/i.test(ua)) {
+    os = 'Windows';
+  } else if (/macintosh|mac os x/i.test(ua)) {
+    os = 'MacOS';
+  } else if (/iphone/i.test(ua)) {
+    os = 'iPhone';
+  } else if (/ipad/i.test(ua)) {
+    os = 'iPad';
+  } else if (/android/i.test(ua)) {
+    os = 'Android';
+  } else if (/linux/i.test(ua)) {
+    os = 'Linux';
+  }
+
+  // 2. Detect Browser
+  if (/edge|edg/i.test(ua)) {
+    browser = 'Edge';
+  } else if (/chrome|crios/i.test(ua) && !/opr/i.test(ua)) {
+    browser = 'Chrome';
+  } else if (/safari/i.test(ua) && !/chrome|crios/i.test(ua)) {
+    browser = 'Safari';
+  } else if (/firefox|fxios/i.test(ua)) {
+    browser = 'Firefox';
+  } else if (/opr/i.test(ua)) {
+    browser = 'Opera';
+  } else if (/wv/i.test(ua) || /webview/i.test(ua)) {
+    browser = 'WebView';
+  }
+
+  return `${browser} on ${os}`;
 }
 
 @Injectable()
@@ -223,17 +263,39 @@ export class AuthService {
     );
   }
 
-  async login(dto: LoginDto) {
+  async recordLoginLog(
+    userType: 'customer' | 'staff',
+    userId: number,
+    ipAddress: string | null,
+    userAgent: string | null,
+    status: 'success' | 'failed',
+    failReason: string | null = null,
+  ): Promise<void> {
+    const cleanUserAgent = userAgent ? parseUserAgent(userAgent) : null;
+    await this.db.query(
+      `
+      INSERT INTO login_logs (user_type, user_id, ip_address, user_agent, status, fail_reason, login_at)
+      VALUES (?, ?, ?, ?, ?, ?, NOW())
+      `,
+      [userType, userId, ipAddress, cleanUserAgent, status, failReason],
+    );
+  }
+
+  async login(
+    dto: LoginDto,
+    ipAddress: string | null = null,
+    userAgent: string | null = null,
+  ) {
     const [staffRows] = await this.db.query<StaffRow[]>(
       `
       SELECT
         id,
         email,
         password_hash AS password,
-        concat(name, ' ', surname) AS name
+        concat(name, ' ', surname) AS name,
+        status
       FROM staffs
       WHERE email = ?
-        AND status = 'active'
       LIMIT 1
       `,
       [dto.email],
@@ -245,11 +307,33 @@ export class AuthService {
       throw new UnauthorizedException('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
     }
 
+    if (staff.status !== 'active') {
+      await this.recordLoginLog(
+        'staff',
+        staff.id,
+        ipAddress,
+        userAgent,
+        'failed',
+        'account_inactive',
+      );
+      throw new UnauthorizedException('บัญชีผู้ใช้ถูกระงับการใช้งาน');
+    }
+
     const isPasswordValid = await bcrypt.compare(dto.password, staff.password);
 
     if (!isPasswordValid) {
+      await this.recordLoginLog(
+        'staff',
+        staff.id,
+        ipAddress,
+        userAgent,
+        'failed',
+        'invalid_password',
+      );
       throw new UnauthorizedException('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
     }
+
+    await this.recordLoginLog('staff', staff.id, ipAddress, userAgent, 'success');
 
     const [permissionRows] = await this.db.query<PermissionRow[]>(
       `

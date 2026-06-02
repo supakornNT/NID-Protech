@@ -15,6 +15,7 @@ type StaffSession = {
   id: number;
   email: string;
   name: string;
+  sessionExpiresAt?: string | null;
   modules: {
     key: string;
     label: string;
@@ -48,6 +49,7 @@ export default function LoginPage() {
       await fetchJson("/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        skipSessionExpiredEvent: true,
         body: JSON.stringify({
           email: email.trim(),
           password,
@@ -56,6 +58,7 @@ export default function LoginPage() {
 
       const staff = await fetchJson<StaffSession>("/auth/me", {
         cache: "no-store",
+        skipSessionExpiredEvent: true,
       });
 
       localStorage.setItem("protech_staff", JSON.stringify(staff));
@@ -189,22 +192,6 @@ export default function LoginPage() {
                 </Button>
               </div>
 
-              <div className="flex items-center gap-3 px-5">
-                <hr className="flex-1 border-gray-400" />
-                <span className="text-sm text-black">หรือ</span>
-                <hr className="flex-1 border-gray-400" />
-              </div>
-
-              <div className="flex items-center justify-center gap-6 px-5">
-                <Button
-                  type="button"
-                  className="w-full rounded-md border-black bg-[#ffffff] text-black hover:bg-gray-100"
-                  onClick={() => router.push("/register")}
-                  disabled={loading}
-                >
-                  สมัครสมาชิก
-                </Button>
-              </div>
             </form>
           </Card>
         </div>
