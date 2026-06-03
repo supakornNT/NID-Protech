@@ -422,7 +422,7 @@ export default function ReportLoginHistoryPage() {
                       onChange={(event) => {
                         setSelectedDate(event.target.value);
                       }}
-                      className="border-0 bg-transparent text-sm font-semibold text-[#174F9F] outline-none"
+                      className="border-0 bg-transparent text-sm font-semibold text-[#174F9F] outline-none [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-clear-button]:hidden [&::-webkit-inner-spin-button]:hidden"
                     />
                   </div>
                 ) : null}
@@ -452,7 +452,7 @@ export default function ReportLoginHistoryPage() {
                         setSelectedMonth(nextMonth);
                         setSelectedYear(nextYear);
                       }}
-                      className="border-0 bg-transparent text-sm font-semibold text-[#174F9F] outline-none"
+                      className="border-0 bg-transparent text-sm font-semibold text-[#174F9F] outline-none [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-clear-button]:hidden [&::-webkit-inner-spin-button]:hidden"
                     />
                   </div>
                 ) : null}

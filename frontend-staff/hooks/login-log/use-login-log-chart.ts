@@ -35,6 +35,32 @@ export function useLoginLogChart(scope: LoginLogChartScope) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (scope.period === "day" && !scope.date) {
+      setData({
+        period: "day",
+        selectedDate: "",
+        selectedMonth: "",
+        selectedYear: scope.year,
+        items: [],
+      });
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
+    if (scope.period === "month" && !scope.month) {
+      setData({
+        period: "month",
+        selectedDate: "",
+        selectedMonth: "",
+        selectedYear: scope.year,
+        items: [],
+      });
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     const controller = new AbortController();
 
     void (async () => {

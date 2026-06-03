@@ -2,7 +2,7 @@
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Paperclip, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { FormInput } from "@/components/ui/form-input";
@@ -13,8 +13,7 @@ import { useSystems } from "@/hooks/use-systems";
 import styles from "../request.module.css";
 import { SuccessDialog } from "@/components/ui/success-dialog";
 import { useSubmit } from "@/hooks/use-submit";
-
-const CUSTOMER_ID = 1;
+import { getCurrentUserId } from "@/lib/user-session";
 
 export default function RequestInternalPage() {
   const router = useRouter();
@@ -25,8 +24,13 @@ export default function RequestInternalPage() {
     system_id: "",
     detail: "",
   });
+  const [customerId, setCustomerId] = useState<number | null>(null);
 
-  const { data: customer, fullName } = useCustomer(CUSTOMER_ID);
+  useEffect(() => {
+    setCustomerId(getCurrentUserId());
+  }, []);
+
+  const { data: customer, fullName } = useCustomer(customerId);
   const { data: problemTypes, loading: problemTypesLoading } =
     useProblemTypes("issue");
   const { data: organizations } = useOrganizations();
@@ -48,7 +52,9 @@ export default function RequestInternalPage() {
     }
 
     const formData = new FormData();
-    formData.append("customer_id", "1");
+    if (customerId) {
+      formData.append("customer_id", String(customerId));
+    }
     formData.append("organization", currentOrg?.name ?? "");
     formData.append("title", form.title);
     formData.append("problem_type_id", form.problem_type_id);

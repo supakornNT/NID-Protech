@@ -1,16 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
-import { ChevronDown, Menu, UserRound, X } from "lucide-react";
+import { ChevronDown, Menu, UserRound, X, LogOut } from "lucide-react";
 
+import { getCurrentUser, StoredUserSession } from "@/lib/user-session";
+import { fetchJson } from "@/lib/fetch";
 import styles from "./navbar.module.css";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState(false);
+  const [user, setUser] = useState<StoredUserSession | null>(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setUser(getCurrentUser());
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (!mobileMenuOpen) return;
@@ -23,6 +37,36 @@ export default function Navbar() {
       document.body.style.overflow = previousOverflow;
     };
   }, [mobileMenuOpen]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  async function handleLogout() {
+    try {
+      localStorage.removeItem("protech_user");
+      setUser(null);
+      setDropdownOpen(false);
+      setMobileMenuOpen(false);
+      
+      await fetchJson("/auth/logout", {
+        method: "POST",
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      router.push("/login");
+    }
+  }
 
   return (
     <>
@@ -74,18 +118,51 @@ export default function Navbar() {
           <Link href="/track">การติดตาม</Link>
         </div>
 
-        <div className={styles.desktopUser}>
-          <div className={styles.avatar} />
-          <span className={styles.desktopUserName}>ชื่อ - นามสกุล</span>
-        </div>
+        {user && (
+          <div className={styles.desktopUser} ref={dropdownRef}>
+            <div 
+              className={styles.desktopUserTrigger}
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+            >
+              <div className={styles.avatar}>
+                {user.name ? user.name.charAt(0).toUpperCase() : <UserRound size={18} />}
+              </div>
+              <span className={styles.desktopUserName}>{user.name}</span>
+              <ChevronDown
+                size={14}
+                style={{ opacity: 0.7 }}
+                className={`transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
+              />
+            </div>
 
-        <button
-          type="button"
-          className={styles.mobileAvatarButton}
-          aria-label="โปรไฟล์ผู้ใช้"
-        >
-          <UserRound size={20} />
-        </button>
+            <div className={`${styles.desktopUserDropdownMenu} ${dropdownOpen ? styles.desktopUserDropdownMenuOpen : ""}`}>
+              <div className={styles.dropdownHeader}>
+                <div className={styles.dropdownUserName}>{user.name}</div>
+                <div className={styles.dropdownUserEmail}>{user.email}</div>
+              </div>
+              <button 
+                onClick={() => { void handleLogout(); }}
+                className={`${styles.dropdownItem} ${styles.logoutButton}`}
+              >
+                <LogOut size={16} />
+                ออกจากระบบ
+              </button>
+            </div>
+          </div>
+        )}
+
+        {user && (
+          <button
+            type="button"
+            className={styles.mobileAvatarButton}
+            aria-label="โปรไฟล์ผู้ใช้"
+            onClick={() => {
+              setMobileMenuOpen(!mobileMenuOpen);
+            }}
+          >
+            <UserRound size={20} />
+          </button>
+        )}
       </nav>
 
       <div
@@ -162,6 +239,27 @@ export default function Navbar() {
         >
           <span className={styles.mobileItemLeft}>การติดตาม</span>
         </Link>
+
+        {user && (
+          <div className={styles.mobileProfileWrapper}>
+            <div className={styles.mobileProfileInfo}>
+              <div className={styles.mobileProfileAvatar}>
+                {user.name ? user.name.charAt(0).toUpperCase() : <UserRound size={16} />}
+              </div>
+              <div className={styles.mobileProfileDetails}>
+                <span className={styles.mobileProfileName}>{user.name}</span>
+                <span className={styles.mobileProfileEmail}>{user.email}</span>
+              </div>
+            </div>
+            <button 
+              onClick={() => { void handleLogout(); }}
+              className={styles.mobileLogoutButton}
+            >
+              <LogOut size={16} />
+              ออกจากระบบ
+            </button>
+          </div>
+        )}
       </div>
     </>
   );

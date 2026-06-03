@@ -495,7 +495,7 @@ function SelectField({
       <div className="relative">
         <select
           value={value}
-          className={`w-full appearance-none bg-white px-3.5 pr-11 text-[15px] text-[#111827] outline-none ${
+          className={`peer w-full appearance-none bg-white px-3.5 pr-11 text-[15px] text-[#111827] outline-none ${
             compact
               ? "h-12 rounded-none border-0"
               : "h-12 rounded-2xl border border-[#A8B1C2]"
@@ -509,7 +509,7 @@ function SelectField({
             </option>
           ))}
         </select>
-        <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-5 -translate-y-1/2 text-[#6B7280]" />
+        <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-5 -translate-y-1/2 text-[#6B7280] transition-transform duration-200 peer-focus:rotate-180" />
       </div>
     </div>
   );

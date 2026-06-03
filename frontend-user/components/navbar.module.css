@@ -48,6 +48,14 @@
   font-size: 20px;
 }
 
+.desktopDropdownTrigger svg {
+  transition: transform 200ms ease;
+}
+
+.desktopDropdown:hover .desktopDropdownTrigger svg {
+  transform: rotate(180deg);
+}
+
 .desktopDropdownMenu {
   display: none;
   position: absolute;
@@ -81,19 +89,233 @@
   align-items: center;
   gap: 12px;
   color: white;
+  position: relative;
 }
 
 .avatar {
-  width: 60px;
-  height: 60px;
+  width: 48px;
+  height: 48px;
   border-radius: 999px;
   background: #d0e8ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1565c0;
+  font-weight: bold;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  transition: transform 200ms ease;
 }
 
 .desktopUserName {
-  padding: 24px;
-  font-size: 20px;
+  padding: 8px 0;
+  font-size: 18px;
+  font-weight: 500;
+  user-select: none;
 }
+
+/* User Dropdown Desktop styling */
+.desktopUserTrigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: background-color 200ms ease;
+}
+
+.desktopUserTrigger:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.desktopUserTrigger:hover .avatar {
+  transform: scale(1.05);
+}
+
+.desktopUserDropdownMenu {
+  position: absolute;
+  top: 115%;
+  right: 0;
+  min-width: 220px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 50;
+  border: 1px solid #eef2f6;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: opacity 200ms ease, transform 200ms ease, visibility 200ms ease;
+}
+
+.desktopUserDropdownMenuOpen {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdownHeader {
+  padding: 8px 12px 10px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dropdownUserName {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.dropdownUserEmail {
+  font-size: 12px;
+  color: #64748b;
+  word-break: break-all;
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  color: #334155;
+  text-decoration: none;
+  font-size: 14px;
+  border-radius: 8px;
+  transition: background-color 150ms ease, color 150ms ease;
+  width: 100%;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.dropdownItem:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.logoutButton {
+  color: #ef4444;
+}
+
+.logoutButton:hover {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.loginButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  color: #1565c0;
+  border: 1px solid white;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 200ms ease, color 200ms ease;
+  text-decoration: none;
+}
+
+.loginButton:hover {
+  background-color: transparent;
+  color: white;
+}
+
+/* User Profile Mobile Extension */
+.mobileProfileWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 4px 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin-top: 16px;
+}
+
+.mobileProfileInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+  padding: 0 4px;
+}
+
+.mobileProfileAvatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.mobileProfileDetails {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobileProfileName {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.mobileProfileEmail {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.mobileLogoutButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 46px;
+  border-radius: 8px;
+  background-color: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+  margin-top: 8px;
+}
+
+.mobileLogoutButton:active {
+  background-color: rgba(239, 68, 68, 0.35);
+}
+
+.mobileLoginButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 46px;
+  border-radius: 8px;
+  background-color: white;
+  border: none;
+  color: #1565c0;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  margin-top: 16px;
+}
+
 
 .mobileMenuButton,
 .mobileAvatarButton {

@@ -67,7 +67,7 @@ export function FormInputIcon({
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       <p style={{ fontSize: 16, fontWeight: 500 }}>{label}</p>
-      <div className="flex items-center border-1 border-gray-300 rounded-md px-3 gap-2 h-9 bg-transparent">
+      <div className="flex items-center border-1 border-gray-300 rounded-md px-3 gap-2 h-9 bg-white">
         {icon}
         <Input
           type={type}

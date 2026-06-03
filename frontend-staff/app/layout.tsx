@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { SelectHandler } from "@/components/select-handler";
 
 export const metadata: Metadata = {
   title: "ProTech Staff",
@@ -20,7 +21,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="th" className={cn("font-sans")} style={rootStyle}>
-      <body className="min-h-screen bg-[#ffffff]">{children}</body>
+      <body className="min-h-screen bg-[#ffffff]">
+        <SelectHandler />
+        {children}
+      </body>
     </html>
   );
 }

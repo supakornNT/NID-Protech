@@ -321,9 +321,9 @@ export default function CloseWorkPage() {
             </button>
 
             <DropdownMenu>
-              <DropdownMenuTrigger className="flex h-9 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-[14px] text-gray-700 outline-none hover:bg-gray-50">
+              <DropdownMenuTrigger className="group flex h-9 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-[14px] text-gray-700 outline-none hover:bg-gray-50">
                 {typeFilter === "ทั้งหมด" ? "ประเภททั้งหมด" : typeFilter}
-                <ChevronDown size={14} className="text-gray-400" />
+                <ChevronDown size={14} className="text-gray-400 transition-transform duration-200 group-data-[popup-open]:rotate-180 group-data-[state=open]:rotate-180 group-data-[open]:rotate-180" />
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuRadioGroup
@@ -340,9 +340,9 @@ export default function CloseWorkPage() {
             </DropdownMenu>
 
             <DropdownMenu>
-              <DropdownMenuTrigger className="flex h-9 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-[14px] text-gray-700 outline-none hover:bg-gray-50">
+              <DropdownMenuTrigger className="group flex h-9 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-[14px] text-gray-700 outline-none hover:bg-gray-50">
                 เวลา
-                <ChevronDown size={14} className="text-gray-400" />
+                <ChevronDown size={14} className="text-gray-400 transition-transform duration-200 group-data-[popup-open]:rotate-180 group-data-[state=open]:rotate-180 group-data-[open]:rotate-180" />
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuRadioGroup value="ล่าสุด" onValueChange={() => {}}>

@@ -98,6 +98,20 @@ function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
+function isValidThaiCitizenId(value: string) {
+  if (!/^\d{13}$/.test(value)) {
+    return false;
+  }
+
+  const sum = value
+    .slice(0, 12)
+    .split("")
+    .reduce((total, digit, index) => total + Number(digit) * (13 - index), 0);
+  const checkDigit = (11 - (sum % 11)) % 10;
+
+  return checkDigit === Number(value[12]);
+}
+
 function validatePassword(password: string, confirmPassword: string) {
   if (!password) {
     return "กรุณากรอกรหัสผ่าน";
@@ -416,8 +430,8 @@ export function useTeamRegistrationForm() {
 
     const citizenDigits = keepDigitsOnly(formState.citizenId);
 
-    if (citizenDigits.length > 0 && citizenDigits.length !== 13) {
-      return "กรุณากรอกเลขบัตรประชาชน 13 หลัก";
+    if (citizenDigits.length > 0 && !isValidThaiCitizenId(citizenDigits)) {
+      return "กรุณากรอกเลขบัตรประชาชนให้ถูกต้อง";
     }
 
     return null;
@@ -451,8 +465,8 @@ export function useTeamRegistrationForm() {
 
     const citizenDigits = keepDigitsOnly(formState.citizenId);
 
-    if (citizenDigits.length > 0 && citizenDigits.length !== 13) {
-      return "กรุณากรอกเลขบัตรประชาชน 13 หลัก";
+    if (citizenDigits.length > 0 && !isValidThaiCitizenId(citizenDigits)) {
+      return "กรุณากรอกเลขบัตรประชาชนให้ถูกต้อง";
     }
 
     return null;

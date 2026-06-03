@@ -43,6 +43,20 @@ function parsePositiveOptionalId(value: unknown, fieldName: string) {
   return parsed;
 }
 
+function isValidThaiCitizenId(value: string) {
+  if (!/^\d{13}$/.test(value)) {
+    return false;
+  }
+
+  const sum = value
+    .slice(0, 12)
+    .split('')
+    .reduce((total, digit, index) => total + Number(digit) * (13 - index), 0);
+  const checkDigit = (11 - (sum % 11)) % 10;
+
+  return checkDigit === Number(value[12]);
+}
+
 function parseCitizenId(value: unknown) {
   const normalized = optionalText(value, 'citizenId', 13);
 
@@ -50,8 +64,8 @@ function parseCitizenId(value: unknown) {
     return null;
   }
 
-  if (!/^\d{13}$/.test(normalized)) {
-    throw new BadRequestException('citizenId must contain 13 digits');
+  if (!isValidThaiCitizenId(normalized)) {
+    throw new BadRequestException('เลขบัตรประชาชนไม่ถูกต้อง');
   }
 
   return normalized;

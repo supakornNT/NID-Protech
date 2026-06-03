@@ -2,7 +2,7 @@
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Paperclip, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { FormInput } from "@/components/ui/form-input";
@@ -12,9 +12,7 @@ import { useSystems } from "@/hooks/use-systems";
 import { useSubmit } from "@/hooks/use-submit";
 import styles from "../request.module.css";
 import { SuccessDialog } from "@/components/ui/success-dialog";
-
-const CUSTOMER_ID = 1;
-const ORGANIZATION_ID = 1;
+import { getCurrentUserId } from "@/lib/user-session";
 
 export default function RequestExternalPage() {
   const router = useRouter();
@@ -25,11 +23,16 @@ export default function RequestExternalPage() {
     system_id: "",
     detail: "",
   });
+  const [customerId, setCustomerId] = useState<number | null>(null);
 
-  const { fullName } = useCustomer(CUSTOMER_ID);
+  useEffect(() => {
+    setCustomerId(getCurrentUserId());
+  }, []);
+
+  const { fullName } = useCustomer(customerId);
   const { data: problemTypes, loading: problemTypesLoading } =
     useProblemTypes("issue");
-  const { data: systems } = useSystems(ORGANIZATION_ID);
+  const { data: systems } = useSystems(null, true);
   const [submitted, setSubmitted] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const { submit } = useSubmit("/requests/external", () => {
@@ -46,7 +49,9 @@ export default function RequestExternalPage() {
     }
 
     const formData = new FormData();
-    formData.append("customer_id", String(CUSTOMER_ID));
+    if (customerId) {
+      formData.append("customer_id", String(customerId));
+    }
     formData.append("title", form.title);
     formData.append("problem_type_id", form.problem_type_id);
     formData.append("system_id", form.system_id);

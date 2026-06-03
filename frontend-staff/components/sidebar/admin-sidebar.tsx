@@ -117,7 +117,7 @@ export default function AdminSidebar() {
                   <CollapsibleTrigger asChild>
                     <button
                       type="button"
-                      className={`flex min-h-11 w-full items-center justify-between rounded-xl px-3 py-2 text-left transition ${
+                      className={`group flex min-h-11 w-full items-center justify-between rounded-xl px-3 py-2 text-left transition ${
                         isOpen ? "bg-white/20" : "hover:bg-white/15"
                       }`}
                     >
@@ -126,7 +126,10 @@ export default function AdminSidebar() {
                         {item.title}
                       </span>
 
-                      <ChevronDown size={16} />
+                      <ChevronDown
+                        size={16}
+                        className="transition-transform duration-200 group-data-[state=open]:rotate-180"
+                      />
                     </button>
                   </CollapsibleTrigger>
 

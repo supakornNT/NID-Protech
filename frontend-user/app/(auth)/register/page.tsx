@@ -1,18 +1,109 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
+import { ChevronDown, ChevronLeft } from "lucide-react";
 import { Lock, Eye, EyeOff } from "lucide-react";
 import { FormInput } from "@/components/ui/form-input";
 import styles from "../auth.module.css";
 import { FormInputIcon } from "@/components/ui/form-input";
 import { OtpInput } from "@/components/ui/otp-input";
 import { Button } from "@/components/ui/button";
-import { useOrganizations } from "@/hooks/use-organizations";
+import { useRegisterOptions } from "@/hooks/use-register-options";
 import { fetchJson } from "@/lib/fetch";
 import { SuccessDialog } from "@/components/ui/success-dialog";
 
 type UserType = "person" | "company";
+const OTP_LENGTH = 5;
+
+function keepDigitsOnly(value: string) {
+  return value.replace(/\D/g, "");
+}
+
+function formatPhoneInput(value: string) {
+  const digits = keepDigitsOnly(value).slice(0, 10);
+
+  if (digits.length <= 3) {
+    return digits;
+  }
+
+  if (digits.length <= 6) {
+    return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  }
+
+  return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
+function formatCitizenIdInput(value: string) {
+  const digits = keepDigitsOnly(value).slice(0, 13);
+
+  if (digits.length <= 1) {
+    return digits;
+  }
+
+  if (digits.length <= 5) {
+    return `${digits.slice(0, 1)}-${digits.slice(1)}`;
+  }
+
+  if (digits.length <= 10) {
+    return `${digits.slice(0, 1)}-${digits.slice(1, 5)}-${digits.slice(5)}`;
+  }
+
+  if (digits.length <= 12) {
+    return `${digits.slice(0, 1)}-${digits.slice(1, 5)}-${digits.slice(5, 10)}-${digits.slice(10)}`;
+  }
+
+  return `${digits.slice(0, 1)}-${digits.slice(1, 5)}-${digits.slice(5, 10)}-${digits.slice(10, 12)}-${digits.slice(12)}`;
+}
+
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function isValidThaiCitizenId(value: string) {
+  if (!/^\d{13}$/.test(value)) {
+    return false;
+  }
+
+  const sum = value
+    .slice(0, 12)
+    .split("")
+    .reduce((total, digit, index) => total + Number(digit) * (13 - index), 0);
+  const checkDigit = (11 - (sum % 11)) % 10;
+
+  return checkDigit === Number(value[12]);
+}
+
+function validatePassword(password: string, confirmPassword: string) {
+  if (!password) {
+    return "กรุณากรอกรหัสผ่าน";
+  }
+
+  if (password.length < 8) {
+    return "รหัสผ่านต้องมีอย่างน้อย 8 ตัว";
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    return "รหัสผ่านต้องมีตัวพิมพ์ใหญ่";
+  }
+
+  if (!/[a-z]/.test(password)) {
+    return "รหัสผ่านต้องมีตัวพิมพ์เล็ก";
+  }
+
+  if (!/\d/.test(password)) {
+    return "รหัสผ่านต้องมีตัวเลข";
+  }
+
+  if (!/[^A-Za-z0-9]/.test(password)) {
+    return "รหัสผ่านต้องมีอักษรพิเศษ";
+  }
+
+  if (password !== confirmPassword) {
+    return "รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน";
+  }
+
+  return null;
+}
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -20,6 +111,8 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [form, setForm] = useState({
+    prefix_id: "",
+    citizen_id: "",
     first_name: "",
     last_name: "",
     phone: "",
@@ -34,21 +127,36 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { data: organizations, loading: orgsLoading } = useOrganizations();
+
+  const { data: registerOptions, loading: optionsLoading } = useRegisterOptions();
+  const { prefixes, organizations } = registerOptions;
 
   function validate() {
-    if (!form.first_name || !form.last_name) return "กรุณากรอกชื่อ-นามสกุล";
-    if (!form.phone) return "กรุณากรอกเบอร์โทร";
-    if (!form.phone.startsWith("0")) return "กรุณากรอกเบอร์โทรที่เริ่มต้น 0";
-    if (!form.email) return "กรุณากรอกอีเมล";
-    if (form.password.length < 8) return "รหัสผ่านต้องมีอย่างน้อย 8 ตัว";
-    if (!/[A-Z]/.test(form.password)) return "รหัสผ่านต้องมีตัวพิมพ์ใหญ่";
-    if (!/[a-z]/.test(form.password)) return "รหัสผ่านต้องมีตัวพิมพ์เล็ก";
-    if (!/[^A-Za-z0-9]/.test(form.password)) return "รหัสผ่านต้องมีอักษรพิเศษ";
-    if (form.password !== form.confirm_password) return "รหัสผ่านไม่ตรงกัน";
+    const citizenDigits = keepDigitsOnly(form.citizen_id);
+    const phoneDigits = keepDigitsOnly(form.phone);
+    const normalizedEmail = form.email.trim().toLowerCase();
+
+    if (!form.prefix_id) return "กรุณาเลือกคำนำหน้า";
+    if (!form.first_name.trim()) return "กรุณากรอกชื่อ";
+    if (!form.last_name.trim()) return "กรุณากรอกนามสกุล";
+    if (citizenDigits && !isValidThaiCitizenId(citizenDigits))
+      return "กรุณากรอกเลขบัตรประชาชนให้ถูกต้อง";
+    if (!phoneDigits) return "กรุณากรอกเบอร์โทร";
+    if (!phoneDigits.startsWith("0")) return "กรุณากรอกเบอร์โทรที่เริ่มต้น 0";
+    if (phoneDigits.length !== 10) return "กรุณากรอกเบอร์โทร 10 หลัก";
+    if (!normalizedEmail) return "กรุณากรอกอีเมล";
+    if (!isValidEmail(normalizedEmail)) return "กรุณากรอกอีเมลให้ถูกต้อง";
+
+    const passwordValidation = validatePassword(
+      form.password,
+      form.confirm_password,
+    );
+
+    if (passwordValidation) return passwordValidation;
+
     if (userType === "company" && !form.organization_id)
       return "กรุณาเลือกหน่วยงาน";
-    if (otp.length < 6) return "กรุณากรอก OTP ให้ครบ";
+    if (otp.length !== OTP_LENGTH) return `กรุณากรอก OTP ให้ครบ ${OTP_LENGTH} หลัก`;
     return null;
   }
   //ใช้เเค่ตอน submit ของ register
@@ -67,10 +175,12 @@ export default function RegisterPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: form.first_name,
-          surname: form.last_name,
-          phone: form.phone,
-          email: form.email,
+          prefix_id: form.prefix_id ? Number(form.prefix_id) : null,
+          citizen_id: keepDigitsOnly(form.citizen_id) || null,
+          name: form.first_name.trim(),
+          surname: form.last_name.trim(),
+          phone: keepDigitsOnly(form.phone),
+          email: form.email.trim().toLowerCase(),
           password: form.password,
           otp,
           customer_type: userType,
@@ -179,11 +289,33 @@ export default function RegisterPage() {
         <p style={{ fontSize: 16, fontWeight: 1000, color: "#366DBD" }}>
           ข้อมูลส่วนตัว
         </p>
-        <div className="flex flex-col sm:flex-row gap-6">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-[120px_1fr_1fr]">
+          <div className="flex flex-col gap-1">
+            <p style={{ fontSize: 16, fontWeight: 500 }}>คำนำหน้า</p>
+            <div className="relative">
+              <select
+                className={`peer ${styles.input} w-full appearance-none pr-10`}
+                value={form.prefix_id}
+                onChange={(e) => {
+                  setForm({ ...form, prefix_id: e.target.value });
+                }}
+                disabled={optionsLoading}
+              >
+                <option value="">คำนำหน้า</option>
+                {prefixes.map((prefix) => (
+                  <option key={prefix.value} value={prefix.value}>
+                    {prefix.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                className="pointer-events-none absolute right-3 top-1/2 size-5 -translate-y-1/2 text-[#6B7280] transition-transform duration-200 peer-data-[open=true]:rotate-180"
+              />
+            </div>
+          </div>
           <FormInput
             label="ชื่อ"
             placeholder="กรุณากรอกชื่อ"
-            className="flex-1"
             inputClassName={`${styles.input} ${submitted && !form.first_name ? "border-red-500" : ""}`}
             value={form.first_name}
             onChange={(e) => setForm({ ...form, first_name: e.target.value })}
@@ -191,10 +323,24 @@ export default function RegisterPage() {
           <FormInput
             label="นามสกุล"
             placeholder="กรุณากรอกนามสกุล"
-            className="flex-1"
             inputClassName={`${styles.input} ${submitted && !form.last_name ? "border-red-500" : ""}`}
             value={form.last_name}
             onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+          />
+        </div>
+        <div>
+          <FormInput
+            label="เลขบัตรประชาชน"
+            placeholder="1-2345-67890-12-3"
+            maxLength={17}
+            inputClassName={`${styles.input} ${submitted && form.citizen_id && !isValidThaiCitizenId(keepDigitsOnly(form.citizen_id)) ? "border-red-500" : ""}`}
+            value={form.citizen_id}
+            onChange={(e) => {
+              setForm({
+                ...form,
+                citizen_id: formatCitizenIdInput(e.target.value),
+              });
+            }}
           />
         </div>
 
@@ -207,12 +353,11 @@ export default function RegisterPage() {
             placeholder="กรุณากรอกเบอร์โทร"
             className="flex-1"
             type="tel"
-            maxLength={10}
+            maxLength={12}
             inputClassName={`${styles.input} ${submitted && !form.phone ? "border-red-500" : ""}`}
             value={form.phone}
             onChange={(e) => {
-              const val = e.target.value.replace(/\D/g, "");
-              setForm({ ...form, phone: val });
+              setForm({ ...form, phone: formatPhoneInput(e.target.value) });
             }}
           />
           <FormInput
@@ -297,7 +442,7 @@ export default function RegisterPage() {
                   onChange={(e) =>
                     setForm({ ...form, organization_id: e.target.value })
                   }
-                  disabled={orgsLoading}
+                  disabled={optionsLoading}
                 >
                   <option value="">กรุณาเลือกหน่วยงาน</option>
                   {organizations.map((org) => (
@@ -316,10 +461,14 @@ export default function RegisterPage() {
           <p style={{ fontSize: 16, fontWeight: 1000, color: "#366DBD" }}>
             ยืนยันตัวตน
           </p>
-          <OtpInput email={form.email} onOtpChange={setOtp} />
+          <OtpInput email={form.email.trim().toLowerCase()} onOtpChange={setOtp} />
         </div>
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error ? (
+          <p className="rounded-md border border-[#FFB4C0] bg-[#FFF5F7] px-4 py-3 text-sm text-[#D1435B]">
+            {error}
+          </p>
+        ) : null}
 
         <div className="flex justify-end items-center gap-6 px-5">
           <Button

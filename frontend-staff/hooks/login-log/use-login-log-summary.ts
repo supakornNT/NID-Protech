@@ -75,6 +75,13 @@ export function useLoginLogSummary(scope: LoginLogSummaryScope) {
           return;
         }
 
+        if (!scope.date) {
+          result.day = { success: 0, failed: 0, staff: 0, customer: 0 };
+        }
+        if (!scope.month) {
+          result.month = { success: 0, failed: 0, staff: 0, customer: 0 };
+        }
+
         setData(result);
         setError(null);
       } catch (fetchError) {

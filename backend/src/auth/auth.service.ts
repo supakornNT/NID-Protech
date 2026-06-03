@@ -25,9 +25,43 @@ interface StaffRow extends RowDataPacket {
   status: string;
 }
 
+interface CustomerRow extends RowDataPacket {
+  id: number;
+  email: string;
+  password_hash: string;
+  name: string;
+  surname: string;
+  customer_type: 'person' | 'company';
+  organization_id: number | null;
+  status: string;
+}
+
 interface PermissionRow extends RowDataPacket {
   key: string;
   label: string;
+}
+
+interface RegisterPrefixOptionRow extends RowDataPacket {
+  value: number;
+  label: string;
+}
+
+interface RegisterOrganizationOptionRow extends RowDataPacket {
+  id: number;
+  name: string;
+  type: string;
+}
+
+export interface RegisterOptionsResponse {
+  prefixes: Array<{
+    value: number;
+    label: string;
+  }>;
+  organizations: Array<{
+    id: number;
+    name: string;
+    type: string;
+  }>;
 }
 
 type Permission = {
@@ -93,6 +127,20 @@ function mapPermissionsToModules(permissions: Permission[]): ModuleItem[] {
   return Array.from(moduleMap.values());
 }
 
+function isValidThaiCitizenId(value: string) {
+  if (!/^\d{13}$/.test(value)) {
+    return false;
+  }
+
+  const sum = value
+    .slice(0, 12)
+    .split('')
+    .reduce((total, digit, index) => total + Number(digit) * (13 - index), 0);
+  const checkDigit = (11 - (sum % 11)) % 10;
+
+  return checkDigit === Number(value[12]);
+}
+
 export function parseUserAgent(ua: string | null): string {
   if (!ua) return 'Unknown Device';
 
@@ -140,6 +188,36 @@ export class AuthService {
 
   async sendOtp(dto: SendOtpDto): Promise<void> {
     await this.sendOtpToEmail(dto.email);
+  }
+
+  async getRegisterOptions(): Promise<RegisterOptionsResponse> {
+    const [prefixResult, organizationResult] = await Promise.all([
+      this.db.query<RegisterPrefixOptionRow[]>(
+        `
+        SELECT
+          id AS value,
+          name AS label
+        FROM prefixes
+        ORDER BY id ASC
+        `,
+      ),
+      this.db.query<RegisterOrganizationOptionRow[]>(
+        `
+        SELECT
+          id,
+          name,
+          type
+        FROM organizations
+        WHERE status = 'active'
+        ORDER BY name ASC
+        `,
+      ),
+    ]);
+
+    return {
+      prefixes: prefixResult[0],
+      organizations: organizationResult[0],
+    };
   }
 
   async sendOtpToEmail(
@@ -218,7 +296,28 @@ export class AuthService {
   }
 
   async register(dto: RegisterDto): Promise<void> {
-    this.verifyOtp(dto.email, dto.otp);
+    const customerType = dto.customer_type;
+    if (customerType !== 'person' && customerType !== 'company') {
+      throw new BadRequestException('ประเภทผู้ใช้งานไม่ถูกต้อง');
+    }
+
+    const email = dto.email.trim().toLowerCase();
+    const prefixId = dto.prefix_id ?? dto.prefixId ?? null;
+    const citizenId = (dto.citizen_id ?? dto.citizenId ?? null)?.trim() || null;
+    const organizationId =
+      customerType === 'company' ? dto.organization_id ?? null : null;
+
+    if (citizenId && !isValidThaiCitizenId(citizenId)) {
+      throw new BadRequestException('เลขบัตรประชาชนไม่ถูกต้อง');
+    }
+
+    if (!prefixId) {
+      throw new BadRequestException('กรุณาเลือกคำนำหน้า');
+    }
+
+    if (customerType === 'company' && !organizationId) {
+      throw new BadRequestException('กรุณาเลือกหน่วยงาน');
+    }
 
     const [existing] = await this.db.query<RowDataPacket[]>(
       `
@@ -227,18 +326,71 @@ export class AuthService {
       WHERE email = ?
       LIMIT 1
       `,
-      [dto.email],
+      [email],
     );
 
     if (existing.length > 0) {
       throw new BadRequestException('อีเมลนี้ถูกใช้งานแล้ว');
     }
 
+    if (citizenId) {
+      const [existingCitizen] = await this.db.query<RowDataPacket[]>(
+        `
+        SELECT id
+        FROM customers
+        WHERE citizen_id = ?
+        LIMIT 1
+        `,
+        [citizenId],
+      );
+
+      if (existingCitizen.length > 0) {
+        throw new BadRequestException('เลขบัตรประชาชนนี้ถูกใช้งานแล้ว');
+      }
+    }
+
+    if (prefixId) {
+      const [prefixRows] = await this.db.query<RowDataPacket[]>(
+        `
+        SELECT id
+        FROM prefixes
+        WHERE id = ?
+        LIMIT 1
+        `,
+        [prefixId],
+      );
+
+      if (prefixRows.length === 0) {
+        throw new BadRequestException('คำนำหน้าไม่ถูกต้อง');
+      }
+    }
+
+    if (organizationId) {
+      const [organizationRows] = await this.db.query<RowDataPacket[]>(
+        `
+        SELECT id
+        FROM organizations
+        WHERE id = ?
+          AND status = 'active'
+        LIMIT 1
+        `,
+        [organizationId],
+      );
+
+      if (organizationRows.length === 0) {
+        throw new BadRequestException('หน่วยงานไม่ถูกต้องหรือถูกปิดใช้งาน');
+      }
+    }
+
+    this.verifyOtp(email, dto.otp);
+
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
     await this.db.query<ResultSetHeader>(
       `
       INSERT INTO customers (
+        prefix_id,
+        citizen_id,
         name,
         surname,
         email,
@@ -248,16 +400,18 @@ export class AuthService {
         organization_id,
         status
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
+        prefixId,
+        citizenId,
         dto.name,
         dto.surname,
-        dto.email,
+        email,
         dto.phone,
         hashedPassword,
-        dto.customer_type,
-        dto.organization_id ?? null,
+        customerType,
+        organizationId,
         'pending',
       ],
     );
@@ -363,6 +517,82 @@ export class AuthService {
       email: staff.email,
       name: staff.name,
       modules,
+    };
+  }
+
+  async customerLogin(
+    dto: LoginDto,
+    ipAddress: string | null = null,
+    userAgent: string | null = null,
+  ) {
+    const [customerRows] = await this.db.query<CustomerRow[]>(
+      `
+      SELECT
+        id,
+        email,
+        password_hash,
+        name,
+        surname,
+        customer_type,
+        organization_id,
+        status
+      FROM customers
+      WHERE email = ?
+      LIMIT 1
+      `,
+      [dto.email],
+    );
+
+    const customer = customerRows[0];
+
+    if (!customer) {
+      throw new UnauthorizedException('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+    }
+
+    if (customer.status !== 'approved') {
+      await this.recordLoginLog(
+        'customer',
+        customer.id,
+        ipAddress,
+        userAgent,
+        'failed',
+        customer.status === 'pending'
+          ? 'account_pending'
+          : customer.status === 'rejected'
+          ? 'account_rejected'
+          : 'account_inactive',
+      );
+      if (customer.status === 'pending') {
+        throw new UnauthorizedException('บัญชีผู้ใช้ของคุณอยู่ระหว่างการรออนุมัติ');
+      } else if (customer.status === 'rejected') {
+        throw new UnauthorizedException('บัญชีผู้ใช้ของคุณถูกปฏิเสธการลงทะเบียน');
+      } else {
+        throw new UnauthorizedException('บัญชีผู้ใช้ถูกระงับการใช้งาน');
+      }
+    }
+
+    const isPasswordValid = await bcrypt.compare(dto.password, customer.password_hash);
+
+    if (!isPasswordValid) {
+      await this.recordLoginLog(
+        'customer',
+        customer.id,
+        ipAddress,
+        userAgent,
+        'failed',
+        'invalid_password',
+      );
+      throw new UnauthorizedException('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+    }
+
+    await this.recordLoginLog('customer', customer.id, ipAddress, userAgent, 'success');
+
+    return {
+      id: customer.id,
+      email: customer.email,
+      name: `${customer.name} ${customer.surname || ''}`.trim(),
+      customerType: customer.customer_type,
+      organizationId: customer.organization_id,
     };
   }
 }

@@ -39,6 +39,11 @@ export class AuthController {
     return { message: 'ลงทะเบียนสำเร็จ' };
   }
 
+  @Get('register-options')
+  async getRegisterOptions() {
+    return this.authService.getRegisterOptions();
+  }
+
   @Post('login')
   @HttpCode(200)
   async login(@Body() dto: LoginDto, @Req() req: SessionRequest) {
@@ -63,6 +68,38 @@ export class AuthController {
     };
   }
 
+  @Post('login/customer')
+  @HttpCode(200)
+  async customerLogin(@Body() dto: LoginDto, @Req() req: SessionRequest) {
+    const ipAddress =
+      (req.headers['x-forwarded-for'] as string) ||
+      req.socket.remoteAddress ||
+      req.ip ||
+      null;
+    const userAgent = req.headers['user-agent'] || null;
+
+    const customer = await this.authService.customerLogin(dto, ipAddress, userAgent);
+
+    req.session.customer = {
+      id: customer.id,
+      email: customer.email,
+      name: customer.name,
+      customerType: customer.customerType,
+      organizationId: customer.organizationId,
+    };
+
+    return {
+      message: 'login success',
+      user: {
+        id: customer.id,
+        email: customer.email,
+        name: customer.name,
+        customerType: customer.customerType,
+        organizationId: customer.organizationId,
+      },
+    };
+  }
+
   @Get('me')
   getMe(@Req() req: SessionRequest) {
     if (!req.session.staff) {
@@ -77,6 +114,24 @@ export class AuthController {
 
     return {
       ...req.session.staff,
+      sessionExpiresAt,
+    };
+  }
+
+  @Get('me/customer')
+  getCustomerMe(@Req() req: SessionRequest) {
+    if (!req.session.customer) {
+      throw new UnauthorizedException();
+    }
+
+    const maxAge = req.session.cookie.maxAge;
+    const sessionExpiresAt =
+      typeof maxAge === 'number'
+        ? new Date(Date.now() + maxAge).toISOString()
+        : null;
+
+    return {
+      ...req.session.customer,
       sessionExpiresAt,
     };
   }

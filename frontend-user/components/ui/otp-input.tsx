@@ -7,8 +7,10 @@ interface OtpInputProps {
   onOtpChange?: (otp: string) => void;
 }
 
+const OTP_LENGTH = 5;
+
 export function OtpInput({ email, onOtpChange }: OtpInputProps) {
-  const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
+  const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(""));
   const [countdown, setCountdown] = useState<number | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -39,7 +41,7 @@ export function OtpInput({ email, onOtpChange }: OtpInputProps) {
     newOtp[index] = value;
     setOtp(newOtp);
     onOtpChange?.(newOtp.join(""));
-    if (value && index < 5) inputRefs.current[index + 1]?.focus();
+    if (value && index < OTP_LENGTH - 1) inputRefs.current[index + 1]?.focus();
   };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {

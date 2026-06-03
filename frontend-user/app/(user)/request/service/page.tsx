@@ -14,27 +14,30 @@ import { useCustomer } from "@/hooks/use-customer";
 import { useProblemTypes } from "@/hooks/use-problem-types";
 import styles from "../request.module.css";
 import { SuccessDialog } from "@/components/ui/success-dialog";
+import { getCurrentUserId } from "@/lib/user-session";
 import { useSubmit } from "@/hooks/use-submit";
-
-const CUSTOMER_ID = 1;
+import { fetchJson } from "@/lib/fetch";
 
 function RequestServicePageContent() {
   const router = useRouter();
   const [files, setFiles] = useState<File[]>([]);
-  const [identity, setIdentity] = useState<"reveal" | "anonymous">("anonymous");
   const [form, setForm] = useState({
     title: "",
     problem_type_id: "",
     detail: "",
   });
+  const [customerId, setCustomerId] = useState<number | null>(null);
+
+  useEffect(() => {
+    setCustomerId(getCurrentUserId());
+  }, []);
 
   const searchParams = useSearchParams();
 
   useEffect(() => {
     const id = searchParams.get("id");
     if (!id) return;
-    fetch(`http://localhost:4000/requests/detail?id=${id}`)
-      .then((res) => res.json())
+    fetchJson<{ title?: string; detail?: string }>(`/requests/detail?id=${id}`)
       .then((data) => {
         if (data) {
           setForm((prev) => ({
@@ -43,10 +46,11 @@ function RequestServicePageContent() {
             detail: data.detail ?? "",
           }));
         }
-      });
+      })
+      .catch((err) => console.error(err));
   }, [searchParams]);
 
-  const { fullName } = useCustomer(identity === "reveal" ? CUSTOMER_ID : null);
+  const { fullName } = useCustomer(customerId);
   const { data: problemTypes, loading: problemTypesLoading } =
     useProblemTypes("complaint");
   const [submitted, setSubmitted] = useState(false);
@@ -65,8 +69,8 @@ function RequestServicePageContent() {
     }
 
     const formData = new FormData();
-    if (identity === "reveal") {
-      formData.append("customer_id", String(CUSTOMER_ID));
+    if (customerId) {
+      formData.append("customer_id", String(customerId));
     }
     formData.append("title", form.title);
     formData.append("problem_type_id", form.problem_type_id);
@@ -95,31 +99,6 @@ function RequestServicePageContent() {
               value={fullName}
               disabled
             />
-            <div className="flex flex-1 flex-col gap-1">
-              <p style={{ fontSize: 16, fontWeight: 500 }}>การเปิดเผยตัวตน</p>
-              <div className="flex h-9 items-center gap-4">
-                <label className="flex cursor-pointer items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    name="identity"
-                    value="reveal"
-                    checked={identity === "reveal"}
-                    onChange={() => setIdentity("reveal")}
-                  />
-                  ระบุตัวตน
-                </label>
-                <label className="flex cursor-pointer items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    name="identity"
-                    value="anonymous"
-                    checked={identity === "anonymous"}
-                    onChange={() => setIdentity("anonymous")}
-                  />
-                  ไม่ระบุตัวตน
-                </label>
-              </div>
-            </div>
           </div>
 
           <div className="flex flex-col gap-6 sm:flex-row">

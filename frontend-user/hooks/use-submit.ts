@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+
 export function useSubmit(endpoint: string, onSuccess?: () => void) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -10,7 +12,7 @@ export function useSubmit(endpoint: string, onSuccess?: () => void) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`http://localhost:4000${endpoint}`, {
+      const res = await fetch(`${BASE_URL}${endpoint}`, {
         method: "POST",
         body: formData,
       });

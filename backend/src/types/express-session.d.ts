@@ -15,5 +15,12 @@ declare module 'express-session' {
         }[];
       }[];
     };
+    customer?: {
+      id: number;
+      email: string;
+      name: string;
+      customerType: 'person' | 'company';
+      organizationId: number | null;
+    };
   }
 }
