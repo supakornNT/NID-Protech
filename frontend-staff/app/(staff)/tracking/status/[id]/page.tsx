@@ -4,9 +4,9 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
 import Image from "next/image";
+import { useStaffSession } from "@/contexts/staff-session-context";
 import { useComplaintDetail, useLightbox } from "@/hooks/use-complaint-detail";
 import { useTicketsByRequest } from "@/hooks/use-tickets-by-request";
-import { requireCurrentStaffId } from "@/lib/staff-session";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 const IMAGE_EXTS = ["jpg", "jpeg", "png", "gif", "webp"];
@@ -41,6 +41,7 @@ function calcDaysLeft(dueAt: string | null): string {
 export default function TrackingDetailPage() {
   const { id } = useParams();
   const router = useRouter();
+  const { staff } = useStaffSession();
 
   const { data, attachments, loading } = useComplaintDetail(id);
   const { lightbox, setLightbox } = useLightbox();
@@ -60,7 +61,13 @@ export default function TrackingDetailPage() {
 
   async function handleSubmitWork() {
     if (!data) return;
-    const staffId = requireCurrentStaffId();
+    const staffId =
+      typeof staff?.id === "number" ? staff.id : Number(staff?.id);
+
+    if (!staffId) {
+      window.dispatchEvent(new CustomEvent("session:expired"));
+      throw new Error("ไม่พบข้อมูลเจ้าหน้าที่ กรุณาเข้าสู่ระบบใหม่");
+    }
 
     await fetch(`${API_BASE_URL}/requests/${data.id}/submit-work`, {
       method: "PATCH",

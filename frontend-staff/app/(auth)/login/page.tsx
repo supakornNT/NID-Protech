@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FormInputIcon } from "@/components/ui/form-input";
 import { fetchJson } from "@/lib/fetch";
+import { setStoredStaffSession } from "@/lib/staff-session";
 
 type StaffSession = {
   id: number;
@@ -61,7 +62,7 @@ export default function LoginPage() {
         skipSessionExpiredEvent: true,
       });
 
-      localStorage.setItem("protech_staff", JSON.stringify(staff));
+      setStoredStaffSession(staff);
       router.replace("/home");
       router.refresh();
     } catch (e) {
@@ -176,11 +177,9 @@ export default function LoginPage() {
                 />
               </div>
 
-              {error && (
-                <p className="px-5 text-sm font-medium text-red-500">
-                  {error}
-                </p>
-              )}
+              {error ? (
+                <p className="px-5 text-sm font-medium text-red-500">{error}</p>
+              ) : null}
 
               <div className="flex items-center justify-center gap-6 px-5">
                 <Button
@@ -191,7 +190,6 @@ export default function LoginPage() {
                   {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
                 </Button>
               </div>
-
             </form>
           </Card>
         </div>

@@ -4,14 +4,30 @@ export type StoredUserSession = {
   name?: string;
   customerType?: "person" | "company";
   organizationId?: number | null;
+  sessionExpiresAt?: string | null;
 };
+
+const USER_STORAGE_KEY = "protech_user";
+
+export function syncOrganizationCookie(organizationId?: number | null) {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  if (organizationId) {
+    document.cookie = `organization_id=${organizationId}; path=/; max-age=86400; SameSite=Lax`;
+    return;
+  }
+
+  document.cookie = "organization_id=; path=/; max-age=0; SameSite=Lax";
+}
 
 export function getCurrentUser() {
   if (typeof window === "undefined") {
     return null;
   }
 
-  const stored = window.localStorage.getItem("protech_user");
+  const stored = window.localStorage.getItem(USER_STORAGE_KEY);
 
   if (!stored) {
     return null;
@@ -22,6 +38,24 @@ export function getCurrentUser() {
   } catch {
     return null;
   }
+}
+
+export function setStoredUserSession(user: StoredUserSession) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+  syncOrganizationCookie(user.organizationId);
+}
+
+export function clearStoredUserSession() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.removeItem(USER_STORAGE_KEY);
+  syncOrganizationCookie(null);
 }
 
 export function getCurrentUserId() {

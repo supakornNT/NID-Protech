@@ -1,10 +1,33 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
-export async function fetchJson<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, options);
+type FetchJsonInit = RequestInit & {
+  skipSessionExpiredEvent?: boolean;
+};
+
+export async function fetchJson<T>(
+  path: string,
+  options?: FetchJsonInit,
+): Promise<T> {
+  const { skipSessionExpiredEvent = false, ...requestInit } = options ?? {};
+  const res = await fetch(`${BASE_URL}${path}`, {
+    credentials: "include",
+    ...requestInit,
+  });
+  const body = await res.json().catch(() => ({}));
+
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body?.message ?? `HTTP ${res.status}`);
+    if (
+      res.status === 401 &&
+      !skipSessionExpiredEvent &&
+      typeof window !== "undefined"
+    ) {
+      window.dispatchEvent(new CustomEvent("session:expired"));
+    }
+
+    throw new Error(
+      typeof body?.message === "string" ? body.message : `HTTP ${res.status}`,
+    );
   }
-  return res.json() as Promise<T>;
+
+  return body as T;
 }

@@ -15,6 +15,7 @@ export function useSubmit(endpoint: string, onSuccess?: () => void) {
       const res = await fetch(`${BASE_URL}${endpoint}`, {
         method: "POST",
         body: formData,
+        credentials: "include",
       });
       if (!res.ok) throw new Error("ส่งไม่สำเร็จ");
       onSuccess?.();

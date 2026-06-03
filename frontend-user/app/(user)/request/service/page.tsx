@@ -6,15 +6,15 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Paperclip, X } from "lucide-react";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { FormInput } from "@/components/ui/form-input";
 import { useCustomer } from "@/hooks/use-customer";
 import { useProblemTypes } from "@/hooks/use-problem-types";
+import { useUserSession } from "@/contexts/user-session-context";
 import styles from "../request.module.css";
 import { SuccessDialog } from "@/components/ui/success-dialog";
-import { getCurrentUserId } from "@/lib/user-session";
 import { useSubmit } from "@/hooks/use-submit";
 import { fetchJson } from "@/lib/fetch";
 
@@ -26,11 +26,11 @@ function RequestServicePageContent() {
     problem_type_id: "",
     detail: "",
   });
-  const [customerId, setCustomerId] = useState<number | null>(null);
-
-  useEffect(() => {
-    setCustomerId(getCurrentUserId());
-  }, []);
+  const { user } = useUserSession();
+  const customerId = useMemo(() => {
+    const userId = Number(user?.id);
+    return Number.isFinite(userId) && userId > 0 ? userId : null;
+  }, [user?.id]);
 
   const searchParams = useSearchParams();
 
@@ -55,7 +55,7 @@ function RequestServicePageContent() {
     useProblemTypes("complaint");
   const [submitted, setSubmitted] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const { submit } = useSubmit("/requests/service", () => {
+  const { submit, loading, error } = useSubmit("/requests/service", () => {
     setShowSuccess(true);
     setSubmitted(false);
     setForm({ title: "", problem_type_id: "", detail: "" });
@@ -208,14 +208,17 @@ function RequestServicePageContent() {
           </div>
         </div>
 
+        {error ? <p className="px-8 pb-2 text-sm text-red-600">{error}</p> : null}
+        {loading ? <p className="px-8 pb-2 text-sm text-[#3A6FCF]">กำลังส่งข้อมูล...</p> : null}
+
         <div className="flex justify-end px-8 pb-6">
-          <button className={styles.button} onClick={handleSubmit}>
+          <button className={styles.button} onClick={handleSubmit} disabled={loading}>
             ส่ง
           </button>
         </div>
       </Card>
 
-      <SuccessDialog open={showSuccess} onClose={() => router.push("/home")} />
+      <SuccessDialog open={showSuccess} onClose={() => router.push("/track")} />
     </div>
   );
 }

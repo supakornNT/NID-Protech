@@ -5,10 +5,13 @@ import Image from "next/image";
 import styles from "@/app/(auth)/auth.module.css";
 import { FormInputIcon } from "@/components/ui/form-input";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { fetchJson } from "@/lib/fetch";
-import { getCurrentUser } from "@/lib/user-session";
+import {
+  clearStoredUserSession,
+  setStoredUserSession,
+} from "@/lib/user-session";
 
 type LoginResponse = {
   message: string;
@@ -21,20 +24,52 @@ type LoginResponse = {
   };
 };
 
+type CustomerMeResponse = LoginResponse["user"] & {
+  sessionExpiresAt: string | null;
+};
+
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const [error, setError] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextPath = searchParams.get("next") || "/home";
 
   useEffect(() => {
-    const user = getCurrentUser();
-    if (user) {
-      router.push("/home");
+    let cancelled = false;
+
+    async function checkSession() {
+      try {
+        const user = await fetchJson<CustomerMeResponse>("/auth/me/customer", {
+          skipSessionExpiredEvent: true,
+        });
+
+        if (cancelled) {
+          return;
+        }
+
+        setStoredUserSession(user);
+        router.replace(nextPath);
+      } catch {
+        if (cancelled) {
+          return;
+        }
+
+        clearStoredUserSession();
+        setCheckingSession(false);
+      }
     }
-  }, [router]);
+
+    void checkSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [nextPath, router]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -50,17 +85,25 @@ export default function LoginPage() {
       const response = await fetchJson<LoginResponse>("/auth/login/customer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        skipSessionExpiredEvent: true,
         body: JSON.stringify({ email, password }),
       });
 
-      localStorage.setItem("protech_user", JSON.stringify(response.user));
-      document.cookie = `organization_id=${response.user.organizationId || ""}; path=/; max-age=86400; SameSite=Lax`;
-      router.push("/home");
+      setStoredUserSession(response.user);
+      router.push(nextPath);
     } catch (err) {
-      setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+      setError(err instanceof Error ? err.message : "Login failed");
     } finally {
       setLoading(false);
     }
+  }
+
+  if (checkingSession) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center px-4">
+        <p className="text-sm text-gray-500">Checking session...</p>
+      </div>
+    );
   }
 
   return (

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 
+import { useUserSession } from "@/contexts/user-session-context";
 import { fetchJson } from "@/lib/fetch";
 
 export interface DashboardSummary {
@@ -19,6 +20,11 @@ const DEFAULT_SUMMARY: DashboardSummary = {
 };
 
 export function useDashboardSummary() {
+  const { user } = useUserSession();
+  const customerId = React.useMemo(() => {
+    const userId = Number(user?.id);
+    return Number.isFinite(userId) && userId > 0 ? userId : null;
+  }, [user?.id]);
   const [summary, setSummary] =
     React.useState<DashboardSummary>(DEFAULT_SUMMARY);
   const [loading, setLoading] =
@@ -30,13 +36,19 @@ export function useDashboardSummary() {
     const controller = new AbortController();
 
     async function loadSummary() {
+      if (!customerId) {
+        setSummary(DEFAULT_SUMMARY);
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
 
         const data =
           await fetchJson<DashboardSummary>(
-            "/user/dashboard-summary",
+            `/user/dashboard-summary?customerId=${customerId}`,
             {
               signal:
                 controller.signal,
@@ -66,7 +78,7 @@ export function useDashboardSummary() {
     void loadSummary();
 
     return () => controller.abort();
-  }, []);
+  }, [customerId]);
 
   return {
     summary,

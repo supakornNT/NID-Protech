@@ -19,8 +19,8 @@ export class UserPortalService {
     private readonly actionService: UserPortalActionService,
   ) {}
 
-  getDashboardSummary(): Promise<DashboardSummary> {
-    return this.queryService.getDashboardSummary();
+  getDashboardSummary(customerId?: number): Promise<DashboardSummary> {
+    return this.queryService.getDashboardSummary(customerId);
   }
 
   getRequests(query: GetRequestsQuery): Promise<PublicRequestList> {

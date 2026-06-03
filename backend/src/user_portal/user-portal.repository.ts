@@ -47,7 +47,12 @@ export interface PublicRequestPdfRow extends RowDataPacket {
 export class UserPortalRepository {
   constructor(@Inject('DB') private readonly db: Pool) {}
 
-  async getDashboardSummaryRow(): Promise<DashboardSummaryRow | null> {
+  async getDashboardSummaryRow(
+    customerId?: number,
+  ): Promise<DashboardSummaryRow | null> {
+    const whereClause =
+      typeof customerId === 'number' ? 'WHERE r.customer_id = ?' : '';
+    const params = typeof customerId === 'number' ? [customerId] : [];
     const [rows] = await this.db.query<DashboardSummaryRow[]>(
       `SELECT
         COUNT(*) AS total,
@@ -56,7 +61,9 @@ export class UserPortalRepository {
         SUM(CASE WHEN r.status = 'closed' THEN 1 ELSE 0 END) AS completed
       FROM requests r
       INNER JOIN problem_types pt
-        ON pt.id = r.problem_type_id`,
+        ON pt.id = r.problem_type_id
+      ${whereClause}`,
+      params,
     );
 
     return rows[0] ?? null;

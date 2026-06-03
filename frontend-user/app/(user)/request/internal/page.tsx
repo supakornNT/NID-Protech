@@ -2,7 +2,7 @@
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Paperclip, X } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { FormInput } from "@/components/ui/form-input";
@@ -13,7 +13,7 @@ import { useSystems } from "@/hooks/use-systems";
 import styles from "../request.module.css";
 import { SuccessDialog } from "@/components/ui/success-dialog";
 import { useSubmit } from "@/hooks/use-submit";
-import { getCurrentUserId } from "@/lib/user-session";
+import { useUserSession } from "@/contexts/user-session-context";
 
 export default function RequestInternalPage() {
   const router = useRouter();
@@ -24,11 +24,11 @@ export default function RequestInternalPage() {
     system_id: "",
     detail: "",
   });
-  const [customerId, setCustomerId] = useState<number | null>(null);
-
-  useEffect(() => {
-    setCustomerId(getCurrentUserId());
-  }, []);
+  const { user } = useUserSession();
+  const customerId = useMemo(() => {
+    const userId = Number(user?.id);
+    return Number.isFinite(userId) && userId > 0 ? userId : null;
+  }, [user?.id]);
 
   const { data: customer, fullName } = useCustomer(customerId);
   const { data: problemTypes, loading: problemTypesLoading } =
@@ -38,7 +38,7 @@ export default function RequestInternalPage() {
   const currentOrg = organizations.find((o) => o.id === customer?.organization_id);
   const [submitted, setSubmitted] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const { submit } = useSubmit("/requests/internal", () => {
+  const { submit, loading, error } = useSubmit("/requests/internal", () => {
     setShowSuccess(true);
     setSubmitted(false);
     setForm({ title: "", problem_type_id: "", system_id: "", detail: "" });
@@ -212,14 +212,17 @@ export default function RequestInternalPage() {
           </div>
         </div>
 
+        {error ? <p className="px-8 pb-2 text-sm text-red-600">{error}</p> : null}
+        {loading ? <p className="px-8 pb-2 text-sm text-[#3A6FCF]">กำลังส่งข้อมูล...</p> : null}
+
         <div className="flex justify-end px-8 pb-6">
-          <button className={styles.button} onClick={handleSubmit}>
+          <button className={styles.button} onClick={handleSubmit} disabled={loading}>
             ส่ง
           </button>
         </div>
       </Card>
 
-      <SuccessDialog open={showSuccess} onClose={() => router.push("/home")} />
+      <SuccessDialog open={showSuccess} onClose={() => router.push("/track")} />
     </div>
   );
 }

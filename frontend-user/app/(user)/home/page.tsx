@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
@@ -12,28 +11,15 @@ import {
   Phone,
 } from "lucide-react";
 
-import { getCurrentUser } from "@/lib/user-session";
-
+import { ProTechButton } from "@/components/tables/protech-button";
+import { useUserSession } from "@/contexts/user-session-context";
 import { useDashboardSummary } from "@/hooks/use-dashboard-summary";
 
 import styles from "./home.module.css";
-import { ProTechButton } from "@/components/tables/protech-button";
+
 export default function HomePage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    setUser(getCurrentUser());
-  }, []);
-  // Flow หน้านี้:
-  // 1. mount หน้าแล้ว useDashboardSummary() จะเรียก GET /user/dashboard-summary
-  // 2. API คืนค่าสรุปจาก requests ที่อยู่ใน customer tracking flow
-  //    โดยข้อมูลมาจาก table requests:
-  //    - total <- COUNT(*) ของ requests
-  //    - screening <- requests.status = 'screening'
-  //    - inProgress <- requests.status IN ('assigned', 'in_progress')
-  //    - completed <- requests.status = 'closed'
-  // 3. หน้าเอา total/screening/inProgress/completed ไปแทนตัวเลขในการ์ดสรุป
+  const { user } = useUserSession();
   const { summary, loading, error } = useDashboardSummary();
 
   const totalValue = loading ? "..." : String(summary.total);
@@ -73,13 +59,16 @@ export default function HomePage() {
               <h3>แจ้งปัญหา</h3>
               <p>แจ้งปัญหาเกี่ยวกับระบบ</p>
 
-              <ProTechButton onClick={() => {
-                if (user?.organizationId) {
-                  router.push("/request/internal");
-                } else {
+              <ProTechButton
+                onClick={() => {
+                  if (user?.organizationId) {
+                    router.push("/request/internal");
+                    return;
+                  }
+
                   router.push("/request/external");
-                }
-              }}>
+                }}
+              >
                 แจ้งปัญหา
               </ProTechButton>
             </div>
@@ -92,7 +81,7 @@ export default function HomePage() {
               <h3>แจ้งข้อร้องเรียน</h3>
               <p>ร้องเรียนการให้บริการหรือพฤติกรรมของเจ้าหน้าที่</p>
 
-              <ProTechButton onClick={() => {router.push("/request/service")}}>
+              <ProTechButton onClick={() => router.push("/request/service")}>
                 แจ้งข้อร้องเรียน
               </ProTechButton>
             </div>
@@ -110,13 +99,14 @@ export default function HomePage() {
 
             <div className={styles.contactItem}>
               <Mail size={22} />
-              <span>info@NID.protech.com</span>
+              <span>info@nidprotech.com</span>
             </div>
 
             <div className={styles.contactItem}>
               <MapPin size={22} />
               <span>
-                1224 ถ.ศรีนครินทร์ แขวงสวนหลวง เขตสวนหลวง กรุงเทพมหานคร 10250
+                1224 ถนนศรีนครินทร์ แขวงสวนหลวง เขตสวนหลวง กรุงเทพมหานคร
+                10250
               </span>
             </div>
           </div>

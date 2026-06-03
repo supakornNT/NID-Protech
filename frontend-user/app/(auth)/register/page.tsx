@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronLeft } from "lucide-react";
 import { Lock, Eye, EyeOff } from "lucide-react";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useRegisterOptions } from "@/hooks/use-register-options";
 import { fetchJson } from "@/lib/fetch";
 import { SuccessDialog } from "@/components/ui/success-dialog";
+import { setStoredUserSession } from "@/lib/user-session";
 
 type UserType = "person" | "company";
 const OTP_LENGTH = 5;
@@ -126,10 +127,45 @@ export default function RegisterPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
 
 
   const { data: registerOptions, loading: optionsLoading } = useRegisterOptions();
   const { prefixes, organizations } = registerOptions;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkSession() {
+      try {
+        const user = await fetchJson<{ organizationId: number | null }>(
+          "/auth/me/customer",
+          {
+            skipSessionExpiredEvent: true,
+          },
+        );
+
+        if (cancelled) {
+          return;
+        }
+
+        setStoredUserSession(user);
+        router.replace("/home");
+      } catch {
+        if (cancelled) {
+          return;
+        }
+
+        setCheckingSession(false);
+      }
+    }
+
+    void checkSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   function validate() {
     const citizenDigits = keepDigitsOnly(form.citizen_id);
@@ -196,6 +232,14 @@ export default function RegisterPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (checkingSession) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center px-4">
+        <p className="text-sm text-gray-500">Checking session...</p>
+      </div>
+    );
   }
 
   return (

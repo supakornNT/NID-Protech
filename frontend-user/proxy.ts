@@ -1,34 +1,66 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
-export function proxy(request: NextRequest) {
+type CustomerSession = {
+  organizationId?: number | null;
+};
+
+const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"
+).replace(/\/$/, "");
+
+function redirectTo(
+  request: NextRequest,
+  pathname: string,
+  options?: { next?: string },
+) {
+  const url = request.nextUrl.clone();
+  url.pathname = pathname;
+
+  if (options?.next) {
+    url.searchParams.set("next", options.next);
+  }
+
+  return NextResponse.redirect(url);
+}
+
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const cookie = request.headers.get("cookie");
+  const nextPath = `${pathname}${request.nextUrl.search}`;
 
-  // 1. Get the organization_id cookie
-  const orgIdCookie = request.cookies.get("organization_id");
-  const orgId = orgIdCookie?.value;
-
-  // 2. Perform checks for internal module routing
-  if (pathname.startsWith("/request/internal")) {
-    if (!orgId) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/request/external";
-      return NextResponse.redirect(url);
-    }
+  if (!cookie) {
+    return redirectTo(request, "/login", { next: nextPath });
   }
 
-  // 3. Perform checks for external/public module routing
-  if (pathname.startsWith("/request/external")) {
-    if (orgId) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/request/internal";
-      return NextResponse.redirect(url);
-    }
-  }
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/me/customer`, {
+      cache: "no-store",
+      headers: {
+        cookie,
+      },
+    });
 
-  return NextResponse.next();
+    if (!response.ok) {
+      return redirectTo(request, "/login", { next: nextPath });
+    }
+
+    const session = (await response.json()) as CustomerSession;
+    const organizationId = session.organizationId ?? null;
+
+    if (pathname.startsWith("/request/internal") && !organizationId) {
+      return redirectTo(request, "/request/external");
+    }
+
+    if (pathname.startsWith("/request/external") && organizationId) {
+      return redirectTo(request, "/request/internal");
+    }
+
+    return NextResponse.next();
+  } catch {
+    return redirectTo(request, "/login", { next: nextPath });
+  }
 }
 
 export const config = {
-  matcher: ["/request/internal", "/request/external"],
+  matcher: ["/home", "/track/:path*", "/request/:path*"],
 };

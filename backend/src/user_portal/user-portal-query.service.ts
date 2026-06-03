@@ -33,10 +33,10 @@ export class UserPortalQueryService {
     private readonly repository: UserPortalRepository,
   ) {}
 
-  async getDashboardSummary(): Promise<DashboardSummary> {
+  async getDashboardSummary(customerId?: number): Promise<DashboardSummary> {
     await this.maintenanceService.ensureRecentSync();
 
-    const summary = await this.repository.getDashboardSummaryRow();
+    const summary = await this.repository.getDashboardSummaryRow(customerId);
 
     return {
       total: Number(summary?.total ?? 0),

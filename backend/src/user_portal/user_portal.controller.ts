@@ -18,8 +18,11 @@ export class UserPortalController {
   constructor(private readonly userPortalService: UserPortalService) {}
 
   @Get('dashboard-summary')
-  getDashboardSummary() {
-    return this.userPortalService.getDashboardSummary();
+  getDashboardSummary(
+    @Query('customerId', new ParseIntPipe({ optional: true }))
+    customerId?: number,
+  ) {
+    return this.userPortalService.getDashboardSummary(customerId);
   }
 
   @Get('requests')

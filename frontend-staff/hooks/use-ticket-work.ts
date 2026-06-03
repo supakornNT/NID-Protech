@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-import { requireCurrentStaffId } from "@/lib/staff-session";
+import { useStaffSession } from "@/contexts/staff-session-context";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -31,6 +31,7 @@ export function useTicketWork(
   ticketId: string | string[] | undefined,
   staffId?: number,
 ) {
+  const { staff } = useStaffSession();
   const [data, setData] = useState<TicketWorkDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -66,7 +67,13 @@ export function useTicketWork(
   }
 
   async function submitResolution(resolution: string, files: File[]) {
-    const currentStaffId = staffId ?? requireCurrentStaffId();
+    const currentStaffId =
+      staffId ?? (typeof staff?.id === "number" ? staff.id : Number(staff?.id));
+
+    if (!currentStaffId) {
+      window.dispatchEvent(new CustomEvent("session:expired"));
+      throw new Error("ไม่พบข้อมูลเจ้าหน้าที่ กรุณาเข้าสู่ระบบใหม่");
+    }
 
     await fetch(`${API_BASE_URL}/admin/tickets/${resolvedId}`, {
       method: "PATCH",
