@@ -21,7 +21,15 @@ export default function Navbar() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setUser(getCurrentUser());
+      const currentUser = getCurrentUser();
+      setUser(currentUser);
+      
+      // Ensure cookie is in sync with localStorage
+      if (currentUser) {
+        document.cookie = `organization_id=${currentUser.organizationId || ""}; path=/; max-age=86400; SameSite=Lax`;
+      } else {
+        document.cookie = "organization_id=; path=/; max-age=0; SameSite=Lax";
+      }
     }, 0);
     return () => clearTimeout(timer);
   }, []);
@@ -54,6 +62,7 @@ export default function Navbar() {
   async function handleLogout() {
     try {
       localStorage.removeItem("protech_user");
+      document.cookie = "organization_id=; path=/; max-age=0; SameSite=Lax";
       setUser(null);
       setDropdownOpen(false);
       setMobileMenuOpen(false);
@@ -102,12 +111,15 @@ export default function Navbar() {
           </div>
 
           <div className={styles.desktopDropdownMenu}>
-            <Link href="/request/internal">
-              รายงานปัญหาเกี่ยวกับระบบภายในองค์กร
-            </Link>
-            <Link href="/request/external">
-              รายงานปัญหาเกี่ยวกับระบบสาธารณะ
-            </Link>
+            {user?.organizationId ? (
+              <Link href="/request/internal">
+                รายงานปัญหาเกี่ยวกับระบบภายในองค์กร
+              </Link>
+            ) : (
+              <Link href="/request/external">
+                รายงานปัญหาเกี่ยวกับระบบสาธารณะ
+              </Link>
+            )}
             <Link href="/request/service">
               แจ้งข้อร้องเรียนการให้บริการ
             </Link>
@@ -207,21 +219,23 @@ export default function Navbar() {
             mobileSubmenuOpen ? styles.mobileSubmenuOpen : ""
           }`}
         >
-          <Link
-            href="/request/internal"
-            className={styles.mobileSubmenuItem}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            รายงานปัญหาเกี่ยวกับระบบภายในองค์กร
-          </Link>
-
-          <Link
-            href="/request/external"
-            className={styles.mobileSubmenuItem}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            รายงานปัญหาเกี่ยวกับระบบสาธารณะ
-          </Link>
+          {user?.organizationId ? (
+            <Link
+              href="/request/internal"
+              className={styles.mobileSubmenuItem}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              รายงานปัญหาเกี่ยวกับระบบภายในองค์กร
+            </Link>
+          ) : (
+            <Link
+              href="/request/external"
+              className={styles.mobileSubmenuItem}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              รายงานปัญหาเกี่ยวกับระบบสาธารณะ
+            </Link>
+          )}
 
           <Link
             href="/request/service"

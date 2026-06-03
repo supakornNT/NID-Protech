@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
@@ -11,12 +12,19 @@ import {
   Phone,
 } from "lucide-react";
 
+import { getCurrentUser } from "@/lib/user-session";
+
 import { useDashboardSummary } from "@/hooks/use-dashboard-summary";
 
 import styles from "./home.module.css";
 import { ProTechButton } from "@/components/tables/protech-button";
 export default function HomePage() {
   const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    setUser(getCurrentUser());
+  }, []);
   // Flow หน้านี้:
   // 1. mount หน้าแล้ว useDashboardSummary() จะเรียก GET /user/dashboard-summary
   // 2. API คืนค่าสรุปจาก requests ที่อยู่ใน customer tracking flow
@@ -65,7 +73,13 @@ export default function HomePage() {
               <h3>แจ้งปัญหา</h3>
               <p>แจ้งปัญหาเกี่ยวกับระบบ</p>
 
-              <ProTechButton onClick={() => {router.push("/request/external")}}>
+              <ProTechButton onClick={() => {
+                if (user?.organizationId) {
+                  router.push("/request/internal");
+                } else {
+                  router.push("/request/external");
+                }
+              }}>
                 แจ้งปัญหา
               </ProTechButton>
             </div>

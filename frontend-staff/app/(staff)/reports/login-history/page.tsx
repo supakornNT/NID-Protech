@@ -139,10 +139,14 @@ function formatChartLabel(period: LoginLogChartPeriod, value: string) {
 }
 
 function formatSelectedDateLabel(date: string) {
+  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return "-";
+  }
   const [year, month, day] = date.split("-").map(Number);
   const monthName = THAI_MONTH_NAMES[month - 1] ?? month;
   return `${day} ${monthName} ${year}`;
 }
+
 
 function formatSelectedMonthLabel(monthValue: string) {
   if (!monthValue || !/^\d{4}-\d{2}$/.test(monthValue)) {
@@ -250,6 +254,7 @@ export default function ReportLoginHistoryPage() {
   const { data: meta, error: metaError } = useLoginLogMeta();
   const { data: summary, loading: summaryLoading, error: summaryError } =
     useLoginLogSummary({
+      period: selectedPeriod,
       date: selectedDate,
       month: selectedMonth,
       year: selectedYear,
@@ -267,6 +272,15 @@ export default function ReportLoginHistoryPage() {
       limit: PAGE_LIMIT,
       filters: appliedFilters,
     });
+
+  console.log("ReportLoginHistoryPage render:", {
+    selectedPeriod,
+    selectedDate,
+    selectedMonth,
+    selectedYear,
+    chartDataItemsLength: chartData?.items?.length,
+    chartLoading,
+  });
 
   const rows = listData?.items ?? [];
   const pagination = listData?.pagination ?? {

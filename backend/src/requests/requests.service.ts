@@ -274,6 +274,25 @@ export class RequestsService implements OnModuleInit {
     );
   }
 
+  private async generateRequestNo(prefix: 'REQ' | 'RPT'): Promise<string> {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const dateStr = `${yyyy}${mm}${dd}`;
+
+    const [rows] = await this.db.query<RowDataPacket[]>(
+      `SELECT COUNT(*) AS cnt
+       FROM requests
+       WHERE request_no LIKE ?`,
+      [`${prefix}-${dateStr}-%`],
+    );
+
+    const count = (rows[0]?.cnt as number) ?? 0;
+    const seq = String(count + 1).padStart(4, '0');
+    return `${prefix}-${dateStr}-${seq}`;
+  }
+
   private async insertAttachments(
     requestId: number,
     files: Express.Multer.File[],
@@ -291,7 +310,7 @@ export class RequestsService implements OnModuleInit {
     dto: CreateInternalRequestDto,
     files: Express.Multer.File[],
   ) {
-    const requestNo = `REQ-${Date.now()}`;
+    const requestNo = await this.generateRequestNo('REQ');
     const [result] = await this.db.query<ResultSetHeader>(
       `INSERT INTO requests (request_no, customer_id, organization, system_id, problem_type_id, title, detail, status)
        VALUES (?, ?, ?, ?, ?, ?, ?, 'screening')`,
@@ -314,7 +333,7 @@ export class RequestsService implements OnModuleInit {
     dto: CreateExternalRequestDto,
     files: Express.Multer.File[],
   ) {
-    const requestNo = `REQ-${Date.now()}`;
+    const requestNo = await this.generateRequestNo('REQ');
     const [result] = await this.db.query<ResultSetHeader>(
       `INSERT INTO requests (request_no, customer_id, system_id, problem_type_id, title, detail, status)
        VALUES (?, ?, ?, ?, ?, ?, 'screening')`,
@@ -336,7 +355,7 @@ export class RequestsService implements OnModuleInit {
     dto: CreateServiceRequestDto,
     files: Express.Multer.File[],
   ) {
-    const requestNo = `REQ-${Date.now()}`;
+    const requestNo = await this.generateRequestNo('RPT');
     const [result] = await this.db.query<ResultSetHeader>(
       `INSERT INTO requests (request_no, customer_id, problem_type_id, title, detail, status)
        VALUES (?, ?, ?, ?, ?, 'screening')`,

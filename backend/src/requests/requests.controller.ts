@@ -32,7 +32,8 @@ mkdirSync(requestsUploadDir, { recursive: true });
 const internalStorage = diskStorage({
   destination: requestsUploadDir,
   filename(_req, file, cb) {
-    cb(null, file.originalname);
+    const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    cb(null, `${unique}-${file.originalname}`);
   },
 });
 

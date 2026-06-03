@@ -38,14 +38,19 @@
 }
 
 .button {
-    background-color: #0844eb;
+    background-color: #2F66C5;
     color: white;
     font-size: 14px;
     padding: 8px 24px;
     border-radius: 9999px;
     cursor: pointer;
+    transition: background-color 0.15s ease;
 }
 
 .button:hover {
-    background-color: #0636c4;
+    background-color: #2557AE;
+}
+
+.button:active {
+    background-color: #1F4B99;
 }

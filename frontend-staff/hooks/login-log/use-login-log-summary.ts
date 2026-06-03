@@ -26,6 +26,7 @@ export type LoginLogSummary = {
 };
 
 type LoginLogSummaryScope = {
+  period: "day" | "month" | "year";
   date: string;
   month: string;
   year: number;
@@ -37,6 +38,28 @@ export function useLoginLogSummary(scope: LoginLogSummaryScope) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (scope.period === "day" && (!scope.date || !/^\d{4}-\d{2}-\d{2}$/.test(scope.date))) {
+      setData({
+        day: { success: 0, failed: 0, staff: 0, customer: 0 },
+        month: { success: 0, failed: 0, staff: 0, customer: 0 },
+        year: { success: 0, failed: 0, staff: 0, customer: 0 },
+      });
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
+    if (scope.period === "month" && (!scope.month || !/^\d{4}-\d{2}$/.test(scope.month))) {
+      setData({
+        day: { success: 0, failed: 0, staff: 0, customer: 0 },
+        month: { success: 0, failed: 0, staff: 0, customer: 0 },
+        year: { success: 0, failed: 0, staff: 0, customer: 0 },
+      });
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     const controller = new AbortController();
 
     async function fetchSummary() {
@@ -104,7 +127,7 @@ export function useLoginLogSummary(scope: LoginLogSummaryScope) {
     return () => {
       controller.abort();
     };
-  }, [scope.date, scope.month, scope.year]);
+  }, [scope.date, scope.month, scope.period, scope.year]);
 
   return {
     data,

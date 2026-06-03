@@ -35,7 +35,15 @@ export function useLoginLogChart(scope: LoginLogChartScope) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (scope.period === "day" && !scope.date) {
+    console.log("useLoginLogChart useEffect trigger:", {
+      period: scope.period,
+      date: scope.date,
+      month: scope.month,
+      year: scope.year,
+    });
+
+    if (scope.period === "day" && (!scope.date || !/^\d{4}-\d{2}-\d{2}$/.test(scope.date))) {
+      console.log("useLoginLogChart early return empty items for day period");
       setData({
         period: "day",
         selectedDate: "",
@@ -48,7 +56,8 @@ export function useLoginLogChart(scope: LoginLogChartScope) {
       return;
     }
 
-    if (scope.period === "month" && !scope.month) {
+    if (scope.period === "month" && (!scope.month || !/^\d{4}-\d{2}$/.test(scope.month))) {
+      console.log("useLoginLogChart early return empty items for month period");
       setData({
         period: "month",
         selectedDate: "",

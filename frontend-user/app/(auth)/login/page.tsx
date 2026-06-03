@@ -54,6 +54,7 @@ export default function LoginPage() {
       });
 
       localStorage.setItem("protech_user", JSON.stringify(response.user));
+      document.cookie = `organization_id=${response.user.organizationId || ""}; path=/; max-age=86400; SameSite=Lax`;
       router.push("/home");
     } catch (err) {
       setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
