@@ -1,22 +1,39 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import type { Pool, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { renderToBuffer } from '@react-pdf/renderer';
-import { existsSync, mkdirSync } from 'fs';
+import { mkdirSync } from 'fs';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
+import { networkInterfaces } from 'os';
 import React from 'react';
 import * as QRCode from 'qrcode';
+
+function getLocalIp(): string {
+  const nets = networkInterfaces();
+  for (const iface of Object.values(nets)) {
+    for (const net of iface ?? []) {
+      if (net.family === 'IPv4' && !net.internal) return net.address;
+    }
+  }
+  return 'localhost';
+}
 import { CreateScreeningDto } from './dto/create-screening.dto';
 import { UpdateScreeningDto } from './dto/update-screening.dto';
 import type { Screening } from './interfaces/screening.interface';
-import { ScreeningPdfDataRow, ScreeningPdfData } from './interfaces/screening-pdf.interface';
+import { ScreeningPdfData } from './interfaces/screening-pdf.interface';
 import { ScreeningReceiptTemplate } from './templates/screening-receipt.template';
 
 @Injectable()
 export class ScreeningsService implements OnModuleInit {
   constructor(@Inject('DB') private readonly db: Pool) {}
 
-  private readonly pdfDir = join(process.cwd(), '..', 'uploads', 'pdf', 'screening');
+  private readonly pdfDir = join(
+    process.cwd(),
+    '..',
+    'uploads',
+    'pdf',
+    'screening',
+  );
 
   onModuleInit() {
     mkdirSync(this.pdfDir, { recursive: true });
@@ -56,7 +73,10 @@ export class ScreeningsService implements OnModuleInit {
     return rows[0] ?? null;
   }
 
-  async findPdfData(requestId: number, staffId: number): Promise<ScreeningPdfData | null> {
+  async findPdfData(
+    requestId: number,
+    staffId: number,
+  ): Promise<ScreeningPdfData | null> {
     const [rows] = await this.db.query<(ScreeningPdfData & RowDataPacket)[]>(
       `SELECT
         r.id AS requestId,
@@ -84,11 +104,15 @@ export class ScreeningsService implements OnModuleInit {
   }
 
   async generatePdf(data: ScreeningPdfData): Promise<string> {
-    const qrDataUrl = await QRCode.toDataURL(data.requestNo);
-    const element = React.createElement(
-      ScreeningReceiptTemplate,
-      { data, qrDataUrl },
-    ) as unknown as React.ReactElement<any>;
+    const portalUrl =
+      process.env.USER_PORTAL_URL ?? `http://${getLocalIp()}:3000`;
+    const qrDataUrl = await QRCode.toDataURL(
+      `${portalUrl}/track/${data.requestNo}`,
+    );
+    const element = React.createElement(ScreeningReceiptTemplate, {
+      data,
+      qrDataUrl,
+    }) as unknown as React.ReactElement<any>;
 
     const buffer = await renderToBuffer(element);
     const filePath = join(this.pdfDir, `${data.requestId}.pdf`);

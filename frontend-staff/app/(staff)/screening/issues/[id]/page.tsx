@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { FileText, ImageIcon, X } from "lucide-react";
+import { ArrowLeft, FileText, ImageIcon, X } from "lucide-react";
 import { useComplaintDetail, useLightbox } from "@/hooks/use-complaint-detail";
 import { useLoadingDelay } from "@/hooks/use-loading-delay";
 
@@ -111,10 +111,21 @@ export default function IssueDetailPage() {
           ) : (
             <>
               <div className="border-b px-8 pt-6 pb-4">
-                <h1 className="text-[22px] font-bold text-gray-900">รายละเอียดประเด็นปัญหา</h1>
-                <p className="mt-1 text-[13px] text-gray-400">
-                  {isInternal ? "ภายในองค์กร" : "บุคคลทั่วไป"}
-                </p>
+                <div className="flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => router.back()}
+                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 shadow-sm hover:bg-gray-50 hover:text-gray-700"
+                  >
+                    <ArrowLeft size={18} />
+                  </button>
+                  <div>
+                    <h1 className="text-[22px] font-bold text-gray-900">รายละเอียดประเด็นปัญหา</h1>
+                    <p className="mt-1 text-[13px] text-gray-400">
+                      {isInternal ? "ภายในองค์กร" : "บุคคลทั่วไป"}
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <div className="flex flex-col gap-5 px-8 py-6">
@@ -157,27 +168,26 @@ export default function IssueDetailPage() {
                     const ext = file.fileExt.toLowerCase();
                     const isImage = IMAGE_EXTS.includes(ext);
                     const nameNoExt = file.originalName.replace(new RegExp(`\\.${ext}$`, "i"), "");
-                    return (
-                      <div key={file.id} className="flex items-center rounded-xl border border-gray-200 bg-white px-3 py-2.5">
-                        <button
-                          type="button"
-                          onClick={() => isImage && setLightbox(url)}
-                          className={`flex min-w-0 items-center gap-3 ${isImage ? "cursor-zoom-in" : "cursor-default"}`}
-                        >
-                          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isImage ? "bg-blue-50" : "bg-red-50"}`}>
-                            {isImage ? <ImageIcon size={20} className="text-blue-500" /> : <FileText size={20} className="text-red-500" />}
-                          </div>
-                          <div className="flex min-w-0 flex-col text-left">
-                            <span className="truncate text-[13px] font-medium text-gray-800">{nameNoExt}</span>
-                            <span className="text-[11px] text-gray-400">{ext.toUpperCase()}</span>
-                          </div>
-                        </button>
-                        {!isImage && (
-                          <a href={url} target="_blank" rel="noreferrer" className="ml-auto shrink-0 text-[12px] text-[#366DBD] hover:underline">
-                            เปิด
-                          </a>
-                        )}
-                      </div>
+                    return isImage ? (
+                      <button key={file.id} type="button" onClick={() => setLightbox(url)} className="flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5 cursor-zoom-in hover:bg-gray-50">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50">
+                          <ImageIcon size={20} className="text-blue-500" />
+                        </div>
+                        <div className="flex min-w-0 flex-col text-left">
+                          <span className="truncate text-[13px] font-medium text-gray-800">{nameNoExt}</span>
+                          <span className="text-[11px] text-gray-400">{ext.toUpperCase()}</span>
+                        </div>
+                      </button>
+                    ) : (
+                      <a key={file.id} href={url} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5 hover:bg-gray-50">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-50">
+                          <FileText size={20} className="text-red-500" />
+                        </div>
+                        <div className="flex min-w-0 flex-col text-left">
+                          <span className="truncate text-[13px] font-medium text-gray-800">{nameNoExt}</span>
+                          <span className="text-[11px] text-gray-400">{ext.toUpperCase()}</span>
+                        </div>
+                      </a>
                     );
                   })}
                 </div>

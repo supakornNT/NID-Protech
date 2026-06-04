@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import {
   AlertCircle,
+  ArrowLeft,
   CheckCircle2,
   FileText,
   ImageIcon,
@@ -107,7 +108,7 @@ function CloseWorkDetailSkeleton() {
           {Array.from({ length: 3 }).map((_, index) => (
             <div
               key={index}
-              className="h-[108px] rounded-2xl border border-gray-200 bg-gray-100"
+              className="h-27 rounded-2xl border border-gray-200 bg-gray-100"
             />
           ))}
         </div>
@@ -385,15 +386,23 @@ export default function CloseWorkDetailPage() {
 
       <div className="flex flex-1 flex-col gap-6 bg-[#F0F4FA] p-8">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-[28px] font-bold text-gray-900">พิจารณาปิดงาน</h1>
-            <p className="text-[14px] text-gray-500">
-              {tab === "pending"
-                ? "เลือกตั๋วย่อยจากฝั่งซ้ายเพื่อดูรายละเอียดและพิจารณาอนุมัติ"
-                : "ดูประวัติการพิจารณาปิดงานแบบอ่านอย่างเดียว"}
-            </p>
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 shadow-sm hover:bg-gray-50 hover:text-gray-700"
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <div>
+              <h1 className="text-[22px] font-bold text-gray-900">พิจารณาปิดงาน</h1>
+              <p className="text-[13px] text-gray-500">
+                {tab === "pending"
+                  ? "เลือกตั๋วย่อยจากฝั่งซ้ายเพื่อดูรายละเอียดและพิจารณาอนุมัติ"
+                  : "ดูประวัติการพิจารณาปิดงานแบบอ่านอย่างเดียว"}
+              </p>
+            </div>
           </div>
-
         </div>
 
         {((loading && !selectedRequest) || requestLoading) && showSkeleton ? (
@@ -430,23 +439,26 @@ export default function CloseWorkDetailPage() {
                       const isImage = IMAGE_EXTENSIONS.has(ext);
                       const url = `${API_BASE_URL}/uploads/requests/${file.savedName}`;
                       const nameNoExt = file.originalName.replace(/\.[^.]+$/, "");
-                      return (
-                        <div key={file.id} className="flex items-center rounded-xl border border-gray-200 bg-white px-3 py-2.5">
-                          <button
-                            type="button"
-                            onClick={() => isImage && setLightbox(url)}
-                            className={`flex min-w-0 items-center gap-3 ${isImage ? "cursor-zoom-in" : "cursor-default"}`}
-                          >
-                            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isImage ? "bg-blue-50" : "bg-red-50"}`}>
-                              {isImage ? <ImageIcon size={20} className="text-blue-500" /> : <FileText size={20} className="text-red-500" />}
-                            </div>
-                            <div className="flex min-w-0 flex-col text-left">
-                              <span className="truncate text-[13px] font-medium text-gray-800">{nameNoExt}</span>
-                              <span className="text-[11px] text-gray-400">{ext.toUpperCase()}</span>
-                            </div>
-                          </button>
-                          {!isImage && <a href={url} target="_blank" rel="noreferrer" className="ml-auto shrink-0 text-[12px] text-[#366DBD] hover:underline">เปิด</a>}
-                        </div>
+                      return isImage ? (
+                        <button key={file.id} type="button" onClick={() => setLightbox(url)} className="flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5 cursor-zoom-in hover:bg-gray-50">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50">
+                            <ImageIcon size={20} className="text-blue-500" />
+                          </div>
+                          <div className="flex min-w-0 flex-col text-left">
+                            <span className="truncate text-[13px] font-medium text-gray-800">{nameNoExt}</span>
+                            <span className="text-[11px] text-gray-400">{ext.toUpperCase()}</span>
+                          </div>
+                        </button>
+                      ) : (
+                        <a key={file.id} href={url} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5 hover:bg-gray-50">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-50">
+                            <FileText size={20} className="text-red-500" />
+                          </div>
+                          <div className="flex min-w-0 flex-col text-left">
+                            <span className="truncate text-[13px] font-medium text-gray-800">{nameNoExt}</span>
+                            <span className="text-[11px] text-gray-400">{ext.toUpperCase()}</span>
+                          </div>
+                        </a>
                       );
                     })
                   )}
@@ -466,7 +478,7 @@ export default function CloseWorkDetailPage() {
                     {Array.from({ length: 3 }).map((_, index) => (
                       <div
                         key={index}
-                        className="h-[108px] animate-pulse rounded-2xl border border-gray-200 bg-gray-100"
+                        className="h-27 animate-pulse rounded-2xl border border-gray-200 bg-gray-100"
                       />
                     ))}
                   </div>
@@ -537,7 +549,7 @@ export default function CloseWorkDetailPage() {
                 <div className="flex flex-1 flex-col items-center justify-center text-center">
                   <ShieldCheck size={36} className="mb-3 text-[#A8B1C2]" />
                   <p className="text-[18px] font-bold text-gray-800">เลือกตั๋วย่อยเพื่อพิจารณา</p>
-                  <p className="mt-1 max-w-[360px] text-[14px] text-gray-500">
+                  <p className="mt-1 max-w-90 text-[14px] text-gray-500">
                     ฝั่งขวาจะแสดงรายละเอียดการแก้ไขของตั๋วที่คุณกดเลือกจากฝั่งซ้าย
                   </p>
                 </div>
@@ -639,7 +651,7 @@ export default function CloseWorkDetailPage() {
                       <div className="flex flex-wrap justify-end gap-3">
                           <ProTechButton
                             variant="delete"
-                            className="h-10 min-w-[140px]"
+                            className="h-10 min-w-35"
                             onClick={() => {
                               setRejectReason("");
                               setModal("confirmReject");
@@ -650,7 +662,7 @@ export default function CloseWorkDetailPage() {
                           </ProTechButton>
                           <ProTechButton
                             variant="primary"
-                            className="h-10 min-w-[140px]"
+                            className="h-10 min-w-35"
                             onClick={() => setModal("confirmApprove")}
                             disabled={actionLoading}
                           >
@@ -685,10 +697,10 @@ export default function CloseWorkDetailPage() {
             คุณต้องการอนุมัติผลการแก้ไขของตั๋วย่อยนี้ใช่หรือไม่
           </p>
           <div className="flex justify-center gap-3">
-            <ProTechButton variant="delete" className="h-10 min-w-[120px]" onClick={() => setModal(null)}>
+            <ProTechButton variant="delete" className="h-10 min-w-30" onClick={() => setModal(null)}>
               ยกเลิก
             </ProTechButton>
-            <ProTechButton variant="primary" className="h-10 min-w-[120px]" onClick={handleApprove} disabled={actionLoading}>
+            <ProTechButton variant="primary" className="h-10 min-w-30" onClick={handleApprove} disabled={actionLoading}>
               ยืนยัน
             </ProTechButton>
           </div>
@@ -739,7 +751,7 @@ export default function CloseWorkDetailPage() {
           <div className="flex justify-center gap-3">
             <ProTechButton
               variant="delete"
-              className="h-10 min-w-[120px]"
+              className="h-10 min-w-30"
               onClick={() => {
                 setModal(null);
                 setRejectReason("");
@@ -749,7 +761,7 @@ export default function CloseWorkDetailPage() {
             </ProTechButton>
             <ProTechButton
               variant="primary"
-              className="h-10 min-w-[120px]"
+              className="h-10 min-w-30"
               onClick={handleReject}
               disabled={actionLoading || !rejectReason.trim()}
             >
@@ -775,7 +787,7 @@ export default function CloseWorkDetailPage() {
           </div>
           <p className="text-[15px] leading-7 text-gray-600">บันทึกผลการอนุมัติเรียบร้อยแล้ว</p>
           <div className="flex justify-center">
-            <ProTechButton variant="primary" className="h-10 min-w-[120px]" onClick={() => setModal(null)}>
+            <ProTechButton variant="primary" className="h-10 min-w-30" onClick={() => setModal(null)}>
               ตกลง
             </ProTechButton>
           </div>
@@ -798,7 +810,7 @@ export default function CloseWorkDetailPage() {
           </div>
           <p className="text-[15px] leading-7 text-gray-600">ส่งตั๋วย่อยกลับไปแก้ไขเรียบร้อยแล้ว</p>
           <div className="flex justify-center">
-            <ProTechButton variant="primary" className="h-10 min-w-[120px]" onClick={() => setModal(null)}>
+            <ProTechButton variant="primary" className="h-10 min-w-30" onClick={() => setModal(null)}>
               ตกลง
             </ProTechButton>
           </div>
@@ -823,7 +835,7 @@ export default function CloseWorkDetailPage() {
             {errorMessage || "ไม่สามารถดำเนินการได้ในขณะนี้"}
           </p>
           <div className="flex justify-center">
-            <ProTechButton variant="primary" className="h-10 min-w-[120px]" onClick={() => setModal(null)}>
+            <ProTechButton variant="primary" className="h-10 min-w-30" onClick={() => setModal(null)}>
               ตกลง
             </ProTechButton>
           </div>

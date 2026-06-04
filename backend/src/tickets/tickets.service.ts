@@ -14,7 +14,7 @@ import { SubmitTicketResolutionDto } from './dto/submit-ticket-resolution.dto';
 
 @Injectable()
 export class TicketsService {
-  constructor(@Inject('DB') private readonly db: Pool) { }
+  constructor(@Inject('DB') private readonly db: Pool) {}
 
   async findByStaff(staffId: number) {
     const [rows] = await this.db.query<TicketByRequest[]>(

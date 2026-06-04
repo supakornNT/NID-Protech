@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import {
   AlertCircle,
+  ArrowLeft,
   FileText,
   ImageIcon,
   Plus,
@@ -140,23 +141,39 @@ export default function OperationDetailPage() {
 
       <div className="flex flex-1 flex-col gap-4 bg-[#F0F4FA] p-8">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-[28px] font-bold text-gray-900">
-              {data?.ticketTitle ?? "รายละเอียดงาน"}
-            </h1>
-            <p className="text-[14px] text-gray-500">
-              {data?.ticketDescription ?? "-"}
-            </p>
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 shadow-sm hover:bg-gray-50 hover:text-gray-700"
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <div>
+              <h1 className="text-[22px] font-bold text-gray-900">
+                {data?.ticketTitle ?? "รายละเอียดงาน"}
+              </h1>
+              <p className="text-[13px] text-gray-500">
+                {data?.ticketDescription ?? "-"}
+              </p>
+            </div>
           </div>
-          <a
-            href={`${API_BASE_URL}/requests/${data?.requestId}/pdf`}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-[14px] text-gray-700 hover:bg-gray-50"
-          >
-            <FileText size={15} />
-            ดูเอกสาร
-          </a>
+          {data?.requestId ? (
+            <a
+              href={`${API_BASE_URL}/requests/${data.requestId}/pdf`}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-[14px] text-gray-700 hover:bg-gray-50"
+            >
+              <FileText size={15} />
+              ดูเอกสาร
+            </a>
+          ) : (
+            <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-100 px-4 py-2 text-[14px] text-gray-400 cursor-not-allowed">
+              <FileText size={15} />
+              ดูเอกสาร
+            </div>
+          )}
         </div>
 
         {!!data?.rejectNote && (

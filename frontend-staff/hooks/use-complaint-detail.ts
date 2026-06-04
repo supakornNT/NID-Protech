@@ -51,6 +51,7 @@ export function useComplaintDetail(id: string | string[] | undefined) {
 
   useEffect(() => {
     if (!id) return;
+    let cancelled = false;
     setError(false);
     const rawId = (Array.isArray(id) ? id[0] : id) as string;
 
@@ -74,6 +75,7 @@ export function useComplaintDetail(id: string | string[] | undefined) {
 
     loadByRequestId(rawId)
       .then(async ({ detail, files }) => {
+        if (cancelled) return;
         if (detail) {
           setResolvedRequestId(rawId);
           setData(detail);
@@ -92,6 +94,8 @@ export function useComplaintDetail(id: string | string[] | undefined) {
         const ticketDetail =
           (await ticketDetailResponse.json()) as WorkDetailResponse | null;
 
+        if (cancelled) return;
+
         if (!ticketDetail?.requestId) {
           setResolvedRequestId(rawId);
           setData(null);
@@ -102,12 +106,15 @@ export function useComplaintDetail(id: string | string[] | undefined) {
         const fallbackRequestId = String(ticketDetail.requestId);
         const fallback = await loadByRequestId(fallbackRequestId);
 
+        if (cancelled) return;
         setResolvedRequestId(fallbackRequestId);
         setData(fallback.detail);
         setAttachments(fallback.files);
       })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
+      .catch(() => { if (!cancelled) setError(true); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+
+    return () => { cancelled = true; };
   }, [id]);
 
   return { data, attachments, loading, error, resolvedRequestId };
