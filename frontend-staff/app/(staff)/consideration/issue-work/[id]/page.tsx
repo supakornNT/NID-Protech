@@ -15,6 +15,14 @@ import { useDeleteTicket } from "@/hooks/assign/use-delete-ticket";
 import { useUpdateRequestDueDate } from "@/hooks/use-update-request-due-date";
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { useRequestStatusLog } from "@/hooks/use-request-status-log";
+import { useStaffSession } from "@/contexts/staff-session-context";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -37,6 +45,8 @@ interface EditModal {
 export default function ManageWorkDetailPage() {
   const { id } = useParams();
   const router = useRouter();
+  const { staff } = useStaffSession();
+  const staffId = typeof staff?.id === "number" ? staff.id : Number(staff?.id);
   const { data, attachments, loading, resolvedRequestId } = useComplaintDetail(id);
   const { lightbox, setLightbox } = useLightbox();
   const showSkeleton = useLoadingDelay(loading, 200);
@@ -44,7 +54,7 @@ export default function ManageWorkDetailPage() {
     resolvedRequestId ?? (Array.isArray(id) ? id[0] : id);
   const { tickets, refetch } = useTicketsByRequest(effectiveRequestId);
   const { updateStatus } = useUpdateRequestStatus();
-  const { logStatus } = useRequestStatusLog(0);
+  const { logStatus } = useRequestStatusLog(staffId);
   const { updateDueDate, loading: dueDateLoading } = useUpdateRequestDueDate();
   const [subPage, setSubPage] = useState(1);
   const [subSearch, setSubSearch] = useState("");
@@ -81,6 +91,7 @@ export default function ManageWorkDetailPage() {
     description: "",
     dueAt: "",
   });
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
   const { updateTicket, loading: updateLoading } = useUpdateTicket(() => {
     setEditModal({
@@ -130,6 +141,7 @@ export default function ManageWorkDetailPage() {
 
   async function handleSaveEdit() {
     if (!editModal.ticketId) return;
+    if (!editForm.title.trim()) return;
     await updateTicket(editModal.ticketId, {
       title: editForm.title,
       description: editForm.description,
@@ -565,7 +577,7 @@ export default function ManageWorkDetailPage() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => deleteTicket(task.id)}
+                        onClick={() => setDeleteConfirmId(task.id)}
                         className="rounded-md bg-[#D9534F] px-3  text-[14px] text-white hover:bg-red-600"
                       >
                         ลบ
@@ -631,6 +643,40 @@ export default function ManageWorkDetailPage() {
         </div>
       )}
     </div>
+
+      {/* Delete confirmation dialog */}
+      <Dialog
+        open={deleteConfirmId !== null}
+        onOpenChange={(open) => { if (!open) setDeleteConfirmId(null); }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>ยืนยันการลบ</DialogTitle>
+          </DialogHeader>
+          <p className="text-[14px] text-gray-600">คุณต้องการลบงานย่อยนี้ใช่หรือไม่? การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
+          <DialogFooter className="flex gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => setDeleteConfirmId(null)}
+              className="rounded-lg border border-gray-300 px-4 py-2 text-[13px] text-gray-600 hover:bg-gray-50"
+            >
+              ยกเลิก
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (deleteConfirmId !== null) {
+                  deleteTicket(deleteConfirmId);
+                  setDeleteConfirmId(null);
+                }
+              }}
+              className="rounded-lg bg-[#D9534F] px-5 py-2 text-[13px] font-semibold text-white hover:bg-red-600"
+            >
+              ลบ
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
   </>
 );
 }

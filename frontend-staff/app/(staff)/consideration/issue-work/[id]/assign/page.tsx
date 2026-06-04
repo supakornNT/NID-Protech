@@ -372,7 +372,7 @@ export default function AssignWorkPage() {
             </button>
             <button
               type="button"
-              disabled={submitting}
+              disabled={submitting || !title.trim() || !detail.trim()}
               onClick={() => {
                 if (!modalStaff) return;
                 createTicket({

@@ -15,7 +15,8 @@
       "Bash(taskkill /PID 8136 /F)",
       "PowerShell(Stop-Process -Id 8136 -Force)",
       "Bash(npm uninstall *)",
-      "Bash(grep -r \"console\\\\\\\\.log\" app --include=\"*.tsx\" --include=\"*.ts\")"
+      "Bash(grep -r \"console\\\\\\\\.log\" app --include=\"*.tsx\" --include=\"*.ts\")",
+      "Bash(dir \"C:\\\\Users\\\\deadc\\\\NID-Protech\\\\frontend-staff\")"
     ]
   }
 }

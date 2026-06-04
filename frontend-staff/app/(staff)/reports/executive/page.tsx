@@ -34,7 +34,11 @@ export default function ReportExecutivePage() {
           <h1 className="text-[32px] font-semibold text-gray-900">รายงานสรุปผล</h1>
           <p className="text-[16px] text-gray-500">สำหรับผู้บริหาร</p>
         </div>
-        <button type="button" className="flex items-center gap-2 rounded-lg border border-[#366DBD] px-4 py-2 text-[14px] text-[#366DBD] hover:bg-blue-50">
+        <button
+          type="button"
+          onClick={() => alert("ฟีเจอร์นี้ยังไม่พร้อมใช้งาน")}
+          className="flex items-center gap-2 rounded-lg border border-[#366DBD] px-4 py-2 text-[14px] text-[#366DBD] hover:bg-blue-50"
+        >
           <Upload size={15} />
           Export PDF
         </button>

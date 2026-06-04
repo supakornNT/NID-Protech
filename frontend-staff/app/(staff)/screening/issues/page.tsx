@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Info, Search } from "lucide-react";
+import { useStaffSession } from "@/contexts/staff-session-context";
 
 import { ProTechButton } from "@/components/tables/protech-button";
 import { ProTechTable } from "@/components/tables/protech-table";
@@ -81,6 +82,8 @@ function StatusCell({
 }
 
 export default function IssuesPage() {
+  const { staff } = useStaffSession();
+  const staffId = typeof staff?.id === "number" ? staff.id : Number(staff?.id);
   const { rows, setRows, loading } = useRequests("issue");
   const {
     rejectId,
@@ -101,7 +104,7 @@ export default function IssuesPage() {
     closeAccept,
   } = useAcceptComplaint(
     (id) => setRows((prev) => prev.filter((row) => row.id !== id)),
-    0,
+    staffId,
   );
 
   const [search, setSearch] = useState("");
@@ -321,6 +324,7 @@ export default function IssuesPage() {
 
           <button
             type="button"
+            onClick={() => setPage(1)}
             className="h-9 rounded-lg bg-[#366DBD] px-5 text-[14px] font-semibold text-white transition hover:bg-[#2d5da3]"
           >
             ค้นหา
