@@ -36,9 +36,9 @@ interface EditModal {
 export default function ManageWorkDetailPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { data, attachments, loading } = useComplaintDetail(id);
+  const { data, attachments, loading, resolvedRequestId } = useComplaintDetail(id);
   const { lightbox, setLightbox } = useLightbox();
-  const { tickets, refetch } = useTicketsByRequest(id);
+  const { tickets, refetch } = useTicketsByRequest(resolvedRequestId ?? id);
   const { updateStatus } = useUpdateRequestStatus();
   const { logStatus } = useRequestStatusLog(0);
   const { updateDueDate, loading: dueDateLoading } = useUpdateRequestDueDate();
@@ -134,7 +134,9 @@ export default function ManageWorkDetailPage() {
   }
 
   async function handleSave() {
-    const requestId = Number(Array.isArray(id) ? id[0] : id);
+    const requestId = Number(
+      resolvedRequestId ?? (Array.isArray(id) ? id[0] : id),
+    );
 
     if (editedDueDate) {
       await updateDueDate(requestId, editedDueDate);
@@ -397,7 +399,8 @@ export default function ManageWorkDetailPage() {
                 </p>
                 <div className="flex flex-wrap gap-3">
                   {attachments.map((file) => {
-                    const url = `${API_BASE_URL}/uploads/reports/${file.savedName}.${file.fileExt}`;
+                    const fileName = file.savedName ?? file.originalName;
+                    const url = `${API_BASE_URL}/uploads/requests/${fileName}`;
                     const isImage = IMAGE_EXTS.includes(
                       (file.fileExt ?? "").toLowerCase(),
                     );
@@ -501,6 +504,7 @@ export default function ManageWorkDetailPage() {
                 onClick={() =>
                   router.push(
                     `/consideration/issue-work/${Array.isArray(id) ? id[0] : id}/assign`,
+                    
                   )
                 }
                 className="h-9 rounded-lg border border-[#366DBD] px-4 text-[14px] font-semibold text-[#366DBD] hover:bg-blue-50"
@@ -607,7 +611,14 @@ export default function ManageWorkDetailPage() {
                 <button
                   type="button"
                   disabled={dueDateLoading || !editedDueDate}
-                  onClick={() => updateDueDate(id, editedDueDate!)}
+                  onClick={() =>
+                    updateDueDate(
+                      Number(
+                        resolvedRequestId ?? (Array.isArray(id) ? id[0] : id),
+                      ),
+                      editedDueDate!,
+                    )
+                  }
                   className="rounded-lg bg-[#366DBD] px-6 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-50"
                 >
                   {dueDateLoading ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}

@@ -41,6 +41,7 @@ export type ReopenRound = {
   reopenedAt: string | null;
   comment: string | null;
   files: RepairFile[];
+  staffSummary: string | null;
   staffFiles: RepairFile[];
 };
 

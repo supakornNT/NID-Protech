@@ -23,6 +23,10 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  STAFF_PERMISSION_LABELS,
+  STAFF_SECTION_LABELS,
+} from "@/components/sidebar/staff-navigation";
 
 export type StaffSidebarModule = {
   key: string;
@@ -56,131 +60,131 @@ const MENU_PERMISSION_BY_HREF: Record<string, string> = {
 
 const menuItems = [
   {
-    title: "หน้าหลัก",
+    title: STAFF_SECTION_LABELS.home,
     href: "/home",
     icon: Home,
   },
   {
-    title: "รับเรื่องเเละคัดกรอง",
+    title: STAFF_SECTION_LABELS.screening,
     icon: FolderCheck,
     children: [
       {
-        title: "ประเด็นปัญหา",
+        title: STAFF_PERMISSION_LABELS["screening.issue.view"],
         href: "/screening/issues",
         icon: ShieldAlert,
       },
       {
-        title: "ข้อร้องเรียน",
+        title: STAFF_PERMISSION_LABELS["screening.complaint.view"],
         href: "/screening/complaints",
         icon: Siren,
       },
     ],
   },
   {
-    title: "การพิจารณา",
+    title: STAFF_SECTION_LABELS.assignment,
     icon: List,
     children: [
       {
-        title: "พิจารณาออกใบงาน",
+        title: STAFF_PERMISSION_LABELS["assignment.ticket.approve"],
         href: "/consideration/issue-work",
         icon: Rss,
       },
       {
-        title: "พิจารณาปิดงาน",
+        title: STAFF_PERMISSION_LABELS["assignment.request.approve"],
         href: "/consideration/close-work",
         icon: Rss,
       },
     ],
   },
   {
-    title: "การติดตาม",
+    title: STAFF_SECTION_LABELS.tracking,
     icon: List,
     children: [
       {
-        title: "ติดตามสถานะการดำเนินการ",
+        title: STAFF_PERMISSION_LABELS["tracking.status.view"],
         href: "/tracking/status",
         icon: Rss,
       },
     ],
   },
   {
-    title: "การปฎิบัติงาน",
+    title: STAFF_SECTION_LABELS.operation,
     icon: List,
     children: [
       {
-        title: "ผลการปฎิบัติงาน",
+        title: STAFF_PERMISSION_LABELS["operation.result.view"],
         href: "/operations",
         icon: Rss,
       },
     ],
   },
   {
-    title: "รายงาน",
+    title: STAFF_SECTION_LABELS.report,
     icon: FileText,
     children: [
       {
-        title: "สำหรับผู้บริหาร",
+        title: STAFF_PERMISSION_LABELS["report.dashboard.view"],
         href: "/reports/executive",
         icon: ChartBar,
       },
       {
-        title: "การปฎิบัติงาน",
+        title: STAFF_PERMISSION_LABELS["report.operation.view"],
         href: "/reports/operations",
         icon: ChartPie,
       },
       {
-        title: "ประวัติการเเก้ไข",
+        title: STAFF_PERMISSION_LABELS["report.history.view"],
         href: "/reports/edit-history",
         icon: ChartPie,
       },
       {
-        title: "รายงานประวัติการเข้าใช้งานระบบ",
+        title: STAFF_PERMISSION_LABELS["report.login_log.view"],
         href: "/reports/login-history",
         icon: ChartPie,
       },
     ],
   },
   {
-    title: "จัดการ",
+    title: STAFF_SECTION_LABELS.management,
     icon: FileText,
     children: [
       {
-        title: "จัดการข้อมูลองค์กรที่เกี่ยวข้อง",
+        title: STAFF_PERMISSION_LABELS["admin.organization.manage"],
         href: "/management/organizations",
         icon: ChartBar,
       },
       {
-        title: "จัดการระบบโครงการเเละระบบงาน",
+        title: STAFF_PERMISSION_LABELS["admin.system.manage"],
         href: "/management/systems",
         icon: ChartPie,
       },
       {
-        title: "บริหารจัดการข้อมูลลงทะเบียนผู้เเจ้งประเด็น",
+        title: STAFF_PERMISSION_LABELS["admin.customer.manage"],
         href: "/management/reporters",
         icon: ChartPie,
       },
       {
-        title: "จัดการข้อมูลลงทะเบียนทีมเเก้ไข",
+        title: STAFF_PERMISSION_LABELS["admin.staff.manage"],
         href: "/management/teams",
         icon: ChartPie,
       },
       {
-        title: "จัดการกลุ่มผู้ใช้งาน",
+        title: STAFF_PERMISSION_LABELS["admin.team.manage"],
         href: "/management/user-groups",
         icon: ChartPie,
       },
       {
-        title: "จัดการสิทธิผู้ใช้งานจำเเนกตามกลุ่ม",
+        title: STAFF_PERMISSION_LABELS["admin.permission.manage"],
         href: "/management/permissions",
         icon: ChartPie,
       },
       {
-        title: "จัดการข้อมูลผู้ใช้งาน",
+        title: STAFF_PERMISSION_LABELS["admin.user.manage"],
         href: "/management/users",
         icon: ChartPie,
       },
       {
-        title: "จัดการรูปเเบบประเด็นเเละข้อร้องเรียน",
+        title: STAFF_PERMISSION_LABELS["admin.problem_type.manage"],
         href: "/management/issue-and-complaint-types",
         icon: ChartPie,
       },
@@ -203,6 +207,7 @@ export default function StaffSidebar({
   const allowedPermissionKeys = new Set(
     modules.flatMap((module) => module.children.map((child) => child.key)),
   );
+
   const visibleMenuItems = menuItems
     .map((item) => {
       const children = "children" in item ? item.children : undefined;
@@ -238,13 +243,8 @@ export default function StaffSidebar({
         </div>
 
         <div className="leading-tight">
-          <p className="text-[18px] font-bold">
-            ProTech
-          </p>
-
-          <p className="text-[18px] font-bold">
-            Support
-          </p>
+          <p className="text-[18px] font-bold">ProTech</p>
+          <p className="text-[18px] font-bold">Support</p>
         </div>
       </div>
 
@@ -252,7 +252,7 @@ export default function StaffSidebar({
         {visibleMenuItems.map((item) => {
           const Icon = item.icon;
 
-          if (item.children) {
+          if ("children" in item && item.children) {
             const isOpen = item.children.some((child) =>
               pathname.startsWith(child.href),
             );
@@ -266,9 +266,7 @@ export default function StaffSidebar({
                   <button
                     type="button"
                     className={`group flex min-h-10 w-full items-center justify-between rounded-xl px-3 py-2 text-left transition ${
-                      isOpen
-                        ? "bg-white/20"
-                        : "hover:bg-white/15"
+                      isOpen ? "bg-white/20" : "hover:bg-white/15"
                     }`}
                   >
                     <span className="flex items-center gap-2">
@@ -286,17 +284,13 @@ export default function StaffSidebar({
                 <CollapsibleContent className="mt-2 space-y-1.5 pl-3">
                   {item.children.map((child) => {
                     const ChildIcon = child.icon;
-
-                    const active =
-                      pathname === child.href;
+                    const active = pathname === child.href;
 
                     return (
                       <Link
                         key={child.href}
                         href={child.href}
-                        onClick={() =>
-                          onMobileOpenChange(false)
-                        }
+                        onClick={() => onMobileOpenChange(false)}
                         className={`flex min-h-9 items-center gap-2 rounded-xl px-3 py-2 text-[12px] leading-snug transition ${
                           active
                             ? "bg-white/30 text-white"
@@ -304,7 +298,6 @@ export default function StaffSidebar({
                         }`}
                       >
                         <ChildIcon size={14} />
-
                         <span>{child.title}</span>
                       </Link>
                     );
@@ -320,13 +313,9 @@ export default function StaffSidebar({
             <Link
               key={item.href}
               href={item.href}
-              onClick={() =>
-                onMobileOpenChange(false)
-              }
+              onClick={() => onMobileOpenChange(false)}
               className={`flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 transition ${
-                active
-                  ? "bg-white/20"
-                  : "hover:bg-white/15"
+                active ? "bg-white/20" : "hover:bg-white/15"
               }`}
             >
               <Icon size={17} />
@@ -340,29 +329,23 @@ export default function StaffSidebar({
 
   return (
     <>
-      {/* desktop */}
       <aside className="sticky top-0 hidden h-screen w-[244px] shrink-0 overflow-y-auto bg-[#3D71BC] text-white lg:block">
         {sidebarContent}
       </aside>
 
-      {/* mobile */}
       {mobileOpen ? (
         <div className="fixed inset-0 z-50 lg:hidden">
           <button
             type="button"
             className="absolute inset-0 bg-black/40"
-            onClick={() =>
-              onMobileOpenChange(false)
-            }
+            onClick={() => onMobileOpenChange(false)}
           />
 
           <aside className="relative h-full w-[82vw] max-w-[300px] overflow-y-auto bg-[#3D71BC] text-white shadow-xl">
             <button
               type="button"
               className="absolute right-3 top-3 rounded-lg p-2 text-white hover:bg-white/15"
-              onClick={() =>
-                onMobileOpenChange(false)
-              }
+              onClick={() => onMobileOpenChange(false)}
             >
               <X size={22} />
             </button>

@@ -92,45 +92,42 @@ export default function RepairDetailModal({
           </div>
         ) : null}
 
-        <p className="mb-2 mt-4 text-sm text-gray-500 font-medium">
-          {filesLabel || "ไฟล์หลักฐานการแก้ไข"} ({data.files.length})
-        </p>
+        {data.files.length > 0 ? (
+          <>
+            <p className="mb-2 mt-4 text-sm text-gray-500 font-medium">
+              {filesLabel || "ไฟล์หลักฐานการแก้ไข"} ({data.files.length})
+            </p>
+            <div className="space-y-2">
+              {data.files.map((file) => (
+                <a
+                  key={file.id}
+                  href={file.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-3 rounded-lg border border-gray-300 bg-white px-3 py-2 transition-colors hover:bg-gray-50"
+                >
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center">
+                    {file.type === "pdf" ? (
+                      <FileText size={20} className="text-red-500" />
+                    ) : (
+                      <ImageIcon size={20} className="text-gray-600" />
+                    )}
+                  </div>
 
-        {data.files.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500">
-            ไม่พบไฟล์หลักฐานการแก้ไข
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {data.files.map((file) => (
-              <a
-                key={file.id}
-                href={file.url}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-3 rounded-lg border border-gray-300 bg-white px-3 py-2 transition-colors hover:bg-gray-50"
-              >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center">
-                  {file.type === "pdf" ? (
-                    <FileText size={20} className="text-red-500" />
-                  ) : (
-                    <ImageIcon size={20} className="text-gray-600" />
-                  )}
-                </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-gray-800">
+                      {file.name}
+                    </p>
 
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-gray-800">
-                    {file.name}
-                  </p>
-
-                  <p className="text-xs text-gray-500">
-                    {getFileMetaLabel(file)}
-                  </p>
-                </div>
-              </a>
-            ))}
-          </div>
-        )}
+                    <p className="text-xs text-gray-500">
+                      {getFileMetaLabel(file)}
+                    </p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </>
+        ) : null}
       </div>
     </div>
   );

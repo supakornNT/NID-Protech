@@ -33,6 +33,9 @@ export function mapTrackResponse(
   const screeningLog = requestStatusLogs.find(
     (log) => log.status === "screening",
   );
+  const rejectedLog = requestStatusLogs.find(
+    (log) => log.status === "rejected",
+  );
 
   const requestedAt = toDateTimePartsUtil(request.requestCreatedAt);
   const screeningAt = toDateTimePartsUtil(screeningLog?.created_at);
@@ -91,8 +94,12 @@ export function mapTrackResponse(
     ),
     ratingStatus: request.score === null ? "ยังไม่ประเมิน" : "ประเมินแล้ว",
     timeline,
-    solution: "",
-    repairedAt: formatDateTimeUtil(request.reviewedAt),
+    solution: request.requestStatus === "rejected"
+      ? (rejectedLog?.note ?? "")
+      : (request.resolutionSummary ?? ""),
+    repairedAt: request.requestStatus === "rejected"
+      ? formatDateTimeUtil(rejectedLog?.created_at ?? null)
+      : formatDateTimeUtil(request.reviewedAt),
     customerConfirmDueAt,
   };
 }

@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useRequests } from "@/hooks/use-requests";
-import { useRejectComplaint } from "@/hooks/use-reject-complaint";
-import { useAcceptComplaint } from "@/hooks/use-accept-complaint";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Info, Search } from "lucide-react";
-import type { Column } from "@/types/table";
+
+import { ProTechButton } from "@/components/tables/protech-button";
 import { ProTechTable } from "@/components/tables/protech-table";
 import {
   Dialog,
@@ -15,6 +13,10 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { useAcceptComplaint } from "@/hooks/use-accept-complaint";
+import { useRejectComplaint } from "@/hooks/use-reject-complaint";
+import { useRequests } from "@/hooks/use-requests";
+import type { Column } from "@/types/table";
 
 type IssueRow = {
   id: number;
@@ -32,11 +34,17 @@ function formatDate(iso: string) {
 
 function formatTime(iso: string) {
   const d = new Date(iso);
-  return d.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleTimeString("th-TH", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function CategoryBadge({ value }: { value: string }) {
-  if (!value) return <span className="text-gray-300">—</span>;
+  if (!value) {
+    return <span className="text-gray-300">-</span>;
+  }
+
   return (
     <span className="inline-flex items-center rounded-full border border-[#F4A0A0] bg-[#FFF0F0] px-3 py-0.5 text-[12px] font-medium text-[#D9534F]">
       ปัญหา
@@ -44,7 +52,13 @@ function CategoryBadge({ value }: { value: string }) {
   );
 }
 
-function StatusCell({ onAccept, onReject }: { onAccept: () => void; onReject: () => void }) {
+function StatusCell({
+  onAccept,
+  onReject,
+}: {
+  onAccept: () => void;
+  onReject: () => void;
+}) {
   return (
     <div className="flex items-center justify-center gap-2">
       <button
@@ -54,6 +68,7 @@ function StatusCell({ onAccept, onReject }: { onAccept: () => void; onReject: ()
       >
         ปฏิเสธ
       </button>
+
       <button
         type="button"
         onClick={onAccept}
@@ -67,16 +82,53 @@ function StatusCell({ onAccept, onReject }: { onAccept: () => void; onReject: ()
 
 export default function IssuesPage() {
   const { rows, setRows, loading } = useRequests("issue");
-  const { rejectId, rejectReason, setRejectReason, openReject, handleReject, closeReject } =
-    useRejectComplaint((id) => setRows((prev) => prev.filter((r) => r.id !== id)));
-  const { acceptId, acceptReason, setAcceptReason, openAccept, handleAccept, closeAccept } =
-    useAcceptComplaint((id) => setRows((prev) => prev.filter((r) => r.id !== id)), 0);
+  const {
+    rejectId,
+    rejectReason,
+    submitting: rejectSubmitting,
+    setRejectReason,
+    openReject,
+    handleReject,
+    closeReject,
+  } = useRejectComplaint((id) =>
+    setRows((prev) => prev.filter((row) => row.id !== id)),
+  );
+  const {
+    acceptId,
+    submitting: acceptSubmitting,
+    openAccept,
+    handleAccept,
+    closeAccept,
+  } = useAcceptComplaint(
+    (id) => setRows((prev) => prev.filter((row) => row.id !== id)),
+    0,
+  );
+
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [rejectError, setRejectError] = useState<string | null>(null);
 
-  const filtered = rows.filter(
-    (r) => search === "" || r.systemName.toLowerCase().includes(search.toLowerCase()),
+  const filtered = useMemo(
+    () =>
+      rows.filter(
+        (row) =>
+          search === "" ||
+          row.systemName.toLowerCase().includes(search.toLowerCase()),
+      ),
+    [rows, search],
   );
+
+  async function submitReject() {
+    const trimmedReason = rejectReason.trim();
+
+    if (!trimmedReason) {
+      setRejectError("กรุณาระบุเหตุผลการปฏิเสธ");
+      return;
+    }
+
+    setRejectError(null);
+    await handleReject();
+  }
 
   const columns: Column<IssueRow>[] = [
     { key: "requestNo", title: "รหัส", className: "w-24" },
@@ -105,7 +157,10 @@ export default function IssuesPage() {
       className: "w-24",
       render: (value) => (
         <Link href={`/screening/issues/${value}`}>
-          <button type="button" className="rounded-full p-1.5 text-[#366DBD] transition hover:bg-blue-50">
+          <button
+            type="button"
+            className="rounded-full p-1.5 text-[#366DBD] transition hover:bg-blue-50"
+          >
             <Info size={18} />
           </button>
         </Link>
@@ -115,106 +170,159 @@ export default function IssuesPage() {
       key: "status",
       title: "สถานะ",
       className: "w-44",
-      render: (_, _row) => (
+      render: (_, row) => (
         <StatusCell
-          onAccept={() => openAccept(_row.id)}
-          onReject={() => openReject(_row.id)}
+          onAccept={() => openAccept(row.id)}
+          onReject={() => {
+            setRejectError(null);
+            openReject(row.id);
+          }}
         />
       ),
     },
   ];
 
-
   return (
     <>
       <Dialog
         open={rejectId !== null}
-        onOpenChange={(open) => { if (!open) closeReject(); }}
+        onOpenChange={(open) => {
+          if (!open) {
+            setRejectError(null);
+            closeReject();
+          }
+        }}
       >
         <DialogContent className="rounded-2xl">
           <DialogHeader>
             <DialogTitle>ยืนยันการปฏิเสธ</DialogTitle>
           </DialogHeader>
-          <div className="flex flex-col gap-2">
-            <p className="text-[14px] text-gray-600">คุณต้องการปฏิเสธคำร้องนี้ใช่หรือไม่?</p>
+
+          <div className="flex flex-col gap-3">
+            <p className="text-[14px] text-gray-600">
+              กรุณาระบุเหตุผลการปฏิเสธก่อนบันทึก
+            </p>
+
             <textarea
               value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
+              onChange={(event) => {
+                if (rejectError) {
+                  setRejectError(null);
+                }
+
+                setRejectReason(event.target.value);
+              }}
               placeholder="ระบุเหตุผลการปฏิเสธ..."
-              rows={3}
-              className="w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-[14px] text-gray-700 outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100"
+              rows={4}
+              className="w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-[14px] text-gray-700 outline-none focus:border-[#2F66C5] focus:ring-2 focus:ring-[#DCE9FF]"
             />
+
+            {rejectError ? (
+              <p className="text-[13px] font-medium text-[#D1435B]">
+                {rejectError}
+              </p>
+            ) : null}
           </div>
-          <DialogFooter>
-            <button
-              onClick={closeReject}
-              className="rounded-lg border border-gray-200 px-4 py-2 text-[14px] hover:bg-gray-50"
+
+          <DialogFooter className="gap-2">
+            <ProTechButton
+              variant="delete"
+              className="h-10 min-w-24 text-[14px]"
+              onClick={() => {
+                setRejectError(null);
+                closeReject();
+              }}
             >
               ยกเลิก
-            </button>
-            <button
-              onClick={handleReject}
-              className="rounded-lg bg-red-500 px-4 py-2 text-[14px] font-semibold text-white hover:bg-red-600"
+            </ProTechButton>
+
+            <ProTechButton
+              variant="primary"
+              className="h-10 min-w-24 text-[14px]"
+              onClick={() => {
+                void submitReject();
+              }}
+              disabled={rejectSubmitting}
             >
-              ยืนยัน
-            </button>
+              {rejectSubmitting ? "กำลังบันทึก..." : "ยืนยัน"}
+            </ProTechButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <Dialog
         open={acceptId !== null}
-        onOpenChange={(open) => { if (!open) closeAccept(); }}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeAccept();
+          }
+        }}
       >
         <DialogContent className="rounded-2xl">
           <DialogHeader>
             <DialogTitle>ยืนยันการยอมรับ</DialogTitle>
           </DialogHeader>
+
           <div className="flex flex-col gap-2">
-            <p className="text-[14px] text-gray-600">คุณต้องการยอมรับคำร้องนี้ใช่หรือไม่?</p>
-            <textarea
-              value={acceptReason}
-              onChange={(e) => setAcceptReason(e.target.value)}
-              placeholder="หมายเหตุเพิ่มเติม..."
-              rows={3}
-              className="w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-[14px] text-gray-700 outline-none focus:border-green-400 focus:ring-2 focus:ring-green-100"
-            />
+            <p className="text-[14px] text-gray-600">
+              คุณต้องการยอมรับคำร้องนี้ใช่หรือไม่?
+            </p>
           </div>
-          <DialogFooter>
-            <button
+
+          <DialogFooter className="gap-2">
+            <ProTechButton
+              variant="delete"
+              className="h-10 min-w-24 text-[14px]"
               onClick={closeAccept}
-              className="rounded-lg border border-gray-200 px-4 py-2 text-[14px] hover:bg-gray-50"
             >
               ยกเลิก
-            </button>
-            <button
-              onClick={handleAccept}
-              className="rounded-lg bg-green-500 px-4 py-2 text-[14px] font-semibold text-white hover:bg-green-600"
+            </ProTechButton>
+
+            <ProTechButton
+              variant="primary"
+              className="h-10 min-w-24 text-[14px]"
+              onClick={() => {
+                void handleAccept();
+              }}
+              disabled={acceptSubmitting}
             >
-              ยืนยัน
-            </button>
+              {acceptSubmitting ? "กำลังบันทึก..." : "ยืนยัน"}
+            </ProTechButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <div className="flex flex-1 flex-col gap-5 bg-white px-10 py-8">
         <div>
-          <h1 className="text-[26px] font-bold text-gray-900">รับเรื่องและคัดกรอง</h1>
+          <h1 className="text-[26px] font-bold text-gray-900">
+            รับเรื่องและคัดกรอง
+          </h1>
           <p className="mt-1 text-[14px] text-gray-400">ประเด็นปัญหา</p>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="relative">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search
+              size={15}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+
             <input
               type="text"
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
               placeholder="ค้นหาระบบ..."
               className="h-9 w-56 rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-[14px] outline-none focus:border-[#366DBD] focus:ring-2 focus:ring-[#366DBD]/10"
             />
           </div>
-          <button type="button" className="h-9 rounded-lg bg-[#366DBD] px-5 text-[14px] font-semibold text-white transition hover:bg-[#2d5da3]">
+
+          <button
+            type="button"
+            className="h-9 rounded-lg bg-[#366DBD] px-5 text-[14px] font-semibold text-white transition hover:bg-[#2d5da3]"
+          >
             ค้นหา
           </button>
         </div>

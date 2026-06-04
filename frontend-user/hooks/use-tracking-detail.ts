@@ -195,6 +195,9 @@ export function useTrackingDetail(requestNo: string) {
   const [refreshKey, setRefreshKey] = React.useState(0);
 
   React.useEffect(() => {
+    if (!requestNo || requestNo === "undefined") {
+      return;
+    }
     const controller = new AbortController();
 
     async function loadData() {
@@ -225,6 +228,7 @@ export function useTrackingDetail(requestNo: string) {
             mapFiles(repairAttachments),
           ),
         );
+        setLoading(false);
       } catch (loadError) {
         if (loadError instanceof Error && loadError.name === "AbortError") {
           return;
@@ -236,7 +240,6 @@ export function useTrackingDetail(requestNo: string) {
             : "Failed to load tracking detail",
         );
         setRequest(null);
-      } finally {
         setLoading(false);
       }
     }

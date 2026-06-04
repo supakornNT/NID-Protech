@@ -23,36 +23,82 @@ type Attachment = {
   fileExt: string;
 };
 
+type WorkDetailResponse = {
+  requestId: number;
+};
+
 export function useComplaintDetail(id: string | string[] | undefined) {
   const [data, setData] = useState<Detail | null>(null);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [resolvedRequestId, setResolvedRequestId] = useState<string | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     if (!id) return;
     setLoading(true);
     setError(false);
+    const rawId = Array.isArray(id) ? id[0] : id;
 
-    Promise.all([
-      fetch(`${API_BASE_URL}/requests/detail?id=${id}`).then((r) => {
-        if (!r.ok) throw new Error("detail fetch failed");
-        return r.json();
-      }),
-      fetch(`${API_BASE_URL}/requests/attachments?id=${id}`).then((r) => {
-        if (!r.ok) throw new Error("attachments fetch failed");
-        return r.json();
-      }),
-    ])
-      .then(([detail, files]) => {
-        setData(detail);
-        setAttachments(Array.isArray(files) ? files : []);
+    async function loadByRequestId(requestId: string) {
+      const [detail, files] = await Promise.all([
+        fetch(`${API_BASE_URL}/requests/detail?id=${requestId}`).then((r) => {
+          if (!r.ok) throw new Error("detail fetch failed");
+          return r.json();
+        }),
+        fetch(`${API_BASE_URL}/requests/attachments?id=${requestId}`).then((r) => {
+          if (!r.ok) throw new Error("attachments fetch failed");
+          return r.json();
+        }),
+      ]);
+
+      return {
+        detail: (detail ?? null) as Detail | null,
+        files: Array.isArray(files) ? files : [],
+      };
+    }
+
+    loadByRequestId(rawId)
+      .then(async ({ detail, files }) => {
+        if (detail) {
+          setResolvedRequestId(rawId);
+          setData(detail);
+          setAttachments(files);
+          return;
+        }
+
+        const ticketDetailResponse = await fetch(
+          `${API_BASE_URL}/admin/tickets/${rawId}/work-detail`,
+        );
+
+        if (!ticketDetailResponse.ok) {
+          throw new Error("ticket work detail fetch failed");
+        }
+
+        const ticketDetail =
+          (await ticketDetailResponse.json()) as WorkDetailResponse | null;
+
+        if (!ticketDetail?.requestId) {
+          setResolvedRequestId(rawId);
+          setData(null);
+          setAttachments([]);
+          return;
+        }
+
+        const fallbackRequestId = String(ticketDetail.requestId);
+        const fallback = await loadByRequestId(fallbackRequestId);
+
+        setResolvedRequestId(fallbackRequestId);
+        setData(fallback.detail);
+        setAttachments(fallback.files);
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, [id]);
 
-  return { data, attachments, loading, error };
+  return { data, attachments, loading, error, resolvedRequestId };
 }
 
 export function useLightbox() {

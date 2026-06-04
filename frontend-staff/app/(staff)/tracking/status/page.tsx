@@ -1,31 +1,29 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ToolbarSelect } from "@/components/ui/toolbar-select";
+
 import { ProTechButton } from "@/components/tables/protech-button";
+import { ToolbarSelect } from "@/components/ui/toolbar-select";
 import { useTracking, type TrackingItem } from "@/hooks/use-tracking";
 
 const LIMIT = 10;
 const ALL_OPTION = "ทั้งหมด";
 
 const STATUS_STEPS = [
-  "ยื่นเรื่อง",
-  "ตรวจสอบ",
-  "ดำเนินการแก้ไข",
-  "รอประเมิน",
-  "เสร็จสิ้น",
-];
-const STATUS_STEPS = [
-  "ยื่นเรื่อง",
-  "ตรวจสอบ",
-  "ดำเนินการแก้ไข",
-  "รอประเมิน",
+  "แจ้งปัญหา",
+  "คัดกรอง",
+  "ดำเนินการ",
+  "รอตรวจสอบโดยลูกค้า",
   "เสร็จสิ้น",
 ];
 
 const STATUS_MAP: Record<string, { label: string; style: string }> = {
+  screening: {
+    label: "รอคัดกรอง",
+    style: "border-gray-300 bg-gray-50 text-gray-600",
+  },
   assigned: {
     label: "รอดำเนินการ",
     style: "border-gray-300 bg-gray-50 text-gray-600",
@@ -35,7 +33,7 @@ const STATUS_MAP: Record<string, { label: string; style: string }> = {
     style: "border-[#366DBD] bg-[#EEF4FF] text-[#366DBD]",
   },
   waiting_confirm: {
-    label: "รอประเมิน",
+    label: "รอตรวจสอบโดยลูกค้า",
     style: "border-[#E8A84C] bg-[#FFF8EC] text-[#C47F00]",
   },
   closed: {
@@ -46,11 +44,20 @@ const STATUS_MAP: Record<string, { label: string; style: string }> = {
 
 const STATUS_FILTER_OPTIONS = [
   { value: ALL_OPTION, label: "สถานะทั้งหมด" },
+  { value: "รอคัดกรอง", label: "รอคัดกรอง" },
   { value: "รอดำเนินการ", label: "รอดำเนินการ" },
   { value: "กำลังดำเนินการ", label: "กำลังดำเนินการ" },
-  { value: "รอประเมิน", label: "รอประเมิน" },
+  { value: "รอตรวจสอบโดยลูกค้า", label: "รอตรวจสอบโดยลูกค้า" },
   { value: "เสร็จสิ้น", label: "เสร็จสิ้น" },
 ];
+
+const STATUS_TO_STEP: Record<string, number> = {
+  screening: 0,
+  assigned: 1,
+  in_progress: 2,
+  waiting_confirm: 3,
+  closed: 4,
+};
 
 function formatTimeLeft(dueAt: string | null, status: string): string {
   if (status === "closed") return "เสร็จสิ้นแล้ว";
@@ -64,14 +71,6 @@ function formatTimeLeft(dueAt: string | null, status: string): string {
   return `เหลือเวลาอีก ${days} วัน ${hours} ชั่วโมง`;
 }
 
-const STATUS_TO_STEP: Record<string, number> = {
-  screening: 0,
-  assigned: 1,
-  in_progress: 2,
-  waiting_confirm: 3,
-  closed: 4,
-};
-
 function StepperBar({
   steps,
   status,
@@ -80,15 +79,15 @@ function StepperBar({
   status: string;
 }) {
   const allDone = status === "closed";
-  const allDone = status === "closed";
   const currentStepIndex = STATUS_TO_STEP[status] ?? -1;
-  const isLast = (index: number) => index === STATUS_STEPS.length - 1;
 
   return (
     <div className="mt-3 flex items-start gap-0">
-      {STATUS_STEPS.map((label, i) => {
-        const done = isLast(i) ? status === "closed" : allDone || !!steps[i];
-        const isCurrent = !allDone && i === currentStepIndex;
+      {STATUS_STEPS.map((label, stepIndex) => {
+        const stepInfo = steps[stepIndex];
+        const isLast = stepIndex === STATUS_STEPS.length - 1;
+        const done = isLast ? status === "closed" : allDone || !!stepInfo;
+        const isCurrent = !allDone && stepIndex === currentStepIndex;
 
         const circleClass = isCurrent
           ? "border-[#60A5FA] bg-[#DBEAFE] text-[#2563EB]"
@@ -96,15 +95,15 @@ function StepperBar({
             ? "border-[#366DBD] bg-[#366DBD] text-white"
             : "border-gray-300 bg-white text-gray-300";
 
-        const leftLineActive = index !== 0 && (done || isCurrent);
-        const rightLineActive = !isLast(index) && done && !isCurrent;
+        const leftLineActive = stepIndex !== 0 && (done || isCurrent);
+        const rightLineActive = !isLast && done && !isCurrent;
 
         return (
           <div key={label} className="flex flex-1 flex-col items-center">
             <div className="flex w-full items-center">
               <div
                 className={`h-1 flex-1 ${
-                  index === 0
+                  stepIndex === 0
                     ? "invisible"
                     : leftLineActive
                       ? "bg-[#366DBD]"
@@ -126,7 +125,7 @@ function StepperBar({
               </div>
               <div
                 className={`h-1 flex-1 ${
-                  isLast(index)
+                  isLast
                     ? "invisible"
                     : rightLineActive
                       ? "bg-[#366DBD]"
@@ -146,13 +145,13 @@ function StepperBar({
               >
                 {label}
               </span>
-              {steps[index] ? (
+              {stepInfo ? (
                 <>
                   <span className="text-[10px] text-gray-400">
-                    วันที่ {(steps[index] as { date: string; time: string }).date}
+                    วันที่ {stepInfo.date}
                   </span>
                   <span className="text-[10px] text-gray-400">
-                    {(steps[index] as { date: string; time: string }).time}
+                    {stepInfo.time}
                   </span>
                 </>
               ) : (
@@ -173,28 +172,34 @@ export default function TrackingStatusPage() {
   const [statusFilter, setStatusFilter] = useState(ALL_OPTION);
   const [page, setPage] = useState(1);
 
-  const filtered = items.filter((item) => {
-    const statusLabel = STATUS_MAP[item.status]?.label ?? item.status;
-    const matchSearch =
-      search === "" ||
-      item.title.includes(search) ||
-      item.customerName.includes(search) ||
-      item.systemName.includes(search);
-    const matchStatus =
-      statusFilter === ALL_OPTION || statusLabel === statusFilter;
-    return matchSearch && matchStatus;
-  });
+  const filtered = useMemo(() => {
+    return items.filter((item) => {
+      const statusLabel = STATUS_MAP[item.status]?.label ?? item.status;
+      const matchSearch =
+        search === "" ||
+        item.title.includes(search) ||
+        item.customerName.includes(search) ||
+        item.systemName.includes(search);
+      const matchStatus =
+        statusFilter === ALL_OPTION || statusLabel === statusFilter;
+      return matchSearch && matchStatus;
+    });
+  }, [items, search, statusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / LIMIT));
-  const paged = filtered.slice((page - 1) * LIMIT, page * LIMIT);
+  const currentPage = Math.min(page, totalPages);
+  const paged = filtered.slice(
+    (currentPage - 1) * LIMIT,
+    currentPage * LIMIT,
+  );
 
   function getVisiblePages() {
     if (totalPages <= 5) {
       return Array.from({ length: totalPages }, (_, index) => index + 1);
     }
 
-    const start = Math.max(1, Math.min(page - 1, totalPages - 3));
-    return Array.from({ length: Math.min(3, totalPages) }, (_, index) => start + index);
+    const start = Math.max(1, Math.min(currentPage - 1, totalPages - 2));
+    return Array.from({ length: 3 }, (_, index) => start + index);
   }
 
   if (error) {
@@ -208,8 +213,8 @@ export default function TrackingStatusPage() {
   return (
     <div className="flex flex-1 flex-col gap-6 bg-[#F0F4FA] p-8">
       <div>
-        <h1 className="text-[28px] font-bold text-gray-900">การจัดการงาน</h1>
-        <p className="text-[14px] text-gray-500">ติดตามสถานะการดำเนินการ</p>
+        <h1 className="text-[28px] font-bold text-gray-900">การติดตามสถานะงาน</h1>
+        <p className="text-[14px] text-gray-500">ติดตามสถานะการดำเนินการของคำขอ</p>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -224,12 +229,12 @@ export default function TrackingStatusPage() {
           className="h-9 w-56 rounded-lg border border-gray-300 bg-white px-3 text-[14px] outline-none focus:border-[#366DBD]"
         />
         <ProTechButton
-              variant="search"
-              className="h-9 px-5 text-[14px]"
-              onClick={() => setPage(1)}
-            >
-              ค้นหา
-            </ProTechButton>
+          variant="search"
+          className="h-9 px-5 text-[14px]"
+          onClick={() => setPage(1)}
+        >
+          ค้นหา
+        </ProTechButton>
 
         <ToolbarSelect
           value={statusFilter}
@@ -283,10 +288,6 @@ export default function TrackingStatusPage() {
                 item.status !== "waiting_confirm" &&
                 item.status !== "closed";
 
-              const canSubmit =
-                !!item.allResolved &&
-                item.status !== "waiting_confirm" &&
-                item.status !== "closed";
               return (
                 <div key={item.id} className="bg-white p-5">
                   <div className="flex items-start justify-between gap-4">
@@ -330,11 +331,11 @@ export default function TrackingStatusPage() {
                     <div className="flex-1">
                       <StepperBar steps={item.steps} status={item.status} />
                     </div>
-                    <div className="flex flex-col al gap-8">
+                    <div className="flex flex-col gap-3">
                       {canSubmit && (
                         <button
                           type="button"
-                          onClick={() => submitWork(item.id)}
+                          onClick={() => void submitWork(item.id)}
                           className="rounded-lg bg-[#366DBD] px-4 py-1.5 text-[13px] font-semibold text-white hover:bg-[#2d5da3]"
                         >
                           ส่งงาน
@@ -343,9 +344,7 @@ export default function TrackingStatusPage() {
                       <button
                         type="button"
                         className="rounded-lg border border-gray-400 bg-white px-4 py-1.5 text-[13px] text-gray-700 hover:bg-gray-50"
-                        onClick={() =>
-                          router.push(`/tracking/status/${item.id}`)
-                        }
+                        onClick={() => router.push(`/tracking/status/${item.id}`)}
                       >
                         ดูรายละเอียด
                       </button>
@@ -360,13 +359,13 @@ export default function TrackingStatusPage() {
 
       <div className="flex items-center justify-between text-[13px] text-gray-500">
         <span>
-          แสดง {filtered.length === 0 ? 0 : (page - 1) * LIMIT + 1}-
-          {Math.min(page * LIMIT, filtered.length)} จาก {filtered.length} รายการ
+          แสดง {filtered.length === 0 ? 0 : (currentPage - 1) * LIMIT + 1}-
+          {Math.min(currentPage * LIMIT, filtered.length)} จาก {filtered.length} รายการ
         </span>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setPage((current) => Math.max(1, current - 1))}
-            disabled={page === 1}
+            disabled={currentPage === 1}
             className="flex h-8 items-center gap-1 rounded-md px-2 hover:text-[#366DBD] disabled:opacity-40"
           >
             <ChevronLeft size={14} /> Previous
@@ -376,7 +375,7 @@ export default function TrackingStatusPage() {
               key={visiblePage}
               onClick={() => setPage(visiblePage)}
               className={`flex h-8 w-8 items-center justify-center rounded-md border text-[13px] ${
-                page === visiblePage
+                currentPage === visiblePage
                   ? "border-[#7FA7E8] bg-[#EEF4FF] text-[#3A6FCF]"
                   : "border-transparent hover:border-[#7FA7E8]"
               }`}
@@ -384,10 +383,10 @@ export default function TrackingStatusPage() {
               {visiblePage}
             </button>
           ))}
-          {totalPages > 3 && <span className="px-1 text-gray-400">...</span>}
+          {totalPages > 5 && <span className="px-1 text-gray-400">...</span>}
           <button
             onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-            disabled={page === totalPages}
+            disabled={currentPage === totalPages}
             className="flex h-8 items-center gap-1 rounded-md px-2 hover:text-[#366DBD] disabled:opacity-40"
           >
             Next <ChevronRight size={14} />

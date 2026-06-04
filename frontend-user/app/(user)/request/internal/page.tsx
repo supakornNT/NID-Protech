@@ -96,6 +96,7 @@ export default function RequestInternalPage() {
           <div className="flex flex-col gap-6 sm:flex-row">
             <FormInput
               label="หัวข้อเรื่อง"
+              required
               placeholder="กรุณาเขียนหัวข้อเรื่อง"
               className="flex-1"
               inputClassName={`${styles.input} ${submitted && !form.title ? styles.inputError : ""}`}
@@ -106,7 +107,9 @@ export default function RequestInternalPage() {
 
           <div className="flex flex-col gap-6 sm:flex-row">
             <div className="flex flex-1 flex-col gap-1">
-              <p style={{ fontSize: 16, fontWeight: 500 }}>ประเภทปัญหา</p>
+              <p style={{ fontSize: 16, fontWeight: 500 }}>
+                ประเภทปัญหา <span className="text-red-500">*</span>
+              </p>
               <select
                 className={`${styles.input} ${styles.select} ${submitted && !form.problem_type_id ? styles.inputError : ""}`}
                 value={form.problem_type_id}
@@ -123,7 +126,9 @@ export default function RequestInternalPage() {
             </div>
 
             <div className="flex flex-1 flex-col gap-1">
-              <p style={{ fontSize: 16, fontWeight: 500 }}>ระบบ</p>
+              <p style={{ fontSize: 16, fontWeight: 500 }}>
+                ระบบ <span className="text-red-500">*</span>
+              </p>
               <select
                 className={`${styles.input} ${styles.select} ${submitted && !form.system_id ? styles.inputError : ""}`}
                 value={form.system_id}
@@ -143,7 +148,9 @@ export default function RequestInternalPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <p style={{ fontSize: 16, fontWeight: 500 }}>รายละเอียด</p>
+            <p style={{ fontSize: 16, fontWeight: 500 }}>
+              รายละเอียด <span className="text-red-500">*</span>
+            </p>
             <textarea
               className={`${styles.input} min-h-35 resize-none ${submitted && !form.detail ? styles.inputError : ""}`}
               placeholder="กรุณาอธิบายปัญหาที่พบ"

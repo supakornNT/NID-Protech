@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
+import {
+  STAFF_SECTION_KEY_BY_PERMISSION_PREFIX,
+  STAFF_SECTION_LABELS,
+} from "@/components/sidebar/staff-navigation";
 import { ProTechButton } from "@/components/tables/protech-button";
 import {
   PermissionEditDialogValue,
@@ -10,12 +14,17 @@ import {
 } from "@/hooks/permission/useTeamPermissionsPage";
 
 function getSectionDisplayTitle(sectionId: string, fallbackTitle: string) {
-  if (sectionId === "screening") return "รับเรื่องและคัดกรอง";
-  if (sectionId === "report") return "รายงาน";
-  if (sectionId === "tracking") return "การติดตาม";
-  if (sectionId === "operation") return "การปฏิบัติงาน";
-  if (sectionId === "assignment") return "การมอบหมาย";
-  if (sectionId === "management") return "การจัดการ";
+  if (sectionId in STAFF_SECTION_LABELS) {
+    return STAFF_SECTION_LABELS[sectionId as keyof typeof STAFF_SECTION_LABELS];
+  }
+
+  const normalizedSectionId = STAFF_SECTION_KEY_BY_PERMISSION_PREFIX[sectionId];
+
+  if (normalizedSectionId && normalizedSectionId in STAFF_SECTION_LABELS) {
+    return STAFF_SECTION_LABELS[
+      normalizedSectionId as keyof typeof STAFF_SECTION_LABELS
+    ];
+  }
 
   return fallbackTitle;
 }

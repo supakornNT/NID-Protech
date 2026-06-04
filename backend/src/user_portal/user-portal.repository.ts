@@ -124,11 +124,15 @@ export class UserPortalRepository {
 
   async findRequestStatusLogs(requestId: number): Promise<StatusLogRow[]> {
     const [rows] = await this.db.query<StatusLogRow[]>(
-      `SELECT status, created_at
+      `SELECT status, created_at, note
       FROM request_status_logs
       WHERE request_id = ?
-      ORDER BY created_at ASC, id ASC`,
-      [requestId],
+      UNION ALL
+      SELECT result AS status, screened_at AS created_at, note
+      FROM screenings
+      WHERE request_id = ?
+      ORDER BY created_at ASC`,
+      [requestId, requestId],
     );
 
     return rows;

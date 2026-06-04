@@ -11,6 +11,7 @@ interface FormInputProps {
   disabled?: boolean;
   maxLength?: number;
   type?: string;
+  required?: boolean;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
@@ -29,11 +30,15 @@ export function FormInput({
   disabled,
   maxLength,
   type,
+  required,
   onChange,
 }: FormInputProps) {
   return (
     <div className={cn("flex flex-col gap-1", className)}>
-      <p style={{ fontSize: 16, fontWeight: 500 }}>{label}</p>
+      <p style={{ fontSize: 16, fontWeight: 500 }}>
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </p>
       <Input
         className={inputClassName}
         placeholder={placeholder}
@@ -58,10 +63,14 @@ export function FormInputIcon({
   icon,
   suffix,
   type = "text",
+  required,
 }: FormInputIconProps) {
   return (
     <div className={cn("flex flex-col gap-1", className)}>
-      <p style={{ fontSize: 16, fontWeight: 500 }}>{label}</p>
+      <p style={{ fontSize: 16, fontWeight: 500 }}>
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </p>
       <div className="flex items-center border-1 border-gray-300 rounded-md px-3 gap-2 h-9 bg-white">
         {icon}
         <Input

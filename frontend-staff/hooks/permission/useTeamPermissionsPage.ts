@@ -70,15 +70,6 @@ export type PermissionEditDialogValue = {
   sections: PermissionSectionApiItem[];
 } | null;
 
-const sectionTitleMap: Record<string, string> = {
-  screening: "คัดกรอง",
-  report: "รายงาน",
-  tracking: "ติดตามงาน",
-  operation: "ปฏิบัติงาน",
-  assignment: "มอบหมายงาน",
-  management: "จัดการระบบ",
-};
-
 function isAbortError(error: unknown) {
   return error instanceof Error && error.name === "AbortError";
 }
@@ -228,12 +219,7 @@ export function useTeamPermissionsPage() {
             .flatMap((section) => section.items)
             .filter((permission) => permission.assigned)
             .map((permission) => permission.id),
-          sections: result.sections.map((section) => ({
-            ...section,
-            title:
-              sectionTitleMap[section.id] ??
-              section.title,
-          })),
+          sections: result.sections,
         });
       } catch (fetchError) {
         setError("ไม่สามารถโหลดข้อมูลสิทธิ์ของทีมได้");

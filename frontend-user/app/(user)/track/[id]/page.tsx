@@ -80,7 +80,7 @@ export default function Page({ params }: Props) {
     setProblemDetailNeedsExpand(el.scrollHeight > el.clientHeight + 1);
   }, [showProblemDetail, request?.problemDetail]);
 
-  if (loading) {
+  if (loading || !id || id === "undefined") {
     return (
       <div className="mx-auto flex w-full max-w-3xl animate-pulse flex-col items-center px-4 py-6 sm:py-10">
         <div className="flex w-full items-center justify-between px-4 sm:px-12">
@@ -132,13 +132,23 @@ export default function Page({ params }: Props) {
     }
 
     setRepairDetail(buildRepairDetail(request));
-    setRepairDetailModalProps({
-      title: "รายละเอียดการแก้ไขปัญหา",
-      subtitle: "ขั้นตอนและหลักฐานการแก้ไขล่าสุด",
-      descriptionLabel: "รายละเอียดการแก้ไข",
-      dateLabel: "วันที่ดำเนินการ",
-      filesLabel: "ไฟล์หลักฐานการแก้ไข",
-    });
+    if (request.statusCode === "rejected") {
+      setRepairDetailModalProps({
+        title: "รายละเอียดการปฏิเสธคำขอ",
+        subtitle: "เหตุผลที่ปฏิเสธการดำเนินการ",
+        descriptionLabel: "เหตุผลการปฏิเสธ",
+        dateLabel: "วันที่ปฏิเสธ",
+        filesLabel: "ไฟล์หลักฐานประกอบ",
+      });
+    } else {
+      setRepairDetailModalProps({
+        title: "รายละเอียดการแก้ไขปัญหา",
+        subtitle: "ขั้นตอนและหลักฐานการแก้ไขล่าสุด",
+        descriptionLabel: "รายละเอียดการแก้ไข",
+        dateLabel: "วันที่ดำเนินการ",
+        filesLabel: "ไฟล์หลักฐานการแก้ไข",
+      });
+    }
     setShowRepairDetail(true);
   }
 
@@ -202,7 +212,8 @@ export default function Page({ params }: Props) {
     request.statusCode === "closed" && request.ratingStatus !== "ประเมินแล้ว";
   const canViewRepairDetail =
     request.statusCode === "waiting_confirm" ||
-    request.statusCode === "closed";
+    request.statusCode === "closed" ||
+    request.statusCode === "rejected";
   const hasRequestFiles = (request.requestFiles?.length ?? 0) > 0;
   const problem = request.problem?.trim() || "-";
   const problemDetail = request.problemDetail?.trim() || "-";

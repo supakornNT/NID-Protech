@@ -53,7 +53,7 @@ export default function IssueWorkPage() {
           />
         </div>
         <button
-          type=""
+          type="submit"
           className="h-9 rounded-lg bg-[#366DBD] px-5 text-[14px] font-semibold text-white transition hover:bg-[#2d5da3]"
         >
           ค้นหา
@@ -139,8 +139,8 @@ export default function IssueWorkPage() {
             key={p}
             onClick={() => setPage(p)}
             className={`flex h-9 w-9 items-center justify-center rounded-md border text-sm transition-all ${page === p
-                ? "border-[#7FA7E8] bg-[#EEF4FF] text-[#3A6FCF]"
-                : "border-transparent text-gray-600 hover:border-[#7FA7E8] hover:text-[#3A6FCF]"
+              ? "border-[#7FA7E8] bg-[#EEF4FF] text-[#3A6FCF]"
+              : "border-transparent text-gray-600 hover:border-[#7FA7E8] hover:text-[#3A6FCF]"
               }`}
           >
             {p}

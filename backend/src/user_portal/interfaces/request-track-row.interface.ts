@@ -19,4 +19,5 @@ export interface RequestTrackRow extends RowDataPacket {
 export interface StatusLogRow extends RowDataPacket {
   status: string;
   created_at: Date | string;
+  note: string | null;
 }
