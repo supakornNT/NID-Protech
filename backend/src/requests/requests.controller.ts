@@ -18,6 +18,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { mkdirSync } from 'fs';
 import { diskStorage } from 'multer';
 import { resolve } from 'path';
+import { normalizeUploadedFileName } from '../common/utils/upload-file-name.util';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { CreateExternalRequestDto } from './dto/create-request-external.dto';
 import { CreateInternalRequestDto } from './dto/create-request-internal.dto';
@@ -33,7 +34,9 @@ const internalStorage = diskStorage({
   destination: requestsUploadDir,
   filename(_req, file, cb) {
     const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    cb(null, `${unique}-${file.originalname}`);
+    const originalName = normalizeUploadedFileName(file.originalname);
+    file.originalname = originalName;
+    cb(null, `${unique}-${originalName}`);
   },
 });
 

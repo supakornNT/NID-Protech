@@ -48,9 +48,24 @@ export function ProTechTable<T>({
   totalPages,
   totalItems,
   onPageChange,
+  loading = false,
 }: ProTechTableProps<T>) {
-  const [internalPage, setInternalPage] =
-    React.useState(1);
+  const [internalPage, setInternalPage] = React.useState(1);
+  const [showSpinner, setShowSpinner] = React.useState(false);
+
+  React.useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (loading) {
+      timer = setTimeout(() => {
+        setShowSpinner(true);
+      }, 250);
+    } else {
+      setShowSpinner(false);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [loading]);
 
   const isControlled =
     typeof page === "number" &&
@@ -107,7 +122,14 @@ export function ProTechTable<T>({
 
   return (
     <div className="min-w-0 w-full max-w-full space-y-3">
-      <div className="min-w-0 w-full max-w-full overflow-hidden rounded-xl border border-[#7FA7E8] bg-white shadow-sm">
+      <div className="relative min-w-0 w-full max-w-full overflow-hidden rounded-xl border border-[#7FA7E8] bg-white shadow-sm">
+        {showSpinner && currentData.length > 0 && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/40 backdrop-blur-[0.5px]">
+            <div className="flex items-center justify-center rounded-full bg-white p-3 shadow-lg border border-blue-100">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#3A6FCF] border-t-transparent" />
+            </div>
+          </div>
+        )}
         <div className="w-full overflow-x-auto">
           <Table className="min-w-[760px]">
             <TableHeader className="bg-[#DCE9FF]">
@@ -126,7 +148,23 @@ export function ProTechTable<T>({
             </TableHeader>
 
             <TableBody>
-              {currentData.length > 0 ? (
+              {loading && currentData.length === 0 ? (
+                Array.from({ length: limit }).map((_, rowIndex) => (
+                  <TableRow
+                    key={rowIndex}
+                    className="border-[#7FA7E8]"
+                  >
+                    {columns.map((_, colIndex) => (
+                      <TableCell
+                        key={colIndex}
+                        className="h-12 border-r border-[#7FA7E8] px-4 py-3 last:border-r-0"
+                      >
+                        <div className="mx-auto h-4 w-2/3 animate-pulse rounded bg-gray-200" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : currentData.length > 0 ? (
                 currentData.map(
                   (row, rowIndex) => (
                     <TableRow

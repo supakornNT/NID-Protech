@@ -131,16 +131,13 @@ export default function PermissionsPage() {
             setSearchValue(value);
             search(value);
           }}
+          loading={loading}
         />
 
         {error ? (
           <div className="max-w-105 rounded-md border border-[#FFB4C0] bg-[#FFF5F7] px-3 py-2 text-sm text-[#D1435B]">
             {error}
           </div>
-        ) : null}
-
-        {loading ? (
-          <p className="text-sm text-[#8B95A7]">กำลังโหลดข้อมูลสิทธิ์ผู้ใช้งาน...</p>
         ) : null}
       </div>
 

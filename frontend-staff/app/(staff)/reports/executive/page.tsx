@@ -20,25 +20,11 @@ function StatCard({ icon, value, label, valueColor }: { icon: React.ReactNode; v
 export default function ReportExecutivePage() {
   const { data, loading, error } = useExecutiveReport();
 
-  if (loading) {
-    return (
-      <div className="flex flex-1 items-center justify-center text-gray-400">
-        กำลังโหลด...
-      </div>
-    );
-  }
 
-  if (error || !data) {
-    return (
-      <div className="flex flex-1 items-center justify-center text-red-400">
-        โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง
-      </div>
-    );
-  }
 
-  const maxProblemCount = Math.max(...data.commonProblems.map((p) => p.count), 1);
-  const maxRatingCount = Math.max(...data.ratings.map((r) => r.count), 1);
-  const donutTotal = data.donutData.reduce((s, d) => s + d.value, 0);
+  const maxProblemCount = data ? Math.max(...data.commonProblems.map((p) => p.count), 1) : 1;
+  const maxRatingCount = data ? Math.max(...data.ratings.map((r) => r.count), 1) : 1;
+  const donutTotal = data ? data.donutData.reduce((s, d) => s + d.value, 0) : 0;
 
   return (
     <div className="flex flex-1 flex-col gap-6 bg-white p-8">
@@ -54,7 +40,32 @@ export default function ReportExecutivePage() {
         </button>
       </div>
 
-      {/* Stat cards */}
+      {loading ? (
+        <div className="animate-pulse flex flex-col gap-6 w-full">
+          {/* Stat cards skeleton */}
+          <div className="flex gap-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex flex-1 flex-col gap-2 rounded-xl border border-gray-200 bg-white p-4">
+                <div className="h-6 w-6 rounded bg-gray-200" />
+                <div className="h-8 w-12 rounded bg-gray-200" />
+                <div className="h-4 w-24 rounded bg-gray-200" />
+              </div>
+            ))}
+          </div>
+
+          {/* Charts and bottom grids skeleton */}
+          <div className="flex gap-5">
+            <div className="flex-3 h-80 rounded-xl border border-gray-200 bg-white p-5" />
+            <div className="flex-2 h-80 rounded-xl border border-gray-200 bg-white p-5" />
+          </div>
+          <div className="h-60 rounded-xl border border-gray-200 bg-white p-5" />
+        </div>
+      ) : error || !data ? (
+        <div className="flex flex-1 items-center justify-center text-red-400 bg-white border border-gray-200 rounded-2xl p-8 min-h-[300px]">
+          โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง
+        </div>
+      ) : (
+        <>
       <div className="flex gap-4">
         <StatCard icon={<Ticket size={28} className="text-[#366DBD]" />} value={String(data.stats.total)} label="ตั๋วทั้งหมด" valueColor="text-[#366DBD]" />
         <StatCard icon={<CheckCircle2 size={28} className="text-[#4CAF50]" />} value={String(data.stats.closed)} label="ปิดงานสำเร็จทั้งหมด" valueColor="text-[#4CAF50]" />
@@ -189,7 +200,9 @@ export default function ReportExecutivePage() {
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      </>
+    )}
     </div>
   );
 }

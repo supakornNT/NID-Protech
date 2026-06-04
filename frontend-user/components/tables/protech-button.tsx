@@ -11,7 +11,6 @@ import {
   X,
   Check,
   TriangleAlert,
-  Info,
 } from "lucide-react";
 
 type ButtonVariant =
@@ -22,6 +21,7 @@ type ButtonVariant =
   | "delete"
   | "cancel"
   | "outline"
+  | "authOutline"
   | "success"
   | "warning"
   | "danger"
@@ -142,6 +142,19 @@ export function ProTechButton({
       active:bg-[#DCE9FF]
     `,
 
+    /* AUTH OUTLINE */
+    authOutline: `
+      border
+      border-black
+
+      bg-white
+      text-black
+
+      hover:bg-gray-50
+
+      active:bg-gray-100
+    `,
+
     /* SUCCESS */
     success: `
       bg-green-600
@@ -201,6 +214,7 @@ export function ProTechButton({
     cancel: <X size={16} />,
 
     outline: null,
+    authOutline: null,
 
     success: <Check size={16} />,
 

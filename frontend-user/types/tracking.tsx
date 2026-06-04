@@ -2,6 +2,7 @@ export type TrackingRow = {
   trackingNo: string;
   system: string;
   problem: string;
+  problemDetail?: string;
   status: string;
 };
 
@@ -17,14 +18,30 @@ export type TicketStatus =
   | "รอตรวจสอบโดยลูกค้า"
   | "เสร็จสิ้น";
 
-export type RatingStatus =
-  | "ยังไม่ประเมิน"
-  | "ประเมินแล้ว";
+export type RatingStatus = "ยังไม่ประเมิน" | "ประเมินแล้ว";
 
 export type TrackingStep = {
   label: string;
   date?: string;
   time?: string;
+};
+
+export type RepairFile = {
+  id: number;
+  name: string;
+  type: "pdf" | "image";
+  size: string;
+  uploadedAt: string;
+  url: string;
+};
+
+export type ReopenRound = {
+  roundNumber: number;
+  requestConfirmationId: number;
+  reopenedAt: string | null;
+  comment: string | null;
+  files: RepairFile[];
+  staffFiles: RepairFile[];
 };
 
 export type TrackingDetail = {
@@ -38,20 +55,15 @@ export type TrackingDetail = {
   solution?: string;
   ratingStatus?: string;
   problem: string;
+  problemDetail?: string;
+  requestFiles?: RepairFile[];
+  repairFiles?: RepairFile[];
   timeline: {
     label: string;
     date?: string;
     time?: string;
   }[];
-};
-
-export type RepairFile = {
-  id: number;
-  name: string;
-  type: "pdf" | "image";
-  size: string;
-  uploadedAt: string;
-  url: string;
+  reopenRounds?: ReopenRound[];
 };
 
 export type RepairDetail = {

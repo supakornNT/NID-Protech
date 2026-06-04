@@ -1,23 +1,23 @@
 import {
   formatDateTime as formatDateTimeUtil,
   toDateTimeParts as toDateTimePartsUtil,
-} from '../../common/utils/date-time.util';
-import { mapRequestStatusLabel as mapRequestStatusLabelUtil } from '../../common/utils/request-status.util';
-import { getStaffFullName as getStaffFullNameUtil } from '../../common/utils/staff.util';
+} from "../../common/utils/date-time.util";
+import { mapRequestStatusLabel as mapRequestStatusLabelUtil } from "../../common/utils/request-status.util";
+import { getStaffFullName as getStaffFullNameUtil } from "../../common/utils/staff.util";
 import {
   getCurrentStep as getCurrentStepHelper,
   getCustomerConfirmDueAt as getCustomerConfirmDueAtHelper,
   getTimelineStatus as getTimelineStatusHelper,
   mapRepairStatus as mapRepairStatusHelper,
-} from '../helpers/request-track.helper';
+} from "../helpers/request-track.helper";
 import {
   PublicRequestTrack,
   PublicRequestTrackTimeline,
-} from '../interfaces/public-request-track.interface';
+} from "../interfaces/public-request-track.interface";
 import {
   RequestTrackRow,
   StatusLogRow,
-} from '../interfaces/request-track-row.interface';
+} from "../interfaces/request-track-row.interface";
 
 export function mapTrackResponse(
   request: RequestTrackRow,
@@ -25,13 +25,13 @@ export function mapTrackResponse(
 ): PublicRequestTrack {
   const currentStep = getCurrentStepHelper(request.requestStatus);
   const firstInProgressLog = requestStatusLogs.find(
-    (log) => log.status === 'assigned' || log.status === 'in_progress',
+    (log) => log.status === "assigned" || log.status === "in_progress",
   );
   const waitingConfirmLog = requestStatusLogs.find(
-    (log) => log.status === 'waiting_confirm',
+    (log) => log.status === "waiting_confirm",
   );
   const screeningLog = requestStatusLogs.find(
-    (log) => log.status === 'screening',
+    (log) => log.status === "screening",
   );
 
   const requestedAt = toDateTimePartsUtil(request.requestCreatedAt);
@@ -42,30 +42,35 @@ export function mapTrackResponse(
     waitingConfirmLog?.created_at,
   );
 
+  const step1Status = getTimelineStatusHelper(1, currentStep, request.requestStatus);
+  const step2Status = getTimelineStatusHelper(2, currentStep, request.requestStatus);
+  const step3Status = getTimelineStatusHelper(3, currentStep, request.requestStatus);
+  const step4Status = getTimelineStatusHelper(4, currentStep, request.requestStatus);
+
   const timeline: PublicRequestTrackTimeline[] = [
     {
-      label: 'แจ้งปัญหา',
-      status: getTimelineStatusHelper(1, currentStep, request.requestStatus),
+      label: "แจ้งปัญหา",
+      status: step1Status,
       date: requestedAt.date,
       time: requestedAt.time,
     },
     {
-      label: 'คัดกรอง',
-      status: getTimelineStatusHelper(2, currentStep, request.requestStatus),
-      date: screeningAt.date,
-      time: screeningAt.time,
+      label: "คัดกรอง",
+      status: step2Status,
+      date: step2Status === "pending" ? undefined : screeningAt.date,
+      time: step2Status === "pending" ? undefined : screeningAt.time,
     },
     {
-      label: 'ดำเนินการ',
-      status: getTimelineStatusHelper(3, currentStep, request.requestStatus),
-      date: inProgressAt.date,
-      time: inProgressAt.time,
+      label: "ดำเนินการ",
+      status: step3Status,
+      date: step3Status === "pending" ? undefined : inProgressAt.date,
+      time: step3Status === "pending" ? undefined : inProgressAt.time,
     },
     {
-      label: 'รอตรวจสอบโดยลูกค้า',
-      status: getTimelineStatusHelper(4, currentStep, request.requestStatus),
-      date: waitingConfirmAt.date,
-      time: waitingConfirmAt.time,
+      label: "รอตรวจสอบโดยลูกค้า",
+      status: step4Status,
+      date: step4Status === "pending" ? undefined : waitingConfirmAt.date,
+      time: step4Status === "pending" ? undefined : waitingConfirmAt.time,
     },
   ];
 
@@ -73,6 +78,7 @@ export function mapTrackResponse(
     id: request.id,
     trackingNo: request.requestNo,
     problem: request.title,
+    problemDetail: request.detail,
     statusCode: request.requestStatus,
     status: mapRequestStatusLabelUtil(request.requestStatus),
     repairStatus: mapRepairStatusHelper(
@@ -83,9 +89,9 @@ export function mapTrackResponse(
       request.repairedByName,
       request.repairedBySurname,
     ),
-    ratingStatus: request.score === null ? 'ยังไม่ประเมิน' : 'ประเมินแล้ว',
+    ratingStatus: request.score === null ? "ยังไม่ประเมิน" : "ประเมินแล้ว",
     timeline,
-    solution: request.resolutionSummary ?? request.detail,
+    solution: "",
     repairedAt: formatDateTimeUtil(request.reviewedAt),
     customerConfirmDueAt,
   };

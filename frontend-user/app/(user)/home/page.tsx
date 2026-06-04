@@ -22,11 +22,6 @@ export default function HomePage() {
   const { user } = useUserSession();
   const { summary, loading, error } = useDashboardSummary();
 
-  const totalValue = loading ? "..." : String(summary.total);
-  const screeningValue = loading ? "..." : String(summary.screening);
-  const inProgressValue = loading ? "..." : String(summary.inProgress);
-  const completedValue = loading ? "..." : String(summary.completed);
-
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
@@ -118,22 +113,38 @@ export default function HomePage() {
             <div className={styles.statusList}>
               <div className={styles.statusBox}>
                 <span>ทั้งหมด</span>
-                <strong>{totalValue}</strong>
+                {loading ? (
+                  <span className="mt-1 block h-9 w-12 animate-pulse rounded bg-gray-300/40" />
+                ) : (
+                  <strong>{summary.total}</strong>
+                )}
               </div>
 
               <div className={styles.statusBox}>
                 <span>ตรวจสอบ</span>
-                <strong>{screeningValue}</strong>
+                {loading ? (
+                  <span className="mt-1 block h-9 w-12 animate-pulse rounded bg-gray-300/40" />
+                ) : (
+                  <strong>{summary.screening}</strong>
+                )}
               </div>
 
               <div className={styles.statusBox}>
                 <span>ดำเนินการ</span>
-                <strong>{inProgressValue}</strong>
+                {loading ? (
+                  <span className="mt-1 block h-9 w-12 animate-pulse rounded bg-gray-300/40" />
+                ) : (
+                  <strong>{summary.inProgress}</strong>
+                )}
               </div>
 
               <div className={styles.statusBox}>
                 <span>สำเร็จ</span>
-                <strong>{completedValue}</strong>
+                {loading ? (
+                  <span className="mt-1 block h-9 w-12 animate-pulse rounded bg-gray-300/40" />
+                ) : (
+                  <strong>{summary.completed}</strong>
+                )}
               </div>
             </div>
           </div>

@@ -6,6 +6,13 @@ import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { ProTechButton } from "@/components/tables/protech-button";
 import type { UserGroupFormInput } from "@/hooks/user-groups/use-user-groups-page";
 import { normalizeTextInput } from "@/lib/form-utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type TeamGroupModalProps = {
   open: boolean;
@@ -75,22 +82,26 @@ export function TeamGroupModal({
 
         <div className="space-y-2">
           <label className="block text-[16px] text-[#111827]">สถานะ</label>
-          <select
+          <Select
             value={formState.status}
-            onChange={(event) =>
+            onValueChange={(value) =>
               setFormState((current) => ({
                 ...current,
-                status: event.target.value as UserGroupFormInput["status"],
+                status: value as UserGroupFormInput["status"],
               }))
             }
-            className="h-8.5 w-full rounded-md border border-[#A8B1C2] bg-white px-3 text-[14px] text-[#111827] outline-none"
           >
-            {STATUS_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="h-8.5 w-full rounded-md border border-[#A8B1C2] bg-white px-3 text-[14px] text-[#111827] outline-none">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {STATUS_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {validationError ? (

@@ -15,4 +15,5 @@ export type ProTechTableProps<T> = {
   totalPages: number;
   totalItems: number;
   onPageChange: (page: number) => void;
+  loading?: boolean;
 };

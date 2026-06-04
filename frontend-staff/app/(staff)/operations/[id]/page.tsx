@@ -80,15 +80,9 @@ export default function OperationDetailPage() {
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   }
 
-  if (loading) {
-    return (
-      <div className="flex flex-1 items-center justify-center text-gray-400">
-        กำลังโหลด...
-      </div>
-    );
-  }
 
-  if (error || !data) {
+
+  if (error || (!loading && !data)) {
     return (
       <div className="flex flex-1 items-center justify-center text-red-400">
         โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง
@@ -172,7 +166,7 @@ export default function OperationDetailPage() {
             <p className="text-[14px] text-gray-500">งานที่ต้องมอบหมาย</p>
           </div>
           <a
-            href={`${API_BASE_URL}/requests/${data.requestId}/pdf`}
+            href={`${API_BASE_URL}/requests/${data?.requestId}/pdf`}
             target="_blank"
             rel="noreferrer"
             className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-[14px] text-gray-700 hover:bg-gray-50"
@@ -183,20 +177,49 @@ export default function OperationDetailPage() {
         </div>
 
         {/* Reject note alert */}
-        {!!data.rejectNote && (
+        {!!data?.rejectNote && (
           <div className="flex items-start gap-3 rounded-xl border border-[#F4A0A0] bg-[#FFF5F5] px-4 py-3">
             <AlertCircle size={18} className="mt-0.5 shrink-0 text-[#D9534F]" />
             <div className="flex flex-col gap-0.5">
               <p className="text-[13px] font-semibold text-[#D9534F]">ถูกตีกลับ</p>
-              <p className="text-[13px] text-gray-700">{data.rejectNote}</p>
+              <p className="text-[13px] text-gray-700">{data?.rejectNote}</p>
             </div>
           </div>
         )}
 
         {/* Main content */}
-        <div className="flex min-h-[700px] gap-12">
-          {/* Left panel — request info (read-only) */}
-          <div className="flex flex-1 flex-col  gap-5 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
+        {loading ? (
+          <div className="flex min-h-[700px] gap-12 animate-pulse w-full">
+            {/* Left panel skeleton */}
+            <div className="flex flex-1 shrink-0 flex-col gap-5 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
+              <div className="flex items-start justify-between">
+                <div className="h-7 w-3/4 rounded bg-gray-200" />
+                <div className="h-6 w-28 rounded bg-gray-200" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="h-4 w-1/2 rounded bg-gray-200" />
+                <div className="h-4 w-1/3 rounded bg-gray-200" />
+              </div>
+              <div className="h-80 w-full rounded-lg bg-gray-100" />
+            </div>
+
+            {/* Right panel skeleton */}
+            <div className="flex flex-1 flex-col gap-4 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
+              <div className="h-6 w-1/2 rounded bg-gray-200" />
+              <div className="h-80 w-full rounded-lg bg-gray-100 mt-6" />
+              <div className="flex justify-end gap-2 mt-auto">
+                <div className="h-10 w-24 rounded bg-gray-200" />
+              </div>
+            </div>
+          </div>
+        ) : !data ? (
+          <div className="flex flex-1 items-center justify-center p-8 text-gray-500 bg-white rounded-2xl border border-[#000000] min-h-[700px]">
+            ไม่พบข้อมูล
+          </div>
+        ) : (
+          <div className="flex min-h-[700px] gap-12">
+            {/* Left panel — request info (read-only) */}
+            <div className="flex flex-1 flex-col  gap-5 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
             {/* Title + type */}
             <div className="flex items-start justify-between gap-3">
               <p className="text-[18px] font-bold text-gray-900">
@@ -421,8 +444,9 @@ export default function OperationDetailPage() {
                 </div>
               </>
             )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </>
   );

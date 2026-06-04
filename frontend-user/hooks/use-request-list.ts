@@ -2,6 +2,7 @@
 
 import * as React from "react";
 
+import { useUserSession } from "@/contexts/user-session-context";
 import { fetchJson } from "@/lib/fetch";
 import { TrackingRow } from "@/types/tracking";
 
@@ -34,6 +35,7 @@ function buildRequestsPath(
   page: number,
   limit: number,
   search: string,
+  customerId: number | null,
 ): string {
   const searchParams =
     new URLSearchParams({
@@ -48,10 +50,20 @@ function buildRequestsPath(
     );
   }
 
+  if (customerId) {
+    searchParams.set("customerId", String(customerId));
+  }
+
   return `/user/requests?${searchParams.toString()}`;
 }
 
 export function useRequestList() {
+  const { user } = useUserSession();
+  const customerId = React.useMemo(() => {
+    const userId = Number(user?.id);
+    return Number.isFinite(userId) && userId > 0 ? userId : null;
+  }, [user?.id]);
+
   const [appliedSearch, setAppliedSearch] =
     React.useState("");
   const [searchRequestKey, setSearchRequestKey] =
@@ -101,6 +113,13 @@ export function useRequestList() {
       new AbortController();
 
     async function loadRequests() {
+      if (!customerId) {
+        setRequests([]);
+        setPagination(DEFAULT_PAGINATION);
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
@@ -111,6 +130,7 @@ export function useRequestList() {
               page,
               limit,
               appliedSearch,
+              customerId,
             ),
             {
               signal:
@@ -152,6 +172,7 @@ export function useRequestList() {
     limit,
     page,
     searchRequestKey,
+    customerId,
   ]);
 
   function applySearch(

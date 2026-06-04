@@ -1,48 +1,48 @@
 import {
   normalizeDate as normalizeDateUtil,
   toIsoDateTime as toIsoDateTimeUtil,
-} from '../../common/utils/date-time.util';
+} from "../../common/utils/date-time.util";
 
 export function mapRepairStatus(
   requestStatus: string,
   resolutionRequestStatus: string | null,
 ): string {
   if (
-    requestStatus === 'waiting_confirm' &&
-    resolutionRequestStatus === 'approved'
+    requestStatus === "waiting_confirm" &&
+    resolutionRequestStatus === "approved"
   ) {
-    return 'หัวหน้าอนุมัติผลการแก้ไขแล้ว รอลูกค้ายืนยัน';
+    return "หัวหน้าอนุมัติผลการแก้ไขแล้ว รอลูกค้ายืนยัน";
   }
 
-  if (requestStatus === 'waiting_confirm') {
-    return 'ส่งผลการแก้ไขแล้ว รอลูกค้ายืนยัน';
+  if (requestStatus === "waiting_confirm") {
+    return "ส่งผลการแก้ไขแล้ว รอลูกค้ายืนยัน";
   }
 
-  if (requestStatus === 'closed') {
-    return 'ปิดงานแล้ว';
+  if (requestStatus === "closed") {
+    return "ปิดงานแล้ว";
   }
 
-  if (requestStatus === 'assigned' || requestStatus === 'in_progress') {
-    return 'เจ้าหน้าที่กำลังดำเนินการแก้ไข';
+  if (requestStatus === "assigned" || requestStatus === "in_progress") {
+    return "เจ้าหน้าที่กำลังดำเนินการแก้ไข";
   }
 
-  if (requestStatus === 'screening') {
-    return 'เจ้าหน้าที่กำลังคัดกรองปัญหา';
+  if (requestStatus === "screening") {
+    return "เจ้าหน้าที่กำลังคัดกรองปัญหา";
   }
 
-  if (requestStatus === 'rejected') {
-    return 'รายการถูกปฏิเสธ';
+  if (requestStatus === "rejected") {
+    return "รายการถูกปฏิเสธ";
   }
 
-  return 'รอคัดกรอง';
+  return "รอคัดกรอง";
 }
 
 export function getCurrentStep(requestStatus: string): number {
-  if (requestStatus === 'screening') {
+  if (requestStatus === "screening") {
     return 2;
   }
 
-  if (requestStatus === 'assigned' || requestStatus === 'in_progress') {
+  if (requestStatus === "assigned" || requestStatus === "in_progress") {
     return 3;
   }
 
@@ -53,20 +53,20 @@ export function getTimelineStatus(
   stepNumber: number,
   currentStep: number,
   requestStatus: string,
-): 'completed' | 'active' | 'pending' {
-  if (requestStatus === 'closed') {
-    return 'completed';
+): "completed" | "active" | "pending" {
+  if (requestStatus === "closed") {
+    return "completed";
   }
 
   if (stepNumber < currentStep) {
-    return 'completed';
+    return "completed";
   }
 
   if (stepNumber === currentStep) {
-    return 'active';
+    return "active";
   }
 
-  return 'pending';
+  return "pending";
 }
 
 export function getCustomerConfirmDueAt(

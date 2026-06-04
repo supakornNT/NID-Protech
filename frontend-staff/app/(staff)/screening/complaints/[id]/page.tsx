@@ -28,13 +28,7 @@ export default function ComplaintDetailPage() {
   const { data, attachments, loading } = useComplaintDetail(id);
   const { lightbox, setLightbox } = useLightbox();
 
-  if (loading) {
-    return <div className="flex min-h-screen items-center justify-center bg-gray-50 text-gray-400">กำลังโหลด...</div>;
-  }
 
-  if (!data) {
-    return <div className="flex min-h-screen items-center justify-center bg-gray-50 text-gray-400">ไม่พบข้อมูล</div>;
-  }
 
   return (
     <>
@@ -64,11 +58,53 @@ export default function ComplaintDetailPage() {
 
       <div className="flex min-h-screen items-start justify-center bg-gray-50 p-6 pt-12">
         <div className="w-full max-w-3xl rounded-xl border border-gray-200 bg-white shadow-sm">
-          <div className="border-b px-8 pt-6 pb-4">
-            <h1 className="text-[22px] font-bold text-gray-900">รายละเอียดข้อร้องเรียน</h1>
-          </div>
+          {loading ? (
+            <div className="animate-pulse">
+              <div className="border-b px-8 pt-6 pb-4">
+                <div className="h-6 w-48 rounded bg-gray-200" />
+                <div className="mt-2 h-4 w-24 rounded bg-gray-200" />
+              </div>
+              <div className="flex flex-col gap-5 px-8 py-6">
+                <div className="flex gap-6">
+                  <div className="flex flex-1 flex-col gap-2">
+                    <div className="h-4 w-16 rounded bg-gray-200" />
+                    <div className="h-10 w-full rounded-lg bg-gray-200" />
+                  </div>
+                  <div className="flex flex-1 flex-col gap-2">
+                    <div className="h-4 w-16 rounded bg-gray-200" />
+                    <div className="h-10 w-full rounded-lg bg-gray-200" />
+                  </div>
+                </div>
+                <div className="flex gap-6">
+                  <div className="flex flex-1 flex-col gap-2">
+                    <div className="h-4 w-16 rounded bg-gray-200" />
+                    <div className="h-10 w-full rounded-lg bg-gray-200" />
+                  </div>
+                  <div className="flex flex-1 flex-col gap-2">
+                    <div className="h-4 w-16 rounded bg-gray-200" />
+                    <div className="h-10 w-full rounded-lg bg-gray-200" />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="h-4 w-16 rounded bg-gray-200" />
+                  <div className="h-36 w-full rounded-lg bg-gray-200" />
+                </div>
+              </div>
+              <div className="flex justify-end px-8 pb-6">
+                <div className="h-9 w-24 rounded-full bg-gray-200" />
+              </div>
+            </div>
+          ) : !data ? (
+            <div className="flex min-h-[300px] items-center justify-center p-8 text-gray-400">
+              ไม่พบข้อมูล
+            </div>
+          ) : (
+            <>
+              <div className="border-b px-8 pt-6 pb-4">
+                <h1 className="text-[22px] font-bold text-gray-900">รายละเอียดข้อร้องเรียน</h1>
+              </div>
 
-          <div className="flex flex-col gap-5 px-8 py-6">
+              <div className="flex flex-col gap-5 px-8 py-6">
             <div className="flex gap-6">
               <Field label="ผู้แจ้ง" value={data.customerName} />
               <Field label="ระบบ" value={data.systemName} />
@@ -139,6 +175,8 @@ export default function ComplaintDetailPage() {
               ย้อนกลับ
             </button>
           </div>
+        </>
+      )}
         </div>
       </div>
     </>

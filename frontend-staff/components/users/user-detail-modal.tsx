@@ -14,6 +14,13 @@ import {
   validateUserFormInput,
 } from "@/hooks/users/use-users-management";
 import { formatCitizenId, formatPhoneNumber } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { formatThaiDateTime } from "@/app/(staff)/management/organizations/page";
 
 type UserDetailModalProps = {
@@ -114,24 +121,26 @@ export function UserDetailModal({
     >
       <div className="space-y-3">
         <EditableRow label="คำนำหน้า">
-          <select
-            className="h-10 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none"
-            value={formState.prefixId ?? ""}
-            onChange={(event) => {
-              const nextValue = event.target.value;
+          <Select
+            value={formState.prefixId ? String(formState.prefixId) : ""}
+            onValueChange={(value) => {
               setFormState((current) => ({
                 ...current,
-                prefixId: nextValue ? Number(nextValue) : null,
+                prefixId: value ? Number(value) : null,
               }));
             }}
           >
-            <option value="">-</option>
-            {prefixOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="h-10 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none">
+              <SelectValue placeholder="-" />
+            </SelectTrigger>
+            <SelectContent>
+              {prefixOptions.map((option) => (
+                <SelectItem key={option.value} value={String(option.value)}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </EditableRow>
 
         <EditableRow label="ชื่อ">
@@ -212,30 +221,34 @@ export function UserDetailModal({
         </EditableRow>
 
         <EditableRow label="สถานะ">
-          <select
-            className="h-10 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none"
+          <Select
             value={formState.status}
-            onChange={(event) => {
+            onValueChange={(value) => {
               setFormState((current) => ({
                 ...current,
-                status: event.target.value,
+                status: value,
               }));
             }}
           >
-            {formState.userType === "customer" ? (
-              <>
-                <option value="approved">อนุมัติแล้ว</option>
-                <option value="pending">รออนุมัติ</option>
-                <option value="rejected">ปฏิเสธ</option>
-                <option value="inactive">ไม่ใช้งาน</option>
-              </>
-            ) : (
-              <>
-                <option value="active">ใช้งาน</option>
-                <option value="inactive">ไม่ใช้งาน</option>
-              </>
-            )}
-          </select>
+            <SelectTrigger className="h-10 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {formState.userType === "customer" ? (
+                <>
+                  <SelectItem value="approved">อนุมัติแล้ว</SelectItem>
+                  <SelectItem value="pending">รออนุมัติ</SelectItem>
+                  <SelectItem value="rejected">ปฏิเสธ</SelectItem>
+                  <SelectItem value="inactive">ไม่ใช้งาน</SelectItem>
+                </>
+              ) : (
+                <>
+                  <SelectItem value="active">ใช้งาน</SelectItem>
+                  <SelectItem value="inactive">ไม่ใช้งาน</SelectItem>
+                </>
+              )}
+            </SelectContent>
+          </Select>
         </EditableRow>
 
         <ReadonlyRow

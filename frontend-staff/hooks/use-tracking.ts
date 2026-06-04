@@ -30,9 +30,9 @@ export function useTracking() {
     setError(false);
 
     fetch(`${API_BASE_URL}/requests/tracking`)
-      .then((r) => {
-        if (!r.ok) throw new Error();
-        return r.json();
+      .then((response) => {
+        if (!response.ok) throw new Error();
+        return response.json();
       })
       .then((data: TrackingItem[]) => setItems(data))
       .catch(() => setError(true))
@@ -53,6 +53,7 @@ export function useTracking() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ staffId: currentStaffId }),
     });
+
     setItems((prev) =>
       prev.map((item) =>
         item.id === requestId

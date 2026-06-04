@@ -1,16 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import { ConfirmRequestDto } from './dto/confirm-request.dto';
-import { RateRequestDto } from './dto/rate-request.dto';
-import { RejectRequestDto } from './dto/reject-request.dto';
-import type { DashboardSummary } from './interfaces/dashboard-summary.interface';
+import { Injectable } from "@nestjs/common";
+
+import { ConfirmRequestDto } from "./dto/confirm-request.dto";
+import { RateRequestDto } from "./dto/rate-request.dto";
+import { RejectRequestDto } from "./dto/reject-request.dto";
+import type { DashboardSummary } from "./interfaces/dashboard-summary.interface";
 import type {
   GetRequestsQuery,
   PublicRequestList,
-} from './interfaces/public-request-list.interface';
-import type { PublicRequestPdfData } from './interfaces/public-request-pdf.interface';
-import type { PublicRequestTrack } from './interfaces/public-request-track.interface';
-import { UserPortalActionService } from './user-portal-action.service';
-import { UserPortalQueryService } from './user-portal-query.service';
+} from "./interfaces/public-request-list.interface";
+import type { PublicRequestPdfData } from "./interfaces/public-request-pdf.interface";
+import type { PublicRequestTrack } from "./interfaces/public-request-track.interface";
+import { UserPortalActionService } from "./user-portal-action.service";
+import { UserPortalQueryService } from "./user-portal-query.service";
 
 @Injectable()
 export class UserPortalService {
@@ -35,6 +36,10 @@ export class UserPortalService {
     return this.queryService.getRequestTrack(requestNo);
   }
 
+  getLatestRepairAttachments(id: number) {
+    return this.queryService.getLatestRepairAttachments(id);
+  }
+
   confirmRequest(
     id: number,
     dto: ConfirmRequestDto,
@@ -49,7 +54,8 @@ export class UserPortalService {
   rejectRequest(
     id: number,
     dto: RejectRequestDto,
+    files: Express.Multer.File[],
   ): Promise<PublicRequestTrack> {
-    return this.actionService.rejectRequest(id, dto);
+    return this.actionService.rejectRequest(id, dto, files);
   }
 }

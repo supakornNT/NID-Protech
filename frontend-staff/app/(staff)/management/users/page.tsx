@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, KeyRound, Pencil } from "lucide-react";
+import { KeyRound, Pencil } from "lucide-react";
+
+import { ToolbarSelect } from "@/components/ui/toolbar-select";
 
 import {
   ActionSuccessModal,
@@ -369,32 +371,30 @@ export default function UsersPage() {
               inputClassName="h-[31px] rounded-md border border-[#A8B1C2] px-3 text-[14px]"
             />
 
-            <div className="relative">
-              <select
-                value={statusFilter}
-                onChange={(event) => {
-                  setStatusFilter(event.target.value as UserStatusFilter);
-                  setPage(1);
-                }}
-                className="h-[31px] min-w-[132px] appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-left text-[14px] text-[#6B7280] outline-none"
-              >
-                <option value="all">สถานะทั้งหมด</option>
-                {activeTab === "staff" ? (
-                  <>
-                    <option value="active">ใช้งาน</option>
-                    <option value="inactive">ไม่ใช้งาน</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="approved">อนุมัติแล้ว</option>
-                    <option value="pending">รออนุมัติ</option>
-                    <option value="rejected">ปฏิเสธ</option>
-                    <option value="inactive">ไม่ใช้งาน</option>
-                  </>
-                )}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-[#8B95A7]" />
-            </div>
+            <ToolbarSelect
+              value={statusFilter}
+              placeholder="สถานะทั้งหมด"
+              options={
+                activeTab === "staff"
+                  ? [
+                      { value: "all", label: "สถานะทั้งหมด" },
+                      { value: "active", label: "ใช้งาน" },
+                      { value: "inactive", label: "ไม่ใช้งาน" },
+                    ]
+                  : [
+                      { value: "all", label: "สถานะทั้งหมด" },
+                      { value: "approved", label: "อนุมัติแล้ว" },
+                      { value: "pending", label: "รออนุมัติ" },
+                      { value: "rejected", label: "ปฏิเสธ" },
+                      { value: "inactive", label: "ไม่ใช้งาน" },
+                    ]
+              }
+              onChange={(value) => {
+                setStatusFilter(value as UserStatusFilter);
+                setPage(1);
+              }}
+              className="min-w-[132px]"
+            />
           </div>
         </div>
 
@@ -404,9 +404,7 @@ export default function UsersPage() {
           </div>
         ) : null}
 
-        {loading ? (
-          <p className="text-sm text-[#8B95A7]">กำลังโหลดข้อมูลผู้ใช้งาน...</p>
-        ) : activeTab === "staff" ? (
+        {activeTab === "staff" ? (
           <ProTechTable
             columns={staffColumns}
             data={staffRows}
@@ -415,6 +413,7 @@ export default function UsersPage() {
             totalPages={pagination.totalPages}
             totalItems={pagination.total}
             onPageChange={setPage}
+            loading={loading}
           />
         ) : (
           <ProTechTable
@@ -425,6 +424,7 @@ export default function UsersPage() {
             totalPages={pagination.totalPages}
             totalItems={pagination.total}
             onPageChange={setPage}
+            loading={loading}
           />
         )}
 

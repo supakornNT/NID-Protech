@@ -124,9 +124,6 @@ export default function IssuesPage() {
     },
   ];
 
-  if (loading) {
-    return <div className="flex flex-1 items-center justify-center text-gray-400">กำลังโหลด...</div>;
-  }
 
   return (
     <>
@@ -230,6 +227,7 @@ export default function IssuesPage() {
           totalPages={Math.max(1, Math.ceil(filtered.length / 10))}
           totalItems={filtered.length}
           onPageChange={setPage}
+          loading={loading}
         />
       </div>
     </>

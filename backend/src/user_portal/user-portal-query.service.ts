@@ -2,28 +2,28 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
-} from '@nestjs/common';
-import { formatDateTime as formatDateTimeUtil } from '../common/utils/date-time.util';
-import { parsePositiveInteger as parsePositiveIntegerUtil } from '../common/utils/number.util';
-import { mapRequestStatusLabel as mapRequestStatusLabelUtil } from '../common/utils/request-status.util';
-import type { DashboardSummary } from './interfaces/dashboard-summary.interface';
+} from "@nestjs/common";
+import { formatDateTime as formatDateTimeUtil } from "../common/utils/date-time.util";
+import { parsePositiveInteger as parsePositiveIntegerUtil } from "../common/utils/number.util";
+import { mapRequestStatusLabel as mapRequestStatusLabelUtil } from "../common/utils/request-status.util";
+import type { DashboardSummary } from "./interfaces/dashboard-summary.interface";
 import type {
   GetRequestsQuery,
   PublicRequestList,
-} from './interfaces/public-request-list.interface';
-import type { PublicRequestPdfData } from './interfaces/public-request-pdf.interface';
-import type { PublicRequestTrack } from './interfaces/public-request-track.interface';
-import { mapTrackResponse } from './mappers/request-track.mapper';
-import { UserPortalMaintenanceService } from './user-portal-maintenance.service';
-import { UserPortalRepository } from './user-portal.repository';
+} from "./interfaces/public-request-list.interface";
+import type { PublicRequestPdfData } from "./interfaces/public-request-pdf.interface";
+import type { PublicRequestTrack } from "./interfaces/public-request-track.interface";
+import { mapTrackResponse } from "./mappers/request-track.mapper";
+import { UserPortalMaintenanceService } from "./user-portal-maintenance.service";
+import { UserPortalRepository } from "./user-portal.repository";
 
 const REQUEST_STATUS_VALUES = new Set([
-  'screening',
-  'assigned',
-  'in_progress',
-  'waiting_confirm',
-  'closed',
-  'rejected',
+  "screening",
+  "assigned",
+  "in_progress",
+  "waiting_confirm",
+  "closed",
+  "rejected",
 ]);
 
 @Injectable()
@@ -49,15 +49,23 @@ export class UserPortalQueryService {
   async getRequests(query: GetRequestsQuery): Promise<PublicRequestList> {
     await this.maintenanceService.ensureRecentSync();
 
-    const page = parsePositiveIntegerUtil(query.page, 1, 'page');
+    const page = parsePositiveIntegerUtil(query.page, 1, "page");
     const limit = Math.min(
-      parsePositiveIntegerUtil(query.limit, 10, 'limit'),
+      parsePositiveIntegerUtil(query.limit, 10, "limit"),
       100,
     );
-    const search = query.search?.trim() ?? '';
-    const status = query.status?.trim() ?? '';
+    const search = query.search?.trim() ?? "";
+    const status = query.status?.trim() ?? "";
     const whereClauses: string[] = [];
     const params: Array<string | number> = [];
+
+    const customerId = query.customerId
+      ? parsePositiveIntegerUtil(query.customerId, 0, "customerId")
+      : null;
+    if (customerId) {
+      whereClauses.push("r.customer_id = ?");
+      params.push(customerId);
+    }
 
     if (search.length > 0) {
       const likeSearch = `%${search}%`;
@@ -72,15 +80,15 @@ export class UserPortalQueryService {
 
     if (status.length > 0) {
       if (!REQUEST_STATUS_VALUES.has(status)) {
-        throw new BadRequestException('status is invalid');
+        throw new BadRequestException("status is invalid");
       }
 
-      whereClauses.push('r.status = ?');
+      whereClauses.push("r.status = ?");
       params.push(status);
     }
 
     const whereSql =
-      whereClauses.length > 0 ? ` WHERE ${whereClauses.join(' AND ')}` : '';
+      whereClauses.length > 0 ? ` WHERE ${whereClauses.join(" AND ")}` : "";
     const total = await this.repository.countRequests(whereSql, params);
     const totalPages = Math.max(1, Math.ceil(total / limit));
     const safePage = Math.min(page, totalPages);
@@ -95,8 +103,8 @@ export class UserPortalQueryService {
     return {
       items: rows.map((row) => ({
         trackingNo: row.requestNo,
-        system: row.systemName ?? '-',
-        problem: row.problemName ?? '-',
+        system: row.systemName ?? "-",
+        problem: row.problemName ?? "-",
         document: `tracking-${row.requestNo}.pdf`,
         status: mapRequestStatusLabelUtil(row.status),
       })),
@@ -127,7 +135,10 @@ export class UserPortalQueryService {
     const requestStatusLogs = await this.repository.findRequestStatusLogs(
       request.id,
     );
-    return mapTrackResponse(request, requestStatusLogs);
+    const track = mapTrackResponse(request, requestStatusLogs);
+    track.reopenRounds = await this.buildReopenRounds(request.id);
+
+    return track;
   }
 
   async getRequestTrackById(id: number): Promise<PublicRequestTrack> {
@@ -140,7 +151,61 @@ export class UserPortalQueryService {
     const requestStatusLogs = await this.repository.findRequestStatusLogs(
       updated.id,
     );
-    return mapTrackResponse(updated, requestStatusLogs);
+    const track = mapTrackResponse(updated, requestStatusLogs);
+    track.reopenRounds = await this.buildReopenRounds(updated.id);
+
+    return track;
+  }
+
+  private async buildReopenRounds(requestId: number): Promise<any[]> {
+    const confirmations = await this.repository.findReopenConfirmations(requestId);
+    const attachments = await this.repository.findReopenAttachments(requestId);
+    const resolutionAttachments = await this.repository.findResolutionAttachments(requestId);
+
+    const sortedConfirmations = [...confirmations].sort((a, b) => a.id - b.id);
+    const getTime = (date: any): number => (date ? new Date(date).getTime() : 0);
+
+    const rounds = sortedConfirmations.map((conf, index) => {
+      const roundNumber = index + 1;
+      const tReopen = getTime(conf.reopenedAt);
+      const tPrev = index === 0 ? 0 : getTime(sortedConfirmations[index - 1].reopenedAt);
+
+      const staffFiles = resolutionAttachments
+        .filter(
+          (att) => getTime(att.uploadedAt) < tReopen && getTime(att.uploadedAt) >= tPrev
+        )
+        .map((att) => ({
+          id: att.id,
+          originalName: att.originalName,
+          savedName: att.savedName,
+          fileExt: att.fileExt,
+        }));
+
+      const roundFiles = attachments
+        .filter((att) => att.requestConfirmationId === conf.id)
+        .map((att) => ({
+          id: att.id,
+          originalName: att.originalName,
+          savedName: att.savedName,
+          fileExt: att.fileExt,
+        }));
+
+      return {
+        roundNumber,
+        requestConfirmationId: conf.id,
+        reopenedAt: conf.reopenedAt,
+        comment: conf.comment,
+        files: roundFiles,
+        staffFiles: staffFiles,
+      };
+    });
+
+    return [...rounds].reverse();
+  }
+
+  async getLatestRepairAttachments(id: number) {
+    await this.maintenanceService.ensureRecentSync();
+    return this.repository.findLatestRepairAttachments(id);
   }
 
   async getRequestPdfData(requestNo: string): Promise<PublicRequestPdfData> {
@@ -152,7 +217,7 @@ export class UserPortalQueryService {
       trackingNo: row.requestNo,
       requesterName: [row.customerName, row.customerSurname]
         .filter(Boolean)
-        .join(' '),
+        .join(" "),
       requesterEmail: row.customerEmail,
       requesterPhone: row.customerPhone,
       systemName: row.systemName,
@@ -160,7 +225,7 @@ export class UserPortalQueryService {
       problemTitle: row.title,
       problemDetail: row.detail,
       statusCode: row.requestStatus,
-      issuedAt: formatDateTimeUtil(row.requestCreatedAt) ?? '',
+      issuedAt: formatDateTimeUtil(row.requestCreatedAt) ?? "",
       documentFileName: row.documentFileName ?? `tracking-${row.requestNo}.pdf`,
       documentGeneratedAt: formatDateTimeUtil(row.documentGeneratedAt),
     };

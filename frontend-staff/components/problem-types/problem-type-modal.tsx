@@ -10,6 +10,13 @@ import type {
   ProblemTypeStatus,
 } from "@/hooks/problem-types/use-problem-type-table";
 import { normalizeTextInput } from "@/lib/form-utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type ProblemTypeModalProps = {
   open: boolean;
@@ -84,43 +91,51 @@ export function ProblemTypeModal({
 
           <div className="space-y-2">
             <label className="block text-[16px] text-[#111827]">หมวด</label>
-            <select
-              className="h-8.25 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none"
+            <Select
               value={formState.requestType}
               disabled={mode === "edit"}
-              onChange={(event) =>
+              onValueChange={(value) =>
                 setFormState((current) => ({
                   ...current,
-                  requestType: event.target.value as ProblemTypeRequestType,
+                  requestType: value as ProblemTypeRequestType,
                 }))
               }
             >
-              {REQUEST_TYPE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-8.25 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {REQUEST_TYPE_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
             <label className="block text-[16px] text-[#111827]">สถานะ</label>
-            <select
-              className="h-8.25 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none"
+            <Select
               value={formState.status}
-              onChange={(event) =>
+              onValueChange={(value) =>
                 setFormState((current) => ({
                   ...current,
-                  status: event.target.value as ProblemTypeStatus,
+                  status: value as ProblemTypeStatus,
                 }))
               }
             >
-              {STATUS_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-8.25 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

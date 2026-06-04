@@ -206,11 +206,8 @@ export default function CustomersPage() {
         disableClientPagination
         showDelete={false}
         showCreate={false}
+        loading={loading}
       />
-
-      {loading ? (
-        <p className="mt-4 text-sm text-[#8B95A7]">กำลังโหลดข้อมูล...</p>
-      ) : null}
 
       <Dialog
         open={pendingAction !== null}

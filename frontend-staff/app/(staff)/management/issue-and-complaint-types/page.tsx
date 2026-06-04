@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ToolbarSelect } from "@/components/ui/toolbar-select";
 
 import {
   ActionIcons,
@@ -255,29 +255,22 @@ export default function ProblemTypesPage() {
         disableClientPagination
         showCreate={false}
         showDelete={false}
+        loading={loading}
         renderToolbar={({ searchBar }) => (
           <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <div className="flex flex-1 flex-wrap items-center gap-3">
                 {searchBar}
 
-                <div className="relative">
-                  <select
-                    value={categoryFilter}
-                    onChange={(event) => {
-                      setCategoryFilter(event.target.value as ProblemTypeFilter);
-                      resetToFirstPage();
-                    }}
-                    className="h-[31px] min-w-[132px] appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-left text-[14px] text-[#6B7280] outline-none"
-                  >
-                    {CATEGORY_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-[#8B95A7]" />
-                </div>
+                <ToolbarSelect
+                  value={categoryFilter}
+                  options={CATEGORY_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+                  onChange={(value) => {
+                    setCategoryFilter(value as ProblemTypeFilter);
+                    resetToFirstPage();
+                  }}
+                  className="min-w-[132px]"
+                />
               </div>
 
               <div className="flex items-center justify-end gap-3">
@@ -320,12 +313,6 @@ export default function ProblemTypesPage() {
           </div>
         )}
       />
-
-      {loading ? (
-        <p className="mt-4 text-sm text-[#8B95A7]">
-          กำลังโหลดข้อมูลประเภทปัญหาและข้อร้องเรียน...
-        </p>
-      ) : null}
 
       <ProblemTypeModal
         key={

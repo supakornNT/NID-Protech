@@ -151,14 +151,9 @@ export default function ManageWorkDetailPage() {
       )
     : null;
 
-  if (loading)
-    return (
-      <div className="flex flex-1 items-center justify-center p-8 text-gray-500">
-        กำลังโหลด...
-      </div>
-    );
 
-  if (!data)
+
+  if (!loading && !data)
     return (
       <div className="flex flex-1 items-center justify-center p-8 text-gray-500">
         ไม่พบข้อมูล
@@ -321,9 +316,53 @@ export default function ManageWorkDetailPage() {
         </div>
 
         {/* Main content */}
-        <div className="flex min-h-[700px] gap-12">
-          {/* Left panel */}
-          <div className="flex flex-1 shrink-0 flex-col gap-4 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
+        {loading ? (
+          <div className="flex min-h-[700px] gap-12 animate-pulse w-full">
+            {/* Left panel skeleton */}
+            <div className="flex flex-1 shrink-0 flex-col gap-5 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
+              <div className="flex items-start justify-between">
+                <div className="h-7 w-3/4 rounded bg-gray-200" />
+                <div className="h-6 w-28 rounded bg-gray-200" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="h-4 w-1/2 rounded bg-gray-200" />
+                <div className="h-4 w-1/3 rounded bg-gray-200" />
+              </div>
+              <div className="h-80 w-full rounded-lg bg-gray-100" />
+            </div>
+
+            {/* Right panel skeleton */}
+            <div className="flex flex-1 flex-col gap-4 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
+              <div className="flex gap-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex flex-1 flex-col items-center justify-center rounded-xl border border-[#000000] py-4 gap-2">
+                    <div className="h-6 w-12 rounded bg-gray-200" />
+                    <div className="h-3 w-16 rounded bg-gray-200" />
+                  </div>
+                ))}
+              </div>
+              <div className="h-9 w-full rounded-lg bg-gray-200" />
+              <div className="flex flex-col gap-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="rounded-xl border border-[#000000] p-4 space-y-3">
+                    <div className="flex justify-between">
+                      <div className="h-5 w-24 rounded bg-gray-200" />
+                      <div className="h-4 w-16 rounded bg-gray-200" />
+                    </div>
+                    <div className="h-4 w-3/4 rounded bg-gray-200" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : !data ? (
+          <div className="flex flex-1 items-center justify-center p-8 text-gray-500 bg-white rounded-2xl border border-[#000000] min-h-[700px]">
+            ไม่พบข้อมูล
+          </div>
+        ) : (
+          <div className="flex min-h-[700px] gap-12">
+            {/* Left panel */}
+            <div className="flex flex-1 shrink-0 flex-col gap-4 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
             <div className="flex items-start justify-between">
               <p className="text-2xl font-bold text-gray-900">{data.title}</p>
               <span className="ml-3 rounded-md border border-[#F4A0A0] bg-[#FFF0F0] px-3 py-0.5 text-l text-[#D9534F]">
@@ -569,7 +608,8 @@ export default function ManageWorkDetailPage() {
             </div>
           </div>
         </div>
-      </div>
-    </>
-  );
+      )}
+    </div>
+  </>
+);
 }

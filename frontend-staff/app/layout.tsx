@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { CSSProperties } from "react";
+import NextTopLoader from "nextjs-toploader";
 
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ export default function RootLayout({
   return (
     <html lang="th" className={cn("font-sans")} style={rootStyle}>
       <body className="min-h-screen bg-[#ffffff]">
+        <NextTopLoader color="#2F66C5" showSpinner={false} height={3} />
         <SelectHandler />
         {children}
       </body>

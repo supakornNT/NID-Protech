@@ -3,7 +3,9 @@
 import * as React from "react";
 
 import { fetchJson } from "@/lib/fetch";
-import { RepairDetail, TrackingDetail } from "@/types/tracking";
+import { RepairDetail, RepairFile, TrackingDetail } from "@/types/tracking";
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 interface TrackingTimelineApiItem {
   label: string;
@@ -12,10 +14,21 @@ interface TrackingTimelineApiItem {
   time?: string;
 }
 
+interface ReopenRoundApiItem {
+  roundNumber: number;
+  requestConfirmationId: number;
+  reopenedAt: string | null;
+  comment: string | null;
+  files: AttachmentApiResponse[];
+  staffSummary: string | null;
+  staffFiles: AttachmentApiResponse[];
+}
+
 interface TrackingDetailApiResponse {
   id: number;
   trackingNo: string;
   problem: string;
+  problemDetail: string;
   statusCode: string;
   status: string;
   repairStatus: string;
@@ -25,25 +38,100 @@ interface TrackingDetailApiResponse {
   solution: string;
   repairedAt: string | null;
   customerConfirmDueAt: string | null;
+  reopenRounds?: ReopenRoundApiItem[];
+}
+
+interface AttachmentApiResponse {
+  id: number;
+  originalName: string;
+  savedName: string;
+  fileExt: string | null;
+  uploadedAt?: string | null;
 }
 
 type TrackingDetailView = TrackingDetail & {
   repairedAt?: string | null;
 };
 
+function buildFileUrl(savedName: string): string {
+  return `${BASE_URL}/uploads/requests/${encodeURIComponent(savedName)}`;
+}
+
+function mapFileType(fileExt: string | null): "pdf" | "image" {
+  return fileExt?.trim().toLowerCase() === "pdf" ? "pdf" : "image";
+}
+
+function decodeFileName(name: string): string {
+  if (!name) {
+    return name;
+  }
+
+  const normalized = name.trim();
+
+  try {
+    const decoded = decodeURIComponent(escape(normalized));
+    if (looksBetterThanOriginal(normalized, decoded)) {
+      return decoded;
+    }
+  } catch {
+    // ignore invalid escape sequences
+  }
+
+  return normalized;
+}
+
+function looksBetterThanOriginal(original: string, candidate: string): boolean {
+  if (!candidate || candidate.includes("�")) {
+    return false;
+  }
+
+  const originalThaiCount = countThaiChars(original);
+  const candidateThaiCount = countThaiChars(candidate);
+
+  if (candidateThaiCount > originalThaiCount) {
+    return true;
+  }
+
+  return hasMojibakePattern(original) && !hasMojibakePattern(candidate);
+}
+
+function countThaiChars(value: string): number {
+  return (value.match(/[\u0E00-\u0E7F]/g) ?? []).length;
+}
+
+function hasMojibakePattern(value: string): boolean {
+  return /(?:Ã|Â|à¸|à¹|เธ|เน€)/u.test(value);
+}
+
+function mapFiles(files: AttachmentApiResponse[]): RepairFile[] {
+  return files.map((file) => ({
+    id: file.id,
+    name: decodeFileName(file.originalName),
+    type: mapFileType(file.fileExt),
+    size: "-",
+    uploadedAt: file.uploadedAt ?? "-",
+    url: buildFileUrl(file.savedName),
+  }));
+}
+
 function mapTrackingDetail(
   data: TrackingDetailApiResponse,
+  requestFiles: RepairFile[],
+  repairFiles: RepairFile[],
 ): TrackingDetailView {
   return {
     id: data.id,
     trackingNo: data.trackingNo,
     problem: data.problem,
+    problemDetail: data.problemDetail,
     statusCode: data.statusCode,
     status: data.status,
     repairStatus: data.repairStatus,
     repairedBy: data.repairedBy,
     ratingStatus: data.ratingStatus,
     customerConfirmDueAt: data.customerConfirmDueAt,
+    requestFiles,
+    repairFiles,
     timeline: data.timeline.map((item) => ({
       label: item.label,
       date: item.date,
@@ -51,15 +139,20 @@ function mapTrackingDetail(
     })),
     solution: data.solution,
     repairedAt: data.repairedAt,
+    reopenRounds: data.reopenRounds?.map((round) => ({
+      roundNumber: round.roundNumber,
+      requestConfirmationId: round.requestConfirmationId,
+      reopenedAt: round.reopenedAt,
+      comment: round.comment,
+      files: mapFiles(round.files),
+      staffSummary: round.staffSummary,
+      staffFiles: mapFiles(round.staffFiles),
+    })),
   };
 }
 
 function getActiveStep(statusCode: string | undefined): number {
-  if (statusCode === "screening") {
-    return 2;
-  }
-
-  if (statusCode === "rejected") {
+  if (statusCode === "screening" || statusCode === "rejected") {
     return 2;
   }
 
@@ -74,7 +167,7 @@ function buildRepairDetail(request: TrackingDetailView): RepairDetail {
   return {
     description: request.solution ?? "-",
     repairedAt: request.repairedAt ?? "-",
-    files: [],
+    files: request.repairFiles ?? [],
   };
 }
 
@@ -89,7 +182,6 @@ function formatCountdown(diff: number): string {
 
 function parseDateTime(value: string): number {
   const normalizedValue = value.includes("T") ? value : value.replace(" ", "T");
-
   return new Date(normalizedValue).getTime();
 }
 
@@ -99,6 +191,7 @@ export function useTrackingDetail(requestNo: string) {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [ratingSubmitting, setRatingSubmitting] = React.useState(false);
+  const [rejectSubmitting, setRejectSubmitting] = React.useState(false);
   const [refreshKey, setRefreshKey] = React.useState(0);
 
   React.useEffect(() => {
@@ -109,14 +202,29 @@ export function useTrackingDetail(requestNo: string) {
         setLoading(true);
         setError(null);
 
-        const result = await fetchJson<TrackingDetailApiResponse>(
+        const detail = await fetchJson<TrackingDetailApiResponse>(
           `/user/requests/track/${encodeURIComponent(requestNo)}`,
-          {
-            signal: controller.signal,
-          },
+          { signal: controller.signal },
         );
 
-        setRequest(mapTrackingDetail(result));
+        const [requestAttachments, repairAttachments] = await Promise.all([
+          fetchJson<AttachmentApiResponse[]>(
+            `/requests/attachments?id=${detail.id}`,
+            { signal: controller.signal },
+          ),
+          fetchJson<AttachmentApiResponse[]>(
+            `/user/requests/${detail.id}/repair-attachments`,
+            { signal: controller.signal },
+          ),
+        ]);
+
+        setRequest(
+          mapTrackingDetail(
+            detail,
+            mapFiles(requestAttachments),
+            mapFiles(repairAttachments),
+          ),
+        );
       } catch (loadError) {
         if (loadError instanceof Error && loadError.name === "AbortError") {
           return;
@@ -176,36 +284,44 @@ export function useTrackingDetail(requestNo: string) {
     return () => clearInterval(timer);
   }, [request?.customerConfirmDueAt, request?.statusCode]);
 
-
-  
-  async function rejectRequest(reason: string) {
+  async function rejectRequest(payload: { reason: string; files: File[] }) {
     if (!request) {
       return;
     }
 
     try {
+      setRejectSubmitting(true);
       setError(null);
+
+      const formData = new FormData();
+      formData.append("reason", payload.reason);
+      payload.files.forEach((file) => {
+        formData.append("files", file);
+      });
 
       const result = await fetchJson<TrackingDetailApiResponse>(
         `/user/requests/${request.id}/reject`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            reason,
-          }),
+          body: formData,
         },
       );
 
-      setRequest(mapTrackingDetail(result));
+      setRequest((current) =>
+        mapTrackingDetail(
+          result,
+          current?.requestFiles ?? [],
+          current?.repairFiles ?? [],
+        ),
+      );
     } catch (submitError) {
       setError(
         submitError instanceof Error
           ? submitError.message
           : "Failed to reject request",
       );
+    } finally {
+      setRejectSubmitting(false);
     }
   }
 
@@ -228,7 +344,13 @@ export function useTrackingDetail(requestNo: string) {
         },
       );
 
-      setRequest(mapTrackingDetail(result));
+      setRequest((current) =>
+        mapTrackingDetail(
+          result,
+          current?.requestFiles ?? [],
+          current?.repairFiles ?? [],
+        ),
+      );
     } catch (submitError) {
       setError(
         submitError instanceof Error
@@ -261,7 +383,13 @@ export function useTrackingDetail(requestNo: string) {
         },
       );
 
-      setRequest(mapTrackingDetail(result));
+      setRequest((current) =>
+        mapTrackingDetail(
+          result,
+          current?.requestFiles ?? [],
+          current?.repairFiles ?? [],
+        ),
+      );
     } catch (submitError) {
       setError(
         submitError instanceof Error
@@ -278,6 +406,7 @@ export function useTrackingDetail(requestNo: string) {
     loading,
     error,
     ratingSubmitting,
+    rejectSubmitting,
     countdown,
     activeStep: request ? getActiveStep(request.statusCode) : 4,
     buildRepairDetail,

@@ -1,10 +1,11 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import type { Pool, PoolConnection, RowDataPacket } from 'mysql2/promise';
-import { getCountTotal } from '@/common/validation/input-rules';
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import type { Pool, PoolConnection, RowDataPacket } from "mysql2/promise";
+
+import { getCountTotal } from "@/common/validation/input-rules";
 import type {
   RequestTrackRow,
   StatusLogRow,
-} from './interfaces/request-track-row.interface';
+} from "./interfaces/request-track-row.interface";
 
 interface DashboardSummaryRow extends RowDataPacket {
   total: number;
@@ -18,6 +19,14 @@ interface PublicRequestRow extends RowDataPacket {
   systemName: string | null;
   problemName: string | null;
   status: string;
+}
+
+export interface AttachmentRow extends RowDataPacket {
+  id: number;
+  originalName: string;
+  savedName: string;
+  fileExt: string | null;
+  uploadedAt: Date | string | null;
 }
 
 export interface RequestIdentityRow extends RowDataPacket {
@@ -45,14 +54,14 @@ export interface PublicRequestPdfRow extends RowDataPacket {
 
 @Injectable()
 export class UserPortalRepository {
-  constructor(@Inject('DB') private readonly db: Pool) {}
+  constructor(@Inject("DB") private readonly db: Pool) {}
 
   async getDashboardSummaryRow(
     customerId?: number,
   ): Promise<DashboardSummaryRow | null> {
     const whereClause =
-      typeof customerId === 'number' ? 'WHERE r.customer_id = ?' : '';
-    const params = typeof customerId === 'number' ? [customerId] : [];
+      typeof customerId === "number" ? "WHERE r.customer_id = ?" : "";
+    const params = typeof customerId === "number" ? [customerId] : [];
     const [rows] = await this.db.query<DashboardSummaryRow[]>(
       `SELECT
         COUNT(*) AS total,
@@ -120,6 +129,31 @@ export class UserPortalRepository {
       WHERE request_id = ?
       ORDER BY created_at ASC, id ASC`,
       [requestId],
+    );
+
+    return rows;
+  }
+
+  async findLatestRepairAttachments(requestId: number): Promise<AttachmentRow[]> {
+    const [rows] = await this.db.query<AttachmentRow[]>(
+      `SELECT
+        a.id,
+        a.original_name AS originalName,
+        a.saved_name AS savedName,
+        a.file_ext AS fileExt,
+        a.uploaded_at AS uploadedAt
+      FROM attachments a
+      WHERE a.request_id = ?
+        AND a.attachment_type = 'resolution_evidence'
+        AND a.status = 'show'
+        AND (
+          a.uploaded_at > COALESCE(
+            (SELECT MAX(rc.confirmed_at) FROM request_confirmations rc WHERE rc.request_id = ? AND rc.result = 'reopened'),
+            '1970-01-01 00:00:00'
+          )
+        )
+      ORDER BY a.uploaded_at DESC, a.id DESC`,
+      [requestId, requestId],
     );
 
     return rows;
@@ -217,7 +251,7 @@ export class UserPortalRepository {
           LIMIT 1
         )
       LEFT JOIN staffs staff
-        ON staff.id = COALESCE(t.assigned_staff_id, trr.requested_by)
+        ON staff.id = t.assigned_by
       WHERE r.request_no = ?
       LIMIT 1`,
       [requestNo],
@@ -262,7 +296,7 @@ export class UserPortalRepository {
           LIMIT 1
         )
       LEFT JOIN staffs staff
-        ON staff.id = COALESCE(t.assigned_staff_id, trr.requested_by)
+        ON staff.id = t.assigned_by
       WHERE r.id = ?
       LIMIT 1`,
       [id],
@@ -290,5 +324,50 @@ export class UserPortalRepository {
     );
 
     return rows[0] ?? null;
+  }
+
+  async findReopenConfirmations(requestId: number): Promise<any[]> {
+    const [rows] = await this.db.query<RowDataPacket[]>(
+      `SELECT id, comment, confirmed_at AS reopenedAt
+      FROM request_confirmations
+      WHERE request_id = ? AND result = 'reopened'
+      ORDER BY id DESC`,
+      [requestId],
+    );
+    return rows;
+  }
+
+  async findReopenAttachments(requestId: number): Promise<any[]> {
+    const [rows] = await this.db.query<RowDataPacket[]>(
+      `SELECT id, request_confirmation_id AS requestConfirmationId, original_name AS originalName, saved_name AS savedName, file_ext AS fileExt
+      FROM attachments
+      WHERE request_id = ? AND attachment_type = 'reopen_evidence' AND status = 'show'
+      ORDER BY id DESC`,
+      [requestId],
+    );
+    return rows;
+  }
+
+  async findTicketResolutionRequests(requestId: number): Promise<any[]> {
+    const [rows] = await this.db.query<RowDataPacket[]>(
+      `SELECT trr.id, trr.summary, trr.reviewed_at AS reviewedAt
+       FROM ticket_resolution_requests trr
+       INNER JOIN tickets t ON t.id = trr.ticket_id
+       WHERE t.request_id = ? AND trr.status = 'approved'
+       ORDER BY trr.id ASC`,
+      [requestId],
+    );
+    return rows;
+  }
+
+  async findResolutionAttachments(requestId: number): Promise<any[]> {
+    const [rows] = await this.db.query<RowDataPacket[]>(
+      `SELECT id, original_name AS originalName, saved_name AS savedName, file_ext AS fileExt, uploaded_at AS uploadedAt
+       FROM attachments
+       WHERE request_id = ? AND attachment_type = 'resolution_evidence' AND status = 'show'
+       ORDER BY id ASC`,
+      [requestId],
+    );
+    return rows;
   }
 }

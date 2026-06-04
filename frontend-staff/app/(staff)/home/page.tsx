@@ -6,6 +6,20 @@ import { Mail, Phone } from "lucide-react";
 
 import { useStaffSession } from "@/contexts/staff-session-context";
 
+function withBasePath(path: string) {
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
+  if (!basePath || basePath === "/") {
+    return path;
+  }
+
+  const normalizedBasePath = basePath.startsWith("/")
+    ? basePath
+    : `/${basePath}`;
+
+  return `${normalizedBasePath}${path}`;
+}
+
 export default function HomePage() {
   const [time, setTime] = useState<Date | null>(null);
   const { staff } = useStaffSession();
@@ -26,7 +40,7 @@ export default function HomePage() {
       <div className="relative w-full overflow-hidden" style={{ minHeight: 560 }}>
         <div className="absolute right-0 top-0 h-full w-[60%]">
           <Image
-            src="/home-illustration.png"
+            src={withBasePath("/home-illustration.png")}
             alt="illustration"
             fill
             className="object-contain object-right"

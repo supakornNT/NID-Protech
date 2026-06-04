@@ -32,12 +32,7 @@ export default function IssueWorkPage() {
     return Array.from({ length: Math.min(3, totalPages) }, (_, i) => start + i);
   }
 
-  if (loading)
-    return (
-      <div className="flex flex-1 items-center justify-center p-8 text-gray-500">
-        กำลังโหลด...
-      </div>
-    );
+
 
   return (
     <div className="flex flex-1 flex-col gap-6 bg-white p-8">
@@ -66,7 +61,25 @@ export default function IssueWorkPage() {
       </div>
 
       <div className="overflow-hidden rounded-[14px] border border-[#7FA7E8] bg-white">
-        {paged.length === 0 ? (
+        {loading && paged.length === 0 ? (
+          <div className="flex flex-col divide-y divide-[#7FA7E8] animate-pulse">
+            {Array.from({ length: 3 }).map((_, idx) => (
+              <div key={idx} className="bg-white p-5 space-y-4">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-2 w-2/3">
+                    <div className="h-5 w-3/4 rounded bg-gray-200" />
+                    <div className="h-4 w-1/2 rounded bg-gray-200" />
+                    <div className="h-4 w-1/3 rounded bg-gray-200" />
+                  </div>
+                  <div className="flex flex-col items-end gap-3 shrink-0">
+                    <div className="h-4 w-28 rounded bg-gray-200" />
+                    <div className="h-8 w-24 rounded bg-gray-200" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : paged.length === 0 ? (
           <div className="flex h-32 items-center justify-center text-sm text-gray-500">
             ไม่พบข้อมูล
           </div>

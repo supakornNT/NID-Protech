@@ -1,21 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { Info, ChevronDown, FileText, ImageIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+import { FileText, ImageIcon, Info } from "lucide-react";
 import { useCloseWork, type PendingCloseItem } from "@/hooks/use-close-work";
-import { ProTechTable } from "@/components/tables/protech-table";
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ProTechButton } from "@/components/tables/protech-button";
+import { ProTechTable } from "@/components/tables/protech-table";
+import { ToolbarSelect } from "@/components/ui/toolbar-select";
 import type { Column } from "@/types/table";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 const IMAGE_EXTS = ["jpg", "jpeg", "png", "gif", "webp"];
+const ALL_OPTION = "ทั้งหมด";
 
 const TYPE_LABEL: Record<string, string> = {
   issue: "ปัญหา",
@@ -33,7 +29,9 @@ type Attachment = {
 function formatTime(dateStr: string | null) {
   if (!dateStr) return "—";
   const d = new Date(dateStr);
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  return `${String(d.getHours()).padStart(2, "0")}:${String(
+    d.getMinutes(),
+  ).padStart(2, "0")}`;
 }
 
 export default function CloseWorkPage() {
@@ -42,9 +40,9 @@ export default function CloseWorkPage() {
 
   const [tab, setTab] = useState<"pending" | "history">("pending");
   const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState("ทั้งหมด");
+  const [typeFilter, setTypeFilter] = useState(ALL_OPTION);
+  const [sortTime, setSortTime] = useState<"latest" | "oldest">("latest");
   const [page, setPage] = useState(1);
-
   const [selected, setSelected] = useState<PendingCloseItem | null>(null);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [attachLoading, setAttachLoading] = useState(false);
@@ -52,39 +50,58 @@ export default function CloseWorkPage() {
   const [actioning, setActioning] = useState(false);
 
   const LIMIT = 10;
-
   const source = tab === "pending" ? pending : history;
 
-  const filtered = source.filter((item) => {
-    const typeLabel = TYPE_LABEL[item.requestType] ?? item.requestType;
-    const matchSearch =
-      search === "" ||
-      item.title.includes(search) ||
-      item.customerName.includes(search) ||
-      item.assignedStaffName.includes(search) ||
-      (item.systemName ?? "").includes(search);
-    const matchType = typeFilter === "ทั้งหมด" || typeLabel === typeFilter;
-    return matchSearch && matchType;
-  });
+  const typeOptions = [
+    { value: ALL_OPTION, label: "ประเภททั้งหมด" },
+    ...Array.from(
+      new Set(source.map((item) => TYPE_LABEL[item.requestType] ?? item.requestType)),
+    ).map((label) => ({
+      value: label,
+      label,
+    })),
+  ];
+
+  const timeOptions = [
+    { value: "latest", label: "ล่าสุด" },
+    { value: "oldest", label: "เก่าสุด" },
+  ];
+
+  const filtered = useMemo(() => {
+    const result = source.filter((item) => {
+      const typeLabel = TYPE_LABEL[item.requestType] ?? item.requestType;
+      const matchSearch =
+        search === "" ||
+        item.title.includes(search) ||
+        item.customerName.includes(search) ||
+        item.assignedStaffName.includes(search) ||
+        (item.systemName ?? "").includes(search);
+      const matchType = typeFilter === ALL_OPTION || typeLabel === typeFilter;
+      return matchSearch && matchType;
+    });
+
+    result.sort((a, b) => {
+      const left = a.resolvedAt ? new Date(a.resolvedAt).getTime() : 0;
+      const right = b.resolvedAt ? new Date(b.resolvedAt).getTime() : 0;
+      return sortTime === "latest" ? right - left : left - right;
+    });
+
+    return result;
+  }, [search, sortTime, source, typeFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / LIMIT));
-
-  const typeOptions = [
-    "ทั้งหมด",
-    ...Array.from(
-      new Set(source.map((i) => TYPE_LABEL[i.requestType] ?? i.requestType)),
-    ),
-  ];
 
   async function openDetail(item: PendingCloseItem) {
     setSelected(item);
     setNote("");
     setAttachments([]);
     setAttachLoading(true);
+
     try {
       const res = await fetch(
         `${API_BASE_URL}/admin/tickets/${item.id}/attachments`,
       );
+
       if (res.ok) {
         const data: Attachment[] = await res.json();
         setAttachments(Array.isArray(data) ? data : []);
@@ -96,6 +113,7 @@ export default function CloseWorkPage() {
 
   async function handleApprove() {
     if (!selected) return;
+
     setActioning(true);
     try {
       await approveTicket(selected.id);
@@ -107,6 +125,7 @@ export default function CloseWorkPage() {
 
   async function handleReject() {
     if (!selected || !note.trim()) return;
+
     setActioning(true);
     try {
       await rejectTicket(selected.id, note);
@@ -123,7 +142,7 @@ export default function CloseWorkPage() {
       title: "ระบบ",
       render: (_, row) => row.systemName ?? "—",
     },
-    { key: "title", title: "หน้าที่" },
+    { key: "title", title: "หัวข้อ" },
     {
       key: "requestType",
       title: "ประเภท",
@@ -154,27 +173,23 @@ export default function CloseWorkPage() {
     },
   ];
 
-  if (loading)
-    return (
-      <div className="flex flex-1 items-center justify-center text-gray-400">
-        กำลังโหลด...
-      </div>
-    );
-
-  if (error)
+  if (error) {
     return (
       <div className="flex flex-1 items-center justify-center text-red-400">
         โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง
       </div>
     );
+  }
 
   return (
     <>
-      {/* Detail modal */}
       <AdminModalShell
         open={selected !== null}
         onOpenChange={(open) => {
-          if (!open) { setSelected(null); setNote(""); }
+          if (!open) {
+            setSelected(null);
+            setNote("");
+          }
         }}
         title="รายละเอียดการแก้ไขปัญหา"
         description="ขั้นตอนวิธีการแก้ไข"
@@ -182,7 +197,6 @@ export default function CloseWorkPage() {
       >
         {selected && (
           <div className="flex flex-col gap-4">
-            {/* Resolution — read only */}
             <textarea
               readOnly
               rows={5}
@@ -191,22 +205,19 @@ export default function CloseWorkPage() {
               className="w-full resize-none rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-[13px] text-gray-700 outline-none"
             />
 
-            {/* คำอธิบาย */}
             <div className="flex flex-col gap-1">
               <label className="text-[13px] text-gray-500">คำอธิบาย</label>
               <textarea
                 rows={4}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder=""
                 className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-[13px] text-gray-700 outline-none focus:border-[#366DBD]"
               />
             </div>
 
-            {/* Attachments */}
             {attachLoading ? (
               <p className="text-[12px] text-gray-400">กำลังโหลดไฟล์...</p>
-            ) : attachments.length > 0 && (
+            ) : attachments.length > 0 ? (
               <div className="flex flex-col gap-2">
                 <p className="text-[13px] text-gray-500">
                   ไฟล์แนบ ({attachments.length})
@@ -217,6 +228,7 @@ export default function CloseWorkPage() {
                       file.fileExt.toLowerCase(),
                     );
                     const url = `${API_BASE_URL}/uploads/requests/${file.savedName}`;
+
                     return (
                       <a
                         key={file.id}
@@ -226,9 +238,15 @@ export default function CloseWorkPage() {
                         className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 hover:bg-gray-50"
                       >
                         {isImage ? (
-                          <ImageIcon size={20} className="shrink-0 text-blue-400" />
+                          <ImageIcon
+                            size={20}
+                            className="shrink-0 text-blue-400"
+                          />
                         ) : (
-                          <FileText size={20} className="shrink-0 text-red-400" />
+                          <FileText
+                            size={20}
+                            className="shrink-0 text-red-400"
+                          />
                         )}
                         <div className="flex flex-col gap-0.5">
                           <span className="text-[13px] font-medium text-gray-800">
@@ -243,9 +261,8 @@ export default function CloseWorkPage() {
                   })}
                 </div>
               </div>
-            )}
+            ) : null}
 
-            {/* Actions */}
             {tab === "pending" && (
               <div className="flex justify-end gap-2 pt-1">
                 <button
@@ -271,18 +288,19 @@ export default function CloseWorkPage() {
       </AdminModalShell>
 
       <div className="flex flex-1 flex-col gap-6 bg-[#F0F4FA] p-8">
-        {/* Header */}
         <div>
           <h1 className="text-[28px] font-bold text-gray-900">การจัดการงาน</h1>
           <p className="text-[14px] text-gray-500">ตรวจสอบและอนุมัติ</p>
         </div>
 
-        {/* Tabs + Toolbar */}
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-6 border-b border-gray-200">
             <button
               type="button"
-              onClick={() => { setTab("pending"); setPage(1); }}
+              onClick={() => {
+                setTab("pending");
+                setPage(1);
+              }}
               className={`pb-2 text-[14px] font-semibold transition-colors ${
                 tab === "pending"
                   ? "border-b-2 border-[#366DBD] text-[#366DBD]"
@@ -293,7 +311,10 @@ export default function CloseWorkPage() {
             </button>
             <button
               type="button"
-              onClick={() => { setTab("history"); setPage(1); }}
+              onClick={() => {
+                setTab("history");
+                setPage(1);
+              }}
               className={`pb-2 text-[14px] font-semibold transition-colors ${
                 tab === "history"
                   ? "border-b-2 border-[#366DBD] text-[#366DBD]"
@@ -304,57 +325,49 @@ export default function CloseWorkPage() {
             </button>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <input
               type="text"
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
               placeholder="ค้นหา..."
               className="h-9 w-52 rounded-lg border border-gray-300 bg-white px-3 text-[14px] outline-none focus:border-[#366DBD]"
             />
-            <button
-              type="button"
+            <ProTechButton
+              variant="search"
+              className="h-9 px-5 text-[14px]"
               onClick={() => setPage(1)}
-              className="h-9 rounded-lg bg-[#366DBD] px-5 text-[14px] font-semibold text-white hover:bg-[#2d5da3]"
             >
               ค้นหา
-            </button>
+            </ProTechButton>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger className="group flex h-9 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-[14px] text-gray-700 outline-none hover:bg-gray-50">
-                {typeFilter === "ทั้งหมด" ? "ประเภททั้งหมด" : typeFilter}
-                <ChevronDown size={14} className="text-gray-400 transition-transform duration-200 group-data-[popup-open]:rotate-180 group-data-[state=open]:rotate-180 group-data-[open]:rotate-180" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuRadioGroup
-                  value={typeFilter}
-                  onValueChange={(v) => { setTypeFilter(v); setPage(1); }}
-                >
-                  {typeOptions.map((t) => (
-                    <DropdownMenuRadioItem key={t} value={t}>
-                      {t === "ทั้งหมด" ? "ประเภททั้งหมด" : t}
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <ToolbarSelect
+              value={typeFilter}
+              placeholder="ประเภททั้งหมด"
+              options={typeOptions}
+              onChange={(value) => {
+                setTypeFilter(value);
+                setPage(1);
+              }}
+              className="w-[190px]"
+            />
 
-            <DropdownMenu>
-              <DropdownMenuTrigger className="group flex h-9 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-[14px] text-gray-700 outline-none hover:bg-gray-50">
-                เวลา
-                <ChevronDown size={14} className="text-gray-400 transition-transform duration-200 group-data-[popup-open]:rotate-180 group-data-[state=open]:rotate-180 group-data-[open]:rotate-180" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuRadioGroup value="ล่าสุด" onValueChange={() => {}}>
-                  <DropdownMenuRadioItem value="ล่าสุด">ล่าสุด</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="เก่าสุด">เก่าสุด</DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <ToolbarSelect
+              value={sortTime}
+              placeholder="เวลา"
+              options={timeOptions}
+              onChange={(value) => {
+                setSortTime(value as "latest" | "oldest");
+                setPage(1);
+              }}
+              className="w-[150px]"
+            />
           </div>
         </div>
 
-        {/* Table */}
         <ProTechTable
           columns={columns}
           data={filtered}
@@ -363,6 +376,7 @@ export default function CloseWorkPage() {
           totalPages={totalPages}
           totalItems={filtered.length}
           onPageChange={setPage}
+          loading={loading}
         />
       </div>
     </>

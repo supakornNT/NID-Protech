@@ -77,6 +77,45 @@ export default function Page() {
     applySearch,
   } = useRequestList();
 
+  const [hasFetched, setHasFetched] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!loading) {
+      const timer = setTimeout(() => {
+        setHasFetched(true);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
+
+  if (!hasFetched && loading) {
+    return (
+      <div className="mx-auto h-full w-full min-w-0 max-w-[90rem] px-4 pt-6 sm:px-6 lg:px-10 animate-pulse">
+        {/* Title Skeleton */}
+        <div className="mb-6 h-10 w-72 rounded bg-gray-200" />
+
+        {/* Search Bar Skeleton */}
+        <div className="mb-5 flex min-w-0 items-center gap-3">
+          <div className="h-10 flex-1 rounded-md bg-gray-200" />
+          <div className="h-10 w-24 rounded-md bg-gray-200 shrink-0" />
+        </div>
+
+        {/* Table Skeleton */}
+        <div className="w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+          <div className="h-12 border-b bg-gray-150 px-4" />
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div key={index} className="flex h-16 items-center border-b border-gray-100 px-4 gap-4">
+              <div className="h-4 w-1/4 rounded bg-gray-200" />
+              <div className="h-4 w-1/6 rounded bg-gray-200" />
+              <div className="h-4 w-1/4 rounded bg-gray-200" />
+              <div className="h-4 w-12 rounded bg-gray-200 ml-auto" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto h-full w-full min-w-0 max-w-[90rem] px-4 pt-6 sm:px-6 lg:px-10">
       <h1 className="mb-4 text-2xl font-medium text-[#3A6FCF] sm:text-4xl">
@@ -95,10 +134,6 @@ export default function Page() {
         </ProTechButton>
       </div>
 
-      {loading ? (
-        <p className="mb-4 text-sm text-[#3A6FCF]">กำลังโหลดข้อมูล...</p>
-      ) : null}
-
       {error ? <p className="mb-4 text-sm text-red-600">{error}</p> : null}
 
       <div className="w-full">
@@ -110,6 +145,7 @@ export default function Page() {
           totalPages={pagination.totalPages}
           totalItems={pagination.total}
           onPageChange={setPage}
+          loading={loading}
         />
 
         <div className="mt-4 flex justify-end" />

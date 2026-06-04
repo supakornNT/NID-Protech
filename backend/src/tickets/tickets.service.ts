@@ -277,8 +277,8 @@ export class TicketsService {
     for (const file of files) {
       const ext = file.originalname.split('.').pop() ?? '';
       await this.db.query(
-        `INSERT INTO attachments (request_id, ticket_id, original_name, saved_name, file_ext, status)
-         VALUES (?, ?, ?, ?, ?, 'show')`,
+        `INSERT INTO attachments (request_id, ticket_id, attachment_type, original_name, saved_name, file_ext, status)
+         VALUES (?, ?, 'resolution_evidence', ?, ?, ?, 'show')`,
         [requestId, ticketId, file.originalname, file.filename, ext],
       );
     }

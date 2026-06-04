@@ -77,12 +77,7 @@ export default function AssignWorkPage() {
     });
   }
 
-  if (loading)
-    return (
-      <div className="flex flex-1 items-center justify-center p-8 text-gray-500">
-        กำลังโหลด...
-      </div>
-    );
+
 
   return (
     <div className="flex flex-1 flex-col gap-6 bg-[#F0F4FA] p-8">
@@ -103,6 +98,24 @@ export default function AssignWorkPage() {
       <div className="flex min-h-[700px] gap-6">
         {/* Left panel — staff list */}
         <div className="flex flex-1 shrink-0 flex-col gap-4 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
+          {loading ? (
+            <div className="flex flex-col gap-3 animate-pulse w-full">
+              <div className="flex gap-2">
+                <div className="h-9 flex-1 rounded bg-gray-200" />
+                <div className="h-9 w-20 rounded bg-gray-200" />
+              </div>
+              {Array.from({ length: 4 }).map((_, idx) => (
+                <div key={idx} className="flex justify-between items-center rounded-xl border border-[#000000] p-4 gap-4">
+                  <div className="space-y-2 flex-1">
+                    <div className="h-4 w-3/4 rounded bg-gray-200" />
+                    <div className="h-3 w-1/2 rounded bg-gray-200" />
+                  </div>
+                  <div className="h-8 w-24 rounded bg-gray-200" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <>
           <div className="flex gap-2">
             <input
               type="text"
@@ -199,6 +212,8 @@ export default function AssignWorkPage() {
               Next <ChevronRight size={14} />
             </button>
           </div>
+            </>
+          )}
         </div>
 
         {/* Right panel */}

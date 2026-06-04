@@ -14,6 +14,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { resolve } from 'path';
 import { mkdirSync } from 'fs';
+import { normalizeUploadedFileName } from '../common/utils/upload-file-name.util';
 import { TicketsService } from './tickets.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
@@ -23,7 +24,12 @@ mkdirSync(uploadDir, { recursive: true });
 
 const storage = diskStorage({
   destination: uploadDir,
-  filename(_req, file, cb) { cb(null, file.originalname); },
+  filename(_req, file, cb) {
+    const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const originalName = normalizeUploadedFileName(file.originalname);
+    file.originalname = originalName;
+    cb(null, `${unique}-${originalName}`);
+  },
 });
 
 @Controller('admin/tickets')

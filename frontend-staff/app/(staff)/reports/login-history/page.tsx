@@ -13,6 +13,8 @@ import {
 } from "recharts";
 import { Info, LogIn, ShieldCheck, Users, XCircle } from "lucide-react";
 
+import { ToolbarSelect } from "@/components/ui/toolbar-select";
+
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { StatusBadge } from "@/components/admin/admin-table-page";
 import { ProTechButton } from "@/components/tables/protech-button";
@@ -476,19 +478,14 @@ export default function ReportLoginHistoryPage() {
                     <span className="text-sm font-medium text-[#64748B]">
                       เลือกปี
                     </span>
-                    <select
-                      value={selectedYear}
-                      onChange={(event) => {
-                        setSelectedYear(Number(event.target.value));
+                    <ToolbarSelect
+                      value={String(selectedYear)}
+                      options={availableYears.map((year) => ({ value: String(year), label: String(year) }))}
+                      onChange={(value) => {
+                        setSelectedYear(Number(value));
                       }}
-                      className="border-0 bg-transparent text-sm font-semibold text-[#174F9F] outline-none"
-                    >
-                      {availableYears.map((year) => (
-                        <option key={year} value={year}>
-                          {year}
-                        </option>
-                      ))}
-                    </select>
+                      className="h-auto border-0 bg-transparent text-sm font-semibold text-[#174F9F] shadow-none min-w-[80px] focus:ring-0 p-0"
+                    />
                   </div>
                 ) : null}
               </div>
@@ -644,40 +641,35 @@ export default function ReportLoginHistoryPage() {
                   inputClassName="h-[31px] rounded-md border border-[#A8B1C2] px-3 text-[14px]"
                 />
 
-                <div className="relative">
-                  <select
-                    value={draftFilters.userType}
-                    onChange={(event) => {
-                      setDraftFilters((current: LoginLogFilters) => ({
-                        ...current,
-                        userType:
-                          event.target.value as LoginLogFilters["userType"],
-                      }));
-                    }}
-                    className="h-7.75 min-w-31 appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-[14px] text-[#6B7280] outline-none"
-                  >
-                    <option value="all">ทุกประเภท</option>
-                    <option value="staff">เจ้าหน้าที่</option>
-                    <option value="customer">ลูกค้า</option>
-                  </select>
-                </div>
+                <ToolbarSelect
+                  value={draftFilters.userType}
+                  options={[
+                    { value: "all", label: "ทุกประเภท" },
+                    { value: "staff", label: "เจ้าหน้าที่" },
+                    { value: "customer", label: "ลูกค้า" },
+                  ]}
+                  onChange={(value) => {
+                    setDraftFilters((current: LoginLogFilters) => ({
+                      ...current,
+                      userType: value as LoginLogFilters["userType"],
+                    }));
+                  }}
+                />
 
-                <div className="relative">
-                  <select
-                    value={draftFilters.status}
-                    onChange={(event) => {
-                      setDraftFilters((current: LoginLogFilters) => ({
-                        ...current,
-                        status: event.target.value as LoginLogFilters["status"],
-                      }));
-                    }}
-                    className="h-7.75 min-w-31 appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-[14px] text-[#6B7280] outline-none"
-                  >
-                    <option value="all">ทุกสถานะ</option>
-                    <option value="success">สำเร็จ</option>
-                    <option value="failed">ไม่สำเร็จ</option>
-                  </select>
-                </div>
+                <ToolbarSelect
+                  value={draftFilters.status}
+                  options={[
+                    { value: "all", label: "ทุกสถานะ" },
+                    { value: "success", label: "สำเร็จ" },
+                    { value: "failed", label: "ไม่สำเร็จ" },
+                  ]}
+                  onChange={(value) => {
+                    setDraftFilters((current: LoginLogFilters) => ({
+                      ...current,
+                      status: value as LoginLogFilters["status"],
+                    }));
+                  }}
+                />
 
                 <div className="flex items-center gap-2 rounded-md border border-[#A8B1C2] bg-white px-3">
                   <span className="text-[13px] text-[#6B7280]">
@@ -767,23 +759,16 @@ export default function ReportLoginHistoryPage() {
             </p>
           </div>
 
-          {listLoading ? (
-            <Card className="rounded-xl border-0 bg-white shadow-none ring-1 ring-[#E5E7EB]">
-              <CardContent className="p-6 text-sm text-[#8B95A7]">
-                กำลังโหลดข้อมูล...
-              </CardContent>
-            </Card>
-          ) : (
-            <ProTechTable
-              columns={columns}
-              data={rows}
-              limit={pagination.limit}
-              page={pagination.page}
-              totalPages={pagination.totalPages}
-              totalItems={pagination.total}
-              onPageChange={setPage}
-            />
-          )}
+          <ProTechTable
+            columns={columns}
+            data={rows}
+            limit={pagination.limit}
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.total}
+            onPageChange={setPage}
+            loading={listLoading}
+          />
         </section>
 
         <AdminModalShell

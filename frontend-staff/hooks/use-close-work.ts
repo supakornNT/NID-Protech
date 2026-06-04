@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -18,9 +18,9 @@ export type PendingCloseItem = {
 
 function fetchItems(endpoint: string): Promise<PendingCloseItem[]> {
   return fetch(`${API_BASE_URL}${endpoint}`)
-    .then((r) => {
-      if (!r.ok) throw new Error();
-      return r.json();
+    .then((response) => {
+      if (!response.ok) throw new Error();
+      return response.json();
     })
     .then((data) => (Array.isArray(data) ? data : []));
 }
@@ -34,13 +34,14 @@ export function useCloseWork() {
   function refetch() {
     setLoading(true);
     setError(false);
+
     Promise.all([
       fetchItems("/admin/tickets/pending-close"),
       fetchItems("/admin/tickets/approval-history"),
     ])
-      .then(([p, h]) => {
-        setPending(p);
-        setHistory(h);
+      .then(([pendingItems, historyItems]) => {
+        setPending(pendingItems);
+        setHistory(historyItems);
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));

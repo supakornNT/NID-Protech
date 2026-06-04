@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ToolbarSelect } from "@/components/ui/toolbar-select";
 
 import {
   ActionIcons,
@@ -276,6 +276,7 @@ export default function SystemsPage() {
         subtitle="จัดการข้อมูลระบบที่เกี่ยวข้อง"
         columns={columns}
         data={rows}
+        loading={loading}
         searchValue={searchValue}
         searchInputProps={{
           type: "search",
@@ -305,25 +306,19 @@ export default function SystemsPage() {
               <div className="flex flex-1 flex-wrap items-center gap-3">
                 {searchBar}
 
-                <div className="relative">
-                  <select
-                    value={statusFilter}
-                    onChange={(event) => {
-                      setStatusFilter(event.target.value as SystemStatusFilter);
-                      resetToFirstPage();
-                      resetSelection();
-                    }}
-                    className="h-[31px] min-w-[124px] appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-left text-[14px] text-[#6B7280] outline-none"
-                  >
-                    <option value="all">สถานะทั้งหมด</option>
-                    {statusOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-[#8B95A7]" />
-                </div>
+                <ToolbarSelect
+                  value={statusFilter}
+                  placeholder="สถานะทั้งหมด"
+                  options={[
+                    { value: "all", label: "สถานะทั้งหมด" },
+                    ...statusOptions.map((option) => ({ value: option, label: option })),
+                  ]}
+                  onChange={(value) => {
+                    setStatusFilter(value as SystemStatusFilter);
+                    resetToFirstPage();
+                    resetSelection();
+                  }}
+                />
               </div>
 
               <div className="flex items-center justify-end gap-3">
@@ -370,10 +365,6 @@ export default function SystemsPage() {
           </div>
         )}
       />
-
-      {loading ? (
-        <p className="mt-4 text-sm text-[#8B95A7]">กำลังโหลดข้อมูลระบบ...</p>
-      ) : null}
 
       <SystemModal
         key={

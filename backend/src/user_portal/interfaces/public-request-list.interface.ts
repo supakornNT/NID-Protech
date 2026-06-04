@@ -17,4 +17,5 @@ export interface GetRequestsQuery {
   limit?: string;
   search?: string;
   status?: string;
+  customerId?: string;
 }

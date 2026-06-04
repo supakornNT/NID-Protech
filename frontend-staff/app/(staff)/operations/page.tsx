@@ -1,24 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-} from "@/components/ui/dropdown-menu";
+import { ToolbarSelect } from "@/components/ui/toolbar-select";
+import { ProTechButton } from "@/components/tables/protech-button";
 import { useMyWork } from "@/hooks/use-my-work";
 
 const LIMIT = 4;
-
+const ALL_OPTION = "ทั้งหมด";
 
 const TYPE_LABEL: Record<string, string> = {
-  issue:     "ปัญหา",
+  issue: "ปัญหา",
   complaint: "ร้องเรียน",
-  service:   "บริการ",
+  service: "บริการ",
 };
 
 export default function OperationsPage() {
@@ -26,55 +21,69 @@ export default function OperationsPage() {
   const { items, loading, error } = useMyWork(1);
 
   const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState("ทั้งหมด");
-  const [systemFilter, setSystemFilter] = useState("ทั้งหมด");
-  const [sortTime, setSortTime] = useState("ล่าสุด");
+  const [typeFilter, setTypeFilter] = useState(ALL_OPTION);
+  const [systemFilter, setSystemFilter] = useState(ALL_OPTION);
+  const [sortTime, setSortTime] = useState<"latest" | "earliest">("latest");
   const [page, setPage] = useState(1);
 
   const typeOptions = [
-    "ทั้งหมด",
-    ...Array.from(new Set(items.map((i) => TYPE_LABEL[i.requestType] ?? i.requestType))),
-  ];
-  const systemOptions = [
-    "ทั้งหมด",
-    ...Array.from(new Set(items.map((i) => i.systemName ?? "—"))),
+    { value: ALL_OPTION, label: "ประเภททั้งหมด" },
+    ...Array.from(
+      new Set(items.map((item) => TYPE_LABEL[item.requestType] ?? item.requestType)),
+    ).map((label) => ({
+      value: label,
+      label,
+    })),
   ];
 
-  const filtered = items
-    .filter((item) => {
+  const systemOptions = [
+    { value: ALL_OPTION, label: "ระบบทั้งหมด" },
+    ...Array.from(new Set(items.map((item) => item.systemName ?? "—"))).map(
+      (label) => ({
+        value: label,
+        label,
+      }),
+    ),
+  ];
+
+  const timeOptions = [
+    { value: "latest", label: "ล่าสุด" },
+    { value: "earliest", label: "ครบกำหนดก่อน" },
+  ];
+
+  const filtered = useMemo(() => {
+    const result = items.filter((item) => {
       const typeLabel = TYPE_LABEL[item.requestType] ?? item.requestType;
       const matchSearch =
         search === "" ||
         item.title.includes(search) ||
         item.customerName.includes(search) ||
         (item.systemName ?? "").includes(search);
-      const matchType = typeFilter === "ทั้งหมด" || typeLabel === typeFilter;
+      const matchType = typeFilter === ALL_OPTION || typeLabel === typeFilter;
       const matchSystem =
-        systemFilter === "ทั้งหมด" || (item.systemName ?? "—") === systemFilter;
+        systemFilter === ALL_OPTION || (item.systemName ?? "—") === systemFilter;
       return matchSearch && matchType && matchSystem;
-    })
-    .sort((a, b) => {
-      if (sortTime === "ล่าสุด") return 0;
-      const da = a.dueAt ? new Date(a.dueAt).getTime() : Infinity;
-      const db = b.dueAt ? new Date(b.dueAt).getTime() : Infinity;
-      return da - db;
     });
+
+    result.sort((a, b) => {
+      const left = a.dueAt ? new Date(a.dueAt).getTime() : 0;
+      const right = b.dueAt ? new Date(b.dueAt).getTime() : 0;
+      return sortTime === "latest" ? right - left : left - right;
+    });
+
+    return result;
+  }, [items, search, sortTime, systemFilter, typeFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / LIMIT));
   const paged = filtered.slice((page - 1) * LIMIT, page * LIMIT);
 
   function getVisiblePages() {
-    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
-    const start = Math.max(1, Math.min(page - 1, totalPages - 3));
-    return Array.from({ length: Math.min(3, totalPages) }, (_, i) => start + i);
-  }
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
 
-  if (loading) {
-    return (
-      <div className="flex flex-1 items-center justify-center text-gray-400">
-        กำลังโหลด...
-      </div>
-    );
+    const start = Math.max(1, Math.min(page - 1, totalPages - 3));
+    return Array.from({ length: Math.min(3, totalPages) }, (_, index) => start + index);
   }
 
   if (error) {
@@ -87,78 +96,84 @@ export default function OperationsPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6 bg-[#F0F4FA] p-8">
-      {/* Header */}
       <div>
         <h1 className="text-[28px] font-bold text-gray-900">งานของฉัน</h1>
         <p className="text-[14px] text-gray-500">งานที่ต้องมอบหมาย</p>
       </div>
 
-      {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3">
         <input
           type="text"
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
           placeholder="ค้นหา..."
           className="h-9 w-56 rounded-lg border border-gray-300 bg-white px-3 text-[14px] outline-none focus:border-[#366DBD]"
         />
-        <button
-          type="button"
-          onClick={() => setPage(1)}
-          className="h-9 rounded-lg bg-[#366DBD] px-5 text-[14px] font-semibold text-white hover:bg-[#2d5da3]"
-        >
-          ค้นหา
-        </button>
+        <ProTechButton
+              variant="search"
+              className="h-9 px-5 text-[14px]"
+              onClick={() => setPage(1)}
+            >
+              ค้นหา
+            </ProTechButton>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger className="group flex h-9 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-[14px] text-gray-700 outline-none hover:bg-gray-50">
-            {typeFilter === "ทั้งหมด" ? "ประเภททั้งหมด" : typeFilter}
-            <ChevronDown size={14} className="text-gray-400 transition-transform duration-200 group-data-[popup-open]:rotate-180 group-data-[state=open]:rotate-180 group-data-[open]:rotate-180" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuRadioGroup value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setPage(1); }}>
-              {typeOptions.map((t) => (
-                <DropdownMenuRadioItem key={t} value={t}>
-                  {t === "ทั้งหมด" ? "ประเภททั้งหมด" : t}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ToolbarSelect
+          value={typeFilter}
+          options={typeOptions}
+          placeholder="ประเภททั้งหมด"
+          onChange={(value) => {
+            setTypeFilter(value);
+            setPage(1);
+          }}
+          className="w-[190px]"
+        />
 
-        <DropdownMenu>
-          <DropdownMenuTrigger className="group flex h-9 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-[14px] text-gray-700 outline-none hover:bg-gray-50">
-            {systemFilter === "ทั้งหมด" ? "ระบบทั้งหมด" : systemFilter}
-            <ChevronDown size={14} className="text-gray-400 transition-transform duration-200 group-data-[popup-open]:rotate-180 group-data-[state=open]:rotate-180 group-data-[open]:rotate-180" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuRadioGroup value={systemFilter} onValueChange={(v) => { setSystemFilter(v); setPage(1); }}>
-              {systemOptions.map((s) => (
-                <DropdownMenuRadioItem key={s} value={s}>
-                  {s === "ทั้งหมด" ? "ระบบทั้งหมด" : s}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ToolbarSelect
+          value={systemFilter}
+          options={systemOptions}
+          placeholder="ระบบทั้งหมด"
+          onChange={(value) => {
+            setSystemFilter(value);
+            setPage(1);
+          }}
+          className="w-[190px]"
+        />
 
-        <DropdownMenu>
-          <DropdownMenuTrigger className="group flex h-9 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-[14px] text-gray-700 outline-none hover:bg-gray-50">
-            เวลา
-            <ChevronDown size={14} className="text-gray-400 transition-transform duration-200 group-data-[popup-open]:rotate-180 group-data-[state=open]:rotate-180 group-data-[open]:rotate-180" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuRadioGroup value={sortTime} onValueChange={(v) => { setSortTime(v); setPage(1); }}>
-              <DropdownMenuRadioItem value="ล่าสุด">ล่าสุด</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="ครบกำหนดก่อน">ครบกำหนดก่อน</DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ToolbarSelect
+          value={sortTime}
+          options={timeOptions}
+          placeholder="เวลา"
+          onChange={(value) => {
+            setSortTime(value as "latest" | "earliest");
+            setPage(1);
+          }}
+          className="w-[170px]"
+        />
       </div>
 
-      {/* Cards */}
       <div className="overflow-hidden rounded-[14px] border border-[#7FA7E8] bg-white">
-        {paged.length === 0 ? (
+        {loading && paged.length === 0 ? (
+          <div className="animate-pulse divide-y divide-[#7FA7E8]">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div key={index} className="space-y-4 bg-white p-5">
+                <div className="flex items-start justify-between">
+                  <div className="w-2/3 space-y-2">
+                    <div className="h-5 w-3/4 rounded bg-gray-200" />
+                    <div className="h-4 w-1/2 rounded bg-gray-200" />
+                    <div className="h-4 w-1/3 rounded bg-gray-200" />
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-3">
+                    <div className="h-4 w-28 rounded bg-gray-200" />
+                    <div className="h-8 w-24 rounded bg-gray-200" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : paged.length === 0 ? (
           <div className="flex h-32 items-center justify-center text-sm text-gray-500">
             ไม่พบข้อมูล
           </div>
@@ -166,6 +181,7 @@ export default function OperationsPage() {
           <div className="flex flex-col divide-y divide-[#7FA7E8]">
             {paged.map((item) => {
               const typeLabel = TYPE_LABEL[item.requestType] ?? item.requestType;
+
               return (
                 <div key={item.requestId} className="bg-white p-5">
                   <div className="flex items-start justify-between gap-4">
@@ -185,9 +201,13 @@ export default function OperationsPage() {
                         </span>
                       </div>
                     </div>
+
                     <div className="flex shrink-0 flex-col items-end gap-3">
                       <p className="text-[13px] text-gray-500">
-                        ประเภท : <span className="font-semibold text-gray-800">{item.problemName}</span>
+                        ประเภท :{" "}
+                        <span className="font-semibold text-gray-800">
+                          {item.problemName}
+                        </span>
                       </p>
                       <button
                         type="button"
@@ -205,33 +225,35 @@ export default function OperationsPage() {
         )}
       </div>
 
-      {/* Pagination */}
       <div className="flex items-center justify-between text-[13px] text-gray-500">
         <span>
-          แสดง {filtered.length === 0 ? 0 : (page - 1) * LIMIT + 1}–{Math.min(page * LIMIT, filtered.length)} จาก {filtered.length} รายการ
+          แสดง {filtered.length === 0 ? 0 : (page - 1) * LIMIT + 1}–
+          {Math.min(page * LIMIT, filtered.length)} จาก {filtered.length} รายการ
         </span>
         <div className="flex items-center gap-1">
           <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            onClick={() => setPage((current) => Math.max(1, current - 1))}
             disabled={page === 1}
             className="flex h-8 items-center gap-1 rounded-md px-2 hover:text-[#366DBD] disabled:opacity-40"
           >
             <ChevronLeft size={14} /> Previous
           </button>
-          {getVisiblePages().map((p) => (
+          {getVisiblePages().map((visiblePage) => (
             <button
-              key={p}
-              onClick={() => setPage(p)}
+              key={visiblePage}
+              onClick={() => setPage(visiblePage)}
               className={`flex h-8 w-8 items-center justify-center rounded-md border text-[13px] ${
-                page === p ? "border-[#7FA7E8] bg-[#EEF4FF] text-[#3A6FCF]" : "border-transparent hover:border-[#7FA7E8]"
+                page === visiblePage
+                  ? "border-[#7FA7E8] bg-[#EEF4FF] text-[#3A6FCF]"
+                  : "border-transparent hover:border-[#7FA7E8]"
               }`}
             >
-              {p}
+              {visiblePage}
             </button>
           ))}
           {totalPages > 3 && <span className="px-1 text-gray-400">...</span>}
           <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
             disabled={page === totalPages}
             className="flex h-8 items-center gap-1 rounded-md px-2 hover:text-[#366DBD] disabled:opacity-40"
           >

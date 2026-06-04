@@ -83,14 +83,6 @@ export default function ReportEditHistoryPage() {
   const statusOptions = ["การดำเนินการ", "รอประเมิน", "เสร็จสิ้น", "ยกเลิก"];
   const typeOptions = [...new Set(rows.map((r) => r.type).filter(Boolean))];
 
-  if (loading) {
-    return (
-      <div className="flex flex-1 items-center justify-center text-gray-400">
-        กำลังโหลด...
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-1 flex-col gap-6 bg-white p-8">
       <div>
@@ -134,6 +126,7 @@ export default function ReportEditHistoryPage() {
         data={rows}
         showCreate={false}
         showDelete={false}
+        loading={loading}
         filters={[
           { key: "status", placeholder: "สถานะทั้งหมด", options: statusOptions },
           { key: "type", placeholder: "ประเภททั้งหมด", options: typeOptions },

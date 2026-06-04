@@ -3,24 +3,25 @@ import {
   Inject,
   Injectable,
   NotFoundException,
-} from '@nestjs/common';
-import type { Pool, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
-import { ConfirmRequestDto } from './dto/confirm-request.dto';
-import { RateRequestDto } from './dto/rate-request.dto';
-import { RejectRequestDto } from './dto/reject-request.dto';
-import type { PublicRequestTrack } from './interfaces/public-request-track.interface';
-import { UserPortalQueryService } from './user-portal-query.service';
-import { UserPortalRepository } from './user-portal.repository';
+} from "@nestjs/common";
+import type { Pool, ResultSetHeader, RowDataPacket } from "mysql2/promise";
+
+import { ConfirmRequestDto } from "./dto/confirm-request.dto";
+import { RateRequestDto } from "./dto/rate-request.dto";
+import { RejectRequestDto } from "./dto/reject-request.dto";
+import type { PublicRequestTrack } from "./interfaces/public-request-track.interface";
+import { UserPortalQueryService } from "./user-portal-query.service";
+import { UserPortalRepository } from "./user-portal.repository";
 import {
   validateConfirmRequestDto,
   validateRateRequestDto,
   validateRejectRequestDto,
-} from './validation/user-portal.validation';
+} from "./validation/user-portal.validation";
 
 @Injectable()
 export class UserPortalActionService {
   constructor(
-    @Inject('DB') private readonly db: Pool,
+    @Inject("DB") private readonly db: Pool,
     private readonly repository: UserPortalRepository,
     private readonly queryService: UserPortalQueryService,
   ) {}
@@ -45,9 +46,9 @@ export class UserPortalActionService {
         throw new NotFoundException(`Request ${id} not found`);
       }
 
-      if (identity.status !== 'waiting_confirm') {
+      if (identity.status !== "waiting_confirm") {
         throw new BadRequestException(
-          'request is not waiting for customer confirmation',
+          "request is not waiting for customer confirmation",
         );
       }
 
@@ -110,7 +111,7 @@ export class UserPortalActionService {
           [
             ticket.id,
             ticket.status,
-            dto.comment ?? 'Customer confirmed completion',
+            dto.comment ?? "Customer confirmed completion",
           ],
         );
       }
@@ -146,8 +147,8 @@ export class UserPortalActionService {
         throw new NotFoundException(`Request ${id} not found`);
       }
 
-      if (identity.status !== 'closed') {
-        throw new BadRequestException('request is not closed');
+      if (identity.status !== "closed") {
+        throw new BadRequestException("request is not closed");
       }
 
       const [confirmationRows] = await connection.query<
@@ -197,6 +198,7 @@ export class UserPortalActionService {
   async rejectRequest(
     id: number,
     dto: RejectRequestDto,
+    files: Express.Multer.File[],
   ): Promise<PublicRequestTrack> {
     validateRejectRequestDto(dto);
 
@@ -214,13 +216,13 @@ export class UserPortalActionService {
         throw new NotFoundException(`Request ${id} not found`);
       }
 
-      if (identity.status !== 'waiting_confirm') {
+      if (identity.status !== "waiting_confirm") {
         throw new BadRequestException(
-          'request is not waiting for customer confirmation',
+          "request is not waiting for customer confirmation",
         );
       }
 
-      await connection.query<ResultSetHeader>(
+      const [confirmationResult] = await connection.query<ResultSetHeader>(
         `INSERT INTO request_confirmations (
           request_id,
           customer_id,
@@ -230,6 +232,30 @@ export class UserPortalActionService {
         ) VALUES (?, ?, 'reopened', ?, NULL)`,
         [identity.id, identity.customerId, dto.reason],
       );
+
+      const requestConfirmationId = confirmationResult.insertId;
+
+      for (const file of files ?? []) {
+        const ext = file.originalname.split(".").pop()?.toLowerCase() ?? "";
+        await connection.query<ResultSetHeader>(
+          `INSERT INTO attachments (
+            request_id,
+            request_confirmation_id,
+            attachment_type,
+            original_name,
+            saved_name,
+            file_ext,
+            status
+          ) VALUES (?, ?, 'reopen_evidence', ?, ?, ?, 'show')`,
+          [
+            identity.id,
+            requestConfirmationId,
+            file.originalname,
+            file.filename,
+            ext,
+          ],
+        );
+      }
 
       await connection.query<ResultSetHeader>(
         `UPDATE requests

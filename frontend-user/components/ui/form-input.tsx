@@ -20,11 +20,6 @@ interface FormInputIconProps extends FormInputProps {
   type?: string;
 }
 
-interface OtpInputProps {
-  email?: string;
-  onOtpChange?: (otp: string)=> void;
-}
-
 export function FormInput({
   label,
   placeholder,
@@ -83,8 +78,4 @@ export function FormInputIcon({
       </div>
     </div>
   );
-}
-
-export function OtpInput({ email, onOtpChange}: OtpInputProps){
-  
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { CSSProperties } from "react";
+import NextTopLoader from "nextjs-toploader";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { SelectHandler } from "@/components/select-handler";
@@ -21,6 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("h-full", "antialiased", "font-sans")} style={rootStyle}>
       <body className="min-h-full flex flex-col">
+        <NextTopLoader color="#FFFFFF" showSpinner={false} height={3} />
         <SelectHandler />
         {children}
       </body>

@@ -4,6 +4,13 @@ import { useEffect, useState } from "react";
 
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { ProTechButton } from "@/components/tables/protech-button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type {
   OrganizationFormInput,
   OrganizationStatus,
@@ -92,42 +99,50 @@ export function OrganizationModal({
 
           <div className="space-y-2">
             <label className="block text-[16px] text-[#111827]">ประเภท</label>
-            <select
-              className="h-8.25 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none"
+            <Select
               value={formState.type}
-              onChange={(event) =>
+              onValueChange={(value) =>
                 setFormState((current) => ({
                   ...current,
-                  type: event.target.value as OrganizationType,
+                  type: value as OrganizationType,
                 }))
               }
             >
-              {TYPE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-8.25 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TYPE_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
             <label className="block text-[16px] text-[#111827]">สถานะ</label>
-            <select
-              className="h-8.25 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none"
+            <Select
               value={formState.status}
-              onChange={(event) =>
+              onValueChange={(value) =>
                 setFormState((current) => ({
                   ...current,
-                  status: event.target.value as OrganizationStatus,
+                  status: value as OrganizationStatus,
                 }))
               }
             >
-              {STATUS_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-8.25 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

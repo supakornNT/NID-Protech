@@ -40,21 +40,7 @@ function TicketCard({ card }: { card: KanbanCard }) {
 export default function ReportOperationsPage() {
   const { data, loading, error } = useOperationsReport();
 
-  if (loading) {
-    return (
-      <div className="flex flex-1 items-center justify-center text-gray-400">
-        กำลังโหลด...
-      </div>
-    );
-  }
 
-  if (error || !data) {
-    return (
-      <div className="flex flex-1 items-center justify-center text-red-400">
-        โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-1 flex-col gap-6 bg-white p-8">
@@ -64,7 +50,47 @@ export default function ReportOperationsPage() {
         <p className="text-[16px] text-gray-500">การปฏิบัติการ</p>
       </div>
 
-      {/* Stat cards */}
+      {loading ? (
+        <div className="animate-pulse flex flex-col gap-6 w-full">
+          {/* Stat cards skeleton */}
+          <div className="rounded-2xl bg-[#EEF3FB] p-5">
+            <div className="flex gap-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex flex-1 flex-col gap-2 rounded-xl border border-gray-200 bg-white p-4">
+                  <div className="h-6 w-6 rounded bg-gray-200" />
+                  <div className="h-8 w-12 rounded bg-gray-200" />
+                  <div className="h-4 w-24 rounded bg-gray-200" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Ticket columns skeleton */}
+          <div className="rounded-2xl bg-[#EEF3FB] p-5">
+            <div className="grid grid-cols-3 gap-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex flex-col gap-3 rounded-2xl border border-[#D6E4F7] bg-white p-4">
+                  <div className="h-5 w-24 rounded bg-gray-200" />
+                  {Array.from({ length: 2 }).map((_, j) => (
+                    <div key={j} className="rounded-xl border border-gray-200 bg-white p-3 space-y-2">
+                      <div className="flex justify-between">
+                        <div className="h-4 w-28 rounded bg-gray-200" />
+                        <div className="h-4 w-12 rounded bg-gray-200" />
+                      </div>
+                      <div className="h-3 w-16 rounded bg-gray-200" />
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : error || !data ? (
+        <div className="flex flex-1 items-center justify-center text-red-400 bg-white border border-gray-200 rounded-2xl p-8 min-h-[300px]">
+          โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง
+        </div>
+      ) : (
+        <>
       <div className="rounded-2xl bg-[#EEF3FB] p-5">
         <div className="flex gap-4">
           <StatCard icon={<Ticket size={28} className="text-[#366DBD]" />} value={String(data.stats.todayTotal)} label="ตั๋วทั้งหมด(วันนี้)" valueColor="text-[#366DBD]" />
@@ -116,6 +142,8 @@ export default function ReportOperationsPage() {
           </BarChart>
         </ResponsiveContainer>
       </div>
+        </>
+      )}
     </div>
   );
 }

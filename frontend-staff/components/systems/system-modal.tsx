@@ -9,6 +9,13 @@ import type {
   SystemStatus,
 } from "@/hooks/systems/use-system-type-table";
 import { normalizeTextInput } from "@/lib/form-utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type OrganizationOption = {
   id: number;
@@ -84,45 +91,50 @@ export function SystemModal({
 
           <div className="space-y-2">
             <label className="block text-[16px] text-[#111827]">องค์กร</label>
-            <select
-              className="h-8.25 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none"
-              value={formState.organizationId ?? ""}
-              onChange={(event) =>
+            <Select
+              value={formState.organizationId ? String(formState.organizationId) : ""}
+              onValueChange={(value) =>
                 setFormState((current) => ({
                   ...current,
-                  organizationId: event.target.value
-                    ? Number(event.target.value)
-                    : null,
+                  organizationId: value ? Number(value) : null,
                 }))
               }
             >
-              <option value="">เลือกองค์กร</option>
-              {organizationOptions.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-8.25 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none">
+                <SelectValue placeholder="เลือกองค์กร" />
+              </SelectTrigger>
+              <SelectContent>
+                {organizationOptions.map((option) => (
+                  <SelectItem key={option.id} value={String(option.id)}>
+                    {option.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
             <label className="block text-[16px] text-[#111827]">สถานะ</label>
-            <select
-              className="h-8.25 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none"
+            <Select
               value={formState.status}
-              onChange={(event) =>
+              onValueChange={(value) =>
                 setFormState((current) => ({
                   ...current,
-                  status: event.target.value as SystemStatus,
+                  status: value as SystemStatus,
                 }))
               }
             >
-              {STATUS_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-8.25 w-full rounded-md border border-[#A8B1C2] bg-white px-3 outline-none">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

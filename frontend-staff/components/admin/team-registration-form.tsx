@@ -2,9 +2,7 @@
 
 import { useMemo } from "react";
 import {
-  CheckCircle2,
-  ChevronDown,
-  Eye,
+  CheckCircle2,  Eye,
   EyeOff,
   IdCard,
   Lock,
@@ -16,6 +14,13 @@ import {
 
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { ProTechButton } from "@/components/tables/protech-button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   formatCitizenIdInput,
   formatOtpCountdown,
@@ -492,25 +497,24 @@ function SelectField({
           {label}
         </label>
       ) : null}
-      <div className="relative">
-        <select
-          value={value}
-          className={`peer w-full appearance-none bg-white px-3.5 pr-11 text-[15px] text-[#111827] outline-none ${
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger
+          className={
             compact
-              ? "h-12 rounded-none border-0"
-              : "h-12 rounded-2xl border border-[#A8B1C2]"
-          }`}
-          onChange={(event) => onChange(event.target.value)}
+              ? "h-12 w-full rounded-none border-0 bg-white px-3.5 text-[15px] text-[#111827] outline-none"
+              : "h-12 w-full rounded-2xl border border-[#A8B1C2] bg-white px-3.5 text-[15px] text-[#111827] outline-none"
+          }
         >
-          <option value="">{placeholder}</option>
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
           {options.map((option) => (
-            <option key={option.value} value={option.value}>
+            <SelectItem key={option.value} value={option.value}>
               {option.label}
-            </option>
+            </SelectItem>
           ))}
-        </select>
-        <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-5 -translate-y-1/2 text-[#6B7280] transition-transform duration-200 peer-focus:rotate-180" />
-      </div>
+        </SelectContent>
+      </Select>
     </div>
   );
 }

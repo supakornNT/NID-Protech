@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronDown } from "lucide-react";
 
 import {
   ActionIcons,
@@ -19,6 +18,7 @@ import { TeamMemberModal } from "@/components/user-groups/team-member-modal";
 import { ProTechButton } from "@/components/tables/protech-button";
 import { ProTechSearchBar } from "@/components/tables/protech-search";
 import { ProTechTable } from "@/components/tables/protech-table";
+import { ToolbarSelect } from "@/components/ui/toolbar-select";
 import {
   UserGroupMemberTableRow,
   UserGroupTableRow,
@@ -37,40 +37,6 @@ function renderStatus(status: string) {
   }
 
   return <StatusBadge label={status} tone="neutral" />;
-}
-
-function ToolbarSelect({
-  value,
-  options,
-  placeholder,
-  onChange,
-  minWidthClassName = "min-w-[132px]",
-}: {
-  value: string;
-  options: Array<{ value: string; label: string }>;
-  placeholder: string;
-  onChange: (value: string) => void;
-  minWidthClassName?: string;
-}) {
-  return (
-    <div className="relative">
-      <select
-        value={value}
-        onChange={(event) => {
-          onChange(event.target.value);
-        }}
-        className={`h-[31px] ${minWidthClassName} appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-left text-[14px] text-[#6B7280] outline-none`}
-      >
-        <option value="all">{placeholder}</option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-[#8B95A7]" />
-    </div>
-  );
 }
 
 type SuccessState = {
@@ -316,8 +282,8 @@ export default function UserGroupsPage() {
             {isGroupsTab ? (
               <ToolbarSelect
                 value={groupStatusFilter}
-                placeholder="สถานะทั้งหมด"
                 options={[
+                  { value: "all", label: "สถานะทั้งหมด" },
                   { value: "active", label: "ใช้งาน" },
                   { value: "inactive", label: "ปิดใช้งาน" },
                 ]}
@@ -331,11 +297,13 @@ export default function UserGroupsPage() {
               <>
                 <ToolbarSelect
                   value={String(teamFilter)}
-                  placeholder="ทีมทั้งหมด"
-                  options={activeTeamOptions.map((team) => ({
-                    value: String(team.value),
-                    label: team.label,
-                  }))}
+                  options={[
+                    { value: "all", label: "ทีมทั้งหมด" },
+                    ...activeTeamOptions.map((team) => ({
+                      value: String(team.value),
+                      label: team.label,
+                    })),
+                  ]}
                   onChange={(value) => {
                     setTeamFilter(value === "all" ? "all" : Number(value));
                     setMemberPage(1);
@@ -343,12 +311,12 @@ export default function UserGroupsPage() {
                 />
                 <ToolbarSelect
                   value={memberGroupFilter}
-                  placeholder="สถานะกลุ่มทั้งหมด"
                   options={[
+                    { value: "all", label: "สถานะกลุ่มทั้งหมด" },
                     { value: "with-group", label: "มีกลุ่ม" },
                     { value: "without-group", label: "ไม่มีกลุ่ม" },
                   ]}
-                  minWidthClassName="min-w-[168px]"
+                  className="min-w-[168px]"
                   onChange={(value) => {
                     setMemberGroupFilter(
                       value as "all" | "with-group" | "without-group",
@@ -409,9 +377,7 @@ export default function UserGroupsPage() {
           </div>
         ) : null}
 
-        {loading ? (
-          <p className="text-sm text-[#8B95A7]">กำลังโหลดข้อมูล...</p>
-        ) : isGroupsTab ? (
+        {isGroupsTab ? (
           <ProTechTable
             columns={groupColumns}
             data={groupRows}
@@ -420,6 +386,7 @@ export default function UserGroupsPage() {
             totalPages={groupTotalPages}
             totalItems={groupTotalItems}
             onPageChange={setGroupPage}
+            loading={loading}
           />
         ) : (
           <ProTechTable
@@ -430,6 +397,7 @@ export default function UserGroupsPage() {
             totalPages={memberTotalPages}
             totalItems={memberTotalItems}
             onPageChange={setMemberPage}
+            loading={loading}
           />
         )}
       </div>

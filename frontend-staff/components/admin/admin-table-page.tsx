@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
-import { ChevronDown, Edit3, Info, Plus, Trash2 } from "lucide-react";
+import { Edit3, Info, Plus, Trash2 } from "lucide-react";
 
 import { DeleteConfirmDialog } from "@/components/admin/delete-confirm-dialog";
 import { ProTechButton } from "@/components/tables/protech-button";
@@ -11,6 +11,7 @@ import {
 } from "@/components/tables/protech-search";
 import { ProTechTable } from "@/components/tables/protech-table";
 import type { Column } from "@/types/table";
+import { ToolbarSelect } from "@/components/ui/toolbar-select";
 
 type FilterConfig = {
   key: string;
@@ -51,6 +52,7 @@ type AdminTablePageProps<T extends Record<string, unknown>> = {
   onPageChange?: (page: number) => void;
   disableClientFiltering?: boolean;
   disableClientPagination?: boolean;
+  loading?: boolean;
   renderToolbar?: (parts: {
     searchBar: ReactNode;
     filterControls: ReactNode;
@@ -85,6 +87,7 @@ export function AdminTablePage<T extends Record<string, unknown>>({
   onPageChange,
   disableClientFiltering = false,
   disableClientPagination = false,
+  loading = false,
   renderToolbar,
 }: AdminTablePageProps<T>) {
   const [internalPage, setInternalPage] = useState(1);
@@ -176,35 +179,33 @@ export function AdminTablePage<T extends Record<string, unknown>>({
   const filterControls = (
     <>
       {filters.map((filter) => (
-        <div key={filter.key} className="relative">
-          <select
-            value={resolvedSelectedFilters[filter.key] ?? "all"}
-            onChange={(event) => {
-              if (filterValues === undefined) {
-                setInternalSelectedFilters((current) => ({
-                  ...current,
-                  [filter.key]: event.target.value,
-                }));
-              }
+        <ToolbarSelect
+          key={filter.key}
+          value={resolvedSelectedFilters[filter.key] ?? "all"}
+          options={[
+            { value: "all", label: filter.placeholder },
+            ...filter.options.map((option) => ({
+              value: option,
+              label: option,
+            })),
+          ]}
+          placeholder={filter.placeholder}
+          onChange={(value) => {
+            if (filterValues === undefined) {
+              setInternalSelectedFilters((current) => ({
+                ...current,
+                [filter.key]: value,
+              }));
+            }
 
-              if (isControlledPagination) {
-                onPageChange(1);
-              } else {
-                setInternalPage(1);
-              }
-            }}
-            className="h-7.75 min-w-31 appearance-none rounded-md border border-[#A8B1C2] bg-white px-4 pr-10 text-left text-[14px] text-[#6B7280] outline-none"
-          >
-            <option value="all">{filter.placeholder}</option>
-            {filter.options.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-
-          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-[#8B95A7]" />
-        </div>
+            if (isControlledPagination) {
+              onPageChange(1);
+            } else {
+              setInternalPage(1);
+            }
+          }}
+          className="min-w-31"
+        />
       ))}
     </>
   );
@@ -273,6 +274,7 @@ export function AdminTablePage<T extends Record<string, unknown>>({
         page={safePage}
         totalPages={resolvedTotalPages}
         totalItems={resolvedTotalItems}
+        loading={loading}
         onPageChange={(nextPage) => {
           if (isControlledPagination) {
             onPageChange(nextPage);
@@ -377,7 +379,7 @@ export function CheckCell({
             : "border-[#A8B1C2] bg-white text-transparent hover:border-[#3F73BB] hover:bg-[#EEF4FF]"
         } ${onClick ? "cursor-pointer" : "cursor-default"}`}
       >
-        <span className="text-[14px] font-bold leading-none">✔</span>
+        <span className="text-[14px] font-bold leading-none">✓</span>
       </button>
     </div>
   );

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 26, 2026 at 03:59 AM
+-- Generation Time: Jun 04, 2026 at 06:50 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -31,7 +31,8 @@ CREATE TABLE `attachments` (
   `id` int(10) UNSIGNED NOT NULL,
   `request_id` int(10) UNSIGNED DEFAULT NULL,
   `ticket_id` int(10) UNSIGNED DEFAULT NULL,
-  `attachment_type` enum('request_evidence','customer_tracking_ticket','assignment_ticket','resolution_evidence') NOT NULL,
+  `request_confirmation_id` int(10) UNSIGNED DEFAULT NULL,
+  `attachment_type` enum('request_evidence','customer_tracking_ticket','assignment_ticket','resolution_evidence','reopen_evidence') NOT NULL,
   `original_name` varchar(255) NOT NULL,
   `file_ext` enum('pdf','jpg','jpeg','png') NOT NULL,
   `uploaded_at` datetime DEFAULT current_timestamp(),
@@ -43,17 +44,78 @@ CREATE TABLE `attachments` (
 -- Dumping data for table `attachments`
 --
 
-INSERT INTO `attachments` (`id`, `request_id`, `ticket_id`, `attachment_type`, `original_name`, `file_ext`, `uploaded_at`, `saved_name`, `status`) VALUES
-(1, 1, NULL, '', 'login-error-screen.png', 'png', '2026-05-08 08:01:00', NULL, 'show'),
-(2, 3, NULL, '', 'network-error.jpg', 'jpg', '2026-05-08 08:31:00', NULL, 'show'),
-(3, 5, NULL, '', 'complaint-detail.pdf', 'pdf', '2026-05-08 09:01:00', NULL, 'show'),
-(4, NULL, 1, 'assignment_ticket', 'assignment-TCK-20260508-0001.pdf', 'pdf', '2026-05-08 08:26:00', NULL, 'show'),
-(5, NULL, 3, 'resolution_evidence', 'fixed-report-result.png', 'png', '2026-05-08 11:25:00', NULL, 'show'),
-(6, NULL, 4, 'resolution_evidence', 'service-followup.pdf', 'pdf', '2026-05-08 13:50:00', NULL, 'show'),
-(7, NULL, 5, 'customer_tracking_ticket', 'tracking-TCK-20260508-0005.pdf', 'pdf', '2026-05-08 09:46:00', NULL, 'show'),
-(8, NULL, 6, 'resolution_evidence', 'server-log-result.jpeg', 'jpeg', '2026-05-08 10:28:00', NULL, 'show'),
-(9, 9, 8, 'customer_tracking_ticket', 'tracking-REP-20260508-0009.pdf', 'pdf', '2026-05-11 11:49:39', NULL, 'show'),
-(10, 15, NULL, '', 'support_system (7).sql', '', '2026-05-12 13:04:21', NULL, 'show');
+INSERT INTO `attachments` (`id`, `request_id`, `ticket_id`, `request_confirmation_id`, `attachment_type`, `original_name`, `file_ext`, `uploaded_at`, `saved_name`, `status`) VALUES
+(1, 1, NULL, NULL, '', 'login-error-screen.png', 'png', '2026-05-08 08:01:00', NULL, 'show'),
+(2, 3, NULL, NULL, '', 'network-error.jpg', 'jpg', '2026-05-08 08:31:00', NULL, 'show'),
+(3, 5, NULL, NULL, '', 'complaint-detail.pdf', 'pdf', '2026-05-08 09:01:00', NULL, 'show'),
+(4, NULL, 1, NULL, 'assignment_ticket', 'assignment-TCK-20260508-0001.pdf', 'pdf', '2026-05-08 08:26:00', NULL, 'show'),
+(5, NULL, 3, NULL, 'resolution_evidence', 'fixed-report-result.png', 'png', '2026-05-08 11:25:00', NULL, 'show'),
+(6, NULL, 4, NULL, 'resolution_evidence', 'service-followup.pdf', 'pdf', '2026-05-08 13:50:00', NULL, 'show'),
+(7, NULL, 5, NULL, 'customer_tracking_ticket', 'tracking-TCK-20260508-0005.pdf', 'pdf', '2026-05-08 09:46:00', NULL, 'show'),
+(8, NULL, 6, NULL, 'resolution_evidence', 'server-log-result.jpeg', 'jpeg', '2026-05-08 10:28:00', NULL, 'show'),
+(9, 9, 8, NULL, 'customer_tracking_ticket', 'tracking-REP-20260508-0009.pdf', 'pdf', '2026-05-11 11:49:39', NULL, 'show'),
+(10, 15, NULL, NULL, '', 'support_system (7).sql', '', '2026-05-12 13:04:21', NULL, 'show'),
+(11, 18, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 143844.png', 'png', '2026-06-03 13:31:33', 'Screenshot 2026-03-24 143844.png', 'show'),
+(12, 19, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 143844.png', 'png', '2026-06-03 13:32:41', 'Screenshot 2026-03-24 143844.png', 'show'),
+(13, 20, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 143800.png', 'png', '2026-06-03 13:34:15', 'Screenshot 2026-03-24 143800.png', 'show'),
+(14, 20, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 143844.png', 'png', '2026-06-03 13:34:15', 'Screenshot 2026-03-24 143844.png', 'show'),
+(15, 20, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 143931.png', 'png', '2026-06-03 13:34:15', 'Screenshot 2026-03-24 143931.png', 'show'),
+(16, 20, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 143958.png', 'png', '2026-06-03 13:34:15', 'Screenshot 2026-03-24 143958.png', 'show'),
+(17, 20, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 144012.png', 'png', '2026-06-03 13:34:15', 'Screenshot 2026-03-24 144012.png', 'show'),
+(18, 20, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 144029.png', 'png', '2026-06-03 13:34:15', 'Screenshot 2026-03-24 144029.png', 'show'),
+(19, 20, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 144136.png', 'png', '2026-06-03 13:34:15', 'Screenshot 2026-03-24 144136.png', 'show'),
+(20, 20, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 144303.png', 'png', '2026-06-03 13:34:15', 'Screenshot 2026-03-24 144303.png', 'show'),
+(21, 23, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 143800.png', 'png', '2026-06-03 14:57:54', '1780473474571-l0vvqs-Screenshot 2026-03-24 143800.png', 'show'),
+(22, 23, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 143844.png', 'png', '2026-06-03 14:57:54', '1780473474573-f4hfe6-Screenshot 2026-03-24 143844.png', 'show'),
+(23, 23, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 143931.png', 'png', '2026-06-03 14:57:54', '1780473474573-zu11vf-Screenshot 2026-03-24 143931.png', 'show'),
+(24, 23, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 143958.png', 'png', '2026-06-03 14:57:54', '1780473474576-8xsj3u-Screenshot 2026-03-24 143958.png', 'show'),
+(25, 23, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 144012.png', 'png', '2026-06-03 14:57:54', '1780473474577-33ji7m-Screenshot 2026-03-24 144012.png', 'show'),
+(26, 23, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 144029.png', 'png', '2026-06-03 14:57:54', '1780473474579-u4m7ex-Screenshot 2026-03-24 144029.png', 'show'),
+(27, 23, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 144136.png', 'png', '2026-06-03 14:57:54', '1780473474582-ewsbrp-Screenshot 2026-03-24 144136.png', 'show'),
+(28, 23, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 144303.png', 'png', '2026-06-03 14:57:54', '1780473474584-74crmr-Screenshot 2026-03-24 144303.png', 'show'),
+(29, 24, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 144012.png', 'png', '2026-06-03 14:58:15', '1780473495891-0u1qsn-Screenshot 2026-03-24 144012.png', 'show'),
+(30, 24, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 144029.png', 'png', '2026-06-03 14:58:15', '1780473495891-eykcib-Screenshot 2026-03-24 144029.png', 'show'),
+(31, 24, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 144136.png', 'png', '2026-06-03 14:58:15', '1780473495892-vavabc-Screenshot 2026-03-24 144136.png', 'show'),
+(32, 24, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 144303.png', 'png', '2026-06-03 14:58:15', '1780473495892-ms0d8y-Screenshot 2026-03-24 144303.png', 'show'),
+(33, 30, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 143800.png', 'png', '2026-06-04 10:41:44', '1780544504799-zlxbti-Screenshot 2026-03-24 143800.png', 'show'),
+(34, 30, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 143844.png', 'png', '2026-06-04 10:41:44', '1780544504800-vxz9zr-Screenshot 2026-03-24 143844.png', 'show'),
+(35, 30, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 143931.png', 'png', '2026-06-04 10:41:44', '1780544504801-tpl3ek-Screenshot 2026-03-24 143931.png', 'show'),
+(36, 30, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 143958.png', 'png', '2026-06-04 10:41:44', '1780544504802-kkrpbw-Screenshot 2026-03-24 143958.png', 'show'),
+(37, 30, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 144012.png', 'png', '2026-06-04 10:41:44', '1780544504802-79p2th-Screenshot 2026-03-24 144012.png', 'show'),
+(38, 30, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 144029.png', 'png', '2026-06-04 10:41:44', '1780544504805-p22flc-Screenshot 2026-03-24 144029.png', 'show'),
+(39, 30, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 144136.png', 'png', '2026-06-04 10:41:44', '1780544504805-wezbhm-Screenshot 2026-03-24 144136.png', 'show'),
+(40, 30, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 144303.png', 'png', '2026-06-04 10:41:44', '1780544504807-l24kbr-Screenshot 2026-03-24 144303.png', 'show'),
+(41, 32, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 143800.png', 'png', '2026-06-04 10:52:22', '1780545142130-05r03b-Screenshot 2026-03-24 143800.png', 'show'),
+(42, 32, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 143844.png', 'png', '2026-06-04 10:52:22', '1780545142131-9f063x-Screenshot 2026-03-24 143844.png', 'show'),
+(43, 32, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 143931.png', 'png', '2026-06-04 10:52:22', '1780545142131-90h13e-Screenshot 2026-03-24 143931.png', 'show'),
+(44, 32, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 143958.png', 'png', '2026-06-04 10:52:22', '1780545142133-0n119l-Screenshot 2026-03-24 143958.png', 'show'),
+(45, 32, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 144012.png', 'png', '2026-06-04 10:52:22', '1780545142133-wke4g2-Screenshot 2026-03-24 144012.png', 'show'),
+(46, 32, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 144029.png', 'png', '2026-06-04 10:52:22', '1780545142133-08r7rx-Screenshot 2026-03-24 144029.png', 'show'),
+(47, 32, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 144136.png', 'png', '2026-06-04 10:52:22', '1780545142134-yq5hzw-Screenshot 2026-03-24 144136.png', 'show'),
+(48, 32, NULL, NULL, 'request_evidence', 'Screenshot 2026-03-24 144303.png', 'png', '2026-06-04 10:52:22', '1780545142134-pmyid5-Screenshot 2026-03-24 144303.png', 'show'),
+(49, 32, NULL, NULL, 'request_evidence', 'Nid à¸£à¸²à¸¢à¸à¸²à¸ 1.1 (5).pdf', 'pdf', '2026-06-04 10:52:22', '1780545142135-3t3gva-Nid à¸£à¸²à¸¢à¸à¸²à¸ 1.1 (5).pdf', 'show'),
+(50, 33, NULL, NULL, 'request_evidence', 'RPT-20260603-0003.pdf', 'pdf', '2026-06-04 11:15:40', '1780546540311-bo98al-RPT-20260603-0003.pdf', 'show'),
+(51, 33, NULL, NULL, 'request_evidence', 'REQ-1780468681245.pdf', 'pdf', '2026-06-04 11:15:40', '1780546540313-y1wte1-REQ-1780468681245.pdf', 'show'),
+(52, 33, NULL, NULL, 'request_evidence', 'REQ-1780468361971.pdf', 'pdf', '2026-06-04 11:15:40', '1780546540316-taihwg-REQ-1780468361971.pdf', 'show'),
+(53, 33, NULL, NULL, 'request_evidence', 'Nid รายงาน 1.1 (5).pdf', 'pdf', '2026-06-04 11:15:40', '1780546540318-gsuxlt-Nid รายงาน 1.1 (5).pdf', 'show'),
+(54, 34, NULL, NULL, 'request_evidence', 'ภาพหน้าจอ-เข้าใช้งานไม่ได้-01.png', 'png', '2026-06-04 09:12:00', '1780473474571-l0vvqs-Screenshot 2026-03-24 143800.png', 'show'),
+(55, 34, NULL, NULL, 'request_evidence', 'ภาพหน้าจอ-ข้อความผิดพลาด-02.png', 'png', '2026-06-04 09:13:00', '1780473474573-f4hfe6-Screenshot 2026-03-24 143844.png', 'show'),
+(56, 35, NULL, NULL, 'request_evidence', 'ภาพหน้าจอ-ช้า-01.png', 'png', '2026-06-04 08:47:00', '1780473474573-zu11vf-Screenshot 2026-03-24 143931.png', 'show'),
+(57, 36, NULL, NULL, 'request_evidence', 'ภาพปัญหาเครื่องพิมพ์.png', 'png', '2026-06-04 08:25:00', '1780473474576-8xsj3u-Screenshot 2026-03-24 143958.png', 'show'),
+(58, 36, 11, NULL, 'resolution_evidence', 'ภาพผลการตรวจสอบระหว่างแก้ไข.png', 'png', '2026-06-04 10:10:00', '1780473474582-ewsbrp-Screenshot 2026-03-24 144136.png', 'show'),
+(59, 37, NULL, NULL, 'request_evidence', 'รายงานสรุปยอดขาย-กดออกไม่ได้.pdf', 'pdf', '2026-06-04 07:55:00', '1780546540311-bo98al-RPT-20260603-0003.pdf', 'show'),
+(60, 37, 12, NULL, 'resolution_evidence', 'ภาพผลการแก้ไข-หลังทดสอบ.png', 'png', '2026-06-04 13:41:00', '1780473474582-ewsbrp-Screenshot 2026-03-24 144136.png', 'show'),
+(61, 37, 12, NULL, 'resolution_evidence', 'ภาพยืนยันการทำงานหลังแก้ไข.png', 'png', '2026-06-04 13:42:00', '1780473474584-74crmr-Screenshot 2026-03-24 144303.png', 'show'),
+(62, 37, 12, NULL, 'customer_tracking_ticket', 'tracking-REQ-MOCK16-0004.pdf', 'pdf', '2026-06-04 13:43:00', '1780546540311-bo98al-RPT-20260603-0003.pdf', 'show'),
+(63, 38, NULL, NULL, 'request_evidence', 'ตัวอย่างไฟล์ชื่อไทยที่เพี้ยน.pdf', 'pdf', '2026-06-03 15:12:00', '1780546540311-bo98al-RPT-20260603-0003.pdf', 'show'),
+(64, 38, 13, NULL, 'resolution_evidence', 'ภาพผลการแก้ไข-หลังทดสอบ.png', 'png', '2026-06-04 08:21:00', '1780473474582-ewsbrp-Screenshot 2026-03-24 144136.png', 'show'),
+(65, 38, 13, NULL, 'customer_tracking_ticket', 'tracking-REQ-MOCK16-0005.pdf', 'pdf', '2026-06-04 08:22:00', '1780546540311-bo98al-RPT-20260603-0003.pdf', 'show'),
+(66, 39, 14, NULL, 'resolution_evidence', 'ภาพยืนยันการทำงานหลังแก้ไข.png', 'png', '2026-06-02 13:31:00', '1780473474584-74crmr-Screenshot 2026-03-24 144303.png', 'show'),
+(67, 39, 14, NULL, 'customer_tracking_ticket', 'tracking-REQ-MOCK16-0006.pdf', 'pdf', '2026-06-02 13:32:00', '1780546540311-bo98al-RPT-20260603-0003.pdf', 'show'),
+(68, 40, NULL, NULL, 'request_evidence', 'ภาพแจ้งปัญหาเดิม-01.png', 'png', '2026-06-01 13:02:00', '1780473474571-l0vvqs-Screenshot 2026-03-24 143800.png', 'show'),
+(69, 40, NULL, NULL, 'request_evidence', 'ภาพแจ้งปัญหาเดิม-02.png', 'png', '2026-06-01 13:03:00', '1780473474573-f4hfe6-Screenshot 2026-03-24 143844.png', 'show'),
+(70, 40, 15, NULL, 'resolution_evidence', 'ภาพผลการแก้ไขรอบแรก.png', 'png', '2026-06-01 16:51:00', '1780473474582-ewsbrp-Screenshot 2026-03-24 144136.png', 'show'),
+(71, 40, NULL, 8, 'reopen_evidence', 'ภาพปัญหาเพิ่มเติมหลังตีกลับ.png', 'png', '2026-06-02 09:16:00', '1780473474584-74crmr-Screenshot 2026-03-24 144303.png', 'show');
 
 -- --------------------------------------------------------
 
@@ -82,12 +144,12 @@ CREATE TABLE `customers` (
 --
 
 INSERT INTO `customers` (`id`, `prefix_id`, `citizen_id`, `name`, `surname`, `email`, `phone`, `customer_type`, `organization_id`, `status`, `password_hash`, `created_at`, `updated_at`) VALUES
-(1, 8, NULL, 'สมชาย', 'ใจดี', 'somchai@example.com', '0811111111', 'company', 1, 'approved', '$2b$10$mockhashcustomer1', '2026-05-01 10:00:00', '2026-05-25 10:20:34'),
-(2, NULL, NULL, 'วราภรณ์', 'มั่นคง', 'waraporn@example.com', '0822222222', 'person', NULL, 'approved', '$2b$10$mockhashcustomer2', '2026-05-01 10:05:00', '2026-05-12 09:41:29'),
+(1, 8, NULL, 'สมชาย', 'ใจดี', 'somchai@example.com', '0811111111', 'company', 1, 'approved', '$2b$10$63hAed0BbOk5HkdgWepIQuqOeDsfAUHA5sM2UOywWCJzSs.rqtA3u', '2026-05-01 10:00:00', '2026-06-02 17:32:20'),
+(2, NULL, NULL, 'วราภรณ์', 'มั่นคง', 'waraporn@example.com', '0822222222', 'person', NULL, 'approved', '$2b$10$63hAed0BbOk5HkdgWepIQuqOeDsfAUHA5sM2UOywWCJzSs.rqtA3u', '2026-05-01 10:05:00', '2026-06-02 17:32:20'),
 (3, 10, NULL, 'บริษัท เอ็นไอดี', 'เทคโนโลยี', 'contact@nidtech.com', '444444444', 'company', 2, 'approved', '$2b$10$mockhashcustomer3', '2026-05-01 10:10:00', '2026-05-25 10:20:25'),
 (4, NULL, NULL, 'ลูกค้าใหม่', 'รออนุมัติ', 'pending@example.com', '0844444444', 'person', NULL, 'approved', '$2b$10$mockhashcustomer4', '2026-05-01 10:15:00', '2026-05-13 12:15:04'),
-(5, NULL, NULL, 'ลูกค้าถูกปฏิเสธ', 'ทดสอบ', 'rejected@example.com', '0855555555', 'person', NULL, 'pending', '$2b$10$mockhashcustomer5', '2026-05-01 10:20:00', '2026-05-13 12:15:54'),
-(6, NULL, NULL, 'ลูกค้าเก่า', 'ปิดใช้งาน', 'inactive@example.com', '0866666666', 'company', 3, 'pending', '$2b$10$mockhashcustomer6', '2026-05-01 10:25:00', '2026-05-15 11:45:38'),
+(5, NULL, NULL, 'ลูกค้าถูกปฏิเสธ', 'ทดสอบ', 'rejected@example.com', '0855555555', 'person', NULL, 'approved', '$2b$10$mockhashcustomer5', '2026-05-01 10:20:00', '2026-06-03 15:46:33'),
+(6, NULL, NULL, 'ลูกค้าเก่า', 'ปิดใช้งาน', 'inactive@example.com', '0866666666', 'company', 3, 'approved', '$2b$10$mockhashcustomer6', '2026-05-01 10:25:00', '2026-05-26 12:03:06'),
 (7, NULL, NULL, 'ggg', 'ggg', 'test16@gmail.com', '0000000000', 'person', NULL, 'rejected', '$2b$10$tivq7REfkaWiwHn50Uu14u437v2FFYrrTs.tzDa5aaPW3n0gEW.c6', '2026-05-12 15:06:43', '2026-05-18 11:46:05'),
 (8, NULL, '1103700000001', 'สมชาย', 'ใจดี', 'somchai01@example.com', '0811111111', 'person', NULL, 'approved', '$2b$10$mockhash1', '2026-05-13 12:18:59', '2026-05-18 11:46:02'),
 (9, NULL, '1103700000002', 'วราภรณ์', 'มั่นคง', 'waraporn02@example.com', '0822222222', 'person', NULL, 'approved', '$2b$10$mockhash2', '2026-05-13 12:18:59', '2026-05-13 12:25:05'),
@@ -96,7 +158,8 @@ INSERT INTO `customers` (`id`, `prefix_id`, `citizen_id`, `name`, `surname`, `em
 (12, NULL, '1103700000005', 'บริษัท เอ็นไอดี', 'เทคโนโลยี', 'nidtech@example.com', '020000000', 'company', NULL, 'approved', '$2b$10$mockhash5', '2026-05-13 12:18:59', '2026-05-15 11:40:24'),
 (13, NULL, '1103700000006', 'บริษัท โปรเซอร์วิส', 'โซลูชั่น', 'proservice@example.com', '021111111', 'company', 4, 'approved', '$2b$10$mockhash6', '2026-05-13 12:18:59', '2026-05-15 11:45:42'),
 (14, NULL, '1103700000007', 'ลูกค้าทดสอบ', 'รออนุมัติ', 'pendingcustomer@example.com', '0855555555', 'person', NULL, 'approved', '$2b$10$mockhash7', '2026-05-13 12:18:59', '2026-05-13 12:26:29'),
-(15, NULL, '1103700000008', 'ลูกค้าปฏิเสธ', 'ระบบ', 'rejectcustomer@example.com', '0866666666', 'person', NULL, 'rejected', '$2b$10$mockhash8', '2026-05-13 12:18:59', '2026-05-13 12:26:24');
+(15, NULL, '1103700000008', 'ลูกค้าปฏิเสธ', 'ระบบ', 'rejectcustomer@example.com', '0866666666', 'person', NULL, 'rejected', '$2b$10$mockhash8', '2026-05-13 12:18:59', '2026-05-13 12:26:24'),
+(16, 2, '1100801526563', 'ธนวัฒน์', 'เเซ่จึง', '22trai2548@gmail.com', '0623547878', 'person', NULL, 'approved', '$2b$10$uU9FBBpUUJIYgnrwVbViGeLMCj40mKsRdjxXfjKlq3Y.AYRPnFWV6', '2026-06-03 12:43:06', '2026-06-03 12:45:43');
 
 -- --------------------------------------------------------
 
@@ -729,37 +792,28 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (617, 'staff', 9, '72.164.92.223', 'Safari on iPhone', '2026-05-22 20:14:13', 'success', NULL),
 (645, 'customer', 11, '127.176.191.169', 'Chrome on Windows', '2024-07-27 17:38:50', 'success', NULL),
 (646, 'staff', 3, '201.179.201.216', 'Chrome on MacOS', '2026-01-22 05:58:23', 'failed', 'invalid_password'),
-(647, 'customer', 10, '181.35.62.204', 'Safari on iPhone', '2026-11-08 00:05:41', 'success', NULL),
-(648, 'staff', 3, '172.237.87.233', 'Edge on Windows', '2026-09-19 01:17:46', 'success', NULL),
 (649, 'staff', 15, '160.170.47.232', 'Mobile WebView', '2024-01-22 07:54:57', 'failed', NULL),
 (650, 'staff', 13, '160.17.48.187', 'Chrome on Windows', '2024-04-06 06:32:41', 'success', NULL),
 (651, 'customer', 2, '13.16.35.126', 'Chrome on Windows', '2026-04-11 22:02:06', 'success', 'invalid_password'),
 (652, 'staff', 2, '10.227.78.222', 'Safari on iPad', '2025-01-22 07:19:07', 'failed', 'user_not_found'),
 (653, 'staff', 8, '50.164.137.191', 'Chrome on Windows', '2024-07-20 13:34:01', 'success', NULL),
 (654, 'customer', 1, '23.116.245.109', 'Safari on iPhone', '2023-02-12 08:39:22', 'success', NULL),
-(655, 'customer', 13, '156.249.200.251', 'Edge on Windows', '2026-08-18 19:46:44', 'success', NULL),
-(656, 'customer', 8, '106.231.26.203', 'Firefox on Linux', '2026-10-03 16:54:07', 'success', NULL),
 (657, 'staff', 3, '121.75.216.91', 'Chrome on Android', '2023-06-16 20:42:27', 'failed', NULL),
-(658, 'customer', 6, '214.156.47.19', 'Chrome on MacOS', '2026-07-09 22:39:42', 'success', NULL),
 (659, 'customer', 5, '185.71.231.175', 'Firefox on Linux', '2024-12-01 06:44:03', 'failed', 'user_not_found'),
 (660, 'customer', 5, '154.128.108.156', 'Chrome on MacOS', '2023-06-21 05:14:40', 'success', NULL),
 (661, 'staff', 2, '156.191.164.247', 'Mobile WebView', '2025-06-07 08:09:56', 'failed', NULL),
 (662, 'customer', 3, '92.4.213.33', 'Chrome on Android', '2024-03-11 02:02:58', 'success', NULL),
 (663, 'customer', 1, '183.214.186.36', 'Edge on Windows', '2023-05-23 23:31:12', 'success', NULL),
 (664, 'customer', 7, '211.99.24.79', 'Safari on iPhone', '2024-07-15 03:16:05', 'success', NULL),
-(665, 'customer', 1, '135.255.49.241', 'Chrome on Android', '2026-10-12 06:13:50', 'success', NULL),
 (666, 'customer', 1, '7.236.135.220', 'Firefox on Linux', '2023-05-04 05:18:35', 'failed', NULL),
 (667, 'customer', 3, '8.165.30.164', 'Chrome on MacOS', '2024-09-08 11:58:55', 'success', NULL),
 (668, 'customer', 8, '194.137.18.188', 'Safari on iPad', '2023-10-01 11:56:40', 'failed', NULL),
 (669, 'staff', 6, '27.131.53.124', 'Chrome on MacOS', '2025-04-14 10:38:21', 'success', NULL),
-(670, 'customer', 3, '60.240.225.153', 'Safari on iPhone', '2026-09-17 14:34:59', 'success', NULL),
 (671, 'customer', 4, '64.31.191.97', 'Firefox on Linux', '2023-04-25 11:10:38', 'success', NULL),
-(672, 'customer', 11, '15.34.117.230', 'Chrome on Windows', '2026-08-24 04:39:05', 'success', NULL),
 (673, 'customer', 4, '22.187.95.167', 'Chrome on Android', '2026-04-15 15:22:58', 'success', NULL),
 (674, 'customer', 3, '13.87.134.155', 'Safari on iPad', '2024-10-14 21:03:44', 'success', NULL),
 (675, 'staff', 15, '68.157.43.253', 'Safari on iPad', '2024-02-16 01:23:13', 'success', NULL),
 (676, 'staff', 10, '121.183.246.169', 'Safari on iPad', '2023-04-07 02:30:27', 'success', NULL),
-(677, 'customer', 7, '75.63.60.109', 'Safari on iPad', '2026-07-06 02:19:03', 'failed', 'account_locked'),
 (678, 'customer', 12, '110.18.221.30', 'Mobile WebView', '2025-04-14 21:49:10', 'failed', NULL),
 (679, 'customer', 5, '33.8.182.122', 'Safari on iPhone', '2026-04-12 08:19:37', 'success', NULL),
 (680, 'staff', 9, '45.73.210.66', 'Chrome on MacOS', '2024-03-09 01:05:25', 'success', NULL),
@@ -775,7 +829,6 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (690, 'customer', 6, '118.136.19.196', 'Edge on Windows', '2026-02-02 00:32:06', 'success', 'invalid_password'),
 (691, 'staff', 13, '87.90.151.228', 'Firefox on Linux', '2026-03-29 22:59:03', 'success', 'session_expired'),
 (692, 'staff', 4, '41.64.183.209', 'Mobile WebView', '2024-04-02 16:53:41', 'success', NULL),
-(693, 'customer', 7, '110.17.219.22', 'Chrome on MacOS', '2026-11-19 07:48:14', 'success', NULL),
 (694, 'staff', 9, '58.152.52.57', 'Edge on Windows', '2026-05-21 17:29:50', 'success', NULL),
 (695, 'customer', 1, '182.226.250.63', 'Safari on iPhone', '2025-11-03 16:24:27', 'success', NULL),
 (696, 'customer', 5, '73.171.93.207', 'Mobile WebView', '2024-07-17 00:57:00', 'success', NULL),
@@ -787,16 +840,10 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (702, 'customer', 12, '160.54.232.232', 'Chrome on MacOS', '2024-05-06 05:56:44', 'success', NULL),
 (703, 'customer', 4, '212.246.248.248', 'Mobile WebView', '2025-12-15 21:49:10', 'success', 'session_expired'),
 (704, 'customer', 4, '39.29.12.225', 'Safari on iPhone', '2025-11-16 18:43:19', 'success', NULL),
-(705, 'customer', 3, '161.44.176.236', 'Edge on Windows', '2026-11-29 05:54:42', 'success', NULL),
 (706, 'staff', 8, '34.223.231.233', 'Chrome on MacOS', '2024-11-20 20:05:29', 'success', NULL),
-(707, 'customer', 8, '25.217.234.8', 'Safari on iPad', '2026-08-11 07:43:28', 'failed', NULL),
 (708, 'staff', 9, '15.135.113.160', 'Chrome on MacOS', '2023-08-05 07:49:47', 'success', 'account_locked'),
-(709, 'customer', 14, '46.106.114.251', 'Edge on Windows', '2026-09-11 21:40:18', 'success', 'too_many_attempts'),
 (710, 'staff', 6, '197.100.76.82', 'Firefox on Linux', '2025-04-30 18:55:29', 'success', NULL),
-(711, 'customer', 10, '10.72.68.127', 'Firefox on Linux', '2026-07-13 09:29:11', 'success', NULL),
-(712, 'customer', 4, '56.119.147.123', 'Firefox on Linux', '2026-11-13 18:58:23', 'success', 'account_locked'),
 (713, 'customer', 11, '121.159.126.151', 'Safari on iPad', '2025-07-25 18:11:20', 'failed', NULL),
-(714, 'customer', 13, '179.107.173.36', 'Firefox on Linux', '2026-06-28 09:24:49', 'success', NULL),
 (715, 'customer', 6, '195.60.142.20', 'Firefox on Linux', '2024-03-23 09:57:30', 'success', NULL),
 (716, 'customer', 1, '76.129.129.3', 'Edge on Windows', '2025-07-07 13:15:56', 'failed', NULL),
 (717, 'customer', 2, '99.158.199.10', 'Chrome on MacOS', '2023-05-28 23:30:02', 'success', NULL),
@@ -806,7 +853,6 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (721, 'customer', 8, '168.55.209.112', 'Firefox on Linux', '2024-06-21 15:10:13', 'success', NULL),
 (722, 'staff', 1, '34.169.217.71', 'Chrome on MacOS', '2024-02-22 23:05:49', 'failed', 'session_expired'),
 (723, 'customer', 8, '173.110.211.215', 'Firefox on Linux', '2023-06-17 09:26:03', 'success', 'too_many_attempts'),
-(724, 'customer', 8, '14.170.35.174', 'Mobile WebView', '2026-09-22 16:15:46', 'success', 'user_not_found'),
 (725, 'customer', 15, '135.9.92.175', 'Safari on iPhone', '2025-10-08 09:58:37', 'success', NULL),
 (726, 'staff', 12, '23.32.79.43', 'Mobile WebView', '2023-05-08 16:23:26', 'success', NULL),
 (727, 'customer', 7, '50.190.16.19', 'Chrome on Android', '2025-08-09 17:44:47', 'success', NULL),
@@ -816,15 +862,12 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (731, 'customer', 7, '199.39.24.1', 'Firefox on Linux', '2025-08-03 01:09:11', 'success', NULL),
 (732, 'staff', 3, '66.19.121.37', 'Safari on iPhone', '2023-03-25 09:31:10', 'failed', 'user_not_found'),
 (733, 'staff', 8, '94.92.140.168', 'Firefox on Linux', '2023-11-16 04:21:11', 'success', NULL),
-(734, 'staff', 1, '175.156.181.181', 'Safari on iPad', '2026-12-03 15:21:41', 'success', NULL),
 (735, 'customer', 11, '209.158.70.131', 'Firefox on Linux', '2023-08-26 14:19:40', 'success', NULL),
 (736, 'staff', 7, '156.40.174.238', 'Edge on Windows', '2024-03-16 15:37:50', 'success', 'user_not_found'),
 (737, 'customer', 1, '223.237.167.122', 'Safari on iPad', '2025-10-21 05:31:39', 'success', NULL),
 (738, 'customer', 1, '167.163.241.206', 'Chrome on Android', '2025-06-08 10:16:11', 'success', NULL),
-(739, 'customer', 10, '5.46.212.156', 'Edge on Windows', '2026-12-26 06:52:45', 'success', NULL),
 (740, 'customer', 9, '69.210.48.118', 'Firefox on Linux', '2024-05-06 10:54:32', 'success', 'user_not_found'),
 (741, 'staff', 1, '56.226.174.191', 'Firefox on Linux', '2023-11-25 01:04:00', 'success', NULL),
-(742, 'customer', 9, '79.20.87.116', 'Safari on iPhone', '2026-09-05 19:58:53', 'success', NULL),
 (743, 'customer', 15, '74.172.97.223', 'Chrome on Android', '2025-02-05 22:33:14', 'success', NULL),
 (744, 'customer', 6, '82.186.136.124', 'Chrome on MacOS', '2025-08-21 19:58:36', 'success', NULL),
 (745, 'customer', 5, '102.82.59.48', 'Chrome on Android', '2025-07-25 11:48:14', 'success', NULL),
@@ -834,11 +877,8 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (749, 'customer', 11, '84.202.213.201', 'Safari on iPad', '2026-03-25 17:47:43', 'success', NULL),
 (750, 'customer', 5, '143.171.109.30', 'Safari on iPhone', '2023-10-28 02:20:05', 'failed', NULL),
 (751, 'customer', 5, '66.159.61.79', 'Chrome on MacOS', '2023-12-17 16:52:35', 'success', 'user_not_found'),
-(752, 'customer', 3, '106.91.93.191', 'Firefox on Linux', '2026-12-04 23:27:14', 'failed', NULL),
 (753, 'customer', 8, '112.138.49.88', 'Chrome on Android', '2025-10-12 00:57:26', 'success', NULL),
-(754, 'staff', 1, '185.246.88.209', 'Chrome on Windows', '2026-06-20 03:29:02', 'success', NULL),
 (755, 'customer', 13, '11.166.29.156', 'Firefox on Linux', '2026-01-02 14:33:37', 'success', NULL),
-(756, 'customer', 6, '142.18.109.235', 'Safari on iPhone', '2026-07-04 09:40:37', 'success', NULL),
 (757, 'customer', 4, '130.114.124.23', 'Mobile WebView', '2025-08-21 08:20:31', 'success', NULL),
 (758, 'customer', 5, '22.164.237.180', 'Firefox on Linux', '2025-04-06 15:01:18', 'success', NULL),
 (759, 'customer', 1, '8.40.174.239', 'Firefox on Linux', '2024-05-16 19:57:08', 'success', NULL),
@@ -865,7 +905,6 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (780, 'customer', 6, '46.211.133.30', 'Chrome on Windows', '2026-01-31 18:52:40', 'success', NULL),
 (781, 'staff', 7, '84.138.148.67', 'Edge on Windows', '2023-06-29 20:48:36', 'failed', NULL),
 (782, 'customer', 8, '117.25.234.74', 'Firefox on Linux', '2025-05-20 21:47:04', 'success', NULL),
-(783, 'staff', 10, '77.223.85.11', 'Chrome on Android', '2026-11-17 04:36:54', 'success', NULL),
 (784, 'customer', 1, '163.137.126.219', 'Chrome on MacOS', '2024-10-16 19:59:00', 'failed', NULL),
 (785, 'customer', 1, '46.211.129.13', 'Firefox on Linux', '2025-01-08 08:05:19', 'success', 'session_expired'),
 (786, 'staff', 8, '59.112.100.162', 'Chrome on Windows', '2023-06-15 13:22:32', 'success', NULL),
@@ -873,7 +912,6 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (788, 'customer', 6, '197.66.164.109', 'Chrome on Android', '2026-03-03 07:40:31', 'success', NULL),
 (789, 'customer', 1, '189.254.111.47', 'Edge on Windows', '2024-12-11 14:45:47', 'success', NULL),
 (790, 'customer', 6, '171.170.7.38', 'Firefox on Linux', '2026-02-28 00:24:03', 'success', NULL),
-(791, 'customer', 8, '161.47.194.62', 'Mobile WebView', '2026-09-10 19:56:28', 'success', NULL),
 (792, 'staff', 5, '96.82.82.162', 'Chrome on Android', '2023-06-25 23:49:28', 'success', NULL),
 (793, 'customer', 5, '113.156.136.212', 'Edge on Windows', '2024-03-15 19:52:09', 'success', NULL),
 (794, 'staff', 1, '172.147.142.14', 'Edge on Windows', '2026-05-01 08:53:22', 'success', NULL),
@@ -886,17 +924,14 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (801, 'customer', 1, '86.215.12.179', 'Safari on iPhone', '2025-12-22 14:46:15', 'failed', NULL),
 (802, 'customer', 11, '2.215.49.108', 'Edge on Windows', '2024-10-19 14:55:04', 'success', 'account_locked'),
 (803, 'staff', 13, '163.22.62.244', 'Chrome on Windows', '2024-07-06 17:55:10', 'success', NULL),
-(804, 'staff', 7, '193.251.83.172', 'Safari on iPad', '2026-11-20 15:58:16', 'success', NULL),
 (805, 'customer', 7, '77.32.153.158', 'Safari on iPhone', '2025-06-16 04:35:59', 'success', 'session_expired'),
 (806, 'customer', 10, '77.209.14.209', 'Mobile WebView', '2023-09-15 02:33:54', 'success', NULL),
 (807, 'customer', 6, '175.196.127.46', 'Safari on iPad', '2024-11-02 02:27:37', 'success', NULL),
 (808, 'customer', 4, '94.197.150.161', 'Safari on iPad', '2023-03-21 02:30:21', 'success', NULL),
 (809, 'customer', 4, '94.98.171.50', 'Mobile WebView', '2023-10-24 03:33:15', 'success', NULL),
-(810, 'customer', 2, '127.156.90.235', 'Edge on Windows', '2026-11-24 05:38:34', 'success', NULL),
 (811, 'staff', 10, '17.144.150.63', 'Safari on iPad', '2025-06-14 15:44:27', 'success', NULL),
 (812, 'staff', 11, '15.81.97.245', 'Firefox on Linux', '2024-06-06 20:27:07', 'success', NULL),
 (813, 'customer', 7, '193.235.1.65', 'Safari on iPhone', '2025-04-19 01:43:06', 'success', 'user_not_found'),
-(814, 'customer', 12, '219.156.28.182', 'Chrome on Android', '2026-12-16 06:42:56', 'success', NULL),
 (815, 'customer', 5, '207.185.215.11', 'Firefox on Linux', '2024-02-28 09:39:12', 'success', NULL),
 (816, 'customer', 5, '172.10.223.64', 'Firefox on Linux', '2024-09-22 06:01:48', 'failed', NULL),
 (817, 'customer', 1, '58.58.90.21', 'Safari on iPhone', '2024-12-21 10:18:33', 'success', NULL),
@@ -907,7 +942,6 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (822, 'customer', 4, '89.78.86.194', 'Chrome on MacOS', '2025-10-13 02:16:43', 'success', NULL),
 (823, 'customer', 12, '172.121.15.219', 'Chrome on Windows', '2023-03-09 20:36:00', 'success', NULL),
 (824, 'customer', 8, '37.237.38.241', 'Safari on iPhone', '2025-04-08 23:59:48', 'success', NULL),
-(825, 'customer', 4, '160.218.34.23', 'Chrome on Windows', '2026-10-21 15:07:39', 'success', NULL),
 (826, 'customer', 1, '16.86.117.73', 'Chrome on Windows', '2024-06-23 17:12:45', 'success', NULL),
 (827, 'staff', 6, '136.232.183.219', 'Chrome on Android', '2023-05-22 02:01:19', 'success', NULL),
 (828, 'customer', 3, '78.158.13.99', 'Chrome on MacOS', '2026-02-12 12:51:01', 'success', NULL),
@@ -925,17 +959,14 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (840, 'customer', 11, '207.115.118.246', 'Safari on iPad', '2023-12-08 21:34:14', 'success', NULL),
 (841, 'staff', 8, '8.53.237.7', 'Safari on iPhone', '2025-05-20 23:30:25', 'success', NULL),
 (842, 'staff', 5, '76.47.230.244', 'Chrome on Windows', '2025-01-01 06:50:06', 'failed', NULL),
-(843, 'staff', 7, '40.141.58.120', 'Firefox on Linux', '2026-09-15 15:19:05', 'success', NULL),
 (844, 'customer', 6, '12.47.191.52', 'Chrome on MacOS', '2023-10-29 17:53:53', 'success', NULL),
 (845, 'customer', 2, '27.62.219.143', 'Chrome on Android', '2024-11-12 15:30:13', 'failed', NULL),
 (846, 'customer', 2, '211.126.161.170', 'Safari on iPad', '2023-10-31 17:11:58', 'failed', NULL),
 (847, 'customer', 2, '123.18.177.66', 'Chrome on Android', '2024-02-20 18:52:50', 'success', NULL),
 (848, 'staff', 6, '65.95.254.217', 'Safari on iPhone', '2026-04-02 05:59:28', 'failed', NULL),
 (849, 'customer', 1, '97.30.73.21', 'Edge on Windows', '2024-11-29 18:15:21', 'success', NULL),
-(850, 'customer', 8, '15.167.20.105', 'Chrome on MacOS', '2026-10-02 04:30:25', 'success', NULL),
 (851, 'staff', 3, '132.131.206.124', 'Chrome on Windows', '2025-05-11 22:11:35', 'failed', NULL),
 (852, 'staff', 2, '209.45.17.206', 'Chrome on MacOS', '2025-11-22 03:15:14', 'success', NULL),
-(853, 'customer', 13, '90.135.112.156', 'Firefox on Linux', '2026-06-21 02:52:24', 'failed', NULL),
 (854, 'customer', 5, '24.140.109.126', 'Chrome on Android', '2024-10-03 15:29:04', 'failed', NULL),
 (855, 'customer', 9, '187.109.158.208', 'Chrome on Android', '2025-06-19 10:46:34', 'success', NULL),
 (856, 'staff', 6, '203.82.227.120', 'Firefox on Linux', '2023-02-24 02:52:08', 'success', NULL),
@@ -961,7 +992,6 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (876, 'customer', 8, '121.75.213.77', 'Mobile WebView', '2023-04-06 08:24:25', 'success', NULL),
 (877, 'staff', 2, '177.157.179.165', 'Chrome on Android', '2025-12-15 06:58:10', 'success', NULL),
 (878, 'staff', 14, '80.18.72.51', 'Chrome on Android', '2023-07-08 05:04:56', 'success', NULL),
-(879, 'customer', 3, '208.211.87.59', 'Chrome on Windows', '2026-08-15 04:10:32', 'success', NULL),
 (880, 'staff', 1, '220.209.34.55', 'Firefox on Linux', '2025-10-26 12:27:41', 'success', 'too_many_attempts'),
 (881, 'customer', 14, '100.119.250.130', 'Edge on Windows', '2024-11-12 12:56:41', 'success', 'account_pending'),
 (882, 'customer', 1, '154.111.28.60', 'Chrome on MacOS', '2025-03-16 04:53:33', 'success', NULL),
@@ -972,41 +1002,31 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (887, 'customer', 2, '71.72.115.104', 'Firefox on Linux', '2023-12-02 01:53:11', 'success', NULL),
 (888, 'customer', 4, '37.53.140.29', 'Mobile WebView', '2024-02-28 16:08:58', 'success', NULL),
 (889, 'staff', 5, '5.32.146.124', 'Firefox on Linux', '2023-04-13 05:43:47', 'failed', NULL),
-(890, 'customer', 10, '150.93.207.245', 'Safari on iPhone', '2026-10-06 14:48:42', 'success', NULL),
 (891, 'customer', 11, '88.226.62.143', 'Chrome on Windows', '2025-07-26 00:31:16', 'success', 'too_many_attempts'),
-(892, 'staff', 11, '179.218.221.197', 'Safari on iPhone', '2026-10-09 23:10:57', 'failed', NULL),
-(893, 'customer', 8, '3.123.93.98', 'Chrome on MacOS', '2026-10-25 07:29:25', 'success', NULL),
 (894, 'customer', 12, '63.19.132.95', 'Safari on iPhone', '2024-06-29 23:27:27', 'success', 'account_locked'),
 (895, 'customer', 11, '29.119.244.94', 'Mobile WebView', '2026-02-23 00:03:40', 'success', NULL),
 (896, 'customer', 7, '37.141.69.175', 'Edge on Windows', '2023-01-08 04:38:46', 'failed', NULL),
 (897, 'customer', 5, '93.51.190.29', 'Safari on iPhone', '2024-06-09 18:43:52', 'failed', NULL),
 (898, 'customer', 15, '10.65.36.238', 'Chrome on Android', '2024-10-11 11:30:30', 'success', 'account_locked'),
 (899, 'customer', 12, '135.204.50.147', 'Safari on iPhone', '2025-11-24 18:08:32', 'success', NULL),
-(900, 'staff', 11, '10.14.37.140', 'Safari on iPhone', '2026-08-13 14:19:18', 'success', NULL),
 (901, 'staff', 4, '91.94.159.254', 'Chrome on Windows', '2025-06-12 16:50:12', 'success', NULL),
 (902, 'customer', 7, '179.197.112.225', 'Chrome on Windows', '2026-03-16 17:51:55', 'success', NULL),
 (903, 'staff', 1, '181.194.94.141', 'Firefox on Linux', '2025-07-09 04:23:16', 'success', NULL),
 (904, 'staff', 4, '196.170.177.122', 'Safari on iPhone', '2023-06-08 14:49:22', 'success', 'session_expired'),
 (905, 'customer', 9, '134.101.45.177', 'Mobile WebView', '2025-05-20 04:13:59', 'success', 'account_pending'),
 (906, 'customer', 4, '135.62.100.59', 'Mobile WebView', '2023-09-03 22:19:45', 'success', 'account_locked'),
-(907, 'customer', 4, '161.85.126.119', 'Chrome on MacOS', '2026-06-19 18:37:28', 'success', NULL),
 (908, 'customer', 9, '91.108.226.40', 'Chrome on Android', '2023-08-25 10:25:08', 'success', NULL),
 (909, 'customer', 5, '53.86.249.222', 'Safari on iPad', '2024-12-02 03:38:22', 'success', NULL),
-(910, 'customer', 4, '212.20.138.117', 'Firefox on Linux', '2026-11-01 19:12:45', 'success', NULL),
 (911, 'staff', 14, '70.240.194.250', 'Edge on Windows', '2023-06-15 17:47:14', 'success', NULL),
 (912, 'staff', 2, '165.2.210.24', 'Mobile WebView', '2025-09-06 09:20:32', 'failed', NULL),
 (913, 'customer', 5, '182.140.74.204', 'Chrome on Windows', '2023-11-17 17:32:55', 'failed', NULL),
 (914, 'staff', 14, '158.225.72.193', 'Mobile WebView', '2024-08-10 05:07:37', 'failed', NULL),
-(915, 'staff', 4, '54.104.77.75', 'Edge on Windows', '2026-07-28 19:22:41', 'success', NULL),
-(916, 'staff', 12, '203.89.255.243', 'Chrome on MacOS', '2026-09-22 09:23:46', 'success', NULL),
 (917, 'customer', 10, '96.85.93.211', 'Chrome on Windows', '2025-09-28 08:00:46', 'success', NULL),
 (918, 'customer', 3, '90.149.180.199', 'Chrome on MacOS', '2025-05-09 14:05:18', 'success', NULL),
 (919, 'staff', 9, '4.108.14.1', 'Chrome on MacOS', '2024-02-03 19:04:37', 'success', NULL),
 (920, 'customer', 7, '196.41.40.77', 'Chrome on Windows', '2024-03-02 08:15:10', 'failed', NULL),
 (921, 'customer', 13, '12.177.81.126', 'Edge on Windows', '2023-06-22 00:48:06', 'failed', 'account_pending'),
 (922, 'staff', 8, '47.89.26.118', 'Chrome on Windows', '2025-08-21 06:30:52', 'success', NULL),
-(923, 'customer', 2, '36.32.36.82', 'Chrome on Android', '2026-10-03 03:50:49', 'failed', NULL),
-(924, 'customer', 2, '159.239.142.247', 'Chrome on Android', '2026-10-13 05:21:54', 'success', NULL),
 (925, 'staff', 2, '181.130.26.252', 'Firefox on Linux', '2023-09-24 00:37:57', 'success', 'account_pending'),
 (926, 'staff', 2, '190.153.112.100', 'Firefox on Linux', '2023-04-03 08:58:17', 'success', NULL),
 (927, 'customer', 4, '146.218.77.240', 'Chrome on MacOS', '2023-08-04 08:40:05', 'success', NULL),
@@ -1018,31 +1038,25 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (933, 'customer', 14, '94.82.86.182', 'Edge on Windows', '2025-09-26 17:27:19', 'success', NULL),
 (934, 'staff', 3, '126.104.84.110', 'Chrome on Android', '2025-03-14 05:54:46', 'success', NULL),
 (935, 'customer', 2, '37.87.55.12', 'Edge on Windows', '2026-02-17 03:58:45', 'success', 'invalid_password'),
-(936, 'customer', 6, '124.210.114.192', 'Safari on iPad', '2026-07-13 03:13:40', 'success', NULL),
 (937, 'customer', 9, '90.55.218.163', 'Edge on Windows', '2023-10-11 02:36:35', 'failed', NULL),
 (938, 'customer', 14, '57.144.14.149', 'Chrome on MacOS', '2023-03-01 22:14:53', 'success', NULL),
 (939, 'customer', 12, '45.156.117.116', 'Mobile WebView', '2023-06-02 20:17:28', 'failed', NULL),
 (940, 'customer', 4, '135.144.3.90', 'Firefox on Linux', '2025-06-04 20:02:28', 'success', NULL),
-(941, 'customer', 6, '31.182.38.152', 'Edge on Windows', '2026-09-12 23:56:53', 'success', NULL),
 (942, 'staff', 1, '170.192.121.29', 'Chrome on Android', '2024-04-27 06:08:07', 'success', NULL),
 (943, 'customer', 7, '34.100.125.70', 'Mobile WebView', '2025-08-20 14:42:17', 'success', NULL),
 (944, 'customer', 6, '184.252.117.82', 'Chrome on Android', '2023-09-20 05:13:09', 'success', NULL),
 (945, 'staff', 2, '140.176.142.180', 'Chrome on MacOS', '2023-11-25 12:28:14', 'failed', NULL),
-(946, 'customer', 9, '135.75.165.88', 'Chrome on MacOS', '2026-08-19 04:17:18', 'success', NULL),
 (947, 'customer', 10, '202.136.243.39', 'Mobile WebView', '2023-02-23 11:51:48', 'success', NULL),
-(948, 'customer', 10, '50.61.134.229', 'Mobile WebView', '2026-06-13 13:59:22', 'success', 'account_pending'),
 (949, 'customer', 6, '125.143.31.235', 'Chrome on Android', '2024-10-28 13:15:35', 'success', NULL),
 (950, 'customer', 3, '186.75.245.235', 'Firefox on Linux', '2026-04-15 23:08:21', 'success', 'account_pending'),
 (951, 'customer', 5, '154.123.85.56', 'Chrome on Windows', '2026-04-29 20:50:52', 'failed', NULL),
 (952, 'customer', 15, '89.13.17.42', 'Firefox on Linux', '2025-09-04 10:49:30', 'success', 'session_expired'),
-(953, 'customer', 15, '54.94.31.124', 'Chrome on Windows', '2026-07-01 04:17:20', 'success', 'account_locked'),
 (954, 'staff', 15, '181.17.231.85', 'Mobile WebView', '2025-11-05 17:38:25', 'success', NULL),
 (955, 'staff', 2, '155.230.111.117', 'Mobile WebView', '2025-05-18 23:49:01', 'success', 'invalid_password'),
 (956, 'customer', 2, '60.207.65.212', 'Safari on iPad', '2024-12-05 05:29:43', 'success', NULL),
 (957, 'staff', 13, '197.226.198.56', 'Chrome on MacOS', '2023-11-07 17:47:17', 'success', NULL),
 (958, 'customer', 7, '147.251.237.176', 'Firefox on Linux', '2024-02-09 09:04:41', 'success', NULL),
 (959, 'customer', 6, '37.213.171.214', 'Chrome on Android', '2024-10-10 15:27:28', 'failed', NULL),
-(960, 'staff', 7, '62.2.55.14', 'Edge on Windows', '2026-11-02 22:12:45', 'success', 'session_expired'),
 (961, 'customer', 12, '179.167.219.83', 'Chrome on Windows', '2024-02-14 06:02:44', 'success', NULL),
 (962, 'customer', 6, '82.199.202.158', 'Firefox on Linux', '2025-12-29 14:00:37', 'success', NULL),
 (963, 'customer', 6, '219.202.4.180', 'Safari on iPad', '2024-01-12 20:48:11', 'success', NULL),
@@ -1055,27 +1069,20 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (970, 'customer', 13, '177.141.96.57', 'Mobile WebView', '2024-01-04 07:32:23', 'failed', NULL),
 (971, 'customer', 14, '21.188.101.199', 'Firefox on Linux', '2023-08-16 16:27:04', 'failed', NULL),
 (972, 'staff', 10, '209.216.108.147', 'Edge on Windows', '2024-05-13 20:45:51', 'success', 'session_expired'),
-(973, 'customer', 8, '202.173.174.95', 'Chrome on MacOS', '2026-09-13 04:58:23', 'success', NULL),
 (974, 'customer', 7, '129.66.143.7', 'Safari on iPad', '2023-09-30 13:47:54', 'success', 'account_locked'),
 (975, 'staff', 8, '66.195.241.108', 'Safari on iPhone', '2023-08-06 21:30:07', 'success', NULL),
 (976, 'customer', 8, '1.22.107.213', 'Mobile WebView', '2023-02-03 09:40:53', 'failed', NULL),
 (977, 'staff', 2, '221.160.42.240', 'Chrome on Android', '2023-11-24 11:52:42', 'failed', NULL),
 (978, 'customer', 12, '87.165.17.100', 'Firefox on Linux', '2025-04-28 15:47:02', 'success', NULL),
-(979, 'customer', 2, '161.63.20.163', 'Mobile WebView', '2026-09-10 17:08:29', 'success', 'user_not_found'),
-(980, 'staff', 9, '188.146.88.2', 'Mobile WebView', '2026-10-02 17:18:01', 'success', NULL),
 (981, 'customer', 4, '16.162.244.225', 'Edge on Windows', '2023-01-05 10:21:25', 'success', NULL),
 (982, 'staff', 12, '185.233.23.179', 'Chrome on Android', '2023-04-07 15:10:46', 'failed', 'too_many_attempts'),
 (983, 'staff', 2, '10.188.138.127', 'Chrome on MacOS', '2026-05-07 14:08:13', 'success', NULL),
-(984, 'staff', 8, '135.121.141.84', 'Mobile WebView', '2026-12-23 23:38:59', 'failed', NULL),
 (985, 'staff', 9, '76.7.30.128', 'Chrome on Android', '2024-02-29 23:25:59', 'success', NULL),
 (986, 'customer', 10, '190.76.239.199', 'Chrome on Windows', '2023-06-29 08:07:23', 'success', NULL),
-(987, 'customer', 1, '204.107.90.131', 'Safari on iPad', '2026-11-04 07:24:23', 'success', NULL),
 (988, 'staff', 13, '72.19.101.195', 'Firefox on Linux', '2026-05-11 07:46:54', 'success', NULL),
 (989, 'customer', 15, '69.146.236.233', 'Chrome on MacOS', '2023-10-23 15:33:04', 'success', NULL),
-(990, 'customer', 3, '167.63.253.55', 'Chrome on Windows', '2026-07-09 02:04:21', 'success', NULL),
 (991, 'customer', 10, '5.52.243.39', 'Mobile WebView', '2023-03-13 13:02:00', 'success', NULL),
 (992, 'customer', 12, '89.162.247.241', 'Chrome on MacOS', '2023-11-28 16:51:02', 'failed', NULL),
-(993, 'staff', 2, '58.236.215.112', 'Firefox on Linux', '2026-12-23 23:47:05', 'failed', 'account_pending'),
 (994, 'staff', 1, '126.160.112.78', 'Chrome on Android', '2023-06-11 22:37:45', 'success', NULL),
 (995, 'customer', 11, '62.59.79.220', 'Safari on iPad', '2024-03-20 09:22:47', 'success', NULL),
 (996, 'customer', 15, '213.200.10.218', 'Chrome on Android', '2023-09-15 10:36:57', 'success', NULL),
@@ -1100,11 +1107,8 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (1015, 'customer', 2, '211.7.76.103', 'Chrome on Android', '2024-10-09 19:47:42', 'success', NULL),
 (1016, 'customer', 4, '102.232.43.30', 'Chrome on Windows', '2023-03-09 23:50:44', 'failed', NULL),
 (1017, 'customer', 5, '137.51.42.55', 'Edge on Windows', '2023-12-20 11:37:42', 'success', NULL),
-(1018, 'customer', 8, '222.141.200.66', 'Mobile WebView', '2026-08-13 17:16:09', 'failed', NULL),
 (1019, 'customer', 7, '158.66.42.13', 'Chrome on MacOS', '2025-06-28 20:28:01', 'success', NULL),
 (1020, 'staff', 4, '146.141.206.95', 'Safari on iPad', '2023-04-04 00:21:50', 'failed', NULL),
-(1021, 'customer', 1, '81.183.127.86', 'Chrome on Android', '2026-08-19 23:52:15', 'success', NULL),
-(1022, 'customer', 7, '145.165.71.117', 'Safari on iPad', '2026-06-15 23:32:44', 'success', NULL),
 (1023, 'customer', 9, '196.155.102.45', 'Firefox on Linux', '2026-05-15 04:43:59', 'success', NULL),
 (1024, 'customer', 15, '112.143.78.216', 'Safari on iPhone', '2023-03-20 07:27:33', 'success', NULL),
 (1025, 'staff', 4, '98.238.90.245', 'Firefox on Linux', '2026-05-10 23:11:42', 'success', NULL),
@@ -1117,14 +1121,11 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (1032, 'customer', 14, '148.138.180.232', 'Safari on iPad', '2024-06-23 14:18:04', 'failed', NULL),
 (1033, 'customer', 3, '180.123.254.137', 'Firefox on Linux', '2026-05-06 02:50:52', 'success', NULL),
 (1034, 'customer', 3, '157.246.184.180', 'Safari on iPhone', '2025-09-10 07:11:43', 'success', NULL),
-(1035, 'customer', 15, '24.149.149.43', 'Chrome on Windows', '2026-10-03 10:24:32', 'success', NULL),
 (1036, 'customer', 10, '44.26.234.69', 'Edge on Windows', '2023-10-31 05:33:50', 'success', 'account_locked'),
 (1037, 'customer', 12, '167.132.87.40', 'Firefox on Linux', '2024-02-02 02:53:27', 'success', NULL),
 (1038, 'customer', 3, '57.89.248.210', 'Chrome on Android', '2024-11-13 18:47:01', 'success', NULL),
 (1039, 'customer', 4, '28.34.73.10', 'Safari on iPhone', '2024-12-19 11:59:41', 'success', NULL),
-(1040, 'customer', 3, '220.130.149.101', 'Chrome on Android', '2026-08-24 21:41:13', 'success', NULL),
 (1041, 'customer', 5, '115.178.241.161', 'Safari on iPhone', '2025-11-11 14:45:03', 'failed', NULL),
-(1042, 'customer', 1, '97.251.158.39', 'Mobile WebView', '2026-12-13 06:40:17', 'success', NULL),
 (1043, 'customer', 3, '79.65.57.88', 'Chrome on Windows', '2023-11-19 22:53:51', 'success', NULL),
 (1044, 'customer', 7, '17.35.117.225', 'Chrome on Windows', '2025-01-15 11:04:06', 'success', NULL),
 (1045, 'customer', 6, '83.194.177.47', 'Chrome on MacOS', '2025-08-19 18:24:04', 'failed', 'account_pending'),
@@ -1136,23 +1137,15 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (1051, 'customer', 4, '209.230.180.207', 'Mobile WebView', '2024-03-03 15:05:30', 'success', NULL),
 (1052, 'customer', 5, '102.165.217.79', 'Mobile WebView', '2023-02-09 04:01:51', 'success', NULL),
 (1053, 'customer', 3, '101.122.6.175', 'Safari on iPhone', '2025-12-31 15:59:34', 'success', NULL),
-(1054, 'staff', 4, '25.22.23.49', 'Firefox on Linux', '2026-06-20 06:34:48', 'success', NULL),
-(1055, 'staff', 1, '113.113.178.40', 'Firefox on Linux', '2026-11-12 18:34:32', 'failed', NULL),
-(1056, 'staff', 3, '164.24.68.10', 'Safari on iPad', '2026-05-09 00:37:23', 'success', 'invalid_password');
-INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agent`, `login_at`, `status`, `fail_reason`) VALUES
+(1056, 'staff', 3, '164.24.68.10', 'Safari on iPad', '2026-05-09 00:37:23', 'success', 'invalid_password'),
 (1057, 'customer', 12, '94.194.138.109', 'Safari on iPad', '2023-11-02 13:21:26', 'success', NULL),
-(1058, 'customer', 3, '157.236.132.206', 'Safari on iPad', '2026-12-07 11:30:13', 'success', NULL),
 (1059, 'customer', 9, '183.98.114.23', 'Chrome on Windows', '2023-12-29 22:25:34', 'failed', 'account_pending'),
-(1060, 'customer', 5, '156.187.146.168', 'Edge on Windows', '2026-08-07 18:40:32', 'success', NULL),
-(1061, 'customer', 15, '164.196.163.227', 'Edge on Windows', '2026-11-10 05:57:57', 'success', 'user_not_found'),
 (1062, 'customer', 3, '49.161.126.147', 'Safari on iPad', '2024-01-14 02:31:59', 'success', NULL),
 (1063, 'staff', 1, '44.199.81.61', 'Chrome on Android', '2025-01-22 20:07:46', 'success', NULL),
 (1064, 'customer', 10, '171.244.123.138', 'Safari on iPhone', '2025-07-26 10:56:23', 'success', NULL),
 (1065, 'staff', 3, '174.86.86.172', 'Safari on iPhone', '2026-01-05 16:57:44', 'success', NULL),
-(1066, 'customer', 3, '16.208.217.205', 'Safari on iPad', '2026-08-24 04:06:20', 'success', NULL),
 (1067, 'customer', 1, '21.85.95.222', 'Chrome on Android', '2025-01-19 21:31:40', 'failed', NULL),
 (1068, 'customer', 13, '91.145.159.103', 'Chrome on Android', '2025-02-02 04:15:17', 'success', NULL),
-(1069, 'customer', 11, '209.131.196.75', 'Chrome on Android', '2026-10-26 06:36:35', 'success', NULL),
 (1070, 'customer', 8, '118.14.174.63', 'Chrome on Android', '2023-09-16 08:08:21', 'success', 'session_expired'),
 (1071, 'customer', 15, '202.168.146.224', 'Firefox on Linux', '2026-01-01 17:27:18', 'success', NULL),
 (1072, 'customer', 3, '208.21.156.208', 'Chrome on Android', '2025-10-31 20:33:17', 'success', NULL),
@@ -1162,8 +1155,6 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (1076, 'staff', 14, '21.177.44.201', 'Safari on iPad', '2025-12-20 10:52:09', 'success', 'user_not_found'),
 (1077, 'customer', 1, '102.25.32.82', 'Chrome on Android', '2023-10-12 06:49:31', 'failed', NULL),
 (1078, 'customer', 2, '67.64.93.14', 'Chrome on Android', '2026-01-29 07:01:05', 'success', 'user_not_found'),
-(1079, 'customer', 4, '164.243.145.249', 'Chrome on Android', '2026-08-13 00:43:40', 'success', NULL),
-(1080, 'customer', 4, '106.181.32.126', 'Chrome on Windows', '2026-10-11 11:20:02', 'success', NULL),
 (1081, 'customer', 2, '183.184.36.137', 'Safari on iPhone', '2025-10-11 16:37:42', 'success', 'user_not_found'),
 (1082, 'customer', 7, '144.3.28.132', 'Safari on iPhone', '2025-12-17 22:17:22', 'success', NULL),
 (1083, 'customer', 6, '64.81.182.159', 'Mobile WebView', '2023-01-18 03:09:30', 'success', NULL),
@@ -1181,16 +1172,11 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (1095, 'customer', 7, '212.44.2.135', 'Edge on Windows', '2025-01-26 17:29:31', 'success', NULL),
 (1096, 'customer', 14, '67.202.16.239', 'Safari on iPad', '2025-06-20 15:14:30', 'success', NULL),
 (1097, 'customer', 3, '13.98.189.141', 'Edge on Windows', '2023-04-10 16:56:07', 'success', NULL),
-(1098, 'customer', 2, '39.127.250.100', 'Chrome on Windows', '2026-11-04 17:25:10', 'success', NULL),
 (1099, 'customer', 6, '161.174.62.43', 'Chrome on Windows', '2023-03-08 21:37:53', 'success', NULL),
-(1100, 'customer', 8, '84.114.28.53', 'Firefox on Linux', '2026-09-15 12:08:38', 'success', NULL),
 (1101, 'staff', 12, '193.248.70.113', 'Safari on iPad', '2025-08-28 03:04:18', 'success', 'account_locked'),
 (1102, 'staff', 3, '221.17.91.148', 'Chrome on MacOS', '2024-09-04 14:29:03', 'success', 'session_expired'),
-(1103, 'customer', 6, '12.79.98.251', 'Chrome on MacOS', '2026-06-30 01:56:48', 'success', NULL),
 (1104, 'staff', 6, '158.111.10.230', 'Safari on iPad', '2023-11-03 21:41:00', 'failed', NULL),
 (1105, 'staff', 6, '77.150.232.199', 'Chrome on Android', '2025-01-01 00:07:22', 'success', NULL),
-(1106, 'customer', 15, '59.82.207.25', 'Chrome on Windows', '2026-10-05 13:34:11', 'success', NULL),
-(1107, 'customer', 4, '98.129.52.128', 'Mobile WebView', '2026-12-24 06:42:19', 'success', NULL),
 (1108, 'staff', 15, '112.131.15.191', 'Edge on Windows', '2025-05-13 06:09:28', 'success', NULL),
 (1109, 'customer', 3, '101.200.144.118', 'Edge on Windows', '2025-12-07 19:08:05', 'success', NULL),
 (1110, 'customer', 7, '43.138.32.1', 'Firefox on Linux', '2023-10-07 00:55:32', 'success', 'invalid_password'),
@@ -1198,7 +1184,6 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (1112, 'customer', 1, '210.101.39.144', 'Safari on iPhone', '2023-09-02 17:17:17', 'success', NULL),
 (1113, 'customer', 6, '118.144.60.123', 'Firefox on Linux', '2023-02-17 01:55:38', 'success', NULL),
 (1114, 'customer', 7, '100.236.72.160', 'Safari on iPhone', '2025-03-28 22:33:55', 'success', NULL),
-(1115, 'customer', 4, '161.36.135.57', 'Edge on Windows', '2026-12-04 07:40:05', 'success', NULL),
 (1116, 'customer', 6, '168.189.114.2', 'Firefox on Linux', '2024-10-05 03:10:22', 'success', NULL),
 (1117, 'customer', 8, '94.147.156.84', 'Chrome on MacOS', '2023-05-22 00:48:25', 'failed', NULL),
 (1118, 'staff', 6, '77.161.32.185', 'Chrome on Android', '2023-04-13 14:32:35', 'failed', NULL),
@@ -1215,7 +1200,8 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (1129, 'customer', 12, '202.79.211.53', 'Edge on Windows', '2023-09-10 04:31:02', 'success', NULL),
 (1130, 'customer', 12, '213.123.137.60', 'Edge on Windows', '2023-06-16 21:08:15', 'success', NULL),
 (1131, 'customer', 4, '4.165.47.249', 'Safari on iPhone', '2025-09-13 10:08:21', 'success', NULL),
-(1132, 'customer', 2, '55.213.111.170', 'Chrome on Windows', '2023-08-06 15:43:33', 'failed', NULL),
+(1132, 'customer', 2, '55.213.111.170', 'Chrome on Windows', '2023-08-06 15:43:33', 'failed', NULL);
+INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agent`, `login_at`, `status`, `fail_reason`) VALUES
 (1133, 'customer', 10, '110.127.4.149', 'Chrome on MacOS', '2025-06-25 11:35:21', 'success', NULL),
 (1134, 'staff', 10, '207.169.133.156', 'Safari on iPad', '2025-07-13 16:32:54', 'success', NULL),
 (1135, 'staff', 9, '77.238.157.74', 'Edge on Windows', '2023-07-25 21:32:55', 'success', NULL),
@@ -1227,7 +1213,109 @@ INSERT INTO `login_logs` (`id`, `user_type`, `user_id`, `ip_address`, `user_agen
 (1141, 'customer', 4, '115.54.132.243', 'Chrome on Android', '2023-07-27 02:47:17', 'success', NULL),
 (1142, 'customer', 3, '151.233.140.253', 'Safari on iPhone', '2025-04-11 22:13:24', 'failed', 'account_pending'),
 (1143, 'customer', 14, '100.122.13.206', 'Mobile WebView', '2023-03-04 12:52:01', 'success', NULL),
-(1144, 'customer', 6, '142.1.25.121', 'Chrome on Windows', '2026-12-15 16:50:02', 'success', NULL);
+(1145, 'staff', 1, '::1', 'Edge on Windows', '2026-06-02 13:28:04', 'failed', 'invalid_password'),
+(1146, 'staff', 1, '::1', 'Edge on Windows', '2026-06-02 13:28:10', 'success', NULL),
+(1147, 'staff', 1, '::1', 'Edge on Windows', '2026-06-02 13:39:54', 'failed', 'invalid_password'),
+(1148, 'staff', 1, '::1', 'Edge on Windows', '2026-06-02 13:40:02', 'success', NULL),
+(1149, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-02 13:41:03', 'success', NULL),
+(1150, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-02 14:05:24', 'success', NULL),
+(1151, 'staff', 1, '::1', 'Edge on Windows', '2026-06-02 14:07:52', 'success', NULL),
+(1152, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-02 14:11:52', 'failed', 'invalid_password'),
+(1153, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-02 14:12:06', 'failed', 'invalid_password'),
+(1154, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-02 14:12:08', 'failed', 'invalid_password'),
+(1155, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-02 14:16:38', 'failed', 'invalid_password'),
+(1156, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-02 14:16:39', 'failed', 'invalid_password'),
+(1157, 'staff', 1, '::1', 'Edge on Windows', '2026-06-02 14:20:24', 'success', NULL),
+(1158, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-02 14:21:23', 'failed', 'invalid_password'),
+(1159, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-02 14:21:29', 'success', NULL),
+(1160, 'staff', 1, '::1', 'Edge on Windows', '2026-06-02 14:31:02', 'success', NULL),
+(1161, 'staff', 1, '::1', 'Edge on Windows', '2026-06-02 14:35:33', 'success', NULL),
+(1162, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-02 14:52:29', 'success', NULL),
+(1163, 'staff', 1, '::1', 'Edge on Windows', '2026-06-02 17:09:30', 'success', NULL),
+(1164, 'customer', 1, '::1', 'Browser on Windows', '2026-06-02 17:31:56', 'failed', 'invalid_password'),
+(1165, 'customer', 1, '::1', 'Browser on Windows', '2026-06-02 17:32:25', 'success', NULL),
+(1166, 'customer', 7, '::1', 'Edge on Windows', '2026-06-02 17:33:44', 'failed', 'account_rejected'),
+(1167, 'customer', 1, '::1', 'Edge on Windows', '2026-06-02 17:33:54', 'success', NULL),
+(1168, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:19', 'failed', 'account_pending'),
+(1169, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:26', 'failed', 'account_pending'),
+(1170, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:27', 'failed', 'account_pending'),
+(1171, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:28', 'failed', 'account_pending'),
+(1172, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:29', 'failed', 'account_pending'),
+(1173, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:29', 'failed', 'account_pending'),
+(1174, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:29', 'failed', 'account_pending'),
+(1175, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:29', 'failed', 'account_pending'),
+(1176, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:29', 'failed', 'account_pending'),
+(1177, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:29', 'failed', 'account_pending'),
+(1178, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:29', 'failed', 'account_pending'),
+(1179, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:30', 'failed', 'account_pending'),
+(1180, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:30', 'failed', 'account_pending'),
+(1181, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:30', 'failed', 'account_pending'),
+(1182, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:30', 'failed', 'account_pending'),
+(1183, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:30', 'failed', 'account_pending'),
+(1184, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:30', 'failed', 'account_pending'),
+(1185, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:30', 'failed', 'account_pending'),
+(1186, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:31', 'failed', 'account_pending'),
+(1187, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:37', 'failed', 'account_pending'),
+(1188, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:37', 'failed', 'account_pending'),
+(1189, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:37', 'failed', 'account_pending'),
+(1190, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:37', 'failed', 'account_pending'),
+(1191, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:37', 'failed', 'account_pending'),
+(1192, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:37', 'failed', 'account_pending'),
+(1193, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:38', 'failed', 'account_pending'),
+(1194, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:38', 'failed', 'account_pending'),
+(1195, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:38', 'failed', 'account_pending'),
+(1196, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:38', 'failed', 'account_pending'),
+(1197, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:38', 'failed', 'account_pending'),
+(1198, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:38', 'failed', 'account_pending'),
+(1199, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:38', 'failed', 'account_pending'),
+(1200, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:43:38', 'failed', 'account_pending'),
+(1201, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-03 12:45:25', 'success', NULL),
+(1202, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:46:11', 'failed', 'invalid_password'),
+(1203, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 12:46:17', 'success', NULL),
+(1204, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-03 13:45:32', 'failed', 'invalid_password'),
+(1205, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-03 13:45:38', 'failed', 'invalid_password'),
+(1206, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-03 13:45:42', 'success', NULL),
+(1207, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 13:49:24', 'success', NULL),
+(1208, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-03 14:10:56', 'success', NULL),
+(1209, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 14:17:20', 'failed', 'invalid_password'),
+(1210, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 14:17:26', 'success', NULL),
+(1211, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 15:36:44', 'failed', 'invalid_password'),
+(1212, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 15:36:48', 'success', NULL),
+(1213, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-03 15:45:55', 'failed', 'invalid_password'),
+(1214, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-03 15:46:00', 'success', NULL),
+(1215, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 15:47:24', 'success', NULL),
+(1216, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-03 19:45:50', 'success', NULL),
+(1217, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-03 20:45:37', 'failed', 'invalid_password'),
+(1218, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 21:02:46', 'success', NULL),
+(1219, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 21:06:13', 'success', NULL),
+(1220, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 21:26:21', 'failed', 'invalid_password'),
+(1221, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 21:26:32', 'success', NULL),
+(1222, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 21:26:48', 'success', NULL),
+(1223, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 21:28:55', 'failed', 'invalid_password'),
+(1224, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 21:29:07', 'failed', 'invalid_password'),
+(1225, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 21:29:12', 'success', NULL),
+(1226, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 21:29:59', 'success', NULL),
+(1227, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 21:30:36', 'success', NULL),
+(1228, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 21:31:33', 'success', NULL),
+(1229, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 21:47:55', 'failed', 'invalid_password'),
+(1230, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 21:48:01', 'success', NULL),
+(1231, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-03 21:49:53', 'success', NULL),
+(1232, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-03 22:04:00', 'failed', 'invalid_password'),
+(1233, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-03 22:04:09', 'success', NULL),
+(1234, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-03 23:04:55', 'success', NULL),
+(1235, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-03 23:56:32', 'failed', 'invalid_password'),
+(1236, 'staff', 1, '::1', 'Chrome on Windows', '2026-06-03 23:56:41', 'success', NULL),
+(1237, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-04 08:49:32', 'success', NULL),
+(1238, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-04 08:54:54', 'failed', 'invalid_password'),
+(1239, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-04 08:55:00', 'success', NULL),
+(1240, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-04 10:37:26', 'success', NULL),
+(1241, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-04 10:38:38', 'failed', 'invalid_password'),
+(1242, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-04 10:38:49', 'success', NULL),
+(1243, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-04 10:47:21', 'success', NULL),
+(1244, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-04 11:14:50', 'success', NULL),
+(1245, 'customer', 16, '::1', 'Chrome on Windows', '2026-06-04 11:45:29', 'success', NULL),
+(1246, 'customer', 16, '::ffff:127.0.0.1', 'Chrome on Windows', '2026-06-04 11:48:02', 'failed', 'invalid_password'),
+(1247, 'customer', 16, '::ffff:127.0.0.1', 'Chrome on Windows', '2026-06-04 11:48:08', 'success', NULL);
 
 -- --------------------------------------------------------
 
@@ -1280,7 +1368,12 @@ INSERT INTO `password_logs` (`id`, `user_type`, `user_id`, `password_hash`, `cha
 (3, 'staff', 1, '$2b$10$oldstaffhash1', '2026-05-01 11:00:00'),
 (4, 'staff', 4, '$2b$10$newstaffhash4', '2026-05-06 09:00:00'),
 (5, 'staff', 1, '$2b$10$.q3S1InwVcaAE35LjUAgfuAzPvChHcPT1typRBmGaUVRKCOOoLrO6', '2026-05-22 16:41:10'),
-(6, 'staff', 1, '$2b$10$zMel.Ua8xDnNoSx67Pty7uPob.oZh9JXgAOtepb6p6asoLkTjMLnu', '2026-05-25 17:14:21');
+(6, 'staff', 1, '$2b$10$zMel.Ua8xDnNoSx67Pty7uPob.oZh9JXgAOtepb6p6asoLkTjMLnu', '2026-05-25 17:14:21'),
+(7, 'staff', 1, '$2b$10$obFR.bKr0RzhmGiYeF3bkeeuTrAQ3Cwh/Kv.8SYLDCxOuk/1YQyOq', '2026-05-26 09:30:46'),
+(8, 'staff', 1, '$2b$10$usQcSm9il2X81BxE8zLkIOYHLxD.3mZmTEIUmO7yOg9oW3A90TKEu', '2026-05-26 13:35:44'),
+(9, 'staff', 1, '$2b$10$XSk51mEdEP9JG1mEsMztYOMAn15fNmf51r92J1BVFIJ8fbbd5Cqmy', '2026-05-28 10:01:13'),
+(10, 'staff', 1, '$2b$10$9bBRIkrkCHHsjoCzpkBiZ.zUO2GvInBEZdoNFHYcD3b7oO35ayvKG', '2026-05-28 10:58:02'),
+(11, 'staff', 1, '$2b$10$WVls0mt8PYpX.Us6qV/KPOOrHfhsRkkSMOzadaHqKQhPYcqnvwzy.', '2026-05-28 11:04:34');
 
 -- --------------------------------------------------------
 
@@ -1493,18 +1586,13 @@ CREATE TABLE `requests` (
 --
 
 INSERT INTO `requests` (`id`, `request_no`, `customer_id`, `organization`, `system_id`, `problem_type_id`, `title`, `detail`, `status`, `score`, `created_at`, `closed_at`, `due_at`, `resolved_at`) VALUES
-(1, 'RP-2026-0001', 1, NULL, 1, 1, 'เข้าสู่ระบบไม่ได้', 'ลูกค้าแจ้งว่า login แล้วขึ้นรหัสผ่านไม่ถูกต้อง ทั้งที่กรอกถูก', 'screening', NULL, '2026-05-08 08:00:00', NULL, NULL, NULL),
-(2, 'RP-2026-0002', 1, NULL, 1, 2, 'ระบบโหลดช้ามาก', 'หน้า dashboard ใช้เวลานานกว่า 30 วินาที', 'assigned', NULL, '2026-05-08 08:15:00', NULL, NULL, NULL),
-(3, 'RP-2026-0003', 2, NULL, 3, 3, 'ใช้งานเครือข่ายไม่ได้', 'เข้าใช้งานระบบ E-Service ผ่านเครือข่ายสำนักงานไม่ได้', 'rejected', NULL, '2026-05-08 08:30:00', NULL, NULL, NULL),
-(4, 'RP-2026-0004', 3, NULL, 1, 4, 'ข้อมูลในรายงานไม่ถูกต้อง', 'รายงานสถานะงานแสดงจำนวนไม่ตรงกับข้อมูลจริง', 'closed', NULL, '2026-05-08 08:45:00', '2026-05-08 13:36:46', NULL, NULL),
-(5, 'RP-2026-0005', 3, NULL, 1, 5, 'ร้องเรียนการให้บริการล่าช้า', 'รอเจ้าหน้าที่ติดต่อกลับนานเกินกำหนด', 'closed', 5, '2026-05-08 09:00:00', '2026-05-08 15:30:00', NULL, NULL),
-(6, 'RP-2026-0006', 2, NULL, 2, 6, 'ร้องเรียนเจ้าหน้าที่พูดจาไม่เหมาะสม', 'ลูกค้าระบุว่าได้รับการสื่อสารไม่สุภาพ', 'rejected', NULL, '2026-05-08 09:15:00', NULL, NULL, NULL),
-(7, 'RP-2026-0007', 1, NULL, 1, 2, 'เปิดซ้ำหลังปิดงาน', 'ลูกค้ายืนยันว่าอาการเดิมกลับมาเกิดอีกครั้ง', 'in_progress', NULL, '2026-05-08 09:30:00', NULL, NULL, NULL),
-(8, 'RP-2026-0008', 2, NULL, 3, 1, 'ต้องการข้อมูลเพิ่มก่อนคัดกรอง', 'รายละเอียดที่แจ้งมายังไม่ชัดเจน', 'assigned', NULL, '2026-05-08 09:45:00', NULL, NULL, NULL),
-(9, 'RP-2026-0009', 1, NULL, 1, 4, 'งานถูกยกเลิก', 'แจ้งผิดระบบ ลูกค้าขอยกเลิกรายการ', 'closed', 4, '2026-05-08 10:00:00', '2026-05-08 12:00:00', NULL, NULL),
-(15, 'RPT-20260512-001', 1, 'NID Technology Co., Ltd.', 2, 2, 'โหลดไม่ได้', 'ไม่รู้เเหทือรนกัน', 'screening', NULL, '2026-05-12 13:04:21', NULL, NULL, NULL),
-(16, 'RPT-20260512-002', 1, 'NID Technology Co., Ltd.', 1, 1, 'พพพ', 'พพพ', 'screening', NULL, '2026-05-12 13:04:39', NULL, NULL, NULL),
-(17, 'RPT-20260512-003', 1, 'NID Technology Co., Ltd.', 1, 1, 'วสส', '', 'closed', 4, '2026-05-12 13:05:44', '2026-05-13 11:23:34', NULL, NULL);
+(34, 'REQ-MOCK16-0001', 16, NULL, NULL, 1, 'ไม่สามารถเข้าสู่ระบบได้', 'ผู้ใช้งานไม่สามารถเข้าสู่ระบบได้หลังเปลี่ยนรหัสผ่าน โดยหน้าเว็บแจ้งว่าอีเมลหรือรหัสผ่านไม่ถูกต้อง ทั้งที่ยืนยันข้อมูลแล้วหลายครั้ง', 'screening', NULL, '2026-06-04 09:10:00', NULL, NULL, NULL),
+(35, 'REQ-MOCK16-0002', 16, NULL, 1, 2, 'ระบบบันทึกข้อมูลช้า', 'เมื่อกดบันทึกรายการขาย ระบบใช้เวลานานกว่า 30 วินาทีและบางครั้งค้างที่หน้าเดิม ทำให้ผู้ใช้งานต้องกดซ้ำหลายครั้ง', 'assigned', NULL, '2026-06-04 08:45:00', NULL, '2026-06-06', NULL),
+(36, 'REQ-MOCK16-0003', 16, NULL, 2, 3, 'เครื่องพิมพ์ไม่สามารถพิมพ์ใบเสร็จได้', 'เครื่องพิมพ์เชื่อมต่อกับระบบได้แต่เมื่อสั่งพิมพ์จะขึ้นสถานะ pending ตลอดเวลา เจ้าหน้าที่สาขาทดลองปิดเปิดอุปกรณ์แล้วแต่ยังไม่สามารถใช้งานได้', 'in_progress', NULL, '2026-06-04 08:20:00', NULL, '2026-06-05', NULL),
+(37, 'REQ-MOCK16-0004', 16, NULL, 3, 4, 'รายงานสรุปยอดขายไม่ออก PDF', 'เมนูรายงานสามารถค้นหาข้อมูลได้ตามปกติ แต่เมื่อกด Export PDF ระบบโหลดค้างและไม่ดาวน์โหลดไฟล์ออกมาให้ผู้ใช้งาน', 'waiting_confirm', NULL, '2026-06-04 07:50:00', NULL, '2026-06-05', '2026-06-04'),
+(38, 'REQ-MOCK16-0005', 16, NULL, 1, 5, 'อัปโหลดเอกสารแล้วชื่อไฟล์เพี้ยน', 'หลังแนบไฟล์เอกสารภาษาไทยในหน้าแจ้งปัญหา ชื่อไฟล์ที่แสดงในหน้าติดตามกลายเป็นตัวอักษรเพี้ยน ทำให้ผู้ใช้งานไม่มั่นใจว่าแนบไฟล์ถูกต้องหรือไม่', 'closed', NULL, '2026-06-03 15:10:00', '2026-06-04 09:00:00', '2026-06-04', '2026-06-03'),
+(39, 'REQ-MOCK16-0006', 16, NULL, 2, 1, 'ข้อมูลหน้าแดชบอร์ดไม่อัปเดต', 'ยอดสรุปในหน้าแดชบอร์ดไม่ตรงกับรายการล่าสุดที่เพิ่มเข้ามา ต้องกดรีเฟรชหลายครั้งถึงจะเห็นข้อมูลใหม่', 'closed', 5, '2026-06-02 10:00:00', '2026-06-02 14:20:00', '2026-06-03', '2026-06-02'),
+(40, 'REQ-MOCK16-0007', 16, NULL, 3, 3, 'ข้อความหัวข้อยาวมากเพื่อใช้ทดสอบการแสดงผลบนหน้า track และการตีกลับงานหลังจากส่งผลการแก้ไขกลับมาแล้ว', 'เคสนี้ใช้ทดสอบข้อความยาวบนหน้า track, การมีไฟล์แนบตั้งต้น, การมีไฟล์หลักฐานการแก้ไข, และการตีกลับงานพร้อมแนบไฟล์เพิ่มเติมของลูกค้า', 'assigned', NULL, '2026-06-01 13:00:00', NULL, '2026-06-03', NULL);
 
 -- --------------------------------------------------------
 
@@ -1527,11 +1615,9 @@ CREATE TABLE `request_confirmations` (
 --
 
 INSERT INTO `request_confirmations` (`id`, `request_id`, `customer_id`, `result`, `comment`, `score`, `confirmed_at`) VALUES
-(1, 5, 3, 'confirmed', 'เจ้าหน้าที่ติดต่อกลับและแก้ไขความล่าช้าเรียบร้อย', 5, '2026-05-08 15:30:00'),
-(2, 7, 1, 'reopened', 'ยังพบปัญหาเดิมหลังจากแจ้งว่าแก้ไขแล้ว', NULL, '2026-05-08 09:30:00'),
-(3, 9, 1, 'confirmed', 'runtime-test', 4, '2026-05-08 12:00:00'),
-(4, 8, 2, 'reopened', 'ooooo', NULL, '2026-05-11 11:31:38'),
-(5, 17, 1, 'confirmed', 'งงง', 4, '2026-05-13 11:23:34');
+(6, 38, 16, 'confirmed', 'ตรวจสอบแล้วชื่อไฟล์กลับมาอ่านได้ถูกต้อง', NULL, '2026-06-04 09:00:00'),
+(7, 39, 16, 'confirmed', 'ข้อมูลอัปเดตตรงแล้วและใช้งานได้ตามปกติ', 5, '2026-06-02 14:20:00'),
+(8, 40, 16, 'reopened', 'ยังพบปัญหาเดิมบางส่วน กรุณาตรวจสอบอีกครั้ง พร้อมแนบภาพประกอบเพิ่มเติม', NULL, '2026-06-02 09:15:00');
 
 -- --------------------------------------------------------
 
@@ -1554,32 +1640,31 @@ CREATE TABLE `request_status_logs` (
 --
 
 INSERT INTO `request_status_logs` (`id`, `request_id`, `status`, `changed_by_type`, `changed_by_id`, `note`, `created_at`) VALUES
-(1, 1, 'screening', 'customer', 1, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 08:00:00'),
-(2, 2, 'screening', 'customer', 1, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 08:15:00'),
-(3, 2, 'screening', 'staff', 2, 'คัดกรองผ่านและส่งมอบหมายงาน', '2026-05-08 08:20:00'),
-(4, 3, '', 'customer', 2, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 08:30:00'),
-(5, 3, 'screening', 'staff', 2, 'คัดกรองผ่าน', '2026-05-08 08:35:00'),
-(6, 3, 'assigned', 'staff', 5, 'เจ้าหน้าที่รับงานแล้ว', '2026-05-08 09:00:00'),
-(7, 4, '', 'customer', 3, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 08:45:00'),
-(8, 4, 'screening', 'staff', 7, 'ส่งทีม Application', '2026-05-08 08:50:00'),
-(9, 4, 'assigned', 'staff', 7, 'เริ่มแก้ไข', '2026-05-08 09:10:00'),
-(10, 4, 'in_progress', 'staff', 7, 'แก้ไขเสร็จ รอลูกค้ายืนยัน', '2026-05-05 11:30:00'),
-(11, 5, '', 'customer', 3, 'ลูกค้าส่งข้อร้องเรียน', '2026-05-08 09:00:00'),
-(12, 5, 'screening', 'staff', 2, 'คัดกรองผ่าน', '2026-05-08 09:05:00'),
-(13, 5, 'assigned', 'staff', 6, 'รับเรื่องร้องเรียน', '2026-05-08 09:30:00'),
-(14, 5, 'in_progress', 'staff', 6, 'สรุปผลการดำเนินการ', '2026-05-06 14:00:00'),
-(15, 5, 'waiting_confirm', 'customer', 3, 'ลูกค้ายืนยันและให้คะแนน', '2026-05-08 15:30:00'),
-(16, 6, '', 'customer', 2, 'ลูกค้าส่งข้อร้องเรียน', '2026-05-08 09:15:00'),
-(17, 6, 'screening', 'staff', 2, 'ปฏิเสธจากขั้นคัดกรอง', '2026-05-08 09:20:00'),
-(18, 7, '', 'customer', 1, 'ลูกค้าแจ้งอาการเดิมกลับมา', '2026-05-08 09:30:00'),
-(19, 7, 'screening', 'staff', 7, 'ส่งให้ทีม IT ตรวจสอบซ้ำ', '2026-05-08 09:40:00'),
-(20, 7, 'assigned', 'staff', 4, 'รับงานเปิดซ้ำ', '2026-05-08 10:00:00'),
-(21, 8, '', 'customer', 2, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 09:45:00'),
-(22, 9, '', 'customer', 1, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 10:00:00'),
-(23, 9, 'screening', 'customer', 1, 'ลูกค้าขอยกเลิกหลังแจ้งผิดระบบ', '2026-05-08 12:00:00'),
-(24, 4, 'waiting_confirm', 'system', NULL, 'System auto-closed after customer confirmation deadline expired', '2026-05-08 13:36:46'),
-(25, 8, 'waiting_confirm', 'customer', 2, 'ooooo', '2026-05-11 11:31:38'),
-(26, 17, 'waiting_confirm', 'customer', 1, NULL, '2026-05-13 11:23:34');
+(43, 34, 'screening', 'staff', 1, 'รับเรื่องและรอคัดกรอง', '2026-06-04 09:18:00'),
+(44, 35, 'screening', 'staff', 1, 'คัดกรองเรื่องแล้ว', '2026-06-04 09:00:00'),
+(45, 35, 'assigned', 'staff', 1, 'มอบหมายงานให้เจ้าหน้าที่แล้ว', '2026-06-04 09:05:00'),
+(46, 36, 'screening', 'staff', 1, 'คัดกรองเรื่องแล้ว', '2026-06-04 08:45:00'),
+(47, 36, 'assigned', 'staff', 1, 'มอบหมายให้ทีมอุปกรณ์', '2026-06-04 08:55:00'),
+(48, 36, 'in_progress', 'staff', 3, 'เจ้าหน้าที่เริ่มดำเนินการแก้ไข', '2026-06-04 09:40:00'),
+(49, 37, 'screening', 'staff', 1, 'คัดกรองเรื่องแล้ว', '2026-06-04 08:10:00'),
+(50, 37, 'assigned', 'staff', 1, 'มอบหมายให้เจ้าหน้าที่รายงาน', '2026-06-04 08:20:00'),
+(51, 37, 'in_progress', 'staff', 4, 'เริ่มแก้ปัญหาการสร้าง PDF', '2026-06-04 10:15:00'),
+(52, 37, 'waiting_confirm', 'staff', 1, 'ส่งผลการแก้ไขให้ลูกค้ายืนยัน', '2026-06-04 13:50:00'),
+(53, 38, 'screening', 'staff', 1, 'คัดกรองเรื่องแล้ว', '2026-06-03 15:30:00'),
+(54, 38, 'assigned', 'staff', 1, 'มอบหมายงานแล้ว', '2026-06-03 15:40:00'),
+(55, 38, 'in_progress', 'staff', 2, 'เริ่มแก้ไขปัญหาชื่อไฟล์', '2026-06-03 16:00:00'),
+(56, 38, 'waiting_confirm', 'staff', 1, 'ส่งผลการแก้ไขให้ลูกค้ายืนยัน', '2026-06-04 08:40:00'),
+(57, 38, 'closed', 'customer', 16, 'ลูกค้ายืนยันปิดงานแล้ว', '2026-06-04 09:00:00'),
+(58, 39, 'screening', 'staff', 1, 'คัดกรองเรื่องแล้ว', '2026-06-02 10:25:00'),
+(59, 39, 'assigned', 'staff', 1, 'มอบหมายงานแล้ว', '2026-06-02 10:30:00'),
+(60, 39, 'in_progress', 'staff', 3, 'เริ่มแก้ไข cache ของ dashboard', '2026-06-02 11:10:00'),
+(61, 39, 'waiting_confirm', 'staff', 1, 'ส่งให้ลูกค้ายืนยัน', '2026-06-02 13:50:00'),
+(62, 39, 'closed', 'customer', 16, 'ลูกค้ายืนยันและให้คะแนนแล้ว', '2026-06-02 14:20:00'),
+(63, 40, 'screening', 'staff', 1, 'คัดกรองเรื่องแล้ว', '2026-06-01 13:20:00'),
+(64, 40, 'assigned', 'staff', 1, 'มอบหมายงานรอบแรก', '2026-06-01 13:30:00'),
+(65, 40, 'in_progress', 'staff', 4, 'เริ่มดำเนินการแก้ไข', '2026-06-01 14:15:00'),
+(66, 40, 'waiting_confirm', 'staff', 1, 'ส่งให้ลูกค้ายืนยันรอบแรก', '2026-06-01 17:00:00'),
+(67, 40, 'assigned', 'customer', 16, 'ลูกค้าตีกลับงานและแนบไฟล์เพิ่มเติม', '2026-06-02 09:15:00');
 
 -- --------------------------------------------------------
 
@@ -1636,7 +1721,7 @@ CREATE TABLE `staffs` (
 --
 
 INSERT INTO `staffs` (`id`, `prefix_id`, `name`, `surname`, `email`, `phone`, `citizen_id`, `password_hash`, `status`, `created_at`, `updated_at`) VALUES
-(1, 3, 'อดิศักดิ์', 'ผู้ดูแล', '22trai2548@gmail.com', '0900000001', '1111111111111', '$2b$10$zMel.Ua8xDnNoSx67Pty7uPob.oZh9JXgAOtepb6p6asoLkTjMLnu', 'active', '2026-05-01 11:00:00', '2026-05-25 17:14:21'),
+(1, 3, 'อดิศักดิ์', 'ผู้ดูแล', '22trai2548@gmail.com', '0900000001', '1111111111111', '$2b$10$WVls0mt8PYpX.Us6qV/KPOOrHfhsRkkSMOzadaHqKQhPYcqnvwzy.', 'active', '2026-05-01 11:00:00', '2026-05-28 11:04:34'),
 (2, NULL, 'ปวีณา', 'คัดกรอง', 'screening@protech.com', '0900000002', NULL, '$2b$10$mockhashstaff2', 'active', '2026-05-01 11:05:00', '2026-05-01 11:05:00'),
 (3, NULL, 'กิตติ', 'มอบหมาย', 'assignment@protech.com', '0900000003', NULL, '$2b$10$mockhashstaff3', 'active', '2026-05-01 11:10:00', '2026-05-01 11:10:00'),
 (4, NULL, 'ณัฐพล', 'ไอที', 'operator.it@protech.com', '0900000004', NULL, '$2b$10$mockhashstaff4', 'active', '2026-05-01 11:15:00', '2026-05-01 11:15:00'),
@@ -1647,7 +1732,10 @@ INSERT INTO `staffs` (`id`, `prefix_id`, `name`, `surname`, `email`, `phone`, `c
 (14, 1, 'ggg', 'ggg', '22trai2546@gmail.com', '5555555555', '8888888888888', '$2b$10$owmQLuG0Yo7j9LV0AXso3emgHfgeKE.PxUC.EYaEKJ2BtT08DNuRO', 'active', '2026-05-25 11:27:14', '2026-05-25 11:27:14'),
 (15, 1, 'ggg', 'rrrr', 'trw@gmail.com', '4444444444', '5278527248525', '$2b$10$maprgvkisr6mIWnOhTGFoOZm5/BOmPtJLDqeqP/oLJVFbpd.M6cQm', 'active', '2026-05-25 11:29:06', '2026-05-25 11:29:06'),
 (16, 3, 'ggfgfg', 'fgfg', '22tstst@gmail.com', '8777787848', '4546464644654', '$2b$10$jQ4kG7/SglTHpXYN0bW4.eOHfegoJV9rdxtnV2Syt7aHBwU7NoQjW', 'active', '2026-05-25 16:00:36', '2026-05-25 16:00:36'),
-(17, NULL, 'ลบwwwwww', 'wwwww', '22tr@gmail.com', '2222222222', '2222222222222', '$2b$10$MkqfLPLM0H0ghb.LHU24ae0zjHi2UIt4aICeO81NZ6wFKxLPCkufW', 'active', '2026-05-25 16:25:16', '2026-05-25 16:25:16');
+(17, NULL, 'ลบwwwwww', 'wwwww', '22tr@gmail.com', '2222222222', '2222222222222', '$2b$10$MkqfLPLM0H0ghb.LHU24ae0zjHi2UIt4aICeO81NZ6wFKxLPCkufW', 'active', '2026-05-25 16:25:16', '2026-05-25 16:25:16'),
+(18, 2, 'ดดดด', 'ดดด', 'e@gmail.com', '7777777777', '7777777777777', '$2b$10$n8lVNRv6RmZY7P4CxOkT0eWfVH3yywDW5EWQY/aQ52BP2RUuTLApW', 'active', '2026-05-26 11:28:30', '2026-05-26 11:28:30'),
+(19, NULL, 'ttt', 'ttt', '123@gmail.com', '5555555555', '5555555555555', '$2b$10$OKxS3A/DEC79MI6JZrcBtuNlWeyJOGnDKFTMljZ09DwNqOLK9oCDm', 'active', '2026-05-26 11:40:32', '2026-05-26 11:40:32'),
+(20, NULL, 'ffff', 'ffff', '22@gmail.com', '7777777777', '1234565789777', '$2b$10$mLf7/.9FcXi6zg8.mJiUm.b.Jd8vTXB3BFceDTZml5/jKASZK4Num', 'active', '2026-05-26 11:48:29', '2026-05-26 11:48:29');
 
 -- --------------------------------------------------------
 
@@ -1676,14 +1764,8 @@ INSERT INTO `staff_team_roles` (`id`, `staff_id`, `team_id`, `created_at`) VALUE
 (8, 7, 1, '2026-05-01 12:37:00'),
 (9, 7, 3, '2026-05-01 12:38:00'),
 (11, 1, 3, '2026-05-18 11:03:00'),
-(12, 1, 4, '2026-05-18 11:03:00'),
-(13, 1, 2, '2026-05-18 11:03:03'),
 (18, 3, 1, '2026-05-18 11:04:40'),
 (19, 3, 2, '2026-05-18 11:04:40'),
-(21, 1, 5, '2026-05-18 13:48:26'),
-(22, 1, 6, '2026-05-18 13:48:26'),
-(23, 1, 10, '2026-05-18 13:48:52'),
-(24, 1, 11, '2026-05-18 13:48:52'),
 (34, 14, 1, '2026-05-25 11:27:14'),
 (35, 15, 3, '2026-05-25 11:29:06'),
 (36, 15, 1, '2026-05-25 11:29:06'),
@@ -1692,7 +1774,10 @@ INSERT INTO `staff_team_roles` (`id`, `staff_id`, `team_id`, `created_at`) VALUE
 (39, 15, 11, '2026-05-25 11:29:06'),
 (40, 15, 5, '2026-05-25 11:29:06'),
 (41, 16, 6, '2026-05-25 16:00:36'),
-(42, 17, 2, '2026-05-25 16:25:16');
+(42, 17, 2, '2026-05-25 16:25:16'),
+(43, 18, 4, '2026-05-26 11:28:30'),
+(44, 19, 1, '2026-05-26 11:40:32'),
+(45, 20, 3, '2026-05-26 11:48:29');
 
 -- --------------------------------------------------------
 
@@ -1714,10 +1799,10 @@ CREATE TABLE `systems` (
 --
 
 INSERT INTO `systems` (`id`, `organization_id`, `name`, `status`, `created_at`, `updated_at`) VALUES
-(1, 2, 'ระบบ ProTech Support', 'active', '2026-05-01 13:00:00', '2026-05-22 12:06:03'),
+(1, 2, 'ระบบ ProTech Support', 'active', '2026-05-01 13:00:00', '2026-06-03 13:03:13'),
 (2, 4, 'ระบบ HR Portal', 'active', '2026-05-01 13:05:00', '2026-05-22 12:06:07'),
 (3, 3, 'ระบบ E-Service', 'active', '2026-05-01 13:10:00', '2026-05-22 12:06:11'),
-(4, 2, 'ระบบเก่า Legacy', 'active', '2026-05-01 13:15:00', '2026-05-22 15:07:40');
+(4, 2, 'ระบบเก่า Legacyl', 'active', '2026-05-01 13:15:00', '2026-05-28 10:03:10');
 
 -- --------------------------------------------------------
 
@@ -1738,7 +1823,7 @@ CREATE TABLE `teams` (
 --
 
 INSERT INTO `teams` (`id`, `name`, `status`, `created_at`, `updated_at`) VALUES
-(1, 'admin', 'inactive', '2026-05-01 12:00:00', '2026-05-22 15:19:49'),
+(1, 'admin', 'active', '2026-05-01 12:00:00', '2026-05-26 11:18:20'),
 (2, 'ทีม Network', 'active', '2026-05-01 12:05:00', '2026-05-01 12:05:00'),
 (3, 'ทีม Application', 'active', '2026-05-01 12:10:00', '2026-05-01 12:10:00'),
 (4, 'ทีม Customer Service', 'active', '2026-05-01 12:15:00', '2026-05-01 12:15:00'),
@@ -1768,15 +1853,6 @@ CREATE TABLE `team_permissions` (
 
 INSERT INTO `team_permissions` (`id`, `team_id`, `permission_id`, `created_at`) VALUES
 (21, 3, 19, '2026-05-18 10:09:31'),
-(47, 1, 28, '2026-05-18 10:19:01'),
-(48, 1, 29, '2026-05-18 10:19:01'),
-(49, 1, 30, '2026-05-18 10:19:01'),
-(50, 1, 31, '2026-05-18 10:19:01'),
-(51, 1, 32, '2026-05-18 10:19:01'),
-(52, 1, 33, '2026-05-18 10:19:01'),
-(53, 1, 34, '2026-05-18 10:19:01'),
-(54, 1, 35, '2026-05-18 10:19:01'),
-(55, 1, 36, '2026-05-18 10:19:01'),
 (56, 4, 24, '2026-05-22 11:23:12'),
 (57, 4, 29, '2026-05-22 11:23:12'),
 (58, 5, 29, '2026-05-22 11:23:19'),
@@ -1786,7 +1862,25 @@ INSERT INTO `team_permissions` (`id`, `team_id`, `permission_id`, `created_at`) 
 (62, 2, 30, '2026-05-22 11:23:40'),
 (63, 2, 32, '2026-05-22 11:23:40'),
 (64, 2, 34, '2026-05-22 11:23:40'),
-(65, 2, 36, '2026-05-22 11:23:40');
+(65, 2, 36, '2026-05-22 11:23:40'),
+(102, 1, 19, '2026-06-02 14:36:56'),
+(103, 1, 20, '2026-06-02 14:36:56'),
+(104, 1, 21, '2026-06-02 14:36:56'),
+(105, 1, 22, '2026-06-02 14:36:56'),
+(106, 1, 23, '2026-06-02 14:36:56'),
+(107, 1, 25, '2026-06-02 14:36:56'),
+(108, 1, 26, '2026-06-02 14:36:56'),
+(109, 1, 27, '2026-06-02 14:36:56'),
+(110, 1, 28, '2026-06-02 14:36:56'),
+(111, 1, 29, '2026-06-02 14:36:56'),
+(112, 1, 30, '2026-06-02 14:36:56'),
+(113, 1, 31, '2026-06-02 14:36:56'),
+(114, 1, 32, '2026-06-02 14:36:56'),
+(115, 1, 33, '2026-06-02 14:36:56'),
+(116, 1, 34, '2026-06-02 14:36:56'),
+(117, 1, 35, '2026-06-02 14:36:56'),
+(118, 1, 36, '2026-06-02 14:36:56'),
+(119, 1, 24, '2026-06-02 14:36:56');
 
 -- --------------------------------------------------------
 
@@ -1798,7 +1892,6 @@ CREATE TABLE `tickets` (
   `id` int(10) UNSIGNED NOT NULL,
   `ticket_no` varchar(50) NOT NULL,
   `request_id` int(10) UNSIGNED NOT NULL,
-  `parent_ticket_id` int(10) UNSIGNED DEFAULT NULL,
   `assigned_team_id` int(10) UNSIGNED DEFAULT NULL,
   `assigned_staff_id` int(10) UNSIGNED DEFAULT NULL,
   `assigned_by` int(10) UNSIGNED DEFAULT NULL,
@@ -1817,15 +1910,13 @@ CREATE TABLE `tickets` (
 -- Dumping data for table `tickets`
 --
 
-INSERT INTO `tickets` (`id`, `ticket_no`, `request_id`, `parent_ticket_id`, `assigned_team_id`, `assigned_staff_id`, `assigned_by`, `due_at`, `assigned_note`, `title`, `description`, `status`, `created_at`, `resolved_at`, `customer_confirm_due_at`, `closed_at`) VALUES
-(1, 'TCK-20260508-0001', 2, NULL, 1, NULL, 3, NULL, NULL, 'ตรวจสอบระบบโหลดช้า', 'งานหลักสำหรับตรวจสอบ performance', 'assigned', '2026-05-08 08:25:00', NULL, NULL, NULL),
-(2, 'TCK-20260508-0002', 3, NULL, 2, 5, 3, NULL, NULL, 'ตรวจสอบเครือข่ายสำนักงาน', 'ตรวจสอบ connectivity และ DNS', 'in_progress', '2026-05-08 08:40:00', NULL, NULL, NULL),
-(3, 'TCK-20260508-0003', 4, NULL, 3, 7, 3, NULL, NULL, 'แก้ข้อมูลรายงานผิดพลาด', 'งานหลักทีม Application', 'closed', '2026-05-08 08:55:00', '2026-05-08 11:30:00', '2026-05-11 11:30:00', '2026-05-08 13:36:46'),
-(4, 'TCK-20260508-0004', 5, NULL, 4, 6, 3, NULL, NULL, 'ตรวจสอบข้อร้องเรียนบริการล่าช้า', 'ติดต่อกลับลูกค้าและสรุปผล', 'closed', '2026-05-08 09:10:00', '2026-05-08 14:00:00', '2026-05-11 14:00:00', '2026-05-08 15:30:00'),
-(5, 'TCK-20260508-0005', 7, NULL, 1, 4, 7, NULL, NULL, 'แก้ไขอาการเปิดซ้ำ', 'งานเปิดซ้ำหลังลูกค้าปฏิเสธการปิดงาน', 'in_progress', '2026-05-08 09:45:00', NULL, NULL, NULL),
-(6, 'TCK-20260508-0006', 2, 1, 1, 4, 3, NULL, NULL, 'Sub-task: ตรวจสอบ server log', 'ตรวจสอบ error log ของ backend', 'resolved', '2026-05-08 08:30:00', '2026-05-08 10:30:00', NULL, NULL),
-(7, 'TCK-20260508-0007', 2, 1, 2, 5, 3, NULL, NULL, 'Sub-task: ตรวจสอบ network latency', 'ตรวจสอบ latency ระหว่าง client และ server', 'rejected', '2026-05-08 08:32:00', NULL, NULL, NULL),
-(8, 'TCK-20260508-0008', 9, NULL, 1, 4, 3, NULL, NULL, 'งานที่ถูกยกเลิก', 'ลูกค้าแจ้งผิดระบบและขอยกเลิก', 'cancelled', '2026-05-08 10:10:00', NULL, NULL, '2026-05-08 12:00:00');
+INSERT INTO `tickets` (`id`, `ticket_no`, `request_id`, `assigned_team_id`, `assigned_staff_id`, `assigned_by`, `due_at`, `assigned_note`, `title`, `description`, `status`, `created_at`, `resolved_at`, `customer_confirm_due_at`, `closed_at`) VALUES
+(10, 'TK-MOCK16-0002', 35, 1, 2, 1, '2026-06-06 17:00:00', 'มอบหมายตรวจสอบประสิทธิภาพการบันทึกข้อมูล', 'ตรวจสอบระบบบันทึกข้อมูลช้า', 'อยู่ระหว่างตรวจสอบ query และ application log', 'assigned', '2026-06-04 09:05:00', NULL, NULL, NULL),
+(11, 'TK-MOCK16-0003', 36, 2, 3, 1, '2026-06-05 17:00:00', 'ตรวจสอบ printer spooler และ driver', 'แก้ปัญหาเครื่องพิมพ์ใบเสร็จ', 'กำลังรีเซ็ต print spooler และติดตั้ง driver ใหม่', 'in_progress', '2026-06-04 08:55:00', NULL, NULL, NULL),
+(12, 'TK-MOCK16-0004', 37, 1, 4, 1, '2026-06-05 17:00:00', 'ตรวจสอบการ export PDF และสิทธิ์โฟลเดอร์', 'แก้ปัญหารายงาน PDF', 'ปรับสิทธิ์โฟลเดอร์ปลายทางและทดสอบการสร้างไฟล์ PDF ใหม่เรียบร้อยแล้ว', 'waiting_confirm', '2026-06-04 08:20:00', '2026-06-04 13:40:00', '2026-06-07 13:50:00', NULL),
+(13, 'TK-MOCK16-0005', 38, 1, 2, 1, '2026-06-04 17:00:00', 'แก้ปัญหาการเข้ารหัสชื่อไฟล์ภาษาไทย', 'แก้ปัญหาชื่อไฟล์เพี้ยน', 'ปรับการถอดรหัสชื่อไฟล์ภาษาไทยทั้งตอนบันทึกและตอนแสดงผล รวมถึงทดสอบกับไฟล์เดิมที่เคยเพี้ยนแล้ว', 'closed', '2026-06-03 15:40:00', '2026-06-04 08:20:00', '2026-06-07 08:40:00', '2026-06-04 09:00:00'),
+(14, 'TK-MOCK16-0006', 39, 2, 3, 1, '2026-06-03 17:00:00', 'ตรวจสอบ dashboard summary cache', 'แก้ปัญหาหน้าแดชบอร์ดไม่อัปเดต', 'แก้ cache key ของ dashboard summary และเพิ่มการ refresh หลังบันทึกรายการสำเร็จ', 'closed', '2026-06-02 10:30:00', '2026-06-02 13:30:00', '2026-06-05 13:50:00', '2026-06-02 14:20:00'),
+(15, 'TK-MOCK16-0007', 40, 1, 4, 1, '2026-06-03 17:00:00', 'รอรับข้อเสนอแนะล่าสุดจากลูกค้า', 'แก้ไขตามข้อเสนอแนะหลังตีกลับงาน', 'รอเจ้าหน้าที่รับงานใหม่ตามข้อเสนอแนะล่าสุดของลูกค้า', 'assigned', '2026-06-01 13:30:00', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1856,7 +1947,13 @@ INSERT INTO `ticket_assignments` (`id`, `ticket_id`, `assigned_team_id`, `assign
 (6, 6, 1, 4, 3, 'แตกงานย่อยตรวจสอบ log', '2026-05-08 08:30:00'),
 (7, 7, 2, 5, 3, 'แตกงานย่อยตรวจสอบ network', '2026-05-08 08:32:00'),
 (8, 8, 1, 4, 3, 'มอบหมายก่อนลูกค้าขอยกเลิก', '2026-05-08 10:10:00'),
-(9, 1, 1, 4, 3, 'ระบุผู้รับผิดชอบหลักหลังตรวจสอบเบื้องต้น', '2026-05-08 10:45:00');
+(9, 1, 1, 4, 3, 'ระบุผู้รับผิดชอบหลักหลังตรวจสอบเบื้องต้น', '2026-05-08 10:45:00'),
+(10, 10, 1, 2, 1, 'มอบหมายให้เจ้าหน้าที่หลักรับงาน', '2026-06-04 09:05:00'),
+(11, 11, 2, 3, 1, 'มอบหมายให้เจ้าหน้าที่อุปกรณ์รับผิดชอบ', '2026-06-04 08:55:00'),
+(12, 12, 1, 4, 1, 'มอบหมายให้เจ้าหน้าที่รายงาน', '2026-06-04 08:20:00'),
+(13, 13, 1, 2, 1, 'มอบหมายให้ตรวจสอบ encoding ชื่อไฟล์', '2026-06-03 15:40:00'),
+(14, 14, 2, 3, 1, 'มอบหมายให้ทีมแอปพลิเคชัน', '2026-06-02 10:30:00'),
+(15, 15, 1, 4, 1, 'มอบหมายงานรอบใหม่หลังลูกค้าตีกลับ', '2026-06-02 09:20:00');
 
 -- --------------------------------------------------------
 
@@ -1884,7 +1981,11 @@ INSERT INTO `ticket_resolution_requests` (`id`, `ticket_id`, `requested_by`, `su
 (1, 3, 7, 'แก้ไขการดึงข้อมูลรายงานและทดสอบแล้ว ขอลูกค้ายืนยัน', 'approved', 3, '2026-05-08 11:30:00', NULL, '2026-05-08 11:20:00'),
 (2, 4, 6, 'ติดต่อกลับลูกค้า ชี้แจง และปิดข้อร้องเรียนเรียบร้อย', 'approved', 3, '2026-05-08 14:00:00', NULL, '2026-05-08 13:45:00'),
 (3, 5, 4, 'แก้ไขอาการเปิดซ้ำแล้ว ขอลูกค้าตรวจสอบอีกครั้ง', 'pending', NULL, NULL, NULL, '2026-05-08 11:00:00'),
-(4, 7, 5, 'ไม่พบปัญหาเครือข่าย จึงขอปิดงานย่อย', 'rejected', 3, '2026-05-08 10:45:00', 'ยังไม่มีหลักฐานเพียงพอ ต้องแนบผลทดสอบเพิ่ม', '2026-05-08 10:25:00');
+(4, 7, 5, 'ไม่พบปัญหาเครือข่าย จึงขอปิดงานย่อย', 'rejected', 3, '2026-05-08 10:45:00', 'ยังไม่มีหลักฐานเพียงพอ ต้องแนบผลทดสอบเพิ่ม', '2026-05-08 10:25:00'),
+(5, 12, 4, 'ปลดล็อกสิทธิ์การสร้างไฟล์และทดสอบดาวน์โหลด PDF สำเร็จแล้ว กรุณาลองดาวน์โหลดอีกครั้ง', 'approved', 1, '2026-06-04 13:40:00', NULL, '2026-06-04 13:30:00'),
+(6, 13, 2, 'ปรับการถอดรหัสชื่อไฟล์ภาษาไทยทั้งตอนบันทึกและตอนแสดงผล รวมถึงทดสอบกับไฟล์เดิมที่เคยเพี้ยนแล้ว', 'approved', 1, '2026-06-04 08:20:00', NULL, '2026-06-04 08:05:00'),
+(7, 14, 3, 'แก้ cache key ของ dashboard summary และเพิ่มการ refresh หลังบันทึกรายการสำเร็จ', 'approved', 1, '2026-06-02 13:30:00', NULL, '2026-06-02 13:10:00'),
+(8, 15, 4, 'ทดสอบแก้ไขรอบแรกและส่งผลให้ลูกค้ายืนยันแล้ว', 'approved', 1, '2026-06-01 16:50:00', NULL, '2026-06-01 16:40:00');
 
 -- --------------------------------------------------------
 
@@ -1929,7 +2030,30 @@ INSERT INTO `ticket_status_logs` (`id`, `ticket_id`, `old_status`, `new_status`,
 (20, 7, 'assigned', 'rejected', 5, 'ปฏิเสธรับงานย่อยเพราะไม่พบปัญหา network', '2026-05-08 10:20:00'),
 (21, 8, NULL, 'assigned', 3, 'สร้างงานก่อนลูกค้าขอยกเลิก', '2026-05-08 10:10:00'),
 (22, 8, 'assigned', 'cancelled', 3, 'ลูกค้าขอยกเลิก', '2026-05-08 12:00:00'),
-(23, 3, 'waiting_confirm', 'closed', NULL, 'System auto-closed after customer confirmation deadline expired', '2026-05-08 13:36:46');
+(23, 3, 'waiting_confirm', 'closed', NULL, 'System auto-closed after customer confirmation deadline expired', '2026-05-08 13:36:46'),
+(24, 9, NULL, 'in_progress', NULL, 'สร้าง ticket และมอบหมายทีม', '2026-06-03 13:46:46'),
+(25, 10, NULL, 'assigned', 1, 'สร้าง ticket และมอบหมายงาน', '2026-06-04 09:05:00'),
+(26, 11, NULL, 'assigned', 1, 'สร้าง ticket', '2026-06-04 08:55:00'),
+(27, 11, 'assigned', 'in_progress', 3, 'เริ่มดำเนินการแก้ไข', '2026-06-04 09:40:00'),
+(28, 12, NULL, 'assigned', 1, 'สร้าง ticket', '2026-06-04 08:20:00'),
+(29, 12, 'assigned', 'in_progress', 4, 'เริ่มดำเนินการแก้ไข', '2026-06-04 10:15:00'),
+(30, 12, 'in_progress', 'resolved', 4, 'แก้ไขเสร็จและขออนุมัติปิดงาน', '2026-06-04 13:35:00'),
+(31, 12, 'resolved', 'waiting_confirm', 1, 'อนุมัติและส่งให้ลูกค้ายืนยัน', '2026-06-04 13:50:00'),
+(32, 13, NULL, 'assigned', 1, 'สร้าง ticket', '2026-06-03 15:40:00'),
+(33, 13, 'assigned', 'in_progress', 2, 'เริ่มดำเนินการแก้ไข', '2026-06-03 16:00:00'),
+(34, 13, 'in_progress', 'resolved', 2, 'แก้ไขเสร็จและส่งขออนุมัติ', '2026-06-04 08:10:00'),
+(35, 13, 'resolved', 'waiting_confirm', 1, 'ส่งให้ลูกค้ายืนยัน', '2026-06-04 08:40:00'),
+(36, 13, 'waiting_confirm', 'closed', 16, 'ลูกค้ายืนยันงานเรียบร้อย', '2026-06-04 09:00:00'),
+(37, 14, NULL, 'assigned', 1, 'สร้าง ticket', '2026-06-02 10:30:00'),
+(38, 14, 'assigned', 'in_progress', 3, 'เริ่มแก้ไข', '2026-06-02 11:10:00'),
+(39, 14, 'in_progress', 'resolved', 3, 'แก้ไขเสร็จและส่งขออนุมัติ', '2026-06-02 13:20:00'),
+(40, 14, 'resolved', 'waiting_confirm', 1, 'ส่งให้ลูกค้ายืนยัน', '2026-06-02 13:50:00'),
+(41, 14, 'waiting_confirm', 'closed', 16, 'ลูกค้ายืนยันและประเมินแล้ว', '2026-06-02 14:20:00'),
+(42, 15, NULL, 'assigned', 1, 'สร้าง ticket', '2026-06-01 13:30:00'),
+(43, 15, 'assigned', 'in_progress', 4, 'เริ่มแก้ไขรอบแรก', '2026-06-01 14:15:00'),
+(44, 15, 'in_progress', 'resolved', 4, 'ส่งผลการแก้ไขรอบแรก', '2026-06-01 16:45:00'),
+(45, 15, 'resolved', 'waiting_confirm', 1, 'ส่งให้ลูกค้ายืนยัน', '2026-06-01 17:00:00'),
+(46, 15, 'waiting_confirm', 'assigned', 16, 'ลูกค้าตีกลับงาน', '2026-06-02 09:15:00');
 
 -- --------------------------------------------------------
 
@@ -1968,7 +2092,8 @@ INSERT INTO `ticket_work_logs` (`id`, `ticket_id`, `staff_id`, `work_detail`, `w
 ALTER TABLE `attachments`
   ADD PRIMARY KEY (`id`),
   ADD KEY `report_id` (`request_id`),
-  ADD KEY `ticket_id` (`ticket_id`);
+  ADD KEY `ticket_id` (`ticket_id`),
+  ADD KEY `idx_attachments_request_confirmation` (`request_confirmation_id`);
 
 --
 -- Indexes for table `customers`
@@ -2105,14 +2230,13 @@ ALTER TABLE `tickets`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `ticket_no` (`ticket_no`),
   ADD KEY `report_id` (`request_id`),
-  ADD KEY `parent_ticket_id` (`parent_ticket_id`),
   ADD KEY `assigned_team_id` (`assigned_team_id`),
   ADD KEY `assigned_staff_id` (`assigned_staff_id`),
   ADD KEY `assigned_by` (`assigned_by`),
   ADD KEY `idx_tickets_status_created` (`status`,`created_at`),
   ADD KEY `idx_tickets_team_status_created` (`assigned_team_id`,`status`,`created_at`),
   ADD KEY `idx_tickets_staff_status_created` (`assigned_staff_id`,`status`,`created_at`),
-  ADD KEY `idx_tickets_parent_status` (`parent_ticket_id`,`status`);
+  ADD KEY `idx_tickets_parent_status` (`status`);
 
 --
 -- Indexes for table `ticket_assignments`
@@ -2160,19 +2284,19 @@ ALTER TABLE `ticket_work_logs`
 -- AUTO_INCREMENT for table `attachments`
 --
 ALTER TABLE `attachments`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
 
 --
 -- AUTO_INCREMENT for table `customers`
 --
 ALTER TABLE `customers`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `login_logs`
 --
 ALTER TABLE `login_logs`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1145;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1248;
 
 --
 -- AUTO_INCREMENT for table `organizations`
@@ -2184,7 +2308,7 @@ ALTER TABLE `organizations`
 -- AUTO_INCREMENT for table `password_logs`
 --
 ALTER TABLE `password_logs`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `permissions`
@@ -2208,19 +2332,19 @@ ALTER TABLE `problem_types`
 -- AUTO_INCREMENT for table `requests`
 --
 ALTER TABLE `requests`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
 
 --
 -- AUTO_INCREMENT for table `request_confirmations`
 --
 ALTER TABLE `request_confirmations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `request_status_logs`
 --
 ALTER TABLE `request_status_logs`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=83;
 
 --
 -- AUTO_INCREMENT for table `screenings`
@@ -2232,13 +2356,13 @@ ALTER TABLE `screenings`
 -- AUTO_INCREMENT for table `staffs`
 --
 ALTER TABLE `staffs`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `staff_team_roles`
 --
 ALTER TABLE `staff_team_roles`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
 
 --
 -- AUTO_INCREMENT for table `systems`
@@ -2256,31 +2380,31 @@ ALTER TABLE `teams`
 -- AUTO_INCREMENT for table `team_permissions`
 --
 ALTER TABLE `team_permissions`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
 
 --
 -- AUTO_INCREMENT for table `tickets`
 --
 ALTER TABLE `tickets`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `ticket_assignments`
 --
 ALTER TABLE `ticket_assignments`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `ticket_resolution_requests`
 --
 ALTER TABLE `ticket_resolution_requests`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `ticket_status_logs`
 --
 ALTER TABLE `ticket_status_logs`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
 
 --
 -- AUTO_INCREMENT for table `ticket_work_logs`
@@ -2297,7 +2421,8 @@ ALTER TABLE `ticket_work_logs`
 --
 ALTER TABLE `attachments`
   ADD CONSTRAINT `attachments_ibfk_1` FOREIGN KEY (`request_id`) REFERENCES `requests` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `attachments_ibfk_2` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `attachments_ibfk_2` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_attachments_request_confirmation` FOREIGN KEY (`request_confirmation_id`) REFERENCES `request_confirmations` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Constraints for table `customers`
@@ -2367,8 +2492,7 @@ ALTER TABLE `tickets`
   ADD CONSTRAINT `fk_ticket_assigner` FOREIGN KEY (`assigned_by`) REFERENCES `staffs` (`id`),
   ADD CONSTRAINT `fk_ticket_staff` FOREIGN KEY (`assigned_staff_id`) REFERENCES `staffs` (`id`),
   ADD CONSTRAINT `fk_ticket_team` FOREIGN KEY (`assigned_team_id`) REFERENCES `teams` (`id`),
-  ADD CONSTRAINT `tickets_ibfk_1` FOREIGN KEY (`request_id`) REFERENCES `requests` (`id`),
-  ADD CONSTRAINT `tickets_ibfk_2` FOREIGN KEY (`parent_ticket_id`) REFERENCES `tickets` (`id`);
+  ADD CONSTRAINT `tickets_ibfk_1` FOREIGN KEY (`request_id`) REFERENCES `requests` (`id`);
 
 --
 -- Constraints for table `ticket_assignments`
