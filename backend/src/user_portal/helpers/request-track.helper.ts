@@ -11,11 +11,11 @@ export function mapRepairStatus(
     requestStatus === "waiting_confirm" &&
     resolutionRequestStatus === "approved"
   ) {
-    return "หัวหน้าอนุมัติผลการแก้ไขแล้ว รอลูกค้ายืนยัน";
+    return "รออนุมัติ";
   }
 
   if (requestStatus === "waiting_confirm") {
-    return "ส่งผลการแก้ไขแล้ว รอลูกค้ายืนยัน";
+    return "รออนุมัติ";
   }
 
   if (requestStatus === "closed") {
@@ -23,11 +23,11 @@ export function mapRepairStatus(
   }
 
   if (requestStatus === "assigned" || requestStatus === "in_progress") {
-    return "เจ้าหน้าที่กำลังดำเนินการแก้ไข";
+    return "เกำลังดำเนินการแก้ไข";
   }
 
   if (requestStatus === "screening") {
-    return "เจ้าหน้าที่กำลังคัดกรองปัญหา";
+    return "กำลังคัดกรองปัญหา";
   }
 
   if (requestStatus === "rejected") {
