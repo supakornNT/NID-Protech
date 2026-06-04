@@ -60,6 +60,11 @@ export class CloseWorkController {
     return this.closeWorkService.findLatestReopenComment(requestId);
   }
 
+  @Get('requests/:id/reopen-attachments')
+  getReopenAttachments(@Param('id', ParseIntPipe) requestId: number) {
+    return this.closeWorkService.findReopenAttachments(requestId);
+  }
+
   @Get('tickets/:ticketId/attachments')
   getTicketAttachments(@Param('ticketId', ParseIntPipe) ticketId: number) {
     return this.closeWorkService.findTicketResolutionEvidence(ticketId);

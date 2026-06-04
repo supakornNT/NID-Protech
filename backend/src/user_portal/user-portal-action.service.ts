@@ -265,27 +265,6 @@ export class UserPortalActionService {
         [identity.id],
       );
 
-      const [ticketRows] = await connection.query<
-        Array<RowDataPacket & { id: number; status: string }>
-      >(
-        `SELECT id, status
-        FROM tickets
-        WHERE request_id = ?
-          AND status IN ('resolved', 'waiting_confirm')`,
-        [identity.id],
-      );
-
-      if (ticketRows.length > 0) {
-        await connection.query<ResultSetHeader>(
-          `UPDATE tickets
-          SET status = 'assigned',
-              closed_at = NULL
-          WHERE request_id = ?
-            AND status IN ('resolved', 'waiting_confirm')`,
-          [identity.id],
-        );
-      }
-
       await connection.query<ResultSetHeader>(
         `INSERT INTO request_status_logs (
           request_id,
@@ -296,19 +275,6 @@ export class UserPortalActionService {
         ) VALUES (?, 'assigned', 'customer', ?, ?)`,
         [identity.id, identity.customerId, dto.reason],
       );
-
-      for (const ticket of ticketRows) {
-        await connection.query<ResultSetHeader>(
-          `INSERT INTO ticket_status_logs (
-            ticket_id,
-            old_status,
-            new_status,
-            changed_by,
-            note
-          ) VALUES (?, ?, 'assigned', NULL, ?)`,
-          [ticket.id, ticket.status, dto.reason],
-        );
-      }
 
       await connection.commit();
     } catch (error) {

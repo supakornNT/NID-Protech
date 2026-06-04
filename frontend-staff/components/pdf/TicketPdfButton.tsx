@@ -83,7 +83,7 @@ export default function TicketPdfButton({
       const [qrCode, pdfResponse] = await Promise.all([
         QRCode.toDataURL(buildTrackingUrl(trackingPath)),
         fetch(
-          `${process.env.NEXT_PUBLIC_API_URL ?? ""}/user/requests/track/${encodeURIComponent(ticket.trackingNo)}/pdf-data`,
+          `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/user/requests/track/${encodeURIComponent(ticket.trackingNo)}/pdf-data`,
           {
             cache: "no-store",
           },

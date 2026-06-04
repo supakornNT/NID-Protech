@@ -1,8 +1,8 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, ChevronLeft, ChevronRight, Clock, FileText, ImageIcon, Users, X, TriangleAlert, CheckCircle2 } from "lucide-react";
-import { useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, Clock, FileText, ImageIcon, Users, X, TriangleAlert, CheckCircle2 } from "lucide-react";
+import { useRef, useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import { useComplaintDetail, useLightbox } from "@/hooks/use-complaint-detail";
 import { useTicketsByRequest } from "@/hooks/use-tickets-by-request";
@@ -53,13 +53,24 @@ export default function ManageWorkDetailPage() {
   const [subPage, setSubPage] = useState(1);
   const [subSearch, setSubSearch] = useState("");
   const [editedDueDate, setDueDate] = useState<string | undefined>(undefined);
+
+  // Default due date to 3 days from today
+  const defaultDueDate = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 3);
+    return d.toLocaleDateString("en-CA");
+  }, []);
+
   const dueDate =
     editedDueDate ??
-    (data?.dueAt ? new Date(data.dueAt).toLocaleDateString("en-CA") : "");
+    (data?.dueAt ? new Date(data.dueAt).toLocaleDateString("en-CA") : defaultDueDate);
   const localToday = new Date().toLocaleDateString("en-CA");
+
+
+
   const filteredSub = tickets.filter(
     (t) =>
-      t.status === "assigned" &&
+      (t.status === "assigned" || t.status === "resolved" || t.status === "closed") &&
       (subSearch === "" ||
         t.title.includes(subSearch) ||
         (t.assignedStaffName ?? "").includes(subSearch)),
@@ -95,6 +106,28 @@ export default function ManageWorkDetailPage() {
   const [showForwardConfirm, setShowForwardConfirm] = useState(false);
   const [showForwardSuccess, setShowForwardSuccess] = useState(false);
   const [showReopenModal, setShowReopenModal] = useState(false);
+  const [reopenFiles, setReopenFiles] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!effectiveRequestId) return;
+    let cancelled = false;
+
+    fetch(`${API_BASE_URL}/admin/close-work/requests/${effectiveRequestId}/reopen-attachments`)
+      .then((r) => {
+        if (!r.ok) throw new Error();
+        return r.json();
+      })
+      .then((files) => {
+        if (!cancelled) setReopenFiles(Array.isArray(files) ? files : []);
+      })
+      .catch(() => {
+        if (!cancelled) setReopenFiles([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [effectiveRequestId]);
 
   const { updateTicket, loading: updateLoading } = useUpdateTicket(() => {
     setEditModal({
@@ -168,7 +201,10 @@ export default function ManageWorkDetailPage() {
     setShowForwardSuccess(true);
   }
 
-  const canSubmit = !!dueDate && tickets.length > 0;
+  const hasActiveTicket = tickets.some(
+    (t) => t.status !== "resolved" && t.status !== "closed" && t.status !== "cancelled"
+  );
+  const canSubmit = !!dueDate && hasActiveTicket;
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -321,24 +357,15 @@ export default function ManageWorkDetailPage() {
 
       <div className="flex flex-1 flex-col gap-5 bg-[#F0F4FA] p-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 shadow-sm hover:bg-gray-50 hover:text-gray-700"
-            >
-              <ArrowLeft size={18} />
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowForwardConfirm(true)}
-              disabled={!canSubmit}
-              className="rounded-lg bg-[#366DBD] px-5 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              ส่งต่อ
-            </button>
-          </div>
+        <div className="flex items-center justify-end">
+          <button
+            type="button"
+            onClick={() => setShowForwardConfirm(true)}
+            disabled={!canSubmit}
+            className="rounded-lg bg-[#366DBD] px-5 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            ส่งต่อ
+          </button>
         </div>
 
         {loading ? (
@@ -570,66 +597,82 @@ export default function ManageWorkDetailPage() {
                   key={task.id}
                   className="text-[15px] flex items-start justify-between rounded-xl border border-gray-200 p-4"
                 >
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col gap-1 min-w-0 flex-1">
                     <span className="rounded-md border border-gray-200 px-3 py-0.5 text-[13px] text-gray-700 w-fit">
                       {task.assignedStaffName ?? "ยังไม่มอบหมาย"}
                     </span>
                     <p className="text-[17px] px-2 text-gray-500 mt-6">
                       {task.title}
                     </p>
+
+                    {/* แสดงเหตุผลการตีกลับล่าสุด (ถ้ามี) */}
+                    {task.rejectReason && (
+                      <p className="mt-2 text-[13px] text-[#D9534F] bg-[#FFF0F0] border border-[#F4A0A0] px-3 py-1.5 rounded-lg w-fit ml-2">
+                        เหตุผลที่ตีกลับ: {task.rejectReason}
+                      </p>
+                    )}
                   </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <span className="text-[17px] text-gray-500">
-                      {task.dueAt
-                        ? (() => {
-                            const taskDate = new Date(task.dueAt);
-                            taskDate.setHours(0, 0, 0, 0);
-                            const todayDate = new Date();
-                            todayDate.setHours(0, 0, 0, 0);
-                            const days = Math.ceil(
-                              (taskDate.getTime() - todayDate.getTime()) /
-                                86400000,
-                            );
-                            if (days === 0) {
-                              return (
-                                <span className="text-gray-400">
-                                  วันนี้
-                                </span>
-                              );
-                            }
-                            return days > 0 ? (
-                              <span className="text-gray-400">
-                                เหลือ {days} วัน
-                              </span>
-                            ) : (
-                              <span className="text-gray-400">
-                                เกินกำหนด {Math.abs(days)} วัน
-                              </span>
-                            );
-                          })()
-                        : ""}
-                    </span>
-                    <div className="flex gap-1 mt-6">
-                      <button
-                        type="button"
-                        onClick={() => openEditModal(task.id)}
-                        className="rounded-md border border-gray-300 px-3 text-[14px] text-gray-600 hover:bg-gray-50"
-                      >
-                        แก้ไข
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDeleteConfirmId(task.id)}
-                        className="rounded-md bg-[#D9534F] px-3  text-[14px] text-white hover:bg-red-600"
-                      >
-                        ยกเลิกงาน
-                      </button>
-                    </div>
+                  <div className="flex flex-col items-end gap-2 shrink-0 ml-4">
+                    {(task.status === "resolved" || task.status === "closed") ? (
+                      <span className="rounded-md border border-green-200 bg-green-50 px-3 py-1 text-[13px] font-semibold text-green-700">
+                        เสร็จสิ้น
+                      </span>
+                    ) : (
+                      <>
+                        <span className="text-[17px] text-gray-500">
+                          {task.dueAt
+                            ? (() => {
+                                const taskDate = new Date(task.dueAt);
+                                taskDate.setHours(0, 0, 0, 0);
+                                const todayDate = new Date();
+                                todayDate.setHours(0, 0, 0, 0);
+                                const days = Math.ceil(
+                                  (taskDate.getTime() - todayDate.getTime()) /
+                                    86400000,
+                                );
+                                if (days === 0) {
+                                  return (
+                                    <span className="text-gray-400">
+                                      วันนี้
+                                    </span>
+                                  );
+                                }
+                                return days > 0 ? (
+                                  <span className="text-gray-400">
+                                    เหลือ {days} วัน
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-400">
+                                    เกินกำหนด {Math.abs(days)} วัน
+                                  </span>
+                                );
+                              })()
+                            : ""}
+                        </span>
+                        <div className="flex gap-1 mt-6">
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(task.id)}
+                            className="rounded-md border border-gray-300 px-3 text-[14px] text-gray-600 hover:bg-gray-50"
+                          >
+                            แก้ไข
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteConfirmId(task.id)}
+                            className="rounded-md bg-[#D9534F] px-3  text-[14px] text-white hover:bg-red-600"
+                          >
+                            ยกเลิกงาน
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
 
+            <div className="mt-auto flex flex-col gap-2">
               {/* Pagination */}
               {totalSubPages > 1 && (
                 <div className="flex items-center justify-end gap-1">
@@ -664,6 +707,7 @@ export default function ManageWorkDetailPage() {
                   Next <ChevronRight size={14} />
                 </button>
               </div>
+            )}
               <div className="flex justify-end">
                 <button
                   type="button"
@@ -982,13 +1026,51 @@ export default function ManageWorkDetailPage() {
         title="การตีกลับล่าสุด"
         widthClassName="max-w-[480px]"
       >
-        <div className="space-y-5 text-center">
+        <div className="space-y-5">
           <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-[14px]">
             <p className="font-semibold text-gray-700 mb-1">ความคิดเห็นการตีกลับ</p>
             <p className="text-gray-600 whitespace-pre-wrap text-left indent-8">
               {data?.latestReopenComment || "-"}
             </p>
           </div>
+
+          {reopenFiles.length > 0 && (
+            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-[14px]">
+              <p className="font-semibold text-gray-700 mb-2">ไฟล์แนบการตีกลับ ({reopenFiles.length})</p>
+              <div className="flex flex-col gap-2">
+                {reopenFiles.map((file) => {
+                  const fileName = file.savedName ?? file.originalName;
+                  const url = `${API_BASE_URL}/uploads/requests/${fileName}`;
+                  const isImage = IMAGE_EXTS.includes((file.fileExt ?? "").toLowerCase());
+                  return (
+                    <button
+                      key={file.id}
+                      type="button"
+                      onClick={() => {
+                        if (isImage) {
+                          setLightbox(url);
+                        } else {
+                          window.open(url, "_blank", "noopener,noreferrer");
+                        }
+                      }}
+                      className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 text-left transition hover:border-[#366DBD] hover:bg-[#F8FBFF] w-full"
+                    >
+                      {isImage ? (
+                        <ImageIcon size={18} className="shrink-0 text-[#2F66C5]" />
+                      ) : (
+                        <FileText size={18} className="shrink-0 text-[#D1435B]" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[13px] font-medium text-gray-800">
+                          {file.originalName}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-center pt-1">
             <ProTechButton

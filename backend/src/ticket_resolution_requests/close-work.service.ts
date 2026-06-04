@@ -293,4 +293,21 @@ export class CloseWorkService {
       connection.release();
     }
   }
+
+  async findReopenAttachments(requestId: number) {
+    const [rows] = await this.db.query<RowDataPacket[]>(
+      `SELECT id, original_name AS originalName, saved_name AS savedName, file_ext AS fileExt
+       FROM attachments
+       WHERE request_confirmation_id = (
+         SELECT id
+         FROM request_confirmations
+         WHERE request_id = ? AND result = 'reopened'
+         ORDER BY confirmed_at DESC, id DESC
+         LIMIT 1
+       ) AND attachment_type = 'reopen_evidence' AND status = 'show'
+       ORDER BY uploaded_at DESC`,
+      [requestId],
+    );
+    return rows;
+  }
 }

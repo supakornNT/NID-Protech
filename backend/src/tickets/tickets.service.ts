@@ -46,10 +46,20 @@ export class TicketsService {
         tickets.description,
         tickets.status,
         tickets.due_at AS dueAt,
-        tickets.resolved_at AS resolvedAt
+        tickets.resolved_at AS resolvedAt,
+        trr.reject_reason AS rejectReason
       FROM tickets
       LEFT JOIN staffs ON staffs.id = tickets.assigned_staff_id
-      WHERE tickets.request_id = ? AND tickets.status = 'assigned'
+      LEFT JOIN (
+        SELECT latest.*
+        FROM ticket_resolution_requests latest
+        INNER JOIN (
+          SELECT ticket_id, MAX(id) AS latest_id
+          FROM ticket_resolution_requests
+          GROUP BY ticket_id
+        ) picked ON picked.latest_id = latest.id
+      ) trr ON trr.ticket_id = tickets.id
+      WHERE tickets.request_id = ? AND tickets.status IN ('assigned', 'resolved', 'closed')
       `,
       [id],
     );

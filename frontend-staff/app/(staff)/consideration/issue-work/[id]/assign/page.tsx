@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, TriangleAlert, CheckCircle2 } from "lucide-react";
 import { useStaffList } from "@/hooks/use-staff-list";
@@ -30,7 +30,13 @@ export default function AssignWorkPage() {
     ? requestData.dueAt.slice(0, 10)
     : undefined;
   const localToday = new Date().toLocaleDateString("en-CA");
-  const isRequestDuePast = !!requestDueAt && requestDueAt < localToday;
+  const isRequestDuePast = !!requestDueAt && requestDueAt < localToday && !requestData?.wasReopened;
+
+  const defaultDueDate = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 3);
+    return d.toLocaleDateString("en-CA");
+  }, []);
 
   const { staffs, loading, refetch: refetchStaffs } = useStaffList();
   const [search, setSearch] = useState("");
@@ -40,7 +46,7 @@ export default function AssignWorkPage() {
   const [modalStaff, setModalStaff] = useState<SelectedStaff | null>(null);
   const [title, setTitle] = useState("");
   const [detail, setDetail] = useState("");
-  const [dueDate, setDueDate] = useState("");
+  const [dueDate, setDueDate] = useState(defaultDueDate);
 
   const [showCreateConfirm, setShowCreateConfirm] = useState(false);
   const [showCreateSuccess, setShowCreateSuccess] = useState(false);
@@ -51,7 +57,7 @@ export default function AssignWorkPage() {
     setModalStaff(null);
     setTitle("");
     setDetail("");
-    setDueDate("");
+    setDueDate(defaultDueDate);
     setError(null);
     setShowCreateSuccess(true);
     refetch();
@@ -327,7 +333,7 @@ export default function AssignWorkPage() {
             setModalStaff(null);
             setTitle("");
             setDetail("");
-            setDueDate("");
+            setDueDate(defaultDueDate);
             setError(null);
           }
         }}
@@ -373,7 +379,7 @@ export default function AssignWorkPage() {
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
               min={localToday}
-              max={requestDueAt}
+              max={requestData?.wasReopened ? undefined : requestDueAt}
               disabled={isRequestDuePast}
               className="h-9 rounded-lg border border-gray-300 px-3 text-[14px] outline-none focus:border-[#366DBD] disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
             />
@@ -407,7 +413,7 @@ export default function AssignWorkPage() {
                   setError("กำหนดส่งของเรื่องหลักเลยกำหนดแล้ว จึงไม่สามารถมอบหมายงานเพิ่มได้");
                   return;
                 }
-                if (requestDueAt && dueDate > requestDueAt) {
+                if (!requestData?.wasReopened && requestDueAt && dueDate > requestDueAt) {
                   setError(`กำหนดส่งงานย่อยต้องไม่เกินกำหนดส่งเรื่องหลัก (${formatDate(requestDueAt)})`);
                   return;
                 }

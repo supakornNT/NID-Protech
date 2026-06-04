@@ -319,11 +319,6 @@ export default function CloseWorkDetailPage() {
       setModal("error");
       return;
     }
-    if (!rejectReason.trim()) {
-      setErrorMessage("กรุณาระบุเหตุผลที่ไม่อนุมัติ");
-      setModal("error");
-      return;
-    }
 
     setActionLoading(true);
     try {
@@ -707,14 +702,6 @@ export default function CloseWorkDetailPage() {
         widthClassName="max-w-[520px]"
       >
         <div className="space-y-5">
-          <div className="flex justify-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF5F7] text-[#D1435B]">
-              <TriangleAlert size={28} />
-            </div>
-          </div>
-          <p className="text-center text-[15px] leading-7 text-gray-600">
-            คุณต้องการส่งตั๋วย่อยนี้กลับไปแก้ไขใหม่ใช่หรือไม่
-          </p>
           <div className="flex flex-col gap-2">
             <label
               htmlFor="reject-reason"
@@ -731,11 +718,6 @@ export default function CloseWorkDetailPage() {
               className="resize-none rounded-xl border border-gray-300 px-3 py-2 text-[14px] outline-none focus:border-[#366DBD]"
             />
           </div>
-          {!rejectReason.trim() ? (
-            <p className="rounded-xl border border-[#FFD7DE] bg-[#FFF5F7] px-4 py-3 text-[13px] text-[#D1435B]">
-              กรุณาระบุเหตุผลที่ไม่อนุมัติก่อนยืนยัน
-            </p>
-          ) : null}
           <div className="flex justify-center gap-3">
             <ProTechButton
               variant="delete"
@@ -751,7 +733,7 @@ export default function CloseWorkDetailPage() {
               variant="primary"
               className="h-10 min-w-[120px]"
               onClick={handleReject}
-              disabled={actionLoading || !rejectReason.trim()}
+              disabled={actionLoading}
             >
               ยืนยัน
             </ProTechButton>

@@ -10,6 +10,7 @@ export type Ticket = {
   status: string;
   dueAt: string | null;
   resolvedAt: string | null;
+  rejectReason?: string | null;
 };
 
 export function useTicketsByRequest(requestId: string | undefined) {
