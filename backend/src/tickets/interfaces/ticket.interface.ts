@@ -60,7 +60,8 @@ export interface WorkDetail extends RowDataPacket {
   ticketId: number;
   requestId: number;
   ticketStatus: string;
-  resolution: string | null;
+  ticketTitle: string;
+  ticketDescription: string | null;
   dueAt: Date | null;
   requestNo: string;
   title: string;

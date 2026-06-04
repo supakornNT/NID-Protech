@@ -178,12 +178,12 @@ export default function OperationsPage() {
             ไม่พบข้อมูล
           </div>
         ) : (
-          <div className="flex flex-col divide-y divide-[#7FA7E8]">
+          <div className="flex flex-col divide-y divide-[#7FA7E8] ">
             {paged.map((item) => {
               const typeLabel = TYPE_LABEL[item.requestType] ?? item.requestType;
 
               return (
-                <div key={item.requestId} className="bg-white p-5">
+                <div key={item.id} className="bg-white p-5">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex flex-col gap-1">
                       <p className="text-[16px] font-bold text-gray-900">{item.title}</p>
@@ -211,7 +211,7 @@ export default function OperationsPage() {
                       </p>
                       <button
                         type="button"
-                        onClick={() => router.push(`/operations/${item.ticketId}`)}
+                        onClick={() => router.push(`/operations/${item.id}`)}
                         className="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-[13px] text-gray-700 hover:bg-gray-50"
                       >
                         รายละเอียด

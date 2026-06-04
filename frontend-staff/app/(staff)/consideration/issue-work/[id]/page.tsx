@@ -135,12 +135,19 @@ export default function ManageWorkDetailPage() {
 
   async function handleSave() {
     const requestId = Number(Array.isArray(id) ? id[0] : id);
+
+    if (editedDueDate) {
+      await updateDueDate(requestId, editedDueDate);
+    }
+
     await Promise.all([
       updateStatus(id, "in_progress"),
       logStatus(requestId, "assigned"),
     ]);
     router.push(`/consideration/issue-work`);
   }
+
+  const canSubmit = !!dueDate && pagedSub.length > 0;
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -308,7 +315,8 @@ export default function ManageWorkDetailPage() {
             <button
               type="button"
               onClick={handleSave}
-              className="rounded-lg bg-[#366DBD] px-5 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3]"
+              disabled={!canSubmit}
+              className="rounded-lg bg-[#366DBD] px-5 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               ส่งต่อ
             </button>

@@ -1,6 +1,7 @@
 import type { RowDataPacket } from 'mysql2/promise';
 
 export interface StepInfo {
+  label: string;
   date: string;
   time: string;
 }
@@ -15,7 +16,7 @@ export interface RequestTracking {
   dueAt: string | null;
   allResolved: number;
   wasRejected: number;
-  steps: [StepInfo | null, StepInfo | null, StepInfo | null, StepInfo | null];
+  steps: (StepInfo | null)[];
 }
 
 export interface RequestTrackingRow extends RowDataPacket {

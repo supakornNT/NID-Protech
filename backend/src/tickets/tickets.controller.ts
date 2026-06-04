@@ -116,6 +116,10 @@ export class TicketsController {
     @Body('requestId') requestId: string,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    return this.ticket.uploadTicketAttachments(ticketId, Number(requestId), files ?? []);
+    return this.ticket.uploadTicketAttachments(
+      ticketId,
+      Number(requestId),
+      files ?? [],
+    );
   }
 }

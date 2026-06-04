@@ -471,7 +471,7 @@ export class RequestsService implements OnModuleInit {
       `SELECT request_id, status, created_at
        FROM request_status_logs
        WHERE request_id IN (?)
-       ORDER BY created_at ASC`,
+       ORDER BY created_at DESC`,
       [ids],
     );
 
@@ -493,8 +493,37 @@ export class RequestsService implements OnModuleInit {
       };
     };
 
+    const STATUS_STEP_MAP = {
+      screening: 0,
+      assigned: 1,
+      in_progress: 2,
+      waiting_confirm: 3,
+      closed: 4,
+    };
+
     return requests.map((r) => {
       const rLogs = logMap.get(r.id) ?? [];
+      const allSteps = [
+        fmt(
+          rLogs.find((l) => l.status === 'screening')?.created_at,
+          'ยื่นเรื่อง',
+        ),
+        fmt(rLogs.find((l) => l.status === 'assigned')?.created_at, 'ตรวจสอบ'),
+        fmt(
+          rLogs.find((l) => l.status === 'in_progress')?.created_at,
+          'ดำเนินการแก้ไข',
+        ),
+        fmt(
+          rLogs.find((l) => l.status === 'waiting_confirm')?.created_at,
+          'รอประเมิน',
+        ),
+        fmt(rLogs.find((l) => l.status === 'closed')?.created_at, 'เสร็จสิ้น'),
+      ];
+
+      const currentStepIndex =
+        STATUS_STEP_MAP[r.status as keyof typeof STATUS_STEP_MAP] ?? 0;
+      const steps = allSteps.slice(0, currentStepIndex);
+
       return {
         id: r.id,
         title: r.title,
@@ -505,24 +534,7 @@ export class RequestsService implements OnModuleInit {
         dueAt: r.dueAt ? new Date(r.dueAt).toISOString() : null,
         allResolved: r.allResolved,
         wasRejected: r.wasRejected,
-        steps: [
-          fmt(
-            rLogs.find((l) => l.status === 'screening')?.created_at,
-            'ยื่นเรื่อง',
-          ),
-          fmt(
-            rLogs.find((l) => l.status === 'assigned')?.created_at,
-            'ตรวจสอบ',
-          ),
-          fmt(
-            rLogs.find((l) => l.status === 'in_progress')?.created_at,
-            'ดำเนินการแก้ไข',
-          ),
-          fmt(
-            rLogs.find((l) => l.status === 'closed')?.created_at,
-            'เสร็จสิ้น',
-          ),
-        ],
+        steps,
       };
     });
   }
