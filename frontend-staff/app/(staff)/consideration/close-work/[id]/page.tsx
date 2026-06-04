@@ -167,7 +167,6 @@ export default function CloseWorkDetailPage() {
     approveTicket,
     rejectTicket,
   } = useCloseWork();
-  const showSkeleton = useLoadingDelay(loading, 200);
 
   const [tab] = useState<"pending" | "history">(initialTab);
   const [selectedRequest, setSelectedRequest] = useState<RequestCloseItem | null>(null);
@@ -182,6 +181,7 @@ export default function CloseWorkDetailPage() {
   const [rejectReason, setRejectReason] = useState("");
   const [modal, setModal] = useState<ModalState>(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const showSkeleton = useLoadingDelay(loading || requestLoading, 200);
 
   useEffect(() => {
     fetchRequests(tab);
