@@ -13,6 +13,7 @@ import styles from "../request.module.css";
 import { SuccessDialog } from "@/components/ui/success-dialog";
 import { useSubmit } from "@/hooks/use-submit";
 import { useUserSession } from "@/contexts/user-session-context";
+import { useLoadingDelay } from "@/hooks/use-loading-delay";
 
 export default function RequestInternalPage() {
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function RequestInternalPage() {
   const { data: customer, fullName } = useCustomer(customerId);
   const { data: problemTypes, loading: problemTypesLoading } =
     useProblemTypes("issue");
+  const showSkeleton = useLoadingDelay(problemTypesLoading);
   const { data: organizations } = useOrganizations();
   const { data: systems } = useSystems(customer?.organization_id ?? null);
   const currentOrg = organizations.find((o) => o.id === customer?.organization_id);
@@ -68,6 +70,70 @@ export default function RequestInternalPage() {
 
     await submit(formData);
   };
+
+  if (showSkeleton) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4 sm:p-6">
+        <Card className={styles.card}>
+          <div className="animate-pulse">
+            {/* Title bar */}
+            <div className="border-b px-4 pb-2 pt-6 sm:px-8">
+              <div className="h-7 w-3/4 rounded-lg bg-gray-200" />
+            </div>
+
+            <div className="flex flex-col gap-5 px-4 py-6 sm:px-8">
+              {/* Row 1: ผู้แจ้ง + หน่วยงาน */}
+              <div className="flex flex-col gap-6 sm:flex-row">
+                <div className="flex flex-1 flex-col gap-1">
+                  <div className="h-4 w-16 rounded bg-gray-200" />
+                  <div className="h-10 rounded-lg bg-gray-200" />
+                </div>
+                <div className="flex flex-1 flex-col gap-1">
+                  <div className="h-4 w-20 rounded bg-gray-200" />
+                  <div className="h-10 rounded-lg bg-gray-200" />
+                </div>
+              </div>
+
+              {/* Row 2: หัวข้อเรื่อง */}
+              <div className="flex flex-col gap-1">
+                <div className="h-4 w-24 rounded bg-gray-200" />
+                <div className="h-10 rounded-lg bg-gray-200" />
+              </div>
+
+              {/* Row 3: ประเภทปัญหา + ระบบ */}
+              <div className="flex flex-col gap-6 sm:flex-row">
+                <div className="flex flex-1 flex-col gap-1">
+                  <div className="h-4 w-28 rounded bg-gray-200" />
+                  <div className="h-10 rounded-lg bg-gray-200" />
+                </div>
+                <div className="flex flex-1 flex-col gap-1">
+                  <div className="h-4 w-12 rounded bg-gray-200" />
+                  <div className="h-10 rounded-lg bg-gray-200" />
+                </div>
+              </div>
+
+              {/* Textarea: รายละเอียด */}
+              <div className="flex flex-col gap-1">
+                <div className="h-4 w-20 rounded bg-gray-200" />
+                <div className="h-28 rounded-lg bg-gray-200 sm:h-35" />
+              </div>
+
+              {/* File attach placeholder */}
+              <div className="flex flex-col gap-2">
+                <div className="h-4 w-16 rounded bg-gray-200" />
+                <div className="h-20 rounded-lg bg-gray-200" />
+              </div>
+            </div>
+
+            {/* Submit button */}
+            <div className="flex justify-end px-4 pb-6 sm:px-8">
+              <div className="h-10 w-20 rounded-lg bg-gray-200" />
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4 sm:p-6">

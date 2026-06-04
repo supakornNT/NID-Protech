@@ -267,8 +267,96 @@ export default function RegisterPage() {
 
   if (checkingSession) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center px-4">
-        <p className="text-sm text-gray-500">Checking session...</p>
+      <div
+        className="min-h-screen flex flex-col px-4 sm:px-8 py-6 sm:py-10"
+        style={{ background: "#F8F9FB" }}
+      >
+        <div className="animate-pulse">
+          {/* Header: back button + title */}
+          <div className="w-full max-w-5xl mx-auto relative flex justify-center items-center mb-6">
+            <div className="absolute left-0 h-7 w-7 rounded-full bg-gray-200" />
+            <div className="flex flex-col items-center gap-2">
+              <div className="h-8 w-48 rounded-lg bg-gray-200" />
+              <div className="h-4 w-64 rounded bg-gray-200" />
+            </div>
+          </div>
+
+          {/* Radio buttons row */}
+          <div className="flex gap-8 mb-6 w-full max-w-5xl mx-auto">
+            <div className="h-6 w-28 rounded bg-gray-200" />
+            <div className="h-6 w-28 rounded bg-gray-200" />
+          </div>
+
+          {/* Form card */}
+          <div
+            className="w-full max-w-5xl flex flex-col gap-5 px-4 sm:px-10 py-6 sm:py-8 mx-auto"
+            style={{
+              background: "#F1F6FD",
+              boxShadow: "0px 4px 4px rgba(0,0,0,0.25)",
+              borderRadius: 30,
+            }}
+          >
+            {/* Section label */}
+            <div className="h-4 w-24 rounded bg-gray-200" />
+
+            {/* Row: prefix + first name + last name */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-[120px_1fr_1fr]">
+              <div className="flex flex-col gap-1">
+                <div className="h-4 w-20 rounded bg-gray-200" />
+                <div className="h-10 rounded-lg bg-gray-200" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <div className="h-4 w-10 rounded bg-gray-200" />
+                <div className="h-10 rounded-lg bg-gray-200" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <div className="h-4 w-16 rounded bg-gray-200" />
+                <div className="h-10 rounded-lg bg-gray-200" />
+              </div>
+            </div>
+
+            {/* Citizen ID */}
+            <div className="flex flex-col gap-1">
+              <div className="h-4 w-36 rounded bg-gray-200" />
+              <div className="h-10 rounded-lg bg-gray-200" />
+            </div>
+
+            {/* Section label */}
+            <div className="h-4 w-32 rounded bg-gray-200" />
+
+            {/* Phone + Email */}
+            <div className="flex flex-col sm:flex-row gap-6">
+              <div className="flex flex-1 flex-col gap-1">
+                <div className="h-4 w-16 rounded bg-gray-200" />
+                <div className="h-10 rounded-lg bg-gray-200" />
+              </div>
+              <div className="flex flex-1 flex-col gap-1">
+                <div className="h-4 w-12 rounded bg-gray-200" />
+                <div className="h-10 rounded-lg bg-gray-200" />
+              </div>
+            </div>
+
+            {/* Section label */}
+            <div className="h-4 w-28 rounded bg-gray-200" />
+
+            {/* Password + Confirm password */}
+            <div className="flex flex-col sm:flex-row gap-6">
+              <div className="flex flex-1 flex-col gap-1">
+                <div className="h-4 w-20 rounded bg-gray-200" />
+                <div className="h-10 rounded-lg bg-gray-200" />
+              </div>
+              <div className="flex flex-1 flex-col gap-1">
+                <div className="h-4 w-28 rounded bg-gray-200" />
+                <div className="h-10 rounded-lg bg-gray-200" />
+              </div>
+            </div>
+
+            {/* Submit button */}
+            <div className="flex justify-end items-center gap-6 px-5">
+              <div className="h-10 w-44 rounded-lg bg-gray-200" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

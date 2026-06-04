@@ -58,8 +58,8 @@ export default function ComplaintDetailPage() {
         </div>
       )}
 
-      <div className="flex min-h-screen items-start justify-center bg-gray-50 p-6 pt-12">
-        <div className="w-full max-w-3xl rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="flex min-h-screen items-start justify-center bg-[#F0F4FA] p-6 pt-12">
+        <div className="w-full max-w-3xl rounded-2xl border border-gray-300 bg-white shadow-sm">
           {loading ? (
             showSkeleton ? (
               <div className="animate-pulse">

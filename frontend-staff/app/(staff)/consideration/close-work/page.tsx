@@ -99,6 +99,7 @@ export default function CloseWorkListPage() {
         </div>
         <button
           type="button"
+          onClick={() => setPage(1)}
           className="h-9 rounded-lg bg-[#366DBD] px-5 text-[14px] font-semibold text-white transition hover:bg-[#2d5da3]"
         >
           ค้นหา

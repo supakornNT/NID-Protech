@@ -1,9 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, FileText, X, TriangleAlert, CheckCircle2 } from "lucide-react";
-
-const IMAGE_EXTS = ["jpg", "jpeg", "png", "gif", "webp"];
+import { ArrowLeft, ChevronLeft, ChevronRight, Clock, FileText, ImageIcon, Users, X, TriangleAlert, CheckCircle2 } from "lucide-react";
 import { useRef, useState } from "react";
 import Image from "next/image";
 import { useComplaintDetail, useLightbox } from "@/hooks/use-complaint-detail";
@@ -36,12 +34,6 @@ interface EditModal {
   detailLoading: boolean;
 }
 
-function calcDaysLeft(dueAt: string | null): string {
-  if (!dueAt) return "ไม่กำหนด";
-  const diff = new Date(dueAt).getTime() - Date.now();
-  if (diff <= 0) return "เกินกำหนด";
-  return `เหลือ ${Math.ceil(diff / 86400000)} วัน`;
-}
 
 export default function ManageWorkDetailPage() {
   const { id } = useParams();
@@ -400,7 +392,7 @@ export default function ManageWorkDetailPage() {
                 </span>
               </div>
 
-            <div className="flex flex-col gap-1 text-l text-gray-500">
+            <div className="flex flex-col gap-1 text-sm text-gray-500">
               <p>หมายเลขแจ้ง : {data.requestNo}</p>
               <p>ผู้ใช้งานภายในองค์กร : {data.customerName}</p>
               <p>ระบบ : {data.systemName}</p>
@@ -410,7 +402,7 @@ export default function ManageWorkDetailPage() {
               readOnly
               value={data.detail}
               rows={12}
-              className="w-full resize-none rounded-lg border border-[#000000] bg-gray-50 p-3 text-l text-gray-700 outline-none"
+              className="w-full resize-none rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 outline-none"
             />
 
             {data.wasReopened ? (
@@ -535,7 +527,7 @@ export default function ManageWorkDetailPage() {
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
                 min={localToday}
-                className="h-9 rounded-lg border border-[#000000] bg-white px-3 text-[14px] outline-none focus:border-[#366DBD]"
+                className="h-9 rounded-lg border border-gray-300 bg-white px-3 text-[14px] outline-none focus:border-[#366DBD]"
               />
             </div>
 
@@ -576,10 +568,10 @@ export default function ManageWorkDetailPage() {
               {pagedSub.map((task) => (
                 <div
                   key={task.id}
-                  className="text-[15px] flex items-start justify-between rounded-xl border border-[#000000] py-6 p-4"
+                  className="text-[15px] flex items-start justify-between rounded-xl border border-gray-200 p-4"
                 >
                   <div className="flex flex-col gap-1">
-                    <span className="rounded-md border border-[#000000] px-3 py-0.5 text-[13px] text-gray-700 w-fit">
+                    <span className="rounded-md border border-gray-200 px-3 py-0.5 text-[13px] text-gray-700 w-fit">
                       {task.assignedStaffName ?? "ยังไม่มอบหมาย"}
                     </span>
                     <p className="text-[17px] px-2 text-gray-500 mt-6">
