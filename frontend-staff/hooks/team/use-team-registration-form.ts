@@ -279,6 +279,26 @@ export function useTeamRegistrationForm() {
     };
   }, [hasRequestedOtp, otpCountdown]);
 
+  useEffect(() => {
+    if (!validationMessage) return;
+    const timeoutId = window.setTimeout(() => {
+      setValidationMessage(null);
+    }, 5000);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [validationMessage]);
+
+  useEffect(() => {
+    if (!feedbackMessage) return;
+    const timeoutId = window.setTimeout(() => {
+      setFeedbackMessage(null);
+    }, 5000);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [feedbackMessage]);
+
   const selectedTeams = useMemo(
     () =>
       teamOptions.filter((team) =>
