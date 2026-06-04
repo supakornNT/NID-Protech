@@ -14,7 +14,13 @@ import { useTracking, type TrackingItem } from "@/hooks/use-tracking";
 
 const LIMIT = 10;
 
-const STATUS_STEPS = ["ยื่นเรื่อง", "ตรวจสอบ","ดำเนินการแก้ไข","รอประเมิน","เสร็จสิ้น"];
+const STATUS_STEPS = [
+  "ยื่นเรื่อง",
+  "ตรวจสอบ",
+  "ดำเนินการแก้ไข",
+  "รอประเมิน",
+  "เสร็จสิ้น",
+];
 
 const STATUS_MAP: Record<string, { label: string; style: string }> = {
   assigned: {
@@ -70,14 +76,14 @@ function StepperBar({
   steps: TrackingItem["steps"];
   status: string;
 }) {
-  const allDone = status === 'closed';
+  const allDone = status === "closed";
   const currentStepIndex = STATUS_TO_STEP[status] ?? -1;
   const isLast = (i: number) => i === STATUS_STEPS.length - 1;
 
   return (
     <div className="mt-3 flex items-start gap-0">
       {STATUS_STEPS.map((label, i) => {
-        const done = allDone || steps[i] !== null;
+        const done = isLast(i) ? status === "closed" : allDone || !!steps[i];
         const isCurrent = !allDone && i === currentStepIndex;
 
         const circleClass = isCurrent
@@ -247,7 +253,10 @@ export default function TrackingStatusPage() {
                 mapped?.style ?? "border-gray-300 bg-gray-50 text-gray-600";
               const timeLeft = formatTimeLeft(item.dueAt, item.status);
 
-              const canSubmit = !!item.allResolved && item.status !== "waiting_confirm" && item.status !== "closed";
+              const canSubmit =
+                !!item.allResolved &&
+                item.status !== "waiting_confirm" &&
+                item.status !== "closed";
               return (
                 <div key={item.id} className="bg-white p-5">
                   <div className="flex items-start justify-between gap-4">
@@ -290,7 +299,7 @@ export default function TrackingStatusPage() {
                     <div className="flex-1">
                       <StepperBar steps={item.steps} status={item.status} />
                     </div>
-                    <div className="mb-1 flex shrink-0 items-center gap-2">
+                    <div className="flex flex-col al gap-8">
                       {canSubmit && (
                         <button
                           type="button"
@@ -303,7 +312,9 @@ export default function TrackingStatusPage() {
                       <button
                         type="button"
                         className="rounded-lg border border-gray-400 bg-white px-4 py-1.5 text-[13px] text-gray-700 hover:bg-gray-50"
-                        onClick={() => router.push(`/tracking/status/${item.id}`)}
+                        onClick={() =>
+                          router.push(`/tracking/status/${item.id}`)
+                        }
                       >
                         ดูรายละเอียด
                       </button>

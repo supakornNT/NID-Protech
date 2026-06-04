@@ -90,7 +90,7 @@ export default function ComplaintsPage() {
       render: (value) => formatDate(String(value)),
     },
     {
-      key: "createdAt",
+      key: "createdAt_time",
       title: "เวลา",
       className: "w-20",
       render: (value) => formatTime(String(value)),
@@ -145,7 +145,7 @@ export default function ComplaintsPage() {
           if (!open) closeReject();
         }}
       >
-        <DialogContent className="rounded-2xl">
+        <DialogContent className="border border-red-300 rounded-2xl">
           <DialogHeader>
             <DialogTitle>ยืนยันการปฏิเสธ</DialogTitle>
           </DialogHeader>
@@ -159,7 +159,7 @@ export default function ComplaintsPage() {
               onChange={(e) => setRejectReason(e.target.value)}
               placeholder="ระบุเหตุผลการปฏิเสธ..."
               rows={3}
-              className="w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-[14px] text-gray-700 outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100"
+              className="w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-[14px] text-gray-700 outline-none focus:ring-red-100"
             />
           </div>
           <DialogFooter>
@@ -191,13 +191,6 @@ export default function ComplaintsPage() {
             <p className="text-[14px] text-gray-600">
               คุณต้องการยอมรับคำร้องนี้ใช่หรือไม่?
             </p>
-            <textarea
-              value={acceptReason}
-              onChange={(e) => setAcceptReason(e.target.value)}
-              placeholder="หมายเหตุเพิ่มเติม..."
-              rows={3}
-              className="w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-[14px] text-gray-700 outline-none focus:border-green-400 focus:ring-2 focus:ring-green-100"
-            />
           </div>
           <DialogFooter>
             <button

@@ -120,7 +120,8 @@ export class TicketsService {
         tickets.id AS ticketId,
         tickets.request_id AS requestId,
         tickets.status AS ticketStatus,
-        tickets.description AS resolution,
+        tickets.title AS ticketTitle,
+        tickets.description AS ticketDescription,
         tickets.due_at AS dueAt,
         requests.request_no AS requestNo,
         requests.title,
@@ -150,10 +151,9 @@ export class TicketsService {
   }
 
   async hideAttachment(attachmentId: number) {
-    await this.db.query(
-      `UPDATE attachments SET status = 'hide' WHERE id = ?`,
-      [attachmentId],
-    );
+    await this.db.query(`UPDATE attachments SET status = 'hide' WHERE id = ?`, [
+      attachmentId,
+    ]);
   }
 
   async updateSubTicket(id: number, dto: UpdateTicketDto) {
@@ -217,7 +217,6 @@ export class TicketsService {
           [current.request_id, dto.changedBy ?? null],
         );
       }
-
     }
   }
 

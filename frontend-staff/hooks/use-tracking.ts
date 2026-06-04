@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
-type StepInfo = { date: string; time: string } | null;
+type StepInfo = { label: string; date: string; time: string } | null;
 
 export interface TrackingItem {
   id: number;
@@ -14,7 +14,7 @@ export interface TrackingItem {
   dueAt: string | null;
   allResolved: number;
   wasRejected: number;
-  steps: [StepInfo, StepInfo, StepInfo, StepInfo];
+  steps: StepInfo[];
 }
 
 export function useTracking() {
@@ -45,7 +45,7 @@ export function useTracking() {
     setItems((prev) =>
       prev.map((item) =>
         item.id === requestId
-          ? { ...item, status: "waiting_confirm" }
+          ? { ...item, status: "in_progress" }
           : item,
       ),
     );

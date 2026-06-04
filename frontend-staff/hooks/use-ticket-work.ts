@@ -6,7 +6,8 @@ export type TicketWorkDetail = {
   ticketId: number;
   requestId: number;
   ticketStatus: string;
-  resolution: string | null;
+  ticketTitle: string;
+  ticketDescription: string | null;
   dueAt: string | null;
   requestNo: string;
   title: string;

@@ -23,7 +23,9 @@ mkdirSync(uploadDir, { recursive: true });
 
 const storage = diskStorage({
   destination: uploadDir,
-  filename(_req, file, cb) { cb(null, file.originalname); },
+  filename(_req, file, cb) {
+    cb(null, file.originalname);
+  },
 });
 
 @Controller('admin/tickets')
@@ -110,6 +112,10 @@ export class TicketsController {
     @Body('requestId') requestId: string,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    return this.ticket.uploadTicketAttachments(ticketId, Number(requestId), files ?? []);
+    return this.ticket.uploadTicketAttachments(
+      ticketId,
+      Number(requestId),
+      files ?? [],
+    );
   }
 }

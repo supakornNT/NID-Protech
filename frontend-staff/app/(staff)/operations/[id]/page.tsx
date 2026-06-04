@@ -167,9 +167,9 @@ export default function OperationDetailPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-[28px] font-bold text-gray-900">
-              การจัดการงาน
+              {data.ticketTitle}
             </h1>
-            <p className="text-[14px] text-gray-500">งานที่ต้องมอบหมาย</p>
+            <p className="text-[14px] text-gray-500">{data.ticketDescription}</p>
           </div>
           <a
             href={`${API_BASE_URL}/requests/${data.requestId}/pdf`}

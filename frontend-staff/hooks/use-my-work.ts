@@ -2,33 +2,32 @@ import { useState, useEffect } from "react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
-export type MyRequestItem = {
+export type MyWorkItem = {
+  id: number;
   requestId: number;
-  ticketId: number;
   title: string;
-  requestStatus: string;
+  status: string;
   dueAt: string | null;
   customerName: string;
   systemName: string | null;
   problemName: string;
   requestType: string;
-  allResolved: number;
 };
 
 export function useMyWork(staffId: number) {
-  const [items, setItems] = useState<MyRequestItem[]>([]);
+  const [items, setItems] = useState<MyWorkItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     setLoading(true);
     setError(false);
-    fetch(`${API_BASE_URL}/admin/tickets/my-requests?staffId=${staffId}`)
+    fetch(`${API_BASE_URL}/admin/tickets/my-work?staffId=${staffId}`)
       .then((r) => {
         if (!r.ok) throw new Error();
         return r.json();
       })
-      .then((data: MyRequestItem[]) => setItems(Array.isArray(data) ? data : []))
+      .then((data: MyWorkItem[]) => setItems(Array.isArray(data) ? data : []))
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, [staffId]);
@@ -42,7 +41,7 @@ export function useMyWork(staffId: number) {
     setItems((prev) =>
       prev.map((item) =>
         item.requestId === requestId
-          ? { ...item, requestStatus: "waiting_confirm" }
+          ? { ...item, status: "waiting_confirm" }
           : item,
       ),
     );
