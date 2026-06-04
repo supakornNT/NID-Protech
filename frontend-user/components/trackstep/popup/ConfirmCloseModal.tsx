@@ -15,6 +15,8 @@ type ConfirmCloseModalProps = {
 
   cancelText?: string;
 
+  loading?: boolean;
+
   onClose: () => void;
 
   onConfirm: () => void;
@@ -27,6 +29,7 @@ export default function ConfirmCloseModal({
   subDescription,
   confirmText = "ยืนยัน",
   cancelText = "ยกเลิก",
+  loading = false,
   onClose,
   onConfirm,
 }: ConfirmCloseModalProps) {
@@ -49,10 +52,13 @@ export default function ConfirmCloseModal({
           <ProTechButton
             onClick={onClose}
             variant="outline"
+            disabled={loading}
           >
             {cancelText}
           </ProTechButton>
-          <ProTechButton onClick={onConfirm}>{confirmText}</ProTechButton>
+          <ProTechButton onClick={onConfirm} disabled={loading}>
+            {loading ? "กำลังยืนยัน..." : confirmText}
+          </ProTechButton>
         </div>
       </div>
     </div>

@@ -19,20 +19,24 @@ export function useAcceptComplaint(
         fetch(`${API_BASE_URL}/requests/update/status?id=${acceptId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({ status: "assigned" }),
         }),
         fetch(`${API_BASE_URL}/admin/screenings`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({
             requestId: acceptId,
             result: "accepted",
             note: acceptReason,
+            screenedBy: staffId,
           }),
         }),
         fetch(`${API_BASE_URL}/admin/request-status-logs`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({
             requestId: acceptId,
             status: "screening",

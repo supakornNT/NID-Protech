@@ -167,7 +167,7 @@ function StepperBar({
 
 export default function TrackingStatusPage() {
   const router = useRouter();
-  const { items, loading, error, submitWork } = useTracking();
+  const { items, loading, error } = useTracking();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState(ALL_OPTION);
   const [page, setPage] = useState(1);
@@ -283,11 +283,6 @@ export default function TrackingStatusPage() {
               const statusStyle =
                 mapped?.style ?? "border-gray-300 bg-gray-50 text-gray-600";
               const timeLeft = formatTimeLeft(item.dueAt, item.status);
-              const canSubmit =
-                !!item.allResolved &&
-                item.status !== "waiting_confirm" &&
-                item.status !== "closed";
-
               return (
                 <div key={item.id} className="bg-white p-5">
                   <div className="flex items-start justify-between gap-4">
@@ -332,15 +327,6 @@ export default function TrackingStatusPage() {
                       <StepperBar steps={item.steps} status={item.status} />
                     </div>
                     <div className="flex flex-col gap-3">
-                      {canSubmit && (
-                        <button
-                          type="button"
-                          onClick={() => void submitWork(item.id)}
-                          className="rounded-lg bg-[#366DBD] px-4 py-1.5 text-[13px] font-semibold text-white hover:bg-[#2d5da3]"
-                        >
-                          ส่งงาน
-                        </button>
-                      )}
                       <button
                         type="button"
                         className="rounded-lg border border-gray-400 bg-white px-4 py-1.5 text-[13px] text-gray-700 hover:bg-gray-50"

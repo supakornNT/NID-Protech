@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { FileText, ImageIcon, Info } from "lucide-react";
+import { FileText, ImageIcon, Info, X } from "lucide-react";
+import Image from "next/image";
 import { useCloseWork, type PendingCloseItem } from "@/hooks/use-close-work";
+import { useLightbox } from "@/hooks/use-complaint-detail";
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { ProTechButton } from "@/components/tables/protech-button";
 import { ProTechTable } from "@/components/tables/protech-table";
@@ -48,6 +50,7 @@ export default function CloseWorkPage() {
   const [attachLoading, setAttachLoading] = useState(false);
   const [note, setNote] = useState("");
   const [actioning, setActioning] = useState(false);
+  const { lightbox, setLightbox } = useLightbox();
 
   const LIMIT = 10;
   const source = tab === "pending" ? pending : history;
@@ -183,6 +186,30 @@ export default function CloseWorkPage() {
 
   return (
     <>
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+          onClick={() => setLightbox(null)}
+        >
+          <button
+            className="absolute right-4 top-4 text-white hover:text-gray-300"
+            onClick={() => setLightbox(null)}
+          >
+            <X size={32} />
+          </button>
+          <div onClick={(e) => e.stopPropagation()}>
+            <Image
+              src={lightbox}
+              alt="preview"
+              width={900}
+              height={700}
+              unoptimized
+              className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain"
+            />
+          </div>
+        </div>
+      )}
+
       <AdminModalShell
         open={selected !== null}
         onOpenChange={(open) => {
@@ -224,39 +251,31 @@ export default function CloseWorkPage() {
                 </p>
                 <div className="flex flex-col gap-2">
                   {attachments.map((file) => {
-                    const isImage = IMAGE_EXTS.includes(
-                      file.fileExt.toLowerCase(),
-                    );
+                    const ext = file.fileExt.toLowerCase();
+                    const isImage = IMAGE_EXTS.includes(ext);
                     const url = `${API_BASE_URL}/uploads/requests/${file.savedName}`;
-
+                    const nameNoExt = file.originalName.replace(new RegExp(`\\.${ext}$`, "i"), "");
                     return (
-                      <a
-                        key={file.id}
-                        href={url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 hover:bg-gray-50"
-                      >
-                        {isImage ? (
-                          <ImageIcon
-                            size={20}
-                            className="shrink-0 text-blue-400"
-                          />
-                        ) : (
-                          <FileText
-                            size={20}
-                            className="shrink-0 text-red-400"
-                          />
+                      <div key={file.id} className="flex items-center rounded-xl border border-gray-200 bg-white px-3 py-2.5">
+                        <button
+                          type="button"
+                          onClick={() => isImage && setLightbox(url)}
+                          className={`flex min-w-0 items-center gap-3 ${isImage ? "cursor-zoom-in" : "cursor-default"}`}
+                        >
+                          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isImage ? "bg-blue-50" : "bg-red-50"}`}>
+                            {isImage ? <ImageIcon size={20} className="text-blue-500" /> : <FileText size={20} className="text-red-500" />}
+                          </div>
+                          <div className="flex min-w-0 flex-col text-left">
+                            <span className="truncate text-[13px] font-medium text-gray-800">{nameNoExt}</span>
+                            <span className="text-[11px] text-gray-400">{ext.toUpperCase()}</span>
+                          </div>
+                        </button>
+                        {!isImage && (
+                          <a href={url} target="_blank" rel="noreferrer" className="ml-auto shrink-0 text-[12px] text-[#366DBD] hover:underline">
+                            เปิด
+                          </a>
                         )}
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-[13px] font-medium text-gray-800">
-                            {file.originalName}
-                          </span>
-                          <span className="text-[11px] uppercase text-gray-400">
-                            {file.fileExt}
-                          </span>
-                        </div>
-                      </a>
+                      </div>
                     );
                   })}
                 </div>

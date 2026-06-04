@@ -1,23 +1,22 @@
-.header{
-    font-size: 32;
-    padding: 48;
-    
+.header {
+    font-size: 2rem;
+    padding: 3rem;
 }
 
-.card{
+.card {
     width: 100%;
     max-width: 900px;
     min-height: 80vh;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     border-radius: 16px;
 }
 
 .input {
     border: 1px solid #7c7f85;
     border-radius: 6px;
-    padding: 8px 12px;
-    font-size: 14px;
-    
+    padding: 10px 12px;
+    font-size: 16px;
+    width: 100%;
 }
 
 .inputError {
@@ -40,11 +39,12 @@
 .button {
     background-color: #2F66C5;
     color: white;
-    font-size: 14px;
-    padding: 8px 24px;
+    font-size: 15px;
+    padding: 10px 28px;
     border-radius: 9999px;
     cursor: pointer;
     transition: background-color 0.15s ease;
+    min-height: 44px;
 }
 
 .button:hover {
@@ -53,4 +53,21 @@
 
 .button:active {
     background-color: #1F4B99;
+}
+
+.button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+    .card {
+        min-height: auto;
+        border-radius: 12px;
+    }
+
+    .button {
+        width: 100%;
+        padding: 12px 24px;
+    }
 }

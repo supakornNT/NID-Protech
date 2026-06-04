@@ -14,7 +14,7 @@ export function useTicketsByStaff(staffId: number | null) {
 
   const fetch_ = useCallback(() => {
     if (!staffId) return;
-    fetch(`http://localhost:4000/admin/tickets/by-staff?staffId=${staffId}`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? ""}/admin/tickets/by-staff?staffId=${staffId}`, { credentials: "include" })
       .then((r) => r.json())
       .then((data) => setTickets(Array.isArray(data) ? data : []));
   }, [staffId]);
