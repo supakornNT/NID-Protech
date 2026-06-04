@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ChevronLeft, ChevronRight, TriangleAlert, CheckCircle2 } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  TriangleAlert,
+  CheckCircle2,
+  Users,
+} from "lucide-react";
 import { useStaffList } from "@/hooks/use-staff-list";
 import { useTicketsByStaff } from "@/hooks/use-tickets-by-staff";
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
@@ -85,43 +92,52 @@ export default function AssignWorkPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6 bg-[#F0F4FA] p-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-[28px] font-bold text-gray-900">การจัดการงาน</h1>
-          <p className="text-[14px] text-gray-500">งานที่ต้องมอบหมาย</p>
-        </div>
+      {/* ── Header ── */}
+      <div className="flex items-center gap-4">
         <button
           type="button"
           onClick={() => router.back()}
-          className="rounded-full bg-[#366DBD] px-6 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3]"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 shadow-sm hover:bg-gray-50"
         >
-          ย้อนกลับ
+          <ArrowLeft size={18} />
         </button>
+        <div>
+          <h1 className="text-[22px] font-bold text-gray-900">มอบหมายงาน</h1>
+          <p className="text-[13px] text-gray-500">เลือกเจ้าหน้าที่เพื่อมอบหมายงานย่อย</p>
+        </div>
       </div>
 
-      <div className="flex min-h-[700px] gap-6">
-        <div className="flex flex-1 shrink-0 flex-col gap-4 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
+      {/* ── Two-column layout ── */}
+      <div className="flex min-h-170 gap-6">
+        {/* ── Left panel: staff list ── */}
+        <div className="flex w-105 shrink-0 flex-col gap-4 rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
+          <h3 className="text-[15px] font-semibold text-gray-900">รายชื่อเจ้าหน้าที่</h3>
+
           {loading ? (
             <div className="w-full animate-pulse space-y-3">
               <div className="flex gap-2">
-                <div className="h-9 flex-1 rounded bg-gray-200" />
-                <div className="h-9 w-20 rounded bg-gray-200" />
+                <div className="h-9 flex-1 rounded-lg bg-gray-200" />
+                <div className="h-9 w-20 rounded-lg bg-gray-200" />
               </div>
               {Array.from({ length: 4 }).map((_, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between gap-4 rounded-xl border border-[#000000] p-4"
+                  className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 p-4"
                 >
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 w-3/4 rounded bg-gray-200" />
-                    <div className="h-3 w-1/2 rounded bg-gray-200" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-full bg-gray-200" />
+                    <div className="space-y-2">
+                      <div className="h-4 w-32 rounded bg-gray-200" />
+                      <div className="h-3 w-20 rounded bg-gray-200" />
+                    </div>
                   </div>
-                  <div className="h-8 w-24 rounded bg-gray-200" />
+                  <div className="h-8 w-20 rounded-lg bg-gray-200" />
                 </div>
               ))}
             </div>
           ) : (
             <>
+              {/* Search bar */}
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -131,17 +147,18 @@ export default function AssignWorkPage() {
                     setStaffPage(1);
                   }}
                   placeholder="ค้นหาเจ้าหน้าที่..."
-                  className="h-9 flex-1 rounded-lg border border-gray-300 bg-white px-3 text-[14px] outline-none focus:border-[#366DBD]"
+                  className="h-9 flex-1 rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-800 outline-none transition focus:border-[#366DBD] focus:ring-1 focus:ring-[#366DBD]/20"
                 />
                 <button
                   type="button"
-                  className="h-9 rounded-lg bg-[#366DBD] px-4 text-[14px] font-semibold text-white hover:bg-[#2d5da3]"
+                  className="h-9 rounded-lg bg-[#366DBD] px-4 text-[13px] font-semibold text-white hover:bg-[#2d5da3]"
                 >
                   ค้นหา
                 </button>
               </div>
 
-              <div className="flex flex-col gap-3">
+              {/* Staff cards */}
+              <div className="flex flex-col gap-2">
                 {pagedStaffs.map((staff) => (
                   <div
                     key={staff.id}
@@ -153,19 +170,25 @@ export default function AssignWorkPage() {
                       });
                       setTicketPage(1);
                     }}
-                    className={`flex cursor-pointer items-center justify-between rounded-xl border p-4 transition-colors ${
+                    className={`flex cursor-pointer items-center justify-between rounded-xl border p-3.5 transition-colors ${
                       selectedStaff?.id === staff.id
                         ? "border-[#366DBD] bg-[#EEF4FF]"
-                        : "border-[#000000] bg-white hover:bg-gray-50"
+                        : "border-gray-200 bg-white hover:bg-gray-50"
                     }`}
                   >
-                    <div className="flex flex-col gap-0.5">
-                      <p className="text-[16px] font-semibold text-gray-900">
-                        {staff.fullName}
-                      </p>
-                      <p className="text-[14px] text-gray-500">
-                        รับผิดชอบอยู่ {staff.activeTaskCount} งาน
-                      </p>
+                    <div className="flex min-w-0 items-center gap-3">
+                      {/* Avatar */}
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#EEF4FF] text-[14px] font-bold text-[#366DBD]">
+                        {staff.fullName.charAt(0)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-[14px] font-semibold text-gray-900">
+                          {staff.fullName}
+                        </p>
+                        <span className="mt-0.5 inline-block rounded-full bg-orange-50 px-2 py-0.5 text-[12px] font-medium text-orange-600">
+                          {staff.activeTaskCount} งาน
+                        </span>
+                      </div>
                     </div>
                     <button
                       type="button"
@@ -177,28 +200,30 @@ export default function AssignWorkPage() {
                           activeTaskCount: staff.activeTaskCount,
                         });
                       }}
-                      className="rounded-lg bg-[#366DBD] px-4 py-1.5 text-[14px] font-semibold text-white hover:bg-[#2d5da3]"
+                      className="ml-3 shrink-0 rounded-lg bg-[#366DBD] px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-[#2d5da3]"
                     >
-                      มอบหมายงาน
+                      มอบหมาย
                     </button>
                   </div>
                 ))}
               </div>
 
+              {/* Staff pagination */}
               <div className="mt-auto flex items-center justify-end gap-1 text-sm text-gray-600">
                 <button
                   onClick={() => setStaffPage((page) => Math.max(1, page - 1))}
                   disabled={staffPage === 1}
-                  className="flex h-8 items-center gap-1 rounded-md px-2 text-gray-500 hover:text-[#366DBD] disabled:opacity-40"
+                  className="flex h-8 items-center gap-1 rounded-md px-2 text-[13px] text-gray-500 hover:text-[#366DBD] disabled:opacity-40"
                 >
-                  <ChevronLeft size={14} /> Previous
+                  <ChevronLeft size={14} />
+                  ก่อนหน้า
                 </button>
                 {Array.from({ length: totalStaffPages }, (_, index) => index + 1).map(
                   (page) => (
                     <button
                       key={page}
                       onClick={() => setStaffPage(page)}
-                      className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
+                      className={`flex h-8 w-8 items-center justify-center rounded-md border text-[13px] ${
                         staffPage === page
                           ? "border-[#7FA7E8] bg-[#EEF4FF] text-[#3A6FCF]"
                           : "border-transparent text-gray-600 hover:border-[#7FA7E8]"
@@ -216,52 +241,57 @@ export default function AssignWorkPage() {
                     setStaffPage((page) => Math.min(totalStaffPages, page + 1))
                   }
                   disabled={staffPage === totalStaffPages}
-                  className="flex h-8 items-center gap-1 rounded-md px-2 text-gray-500 hover:text-[#366DBD] disabled:opacity-40"
+                  className="flex h-8 items-center gap-1 rounded-md px-2 text-[13px] text-gray-500 hover:text-[#366DBD] disabled:opacity-40"
                 >
-                  Next <ChevronRight size={14} />
+                  ถัดไป
+                  <ChevronRight size={14} />
                 </button>
               </div>
             </>
           )}
         </div>
 
-        <div className="flex flex-1 flex-col gap-4 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
+        {/* ── Right panel: tickets ── */}
+        <div className="flex flex-1 flex-col gap-4 rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
           {!selectedStaff ? (
-            <div className="flex flex-1 items-center justify-center text-[14px] text-gray-400">
-              เลือกเจ้าหน้าที่เพื่อดูงานที่กำลังดำเนินการ
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 text-gray-400">
+              <Users size={40} strokeWidth={1.5} className="text-gray-300" />
+              <p className="text-[14px]">เลือกเจ้าหน้าที่เพื่อดูงาน</p>
             </div>
           ) : (
             <>
-              <div className="flex items-start justify-between">
-                <p className="text-[16px] font-bold text-gray-900">
-                  งานที่กำลังดำเนินการ
-                </p>
-                <div className="text-right">
-                  <p className="text-[16px] font-semibold text-gray-800">
+              {/* Panel header */}
+              <div className="flex items-center justify-between">
+                <h3 className="text-[15px] font-semibold text-gray-900">
+                  งานที่รับผิดชอบ
+                </h3>
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full bg-[#EEF4FF] px-3 py-1 text-[13px] font-semibold text-[#366DBD]">
                     {selectedStaff.fullName}
-                  </p>
-                  <p className="text-[14px] text-gray-500">
-                    รับผิดชอบอยู่ {selectedStaff.activeTaskCount} งาน
-                  </p>
+                  </span>
+                  <span className="rounded-full bg-orange-50 px-2 py-0.5 text-[12px] font-medium text-orange-600">
+                    {selectedStaff.activeTaskCount} งาน
+                  </span>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3">
+              {/* Ticket cards */}
+              <div className="flex flex-col gap-2">
                 {pagedTickets.map((ticket) => (
                   <div
                     key={ticket.id}
-                    className="flex items-start justify-between rounded-xl border border-[#000000] p-4"
+                    className="flex items-start justify-between rounded-xl border border-gray-200 border-l-4 border-l-[#366DBD] bg-white p-4 shadow-sm"
                   >
                     <div className="min-w-0 flex-1 pr-4">
-                      <p className="text-[16px] font-semibold text-gray-900">
+                      <p className="text-[14px] font-semibold text-gray-900">
                         {ticket.title}
                       </p>
-                      <p className="line-clamp-2 text-[14px] text-gray-500">
+                      <p className="line-clamp-1 mt-0.5 text-[13px] text-gray-500">
                         {ticket.detail}
                       </p>
                     </div>
                     <div className="shrink-0 text-right">
-                      <span className="rounded-md border border-[#F4A0A0] bg-[#FFF0F0] px-3 py-0.5 text-[14px] text-[#D9534F]">
+                      <span className="rounded-full border border-[#F4A0A0] bg-[#FFF0F0] px-3 py-0.5 text-[12px] font-medium text-[#D9534F]">
                         {ticket.requestType === "issue"
                           ? "ประเด็นปัญหา"
                           : ticket.requestType === "complaint"
@@ -269,7 +299,7 @@ export default function AssignWorkPage() {
                             : ticket.requestType}
                       </span>
                       {ticket.dueAt && (
-                        <p className="mt-1 text-[12px] text-gray-400">
+                        <p className="mt-1.5 text-[12px] text-gray-400">
                           กำหนดส่ง {formatDate(ticket.dueAt)}
                         </p>
                       )}
@@ -278,13 +308,15 @@ export default function AssignWorkPage() {
                 ))}
               </div>
 
+              {/* Ticket pagination */}
               <div className="mt-auto flex items-center justify-end gap-1 text-sm text-gray-600">
                 <button
                   onClick={() => setTicketPage((page) => Math.max(1, page - 1))}
                   disabled={ticketPage === 1}
-                  className="flex h-8 items-center gap-1 rounded-md px-2 text-gray-500 hover:text-[#366DBD] disabled:opacity-40"
+                  className="flex h-8 items-center gap-1 rounded-md px-2 text-[13px] text-gray-500 hover:text-[#366DBD] disabled:opacity-40"
                 >
-                  <ChevronLeft size={14} /> Previous
+                  <ChevronLeft size={14} />
+                  ก่อนหน้า
                 </button>
                 {Array.from(
                   { length: totalTicketPages },
@@ -293,7 +325,7 @@ export default function AssignWorkPage() {
                   <button
                     key={page}
                     onClick={() => setTicketPage(page)}
-                    className={`flex h-8 w-8 items-center justify-center rounded-md border text-sm ${
+                    className={`flex h-8 w-8 items-center justify-center rounded-md border text-[13px] ${
                       ticketPage === page
                         ? "border-[#7FA7E8] bg-[#EEF4FF] text-[#3A6FCF]"
                         : "border-transparent text-gray-600 hover:border-[#7FA7E8]"
@@ -310,9 +342,10 @@ export default function AssignWorkPage() {
                     setTicketPage((page) => Math.min(totalTicketPages, page + 1))
                   }
                   disabled={ticketPage === totalTicketPages}
-                  className="flex h-8 items-center gap-1 rounded-md px-2 text-gray-500 hover:text-[#366DBD] disabled:opacity-40"
+                  className="flex h-8 items-center gap-1 rounded-md px-2 text-[13px] text-gray-500 hover:text-[#366DBD] disabled:opacity-40"
                 >
-                  Next <ChevronRight size={14} />
+                  ถัดไป
+                  <ChevronRight size={14} />
                 </button>
               </div>
             </>
@@ -320,6 +353,7 @@ export default function AssignWorkPage() {
         </div>
       </div>
 
+      {/* ── Assign modal ── */}
       <AdminModalShell
         open={modalStaff !== null}
         onOpenChange={(open) => {
@@ -331,15 +365,16 @@ export default function AssignWorkPage() {
             setError(null);
           }
         }}
-        title={`มอบหมายงาน - ${modalStaff?.fullName ?? ""}`}
+        title={`มอบหมายงาน — ${modalStaff?.fullName ?? ""}`}
         widthClassName="max-w-[480px]"
       >
         <div className="flex flex-col gap-4">
           {error && (
-            <p className="rounded-lg border border-[#FFB4C0] bg-[#FFF5F7] px-3 py-2 text-xs text-[#D1435B]">
+            <p className="rounded-lg border border-[#FFB4C0] bg-[#FFF5F7] px-3 py-2 text-[13px] text-[#D1435B]">
               {error}
             </p>
           )}
+
           <div className="flex flex-col gap-1">
             <label className="text-[13px] font-semibold text-gray-700">
               ชื่องาน
@@ -349,9 +384,10 @@ export default function AssignWorkPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="ระบุชื่องาน..."
-              className="h-9 rounded-lg border border-gray-300 px-3 text-[14px] outline-none focus:border-[#366DBD]"
+              className="h-9 rounded-lg border border-gray-200 px-3 text-[14px] outline-none transition focus:border-[#366DBD] focus:ring-1 focus:ring-[#366DBD]/20"
             />
           </div>
+
           <div className="flex flex-col gap-1">
             <label className="text-[13px] font-semibold text-gray-700">
               รายละเอียด
@@ -361,9 +397,10 @@ export default function AssignWorkPage() {
               onChange={(e) => setDetail(e.target.value)}
               placeholder="ระบุรายละเอียด..."
               rows={4}
-              className="resize-none rounded-lg border border-gray-300 px-3 py-2 text-[14px] outline-none focus:border-[#366DBD]"
+              className="resize-none rounded-lg border border-gray-200 px-3 py-2 text-[14px] outline-none transition focus:border-[#366DBD] focus:ring-1 focus:ring-[#366DBD]/20"
             />
           </div>
+
           <div className="flex flex-col gap-1">
             <label className="text-[13px] font-semibold text-gray-700">
               กำหนดส่ง
@@ -375,7 +412,7 @@ export default function AssignWorkPage() {
               min={localToday}
               max={requestDueAt}
               disabled={isRequestDuePast}
-              className="h-9 rounded-lg border border-gray-300 px-3 text-[14px] outline-none focus:border-[#366DBD] disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+              className="h-9 rounded-lg border border-gray-200 px-3 text-[14px] outline-none transition focus:border-[#366DBD] focus:ring-1 focus:ring-[#366DBD]/20 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
             />
             {isRequestDuePast && (
               <p className="text-[12px] text-[#D1435B]">
@@ -383,14 +420,15 @@ export default function AssignWorkPage() {
               </p>
             )}
           </div>
-          <div className="flex justify-end gap-2 pt-2">
+
+          <div className="flex justify-end gap-2 pt-1">
             <button
               type="button"
               onClick={() => {
                 setModalStaff(null);
                 setError(null);
               }}
-              className="rounded-lg border border-gray-300 px-5 py-2 text-[14px] text-gray-600 hover:bg-gray-50"
+              className="rounded-lg border border-gray-200 px-5 py-2 text-[14px] text-gray-600 hover:bg-gray-50"
             >
               ยกเลิก
             </button>
@@ -422,7 +460,7 @@ export default function AssignWorkPage() {
         </div>
       </AdminModalShell>
 
-      {/* Create confirmation dialog */}
+      {/* ── Confirm dialog ── */}
       <AdminModalShell
         open={showCreateConfirm}
         onOpenChange={setShowCreateConfirm}
@@ -436,7 +474,7 @@ export default function AssignWorkPage() {
             </div>
           </div>
 
-          <p className="text-[15px] text-[#6B7280]">
+          <p className="text-[15px] text-gray-500">
             คุณต้องการมอบหมายงานย่อยนี้ให้ {modalStaff?.fullName} ใช่หรือไม่?
           </p>
 
@@ -472,7 +510,7 @@ export default function AssignWorkPage() {
         </div>
       </AdminModalShell>
 
-      {/* Create success dialog */}
+      {/* ── Success dialog ── */}
       <AdminModalShell
         open={showCreateSuccess}
         onOpenChange={setShowCreateSuccess}
@@ -486,7 +524,7 @@ export default function AssignWorkPage() {
             </div>
           </div>
 
-          <p className="text-[15px] text-[#6B7280]">
+          <p className="text-[15px] text-gray-500">
             มอบหมายงานย่อยสำเร็จเรียบร้อยแล้ว
           </p>
 

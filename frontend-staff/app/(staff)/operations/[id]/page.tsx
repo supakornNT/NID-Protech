@@ -174,7 +174,7 @@ export default function OperationDetailPage() {
         {loading ? (
           showSkeleton ? (
             <div className="flex min-h-[700px] w-full animate-pulse gap-12">
-              <div className="flex flex-1 shrink-0 flex-col gap-5 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
+              <div className="flex flex-1 shrink-0 flex-col gap-5 rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
                 <div className="flex items-start justify-between">
                   <div className="h-7 w-3/4 rounded bg-gray-200" />
                   <div className="h-6 w-28 rounded bg-gray-200" />
@@ -186,7 +186,7 @@ export default function OperationDetailPage() {
                 <div className="h-80 w-full rounded-lg bg-gray-100" />
               </div>
 
-              <div className="flex flex-1 flex-col gap-4 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
+              <div className="flex flex-1 flex-col gap-4 rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
                 <div className="h-6 w-1/2 rounded bg-gray-200" />
                 <div className="mt-6 h-80 w-full rounded-lg bg-gray-100" />
                 <div className="mt-auto flex justify-end gap-2">
@@ -196,12 +196,12 @@ export default function OperationDetailPage() {
             </div>
           ) : null
         ) : !data ? (
-          <div className="flex min-h-[700px] flex-1 items-center justify-center rounded-2xl border border-[#000000] bg-white p-8 text-gray-500">
+          <div className="flex min-h-[700px] flex-1 items-center justify-center rounded-2xl border border-gray-300 bg-white p-8 text-gray-500">
             ไม่พบข้อมูล
           </div>
         ) : (
           <div className="flex min-h-[700px] gap-12">
-            <div className="flex flex-1 flex-col gap-5 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
+            <div className="flex flex-1 flex-col gap-5 rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
               <div className="flex items-start justify-between gap-3">
                 <p className="text-[18px] font-bold text-gray-900">
                   {data.title}
@@ -220,7 +220,7 @@ export default function OperationDetailPage() {
                 readOnly
                 value={data.detail}
                 rows={12}
-                className="w-full resize-none rounded-lg border border-[#000000] bg-gray-50 p-3 text-[13px] text-gray-700 outline-none"
+                className="w-full resize-none rounded-lg border border-gray-300 bg-gray-50 p-3 text-[13px] text-gray-700 outline-none"
               />
 
               {attachments.length > 0 && (
@@ -268,7 +268,7 @@ export default function OperationDetailPage() {
               )}
             </div>
 
-            <div className="flex flex-1 flex-col rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
+            <div className="flex flex-1 flex-col rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
               <div>
                 <p className="text-[16px] font-bold text-gray-900">
                   รายละเอียดการแก้ไขปัญหา
@@ -295,7 +295,7 @@ export default function OperationDetailPage() {
                 rows={12}
                 placeholder="ระบุสรุปผลการแก้ไข"
                 disabled={isPendingReview}
-                className="mt-16 w-full resize-none rounded-lg border border-black p-3 text-[13px] text-gray-700 outline-none focus:border-[#366DBD] disabled:bg-gray-100 disabled:text-gray-500"
+                className="mt-16 w-full resize-none rounded-lg border border-gray-300 p-3 text-[13px] text-gray-700 outline-none focus:border-[#366DBD] disabled:bg-gray-100 disabled:text-gray-500"
               />
 
               <div className="mt-2 flex flex-col gap-2">

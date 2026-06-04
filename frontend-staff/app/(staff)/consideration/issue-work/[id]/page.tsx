@@ -332,13 +332,20 @@ export default function ManageWorkDetailPage() {
             </button>
             <button
               type="button"
-              onClick={() => setShowForwardConfirm(true)}
-              disabled={!canSubmit}
-              className="rounded-lg bg-[#366DBD] px-5 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => router.push(`/consideration/issue-work/${effectiveRequestId}/assign`)}
+              className="rounded-lg border border-[#366DBD] px-5 py-2 text-[14px] font-semibold text-[#366DBD] hover:bg-blue-50"
             >
-              ส่งต่อ
+              มอบหมายงาน
             </button>
           </div>
+          <button
+            type="button"
+            onClick={() => setShowForwardConfirm(true)}
+            disabled={!canSubmit}
+            className="rounded-lg bg-[#366DBD] px-5 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            ส่งต่อ
+          </button>
         </div>
 
         {loading ? (
@@ -664,7 +671,8 @@ export default function ManageWorkDetailPage() {
                   Next <ChevronRight size={14} />
                 </button>
               </div>
-              <div className="flex justify-end">
+              )}
+              <div className="mt-auto flex justify-end pt-4">
                 <button
                   type="button"
                   disabled={dueDateLoading || !editedDueDate}
@@ -676,9 +684,8 @@ export default function ManageWorkDetailPage() {
               </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
 
       {/* Cancel confirmation dialog */}
       <AdminModalShell

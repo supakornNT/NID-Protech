@@ -36,7 +36,7 @@ export default function HomePage() {
     : "-- : -- : --";
 
   return (
-    <div className="flex flex-1 flex-col gap-8 bg-[#E3EDFD] px-32 py-10">
+    <div className="flex flex-1 flex-col gap-8 bg-[#F0F4FA] px-32 py-10">
       <div className="relative w-full overflow-hidden" style={{ minHeight: 560 }}>
         <div className="absolute right-0 top-0 h-full w-[60%]">
           <Image
