@@ -107,6 +107,9 @@ export default function IssueWorkPage() {
                     )}
                   </div>
                   <p className="text-[14px] text-gray-500">
+                    หมายเลขแจ้ง : {item.requestNo}
+                  </p>
+                  <p className="text-[14px] text-gray-500">
                     ผู้แจ้ง : {item.customerName} {item.customerSurname}
                   </p>
                   <p className="text-[14px] text-gray-500">

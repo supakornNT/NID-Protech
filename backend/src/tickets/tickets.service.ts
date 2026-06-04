@@ -10,10 +10,11 @@ import {
 } from './interfaces/ticket.interface';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
+import { SubmitTicketResolutionDto } from './dto/submit-ticket-resolution.dto';
 
 @Injectable()
 export class TicketsService {
-  constructor(@Inject('DB') private readonly db: Pool) {}
+  constructor(@Inject('DB') private readonly db: Pool) { }
 
   async findByStaff(staffId: number) {
     const [rows] = await this.db.query<TicketByRequest[]>(
@@ -48,7 +49,7 @@ export class TicketsService {
         tickets.resolved_at AS resolvedAt
       FROM tickets
       LEFT JOIN staffs ON staffs.id = tickets.assigned_staff_id
-      WHERE tickets.request_id = ? AND tickets.status != 'cancelled'
+      WHERE tickets.request_id = ? AND tickets.status = 'assigned'
       `,
       [id],
     );
@@ -121,6 +122,9 @@ export class TicketsService {
         tickets.title AS ticketTitle,
         tickets.description AS ticketDescription,
         tickets.due_at AS dueAt,
+        latest_trr.id AS resolutionRequestId,
+        latest_trr.status AS resolutionRequestStatus,
+        latest_trr.summary AS resolutionSummary,
         requests.request_no AS requestNo,
         requests.title,
         requests.detail,
@@ -129,12 +133,12 @@ export class TicketsService {
         problem_types.name AS problemName,
         problem_types.request_type AS requestType,
         (
-          SELECT note FROM request_status_logs
-          WHERE request_id = tickets.request_id
-            AND status = 'in_progress'
-            AND changed_by_type = 'operator'
-            AND note IS NOT NULL
-          ORDER BY created_at DESC
+          SELECT trr_reject.reject_reason
+          FROM ticket_resolution_requests trr_reject
+          WHERE trr_reject.ticket_id = tickets.id
+            AND trr_reject.status = 'rejected'
+            AND trr_reject.reject_reason IS NOT NULL
+          ORDER BY trr_reject.id DESC
           LIMIT 1
         ) AS rejectNote
       FROM tickets
@@ -142,6 +146,16 @@ export class TicketsService {
       LEFT JOIN customers ON customers.id = requests.customer_id
       LEFT JOIN systems ON systems.id = requests.system_id
       LEFT JOIN problem_types ON problem_types.id = requests.problem_type_id
+      LEFT JOIN (
+        SELECT latest.*
+        FROM ticket_resolution_requests latest
+        INNER JOIN (
+          SELECT ticket_id, MAX(id) AS latest_id
+          FROM ticket_resolution_requests
+          GROUP BY ticket_id
+        ) picked
+          ON picked.latest_id = latest.id
+      ) latest_trr ON latest_trr.ticket_id = tickets.id
       WHERE tickets.id = ?`,
       [ticketId],
     );
@@ -235,12 +249,139 @@ export class TicketsService {
       LEFT JOIN customers ON customers.id = requests.customer_id
       LEFT JOIN systems ON systems.id = requests.system_id
       LEFT JOIN problem_types ON problem_types.id = requests.problem_type_id
+      LEFT JOIN (
+        SELECT latest.*
+        FROM ticket_resolution_requests latest
+        INNER JOIN (
+          SELECT ticket_id, MAX(id) AS latest_id
+          FROM ticket_resolution_requests
+          GROUP BY ticket_id
+        ) picked
+          ON picked.latest_id = latest.id
+      ) latest_trr ON latest_trr.ticket_id = tickets.id
       WHERE tickets.assigned_staff_id = ?
         AND tickets.status NOT IN ('cancelled', 'resolved')
+        AND COALESCE(latest_trr.status, '') != 'pending'
       ORDER BY tickets.created_at DESC`,
       [staffId],
     );
     return rows;
+  }
+
+  async submitResolution(
+    ticketId: number,
+    dto: SubmitTicketResolutionDto,
+    files: Express.Multer.File[],
+  ) {
+    const connection = await this.db.getConnection();
+    try {
+      await connection.beginTransaction();
+
+      type TicketRow = {
+        id: number;
+        request_id: number;
+        status: string;
+      } & import('mysql2/promise').RowDataPacket;
+
+      const [[ticket]] = await connection.query<TicketRow[]>(
+        `SELECT id, request_id, status
+         FROM tickets
+         WHERE id = ?`,
+        [ticketId],
+      );
+
+      if (!ticket) {
+        throw new Error('Ticket not found');
+      }
+
+      type ResolutionRow = {
+        id: number;
+        status: string;
+      } & import('mysql2/promise').RowDataPacket;
+
+      const [[latestResolution]] = await connection.query<ResolutionRow[]>(
+        `SELECT id, status
+         FROM ticket_resolution_requests
+         WHERE ticket_id = ?
+         ORDER BY id DESC
+         LIMIT 1`,
+        [ticketId],
+      );
+
+      let resolutionRequestId = latestResolution?.id ?? null;
+
+      if (latestResolution?.status === 'pending') {
+        await connection.query(
+          `UPDATE ticket_resolution_requests
+           SET requested_by = ?,
+               summary = ?,
+               reviewed_by = NULL,
+               reviewed_at = NULL,
+               reject_reason = NULL
+           WHERE id = ?`,
+          [dto.requestedBy, dto.summary, latestResolution.id],
+        );
+      } else {
+        const [result] = await connection.query<ResultSetHeader>(
+          `INSERT INTO ticket_resolution_requests (
+            ticket_id,
+            requested_by,
+            summary,
+            status,
+            reviewed_by,
+            reviewed_at,
+            reject_reason
+          ) VALUES (?, ?, ?, 'pending', NULL, NULL, NULL)`,
+          [ticketId, dto.requestedBy, dto.summary],
+        );
+        resolutionRequestId = result.insertId;
+      }
+
+      await connection.query(
+        `UPDATE tickets
+         SET status = 'in_progress'
+         WHERE id = ?`,
+        [ticketId],
+      );
+
+      await connection.query(
+        `INSERT INTO ticket_status_logs (ticket_id, old_status, new_status, changed_by, note)
+         VALUES (?, ?, 'in_progress', ?, ?)`,
+        [
+          ticketId,
+          ticket.status,
+          dto.requestedBy,
+          'ส่งผลการแก้ไขเพื่อรออนุมัติ',
+        ],
+      );
+
+      for (const file of files) {
+        const ext = file.originalname.split('.').pop() ?? '';
+        await connection.query(
+          `INSERT INTO attachments (
+            request_id,
+            ticket_id,
+            attachment_type,
+            original_name,
+            saved_name,
+            file_ext,
+            status
+          ) VALUES (?, ?, 'resolution_evidence', ?, ?, ?, 'show')`,
+          [dto.requestId, ticketId, file.originalname, file.filename, ext],
+        );
+      }
+
+      await connection.commit();
+      return {
+        success: true,
+        resolutionRequestId,
+      };
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
   }
 
   async findTicketAttachments(ticketId: number) {

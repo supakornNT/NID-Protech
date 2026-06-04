@@ -48,6 +48,7 @@ export interface RequestsScreening extends RowDataPacket {
 
 export interface RequestsDetail extends RowDataPacket {
   id: number;
+  requestNo: string;
   customerName: string;
   organizationName: string | null;
   systemName: string;
@@ -59,10 +60,13 @@ export interface RequestsDetail extends RowDataPacket {
   dueAt: string | null;
   closedAt: Date | null;
   resolvedAt: string | null;
+  wasReopened: number;
+  latestReopenComment: string | null;
 }
 
 export interface RequestsAssign extends RowDataPacket {
   id: number;
+  requestNo: string;
   systemName: string;
   title: string;
   customerName: string;

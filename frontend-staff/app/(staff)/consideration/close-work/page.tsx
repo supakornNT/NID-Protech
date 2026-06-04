@@ -1,403 +1,203 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { FileText, ImageIcon, Info, X } from "lucide-react";
-import Image from "next/image";
-import { useCloseWork, type PendingCloseItem } from "@/hooks/use-close-work";
-import { useLightbox } from "@/hooks/use-complaint-detail";
-import { AdminModalShell } from "@/components/admin/admin-modal-shell";
-import { ProTechButton } from "@/components/tables/protech-button";
-import { ProTechTable } from "@/components/tables/protech-table";
-import { ToolbarSelect } from "@/components/ui/toolbar-select";
-import type { Column } from "@/types/table";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { useCloseWork } from "@/hooks/use-close-work";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
-const IMAGE_EXTS = ["jpg", "jpeg", "png", "gif", "webp"];
-const ALL_OPTION = "ทั้งหมด";
+const LIMIT = 4;
 
-const TYPE_LABEL: Record<string, string> = {
-  issue: "ปัญหา",
-  complaint: "ร้องเรียน",
-  service: "บริการ",
-};
+export default function CloseWorkListPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get("tab") === "history" ? "history" : "pending";
 
-type Attachment = {
-  id: number;
-  originalName: string;
-  savedName: string;
-  fileExt: string;
-};
-
-function formatTime(dateStr: string | null) {
-  if (!dateStr) return "—";
-  const d = new Date(dateStr);
-  return `${String(d.getHours()).padStart(2, "0")}:${String(
-    d.getMinutes(),
-  ).padStart(2, "0")}`;
-}
-
-export default function CloseWorkPage() {
-  const { pending, history, loading, error, approveTicket, rejectTicket } =
-    useCloseWork();
-
-  const [tab, setTab] = useState<"pending" | "history">("pending");
+  const { requests, loading, error, fetchRequests } = useCloseWork();
+  const [tab, setTab] = useState<"pending" | "history">(initialTab);
   const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState(ALL_OPTION);
-  const [sortTime, setSortTime] = useState<"latest" | "oldest">("latest");
   const [page, setPage] = useState(1);
-  const [selected, setSelected] = useState<PendingCloseItem | null>(null);
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [attachLoading, setAttachLoading] = useState(false);
-  const [note, setNote] = useState("");
-  const [actioning, setActioning] = useState(false);
-  const { lightbox, setLightbox } = useLightbox();
 
-  const LIMIT = 10;
-  const source = tab === "pending" ? pending : history;
+  useEffect(() => {
+    void fetchRequests(tab);
+  }, [tab, fetchRequests]);
 
-  const typeOptions = [
-    { value: ALL_OPTION, label: "ประเภททั้งหมด" },
-    ...Array.from(
-      new Set(source.map((item) => TYPE_LABEL[item.requestType] ?? item.requestType)),
-    ).map((label) => ({
-      value: label,
-      label,
-    })),
-  ];
-
-  const timeOptions = [
-    { value: "latest", label: "ล่าสุด" },
-    { value: "oldest", label: "เก่าสุด" },
-  ];
-
-  const filtered = useMemo(() => {
-    const result = source.filter((item) => {
-      const typeLabel = TYPE_LABEL[item.requestType] ?? item.requestType;
-      const matchSearch =
-        search === "" ||
-        item.title.includes(search) ||
-        item.customerName.includes(search) ||
-        item.assignedStaffName.includes(search) ||
-        (item.systemName ?? "").includes(search);
-      const matchType = typeFilter === ALL_OPTION || typeLabel === typeFilter;
-      return matchSearch && matchType;
-    });
-
-    result.sort((a, b) => {
-      const left = a.resolvedAt ? new Date(a.resolvedAt).getTime() : 0;
-      const right = b.resolvedAt ? new Date(b.resolvedAt).getTime() : 0;
-      return sortTime === "latest" ? right - left : left - right;
-    });
-
-    return result;
-  }, [search, sortTime, source, typeFilter]);
+  const filtered = requests.filter(
+    (item) =>
+      search === "" ||
+      item.requestNo.toLowerCase().includes(search.toLowerCase()) ||
+      item.title.toLowerCase().includes(search.toLowerCase()) ||
+      item.customerName.toLowerCase().includes(search.toLowerCase()) ||
+      (item.systemName ?? "").toLowerCase().includes(search.toLowerCase()) ||
+      item.problemName.toLowerCase().includes(search.toLowerCase()),
+  );
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / LIMIT));
+  const paged = filtered.slice((page - 1) * LIMIT, page * LIMIT);
 
-  async function openDetail(item: PendingCloseItem) {
-    setSelected(item);
-    setNote("");
-    setAttachments([]);
-    setAttachLoading(true);
-
-    try {
-      const res = await fetch(
-        `${API_BASE_URL}/admin/tickets/${item.id}/attachments`,
-      );
-
-      if (res.ok) {
-        const data: Attachment[] = await res.json();
-        setAttachments(Array.isArray(data) ? data : []);
-      }
-    } finally {
-      setAttachLoading(false);
+  function getVisiblePages() {
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
     }
-  }
-
-  async function handleApprove() {
-    if (!selected) return;
-
-    setActioning(true);
-    try {
-      await approveTicket(selected.id);
-      setSelected(null);
-    } finally {
-      setActioning(false);
-    }
-  }
-
-  async function handleReject() {
-    if (!selected || !note.trim()) return;
-
-    setActioning(true);
-    try {
-      await rejectTicket(selected.id, note);
-      setSelected(null);
-      setNote("");
-    } finally {
-      setActioning(false);
-    }
-  }
-
-  const columns: Column<PendingCloseItem>[] = [
-    {
-      key: "systemName",
-      title: "ระบบ",
-      render: (_, row) => row.systemName ?? "—",
-    },
-    { key: "title", title: "หัวข้อ" },
-    {
-      key: "requestType",
-      title: "ประเภท",
-      render: (_, row) => (
-        <span className="inline-flex rounded-md border border-[#F4A0A0] bg-[#FFF0F0] px-2.5 py-0.5 text-[12px] text-[#D9534F]">
-          {row.problemName}
-        </span>
-      ),
-    },
-    {
-      key: "resolvedAt",
-      title: "ส่งเวลา",
-      render: (_, row) => formatTime(row.resolvedAt),
-    },
-    { key: "assignedStaffName", title: "รับผิดชอบโดย" },
-    {
-      key: "id",
-      title: "รายละเอียด",
-      render: (_, row) => (
-        <button
-          type="button"
-          onClick={() => openDetail(row)}
-          className="flex w-full items-center justify-center text-[#366DBD] hover:text-[#2d5da3]"
-        >
-          <Info size={20} />
-        </button>
-      ),
-    },
-  ];
-
-  if (error) {
-    return (
-      <div className="flex flex-1 items-center justify-center text-red-400">
-        โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง
-      </div>
-    );
+    const start = Math.max(1, Math.min(page - 1, totalPages - 4));
+    return Array.from({ length: Math.min(3, totalPages) }, (_, index) => start + index);
   }
 
   return (
-    <>
-      {lightbox && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
-          onClick={() => setLightbox(null)}
+    <div className="flex flex-1 flex-col gap-6 bg-[#F0F4FA] p-8">
+      <div>
+        <h1 className="text-[28px] font-bold text-gray-900">การจัดการงาน</h1>
+        <p className="text-[14px] text-gray-500">ตรวจสอบและอนุมัติ</p>
+      </div>
+
+      <div className="flex gap-3">
+        <button
+          type="button"
+          onClick={() => {
+            setTab("pending");
+            setPage(1);
+          }}
+          className={`rounded-full px-5 py-2 text-[14px] font-semibold transition ${
+            tab === "pending"
+              ? "bg-[#2F66C5] text-white"
+              : "border border-[#A8B1C2] bg-white text-[#4B5563] hover:bg-[#EEF4FF]"
+          }`}
         >
-          <button
-            className="absolute right-4 top-4 text-white hover:text-gray-300"
-            onClick={() => setLightbox(null)}
-          >
-            <X size={32} />
-          </button>
-          <div onClick={(e) => e.stopPropagation()}>
-            <Image
-              src={lightbox}
-              alt="preview"
-              width={900}
-              height={700}
-              unoptimized
-              className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain"
-            />
-          </div>
+          รออนุมัติ
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setTab("history");
+            setPage(1);
+          }}
+          className={`rounded-full px-5 py-2 text-[14px] font-semibold transition ${
+            tab === "history"
+              ? "bg-[#2F66C5] text-white"
+              : "border border-[#A8B1C2] bg-white text-[#4B5563] hover:bg-[#EEF4FF]"
+          }`}
+        >
+          ประวัติการอนุมัติ
+        </button>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <div className="relative">
+          <Search
+            size={15}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            placeholder="ค้นหาคำขอ..."
+            className="h-9 w-56 rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-[14px] outline-none focus:border-[#366DBD] focus:ring-2 focus:ring-[#366DBD]/10"
+          />
         </div>
-      )}
+        <button
+          type="button"
+          className="h-9 rounded-lg bg-[#366DBD] px-5 text-[14px] font-semibold text-white transition hover:bg-[#2d5da3]"
+        >
+          ค้นหา
+        </button>
+      </div>
 
-      <AdminModalShell
-        open={selected !== null}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelected(null);
-            setNote("");
-          }
-        }}
-        title="รายละเอียดการแก้ไขปัญหา"
-        description="ขั้นตอนวิธีการแก้ไข"
-        widthClassName="max-w-[520px]"
-      >
-        {selected && (
-          <div className="flex flex-col gap-4">
-            <textarea
-              readOnly
-              rows={5}
-              value={selected.resolution ?? ""}
-              placeholder="ไม่มีข้อมูลการแก้ไข"
-              className="w-full resize-none rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-[13px] text-gray-700 outline-none"
-            />
-
-            <div className="flex flex-col gap-1">
-              <label className="text-[13px] text-gray-500">คำอธิบาย</label>
-              <textarea
-                rows={4}
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-[13px] text-gray-700 outline-none focus:border-[#366DBD]"
-              />
-            </div>
-
-            {attachLoading ? (
-              <p className="text-[12px] text-gray-400">กำลังโหลดไฟล์...</p>
-            ) : attachments.length > 0 ? (
-              <div className="flex flex-col gap-2">
-                <p className="text-[13px] text-gray-500">
-                  ไฟล์แนบ ({attachments.length})
-                </p>
-                <div className="flex flex-col gap-2">
-                  {attachments.map((file) => {
-                    const ext = file.fileExt.toLowerCase();
-                    const isImage = IMAGE_EXTS.includes(ext);
-                    const url = `${API_BASE_URL}/uploads/requests/${file.savedName}`;
-                    const nameNoExt = file.originalName.replace(new RegExp(`\\.${ext}$`, "i"), "");
-                    return (
-                      <div key={file.id} className="flex items-center rounded-xl border border-gray-200 bg-white px-3 py-2.5">
-                        <button
-                          type="button"
-                          onClick={() => isImage && setLightbox(url)}
-                          className={`flex min-w-0 items-center gap-3 ${isImage ? "cursor-zoom-in" : "cursor-default"}`}
-                        >
-                          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isImage ? "bg-blue-50" : "bg-red-50"}`}>
-                            {isImage ? <ImageIcon size={20} className="text-blue-500" /> : <FileText size={20} className="text-red-500" />}
-                          </div>
-                          <div className="flex min-w-0 flex-col text-left">
-                            <span className="truncate text-[13px] font-medium text-gray-800">{nameNoExt}</span>
-                            <span className="text-[11px] text-gray-400">{ext.toUpperCase()}</span>
-                          </div>
-                        </button>
-                        {!isImage && (
-                          <a href={url} target="_blank" rel="noreferrer" className="ml-auto shrink-0 text-[12px] text-[#366DBD] hover:underline">
-                            เปิด
-                          </a>
-                        )}
-                      </div>
-                    );
-                  })}
+      <div className="overflow-hidden rounded-[14px] border border-[#7FA7E8] bg-white">
+        {loading && paged.length === 0 ? (
+          <div className="flex animate-pulse flex-col divide-y divide-[#7FA7E8]">
+            {Array.from({ length: 3 }).map((_, idx) => (
+              <div key={idx} className="space-y-4 bg-white p-5">
+                <div className="flex items-start justify-between">
+                  <div className="w-2/3 space-y-2">
+                    <div className="h-5 w-3/4 rounded bg-gray-200" />
+                    <div className="h-4 w-1/2 rounded bg-gray-200" />
+                    <div className="h-4 w-1/3 rounded bg-gray-200" />
+                  </div>
+                  <div className="shrink-0 space-y-3">
+                    <div className="h-4 w-28 rounded bg-gray-200" />
+                    <div className="h-8 w-24 rounded bg-gray-200" />
+                  </div>
                 </div>
               </div>
-            ) : null}
-
-            {tab === "pending" && (
-              <div className="flex justify-end gap-2 pt-1">
-                <button
-                  type="button"
-                  disabled={actioning || !note.trim()}
-                  onClick={handleReject}
-                  className="rounded-lg border border-[#D9534F] px-5 py-2 text-[13px] font-semibold text-[#D9534F] hover:bg-red-50 disabled:opacity-40"
-                >
-                  {actioning ? "กำลังบันทึก..." : "ไม่อนุมัติ"}
-                </button>
-                <button
-                  type="button"
-                  disabled={actioning}
-                  onClick={handleApprove}
-                  className="rounded-lg bg-[#366DBD] px-5 py-2 text-[13px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-50"
-                >
-                  {actioning ? "กำลังบันทึก..." : "อนุมัติ"}
-                </button>
+            ))}
+          </div>
+        ) : error ? (
+          <div className="flex h-32 items-center justify-center text-sm text-red-500">
+            โหลดข้อมูลไม่สำเร็จ
+          </div>
+        ) : paged.length === 0 ? (
+          <div className="flex h-32 items-center justify-center text-sm text-gray-500">
+            ไม่พบข้อมูล
+          </div>
+        ) : (
+          <div className="flex flex-col divide-y divide-[#7FA7E8]">
+            {paged.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center justify-between bg-white px-6 py-5"
+              >
+                <div className="flex flex-col gap-1.5">
+                  <p className="text-[17px] font-bold text-gray-900">{item.title}</p>
+                  <p className="text-[14px] text-gray-500">เลขคำขอ : {item.requestNo}</p>
+                  <p className="text-[14px] text-gray-500">ผู้แจ้ง : {item.customerName}</p>
+                  <p className="text-[14px] text-gray-500">ระบบ : {item.systemName || "-"}</p>
+                  <span className="mt-1 inline-flex w-fit rounded-md border border-[#F4A0A0] bg-[#FFF0F0] px-3 py-0.5 text-[13px] text-[#D9534F]">
+                    {item.problemName}
+                  </span>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <p className="text-[14px]">
+                    สถานะ : <span className="font-bold text-[#366DBD]">{item.status}</span>
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      router.push(`/consideration/close-work/${item.id}?tab=${tab}`)
+                    }
+                    className="mt-1 rounded-lg border border-[#929396] bg-white px-5 py-1.5 text-[14px] text-gray-700 hover:bg-gray-50"
+                  >
+                    {tab === "pending" ? "จัดการ" : "ดูรายละเอียด"}
+                  </button>
+                </div>
               </div>
-            )}
+            ))}
           </div>
         )}
-      </AdminModalShell>
-
-      <div className="flex flex-1 flex-col gap-6 bg-[#F0F4FA] p-8">
-        <div>
-          <h1 className="text-[28px] font-bold text-gray-900">การจัดการงาน</h1>
-          <p className="text-[14px] text-gray-500">ตรวจสอบและอนุมัติ</p>
-        </div>
-
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-6 border-b border-gray-200">
-            <button
-              type="button"
-              onClick={() => {
-                setTab("pending");
-                setPage(1);
-              }}
-              className={`pb-2 text-[14px] font-semibold transition-colors ${
-                tab === "pending"
-                  ? "border-b-2 border-[#366DBD] text-[#366DBD]"
-                  : "text-gray-400 hover:text-gray-600"
-              }`}
-            >
-              รออนุมัติ
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setTab("history");
-                setPage(1);
-              }}
-              className={`pb-2 text-[14px] font-semibold transition-colors ${
-                tab === "history"
-                  ? "border-b-2 border-[#366DBD] text-[#366DBD]"
-                  : "text-gray-400 hover:text-gray-600"
-              }`}
-            >
-              ประวัติการอนุมัติ
-            </button>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              placeholder="ค้นหา..."
-              className="h-9 w-52 rounded-lg border border-gray-300 bg-white px-3 text-[14px] outline-none focus:border-[#366DBD]"
-            />
-            <ProTechButton
-              variant="search"
-              className="h-9 px-5 text-[14px]"
-              onClick={() => setPage(1)}
-            >
-              ค้นหา
-            </ProTechButton>
-
-            <ToolbarSelect
-              value={typeFilter}
-              placeholder="ประเภททั้งหมด"
-              options={typeOptions}
-              onChange={(value) => {
-                setTypeFilter(value);
-                setPage(1);
-              }}
-              className="w-[190px]"
-            />
-
-            <ToolbarSelect
-              value={sortTime}
-              placeholder="เวลา"
-              options={timeOptions}
-              onChange={(value) => {
-                setSortTime(value as "latest" | "oldest");
-                setPage(1);
-              }}
-              className="w-[150px]"
-            />
-          </div>
-        </div>
-
-        <ProTechTable
-          columns={columns}
-          data={filtered}
-          limit={LIMIT}
-          page={page}
-          totalPages={totalPages}
-          totalItems={filtered.length}
-          onPageChange={setPage}
-          loading={loading}
-        />
       </div>
-    </>
+
+      <div className="flex items-center justify-end gap-1 text-sm text-gray-600">
+        <button
+          onClick={() => setPage((current) => Math.max(1, current - 1))}
+          disabled={page === 1}
+          className="flex h-9 items-center gap-1 rounded-md px-2 text-gray-500 hover:text-[#366DBD] disabled:opacity-40"
+        >
+          <ChevronLeft size={16} /> Previous
+        </button>
+        {getVisiblePages().map((pageNumber) => (
+          <button
+            key={pageNumber}
+            onClick={() => setPage(pageNumber)}
+            className={`flex h-9 w-9 items-center justify-center rounded-md border text-sm transition-all ${
+              page === pageNumber
+                ? "border-[#7FA7E8] bg-[#EEF4FF] text-[#3A6FCF]"
+                : "border-transparent text-gray-600 hover:border-[#7FA7E8] hover:text-[#3A6FCF]"
+            }`}
+          >
+            {pageNumber}
+          </button>
+        ))}
+        {totalPages > 3 && <span className="px-1 text-gray-400">...</span>}
+        <button
+          onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+          disabled={page === totalPages}
+          className="flex h-9 items-center gap-1 rounded-md px-2 text-gray-500 hover:text-[#366DBD] disabled:opacity-40"
+        >
+          Next <ChevronRight size={16} />
+        </button>
+      </div>
+    </div>
   );
 }

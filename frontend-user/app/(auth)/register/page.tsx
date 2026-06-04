@@ -198,7 +198,7 @@ export default function RegisterPage() {
     if (citizenDigits && !isValidThaiCitizenId(citizenDigits))
       return "กรุณากรอกเลขบัตรประชาชนให้ถูกต้อง";
     if (!phoneDigits) return "กรุณากรอกเบอร์โทร";
-    if (!phoneDigits.startsWith("0")) return "กรุณากรอกเบอร์โทรที่เริ่มต้น 0";
+    if (!phoneDigits.startsWith("0")) return "รูปแบบเบอร์ไม่ถูกต้อง";
     if (phoneDigits.length !== 10) return "กรุณากรอกเบอร์โทร 10 หลัก";
     if (!normalizedEmail) return "กรุณากรอกอีเมล";
     if (!isValidEmail(normalizedEmail)) return "กรุณากรอกอีเมลให้ถูกต้อง";

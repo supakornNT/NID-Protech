@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, TriangleAlert, CheckCircle2 } from "lucide-react";
 import { useStaffList } from "@/hooks/use-staff-list";
 import { useTicketsByStaff } from "@/hooks/use-tickets-by-staff";
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
+import { ProTechButton } from "@/components/tables/protech-button";
 import { useCreateTicket } from "@/hooks/assign/use-create-ticket";
 import { useComplaintDetail } from "@/hooks/use-complaint-detail";
 
@@ -28,6 +29,8 @@ export default function AssignWorkPage() {
   const requestDueAt = requestData?.dueAt
     ? requestData.dueAt.slice(0, 10)
     : undefined;
+  const localToday = new Date().toLocaleDateString("en-CA");
+  const isRequestDuePast = !!requestDueAt && requestDueAt < localToday;
 
   const { staffs, loading, refetch: refetchStaffs } = useStaffList();
   const [search, setSearch] = useState("");
@@ -39,12 +42,18 @@ export default function AssignWorkPage() {
   const [detail, setDetail] = useState("");
   const [dueDate, setDueDate] = useState("");
 
+  const [showCreateConfirm, setShowCreateConfirm] = useState(false);
+  const [showCreateSuccess, setShowCreateSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const { tickets, refetch } = useTicketsByStaff(selectedStaff?.id ?? null);
   const { createTicket, loading: submitting } = useCreateTicket(() => {
     setModalStaff(null);
     setTitle("");
     setDetail("");
     setDueDate("");
+    setError(null);
+    setShowCreateSuccess(true);
     refetch();
     refetchStaffs();
   });
@@ -319,12 +328,18 @@ export default function AssignWorkPage() {
             setTitle("");
             setDetail("");
             setDueDate("");
+            setError(null);
           }
         }}
         title={`มอบหมายงาน - ${modalStaff?.fullName ?? ""}`}
         widthClassName="max-w-[480px]"
       >
         <div className="flex flex-col gap-4">
+          {error && (
+            <p className="rounded-lg border border-[#FFB4C0] bg-[#FFF5F7] px-3 py-2 text-xs text-[#D1435B]">
+              {error}
+            </p>
+          )}
           <div className="flex flex-col gap-1">
             <label className="text-[13px] font-semibold text-gray-700">
               ชื่องาน
@@ -357,38 +372,132 @@ export default function AssignWorkPage() {
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              min={new Date().toISOString().split("T")[0]}
+              min={localToday}
               max={requestDueAt}
-              className="h-9 rounded-lg border border-gray-300 px-3 text-[14px] outline-none focus:border-[#366DBD]"
+              disabled={isRequestDuePast}
+              className="h-9 rounded-lg border border-gray-300 px-3 text-[14px] outline-none focus:border-[#366DBD] disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
             />
+            {isRequestDuePast && (
+              <p className="text-[12px] text-[#D1435B]">
+                กำหนดส่งของเรื่องหลักเลยกำหนดแล้ว จึงไม่สามารถมอบหมายงานเพิ่มได้
+              </p>
+            )}
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"
-              onClick={() => setModalStaff(null)}
+              onClick={() => {
+                setModalStaff(null);
+                setError(null);
+              }}
               className="rounded-lg border border-gray-300 px-5 py-2 text-[14px] text-gray-600 hover:bg-gray-50"
             >
               ยกเลิก
             </button>
             <button
               type="button"
-              disabled={submitting || !title.trim() || !detail.trim()}
+              disabled={submitting || !title.trim() || !detail.trim() || isRequestDuePast}
               onClick={() => {
                 if (!modalStaff) return;
-                createTicket({
-                  requestId,
-                  assignedStaffId: modalStaff.id,
-                  assignedBy: null,
-                  dueAt: dueDate,
-                  title,
-                  description: detail,
-                  status: "in_progress",
-                });
+                if (!dueDate) {
+                  setError("กรุณาเลือกกำหนดส่งงาน");
+                  return;
+                }
+                if (isRequestDuePast) {
+                  setError("กำหนดส่งของเรื่องหลักเลยกำหนดแล้ว จึงไม่สามารถมอบหมายงานเพิ่มได้");
+                  return;
+                }
+                if (requestDueAt && dueDate > requestDueAt) {
+                  setError(`กำหนดส่งงานย่อยต้องไม่เกินกำหนดส่งเรื่องหลัก (${formatDate(requestDueAt)})`);
+                  return;
+                }
+                setError(null);
+                setShowCreateConfirm(true);
               }}
               className="rounded-lg bg-[#366DBD] px-5 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-50"
             >
-              {submitting ? "กำลังบันทึก..." : "ยืนยัน"}
+              ยืนยัน
             </button>
+          </div>
+        </div>
+      </AdminModalShell>
+
+      {/* Create confirmation dialog */}
+      <AdminModalShell
+        open={showCreateConfirm}
+        onOpenChange={setShowCreateConfirm}
+        title="ยืนยันการมอบหมายงาน"
+        widthClassName="max-w-[460px]"
+      >
+        <div className="space-y-5 text-center">
+          <div className="flex justify-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF4E5] text-[#F59E0B]">
+              <TriangleAlert size={28} />
+            </div>
+          </div>
+
+          <p className="text-[15px] text-[#6B7280]">
+            คุณต้องการมอบหมายงานย่อยนี้ให้ {modalStaff?.fullName} ใช่หรือไม่?
+          </p>
+
+          <div className="flex justify-center gap-3 pt-1">
+            <ProTechButton
+              variant="delete"
+              className="h-10 min-w-[120px]"
+              onClick={() => setShowCreateConfirm(false)}
+            >
+              ยกเลิก
+            </ProTechButton>
+            <ProTechButton
+              variant="primary"
+              className="h-10 min-w-[120px]"
+              onClick={() => {
+                setShowCreateConfirm(false);
+                if (modalStaff) {
+                  createTicket({
+                    requestId,
+                    assignedStaffId: modalStaff.id,
+                    assignedBy: null,
+                    dueAt: dueDate,
+                    title,
+                    description: detail,
+                    status: "assigned",
+                  });
+                }
+              }}
+            >
+              ยืนยัน
+            </ProTechButton>
+          </div>
+        </div>
+      </AdminModalShell>
+
+      {/* Create success dialog */}
+      <AdminModalShell
+        open={showCreateSuccess}
+        onOpenChange={setShowCreateSuccess}
+        title="มอบหมายงานสำเร็จ"
+        widthClassName="max-w-[460px]"
+      >
+        <div className="space-y-5 text-center">
+          <div className="flex justify-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#E8F8EE] text-[#1F9D55]">
+              <CheckCircle2 size={34} />
+            </div>
+          </div>
+
+          <p className="text-[15px] text-[#6B7280]">
+            มอบหมายงานย่อยสำเร็จเรียบร้อยแล้ว
+          </p>
+
+          <div className="flex justify-center pt-1">
+            <ProTechButton
+              variant="primary"
+              className="h-10 min-w-[120px]"
+              onClick={() => setShowCreateSuccess(false)}
+            >
+              ตกลง
+            </ProTechButton>
           </div>
         </div>
       </AdminModalShell>
