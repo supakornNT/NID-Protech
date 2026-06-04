@@ -7,7 +7,7 @@ export function useUpdateRequestStatus() {
     const requestId = Array.isArray(id) ? id[0] : id;
     setLoading(true);
     try {
-      await fetch(`http://localhost:4000/requests/update/status?id=${requestId}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? ""}/requests/update/status?id=${requestId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),

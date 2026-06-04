@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
-
 import { useCloseWork } from "@/hooks/use-close-work";
 
 const LIMIT = 4;
@@ -19,23 +18,18 @@ export default function CloseWorkListPage() {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
-    fetchRequests(tab);
+    void fetchRequests(tab);
   }, [tab, fetchRequests]);
 
-  const filtered = useMemo(() => {
-    const keyword = search.trim().toLowerCase();
-    if (!keyword) return requests;
-
-    return requests.filter((item) =>
-      [
-        item.requestNo,
-        item.title,
-        item.customerName,
-        item.systemName ?? "",
-        item.problemName,
-      ].some((value) => value.toLowerCase().includes(keyword)),
-    );
-  }, [requests, search]);
+  const filtered = requests.filter(
+    (item) =>
+      search === "" ||
+      item.requestNo.toLowerCase().includes(search.toLowerCase()) ||
+      item.title.toLowerCase().includes(search.toLowerCase()) ||
+      item.customerName.toLowerCase().includes(search.toLowerCase()) ||
+      (item.systemName ?? "").toLowerCase().includes(search.toLowerCase()) ||
+      item.problemName.toLowerCase().includes(search.toLowerCase()),
+  );
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / LIMIT));
   const paged = filtered.slice((page - 1) * LIMIT, page * LIMIT);
@@ -49,14 +43,10 @@ export default function CloseWorkListPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 bg-white p-8">
+    <div className="flex flex-1 flex-col gap-6 bg-[#F0F4FA] p-8">
       <div>
-        <h1 className="text-[32px] font-bold text-gray-900">พิจารณาปิดงาน</h1>
-        <p className="text-[16px] text-gray-500">
-          {tab === "pending"
-            ? "คำขอที่รอตรวจสอบผลการแก้ไขก่อนปิดงาน"
-            : "ประวัติคำขอที่ผ่านขั้นตอนพิจารณาปิดงานแล้ว"}
-        </p>
+        <h1 className="text-[28px] font-bold text-gray-900">การจัดการงาน</h1>
+        <p className="text-[14px] text-gray-500">ตรวจสอบและอนุมัติ</p>
       </div>
 
       <div className="flex gap-3">
@@ -109,6 +99,7 @@ export default function CloseWorkListPage() {
         </div>
         <button
           type="button"
+          onClick={() => setPage(1)}
           className="h-9 rounded-lg bg-[#366DBD] px-5 text-[14px] font-semibold text-white transition hover:bg-[#2d5da3]"
         >
           ค้นหา
@@ -150,9 +141,7 @@ export default function CloseWorkListPage() {
                 className="flex items-center justify-between bg-white px-6 py-5"
               >
                 <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center gap-2">
-                    <p className="text-[17px] font-bold text-gray-900">{item.title}</p>
-                  </div>
+                  <p className="text-[17px] font-bold text-gray-900">{item.title}</p>
                   <p className="text-[14px] text-gray-500">เลขคำขอ : {item.requestNo}</p>
                   <p className="text-[14px] text-gray-500">ผู้แจ้ง : {item.customerName}</p>
                   <p className="text-[14px] text-gray-500">ระบบ : {item.systemName || "-"}</p>

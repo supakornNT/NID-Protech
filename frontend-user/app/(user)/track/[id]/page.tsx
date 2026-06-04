@@ -31,14 +31,14 @@ const valueClass = "whitespace-pre-wrap break-words text-[14px] text-gray-700 sm
 function formatThaiDate(dateStr: string): string {
   try {
     const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return dateStr;
+    if (isNaN(date.getTime())) return "ไม่สามารถแสดงวันที่";
     return date.toLocaleDateString("th-TH", {
       year: "numeric",
       month: "long",
       day: "numeric",
     });
   } catch {
-    return dateStr;
+    return "ไม่สามารถแสดงวันที่";
   }
 }
 

@@ -6,7 +6,7 @@ import { Lock, Eye, EyeOff } from "lucide-react";
 import { FormInput } from "@/components/ui/form-input";
 import styles from "../auth.module.css";
 import { FormInputIcon } from "@/components/ui/form-input";
-import { OtpInput } from "@/components/ui/otp-input";
+import { OtpModal } from "@/components/ui/otp-modal";
 import { Button } from "@/components/ui/button";
 import { useRegisterOptions } from "@/hooks/use-register-options";
 import { fetchJson } from "@/lib/fetch";
@@ -106,6 +106,18 @@ function validatePassword(password: string, confirmPassword: string) {
   return null;
 }
 
+const MOCK_FORM = {
+  prefix_id: "",
+  citizen_id: "1-1101-70001-23-4",
+  first_name: "ทดสอบ",
+  last_name: "ระบบ",
+  phone: "081-234-5678",
+  email: "test@example.com",
+  password: "Test@1234",
+  confirm_password: "Test@1234",
+  organization_id: "",
+};
+
 export default function RegisterPage() {
   const router = useRouter();
   const [userType, setUserType] = useState<UserType>("person");
@@ -123,6 +135,7 @@ export default function RegisterPage() {
     organization_id: "",
   });
   const [otp, setOtp] = useState("");
+  const [showOtpModal, setShowOtpModal] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState("");
@@ -132,6 +145,13 @@ export default function RegisterPage() {
 
   const { data: registerOptions, loading: optionsLoading } = useRegisterOptions();
   const { prefixes, organizations } = registerOptions;
+
+  function fillMock() {
+    setForm({
+      ...MOCK_FORM,
+      prefix_id: prefixes[0]?.id?.toString() ?? "",
+    });
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -192,6 +212,10 @@ export default function RegisterPage() {
 
     if (userType === "company" && !form.organization_id)
       return "กรุณาเลือกหน่วยงาน";
+    return null;
+  }
+
+  function validateOtp() {
     if (otp.length !== OTP_LENGTH) return `กรุณากรอก OTP ให้ครบ ${OTP_LENGTH} หลัก`;
     return null;
   }
@@ -203,7 +227,16 @@ export default function RegisterPage() {
       setError(err);
       return;
     }
+    setError("");
+    setShowOtpModal(true);
+  }
 
+  async function handleOtpConfirm() {
+    const err = validateOtp();
+    if (err) {
+      setError(err);
+      return;
+    }
     setLoading(true);
     setError("");
     try {
@@ -220,15 +253,13 @@ export default function RegisterPage() {
           password: form.password,
           otp,
           customer_type: userType,
-          organization_id:
-            userType === "company" ? Number(form.organization_id) : null,
+          organization_id: userType === "company" ? Number(form.organization_id) : null,
         }),
       });
+      setShowOtpModal(false);
       setShowSuccess(true);
     } catch (e) {
-      setError(
-        e instanceof Error ? e.message : "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
-      );
+      setError(e instanceof Error ? e.message : "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
     } finally {
       setLoading(false);
     }
@@ -236,8 +267,96 @@ export default function RegisterPage() {
 
   if (checkingSession) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center px-4">
-        <p className="text-sm text-gray-500">Checking session...</p>
+      <div
+        className="min-h-screen flex flex-col px-4 sm:px-8 py-6 sm:py-10"
+        style={{ background: "#F8F9FB" }}
+      >
+        <div className="animate-pulse">
+          {/* Header: back button + title */}
+          <div className="w-full max-w-5xl mx-auto relative flex justify-center items-center mb-6">
+            <div className="absolute left-0 h-7 w-7 rounded-full bg-gray-200" />
+            <div className="flex flex-col items-center gap-2">
+              <div className="h-8 w-48 rounded-lg bg-gray-200" />
+              <div className="h-4 w-64 rounded bg-gray-200" />
+            </div>
+          </div>
+
+          {/* Radio buttons row */}
+          <div className="flex gap-8 mb-6 w-full max-w-5xl mx-auto">
+            <div className="h-6 w-28 rounded bg-gray-200" />
+            <div className="h-6 w-28 rounded bg-gray-200" />
+          </div>
+
+          {/* Form card */}
+          <div
+            className="w-full max-w-5xl flex flex-col gap-5 px-4 sm:px-10 py-6 sm:py-8 mx-auto"
+            style={{
+              background: "#F1F6FD",
+              boxShadow: "0px 4px 4px rgba(0,0,0,0.25)",
+              borderRadius: 30,
+            }}
+          >
+            {/* Section label */}
+            <div className="h-4 w-24 rounded bg-gray-200" />
+
+            {/* Row: prefix + first name + last name */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-[120px_1fr_1fr]">
+              <div className="flex flex-col gap-1">
+                <div className="h-4 w-20 rounded bg-gray-200" />
+                <div className="h-10 rounded-lg bg-gray-200" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <div className="h-4 w-10 rounded bg-gray-200" />
+                <div className="h-10 rounded-lg bg-gray-200" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <div className="h-4 w-16 rounded bg-gray-200" />
+                <div className="h-10 rounded-lg bg-gray-200" />
+              </div>
+            </div>
+
+            {/* Citizen ID */}
+            <div className="flex flex-col gap-1">
+              <div className="h-4 w-36 rounded bg-gray-200" />
+              <div className="h-10 rounded-lg bg-gray-200" />
+            </div>
+
+            {/* Section label */}
+            <div className="h-4 w-32 rounded bg-gray-200" />
+
+            {/* Phone + Email */}
+            <div className="flex flex-col sm:flex-row gap-6">
+              <div className="flex flex-1 flex-col gap-1">
+                <div className="h-4 w-16 rounded bg-gray-200" />
+                <div className="h-10 rounded-lg bg-gray-200" />
+              </div>
+              <div className="flex flex-1 flex-col gap-1">
+                <div className="h-4 w-12 rounded bg-gray-200" />
+                <div className="h-10 rounded-lg bg-gray-200" />
+              </div>
+            </div>
+
+            {/* Section label */}
+            <div className="h-4 w-28 rounded bg-gray-200" />
+
+            {/* Password + Confirm password */}
+            <div className="flex flex-col sm:flex-row gap-6">
+              <div className="flex flex-1 flex-col gap-1">
+                <div className="h-4 w-20 rounded bg-gray-200" />
+                <div className="h-10 rounded-lg bg-gray-200" />
+              </div>
+              <div className="flex flex-1 flex-col gap-1">
+                <div className="h-4 w-28 rounded bg-gray-200" />
+                <div className="h-10 rounded-lg bg-gray-200" />
+              </div>
+            </div>
+
+            {/* Submit button */}
+            <div className="flex justify-end items-center gap-6 px-5">
+              <div className="h-10 w-44 rounded-lg bg-gray-200" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -259,6 +378,15 @@ export default function RegisterPage() {
           <p className="text-l text-[#929396] mt-2">
             กรุณาลงทะเบียนก่อนเพื่อเข้าสู่ระบบ
           </p>
+          {process.env.NODE_ENV === "development" && (
+            <button
+              type="button"
+              onClick={fillMock}
+              className="mt-2 text-xs text-gray-400 underline hover:text-gray-600"
+            >
+              [DEV] กรอกข้อมูลทดสอบ
+            </button>
+          )}
         </div>
       </div>
 
@@ -501,13 +629,6 @@ export default function RegisterPage() {
           </>
         )}
 
-        <div>
-          <p style={{ fontSize: 16, fontWeight: 1000, color: "#366DBD" }}>
-            ยืนยันตัวตน
-          </p>
-          <OtpInput email={form.email.trim().toLowerCase()} onOtpChange={setOtp} />
-        </div>
-
         {error ? (
           <p className="rounded-md border border-[#FFB4C0] bg-[#FFF5F7] px-4 py-3 text-sm text-[#D1435B]">
             {error}
@@ -524,6 +645,16 @@ export default function RegisterPage() {
           </Button>
         </div>
       </div>
+      <OtpModal
+        open={showOtpModal}
+        email={form.email.trim().toLowerCase()}
+        otp={otp}
+        onOtpChange={setOtp}
+        onConfirm={handleOtpConfirm}
+        onClose={() => { setShowOtpModal(false); setError(""); setOtp(""); }}
+        loading={loading}
+        error={showOtpModal ? error : undefined}
+      />
       <SuccessDialog
         open={showSuccess}
         title="ลงทะเบียนสำเร็จ!"

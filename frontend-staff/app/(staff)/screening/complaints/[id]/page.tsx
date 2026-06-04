@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { FileText, X } from "lucide-react";
+import { FileText, ImageIcon, X } from "lucide-react";
 import { useComplaintDetail, useLightbox } from "@/hooks/use-complaint-detail";
 import { useLoadingDelay } from "@/hooks/use-loading-delay";
 
@@ -58,8 +58,8 @@ export default function ComplaintDetailPage() {
         </div>
       )}
 
-      <div className="flex min-h-screen items-start justify-center bg-gray-50 p-6 pt-12">
-        <div className="w-full max-w-3xl rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="flex min-h-screen items-start justify-center bg-[#F0F4FA] p-6 pt-12">
+        <div className="w-full max-w-3xl rounded-2xl border border-gray-300 bg-white shadow-sm">
           {loading ? (
             showSkeleton ? (
               <div className="animate-pulse">
@@ -131,38 +131,34 @@ export default function ComplaintDetailPage() {
             {attachments.length > 0 && (
               <div className="flex flex-col gap-2">
                 <p className="text-[15px] font-medium text-gray-800">ไฟล์แนบ</p>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-col gap-2">
                   {attachments.map((file) => {
                     const fileName = file.savedName ?? file.originalName;
                     const url = `${API_BASE_URL}/uploads/requests/${fileName}`;
-                    const isImage = IMAGE_EXTS.includes(file.fileExt.toLowerCase());
-                    return isImage ? (
-                      <button
-                        key={file.id}
-                        type="button"
-                        onClick={() => setLightbox(url)}
-                        className="rounded-lg border border-gray-200 overflow-hidden hover:opacity-80 transition-opacity"
-                      >
-                        <Image
-                          src={url}
-                          alt={file.originalName}
-                          width={128}
-                          height={128}
-                          unoptimized
-                          className="h-32 w-32 object-cover"
-                        />
-                      </button>
-                    ) : (
-                      <a
-                        key={file.id}
-                        href={url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex h-32 w-32 flex-col items-center justify-center gap-2 rounded-lg border border-gray-200 bg-gray-50 text-[12px] text-gray-500 hover:bg-gray-100"
-                      >
-                        <FileText size={32} className="text-gray-400" />
-                        <span className="w-full truncate px-2 text-center">{file.originalName}</span>
-                      </a>
+                    const ext = file.fileExt.toLowerCase();
+                    const isImage = IMAGE_EXTS.includes(ext);
+                    const nameNoExt = file.originalName.replace(new RegExp(`\\.${ext}$`, "i"), "");
+                    return (
+                      <div key={file.id} className="flex items-center rounded-xl border border-gray-200 bg-white px-3 py-2.5">
+                        <button
+                          type="button"
+                          onClick={() => isImage && setLightbox(url)}
+                          className={`flex min-w-0 items-center gap-3 ${isImage ? "cursor-zoom-in" : "cursor-default"}`}
+                        >
+                          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isImage ? "bg-blue-50" : "bg-red-50"}`}>
+                            {isImage ? <ImageIcon size={20} className="text-blue-500" /> : <FileText size={20} className="text-red-500" />}
+                          </div>
+                          <div className="flex min-w-0 flex-col text-left">
+                            <span className="truncate text-[13px] font-medium text-gray-800">{nameNoExt}</span>
+                            <span className="text-[11px] text-gray-400">{ext.toUpperCase()}</span>
+                          </div>
+                        </button>
+                        {!isImage && (
+                          <a href={url} target="_blank" rel="noreferrer" className="ml-auto shrink-0 text-[12px] text-[#366DBD] hover:underline">
+                            เปิด
+                          </a>
+                        )}
+                      </div>
                     );
                   })}
                 </div>

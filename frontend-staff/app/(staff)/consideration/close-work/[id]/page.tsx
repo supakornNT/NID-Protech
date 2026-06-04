@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import {
   AlertCircle,
   CheckCircle2,
@@ -10,12 +11,14 @@ import {
   Inbox,
   ShieldCheck,
   TriangleAlert,
+  X,
 } from "lucide-react";
 
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { ProTechButton } from "@/components/tables/protech-button";
 import { useStaffSession } from "@/contexts/staff-session-context";
 import { useLoadingDelay } from "@/hooks/use-loading-delay";
+import { useLightbox } from "@/hooks/use-complaint-detail";
 import {
   useCloseWork,
   type CloseAttachment,
@@ -80,14 +83,14 @@ function canOpenTicket(ticket: TicketCloseItem) {
 function CloseWorkDetailSkeleton() {
   return (
     <div className="grid min-h-[720px] animate-pulse gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
-      <div className="flex min-h-0 flex-col rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
+      <div className="flex min-h-0 flex-col rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
         <div className="mb-4 space-y-2">
           <div className="h-4 w-28 rounded bg-gray-200" />
           <div className="h-7 w-3/4 rounded bg-gray-200" />
           <div className="h-4 w-full rounded bg-gray-200" />
         </div>
 
-        <div className="mb-4 rounded-2xl border border-[#000000] p-4">
+        <div className="mb-4 rounded-2xl border border-gray-300 p-4">
           <div className="h-5 w-40 rounded bg-gray-200" />
           <div className="mt-3 flex flex-col gap-2">
             <div className="h-12 rounded-xl bg-gray-200" />
@@ -110,7 +113,7 @@ function CloseWorkDetailSkeleton() {
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-col rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
+      <div className="flex min-h-0 flex-col rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
         <div className="border-b border-gray-100 pb-4">
           <div className="h-4 w-28 rounded bg-gray-200" />
           <div className="mt-2 h-7 w-2/3 rounded bg-gray-200" />
@@ -122,7 +125,7 @@ function CloseWorkDetailSkeleton() {
         </div>
 
         <div className="mt-5 grid min-h-0 flex-1 gap-5">
-          <div className="rounded-2xl border border-[#000000] p-4">
+          <div className="rounded-2xl border border-gray-300 p-4">
             <div className="h-5 w-36 rounded bg-gray-200" />
             <div className="mt-3 space-y-2">
               <div className="h-4 w-1/2 rounded bg-gray-200" />
@@ -134,12 +137,12 @@ function CloseWorkDetailSkeleton() {
 
           <div>
             <div className="h-5 w-36 rounded bg-gray-200" />
-            <div className="mt-3 h-28 rounded-2xl border border-[#000000] bg-gray-100" />
+            <div className="mt-3 h-28 rounded-2xl border border-gray-300 bg-gray-100" />
           </div>
 
           <div>
             <div className="h-5 w-36 rounded bg-gray-200" />
-            <div className="mt-3 h-28 rounded-2xl border border-[#000000] bg-gray-100" />
+            <div className="mt-3 h-28 rounded-2xl border border-gray-300 bg-gray-100" />
           </div>
         </div>
       </div>
@@ -167,6 +170,8 @@ export default function CloseWorkDetailPage() {
     approveTicket,
     rejectTicket,
   } = useCloseWork();
+
+  const { lightbox, setLightbox } = useLightbox();
 
   const [tab] = useState<"pending" | "history">(initialTab);
   const [selectedRequest, setSelectedRequest] = useState<RequestCloseItem | null>(null);
@@ -358,11 +363,6 @@ export default function CloseWorkDetailPage() {
     }
   }
 
-  function openAttachment(file: CloseAttachment) {
-    const url = `${API_BASE_URL}/uploads/requests/${file.savedName}`;
-    window.open(url, "_blank", "noopener,noreferrer");
-  }
-
   const emptyReason = useMemo(() => {
     if (loading || requestLoading) return "กำลังโหลดข้อมูล...";
     if (error) return "โหลดข้อมูลไม่สำเร็จ";
@@ -372,6 +372,17 @@ export default function CloseWorkDetailPage() {
 
   return (
     <>
+      {lightbox && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80" onClick={() => setLightbox(null)}>
+          <button className="absolute right-4 top-4 text-white hover:text-gray-300" onClick={() => setLightbox(null)}>
+            <X size={32} />
+          </button>
+          <div onClick={(e) => e.stopPropagation()}>
+            <Image src={lightbox} alt="preview" width={900} height={700} unoptimized className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain" />
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-1 flex-col gap-6 bg-[#F0F4FA] p-8">
         <div className="flex items-center justify-between">
           <div>
@@ -388,12 +399,12 @@ export default function CloseWorkDetailPage() {
         {((loading && !selectedRequest) || requestLoading) && showSkeleton ? (
           <CloseWorkDetailSkeleton />
         ) : !selectedRequest ? (
-          <div className="flex min-h-[620px] items-center justify-center rounded-2xl border border-[#000000] bg-white text-[14px] text-gray-500 shadow-sm">
+          <div className="flex min-h-[620px] items-center justify-center rounded-2xl border border-gray-300 bg-white text-[14px] text-gray-500 shadow-sm">
             {emptyReason}
           </div>
         ) : (
           <div className="grid min-h-[720px] gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
-            <div className="flex min-h-0 flex-col rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
+            <div className="flex min-h-0 flex-col rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
               <div className="mb-4">
                 <p className="text-[13px] font-semibold text-[#2F66C5]">{selectedRequest.requestNo}</p>
                 <h2 className="mt-1 text-[22px] font-bold leading-tight text-gray-900">
@@ -406,7 +417,7 @@ export default function CloseWorkDetailPage() {
                 </p>
               </div>
 
-              <div className="mb-4 rounded-2xl border border-[#000000] p-4">
+              <div className="mb-4 rounded-2xl border border-gray-300 p-4">
                 <p className="text-[14px] font-bold text-gray-900">
                   ไฟล์แนบจากการแจ้งปัญหา ({requestFiles.length})
                 </p>
@@ -415,28 +426,27 @@ export default function CloseWorkDetailPage() {
                     <p className="text-[13px] text-gray-500">ไม่มีไฟล์แนบ</p>
                   ) : (
                     requestFiles.map((file) => {
-                      const isImage = IMAGE_EXTENSIONS.has(file.fileExt.toLowerCase());
+                      const ext = file.fileExt.toLowerCase().replace(/^\./, "");
+                      const isImage = IMAGE_EXTENSIONS.has(ext);
+                      const url = `${API_BASE_URL}/uploads/requests/${file.savedName}`;
+                      const nameNoExt = file.originalName.replace(/\.[^.]+$/, "");
                       return (
-                        <button
-                          key={file.id}
-                          type="button"
-                          onClick={() => openAttachment(file)}
-                          className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 text-left transition hover:border-[#366DBD] hover:bg-[#F8FBFF]"
-                        >
-                          {isImage ? (
-                            <ImageIcon size={18} className="shrink-0 text-[#2F66C5]" />
-                          ) : (
-                            <FileText size={18} className="shrink-0 text-[#D1435B]" />
-                          )}
-                          <div className="min-w-0">
-                            <p className="truncate text-[13px] font-medium text-gray-800">
-                              {file.originalName}
-                            </p>
-                            <p className="text-[11px] font-semibold uppercase text-gray-400">
-                              {file.fileExt}
-                            </p>
-                          </div>
-                        </button>
+                        <div key={file.id} className="flex items-center rounded-xl border border-gray-200 bg-white px-3 py-2.5">
+                          <button
+                            type="button"
+                            onClick={() => isImage && setLightbox(url)}
+                            className={`flex min-w-0 items-center gap-3 ${isImage ? "cursor-zoom-in" : "cursor-default"}`}
+                          >
+                            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isImage ? "bg-blue-50" : "bg-red-50"}`}>
+                              {isImage ? <ImageIcon size={20} className="text-blue-500" /> : <FileText size={20} className="text-red-500" />}
+                            </div>
+                            <div className="flex min-w-0 flex-col text-left">
+                              <span className="truncate text-[13px] font-medium text-gray-800">{nameNoExt}</span>
+                              <span className="text-[11px] text-gray-400">{ext.toUpperCase()}</span>
+                            </div>
+                          </button>
+                          {!isImage && <a href={url} target="_blank" rel="noreferrer" className="ml-auto shrink-0 text-[12px] text-[#366DBD] hover:underline">เปิด</a>}
+                        </div>
                       );
                     })
                   )}
@@ -518,7 +528,7 @@ export default function CloseWorkDetailPage() {
               </div>
             </div>
 
-            <div className="flex min-h-0 flex-col rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
+            <div className="flex min-h-0 flex-col rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
               {ticketLoading ? (
                 <div className="flex flex-1 items-center justify-center text-[14px] text-gray-500">
                   กำลังโหลดรายละเอียดตั๋วย่อย...
@@ -548,7 +558,7 @@ export default function CloseWorkDetailPage() {
                   </div>
 
                   <div className="grid min-h-0 flex-1 gap-5 overflow-y-auto pr-1">
-                    <div className="rounded-2xl border border-[#000000] p-4">
+                    <div className="rounded-2xl border border-gray-300 p-4">
                       <p className="text-[14px] font-bold text-gray-900">ข้อมูลคำขอหลัก</p>
                       <div className="mt-3 space-y-2 text-[14px] text-gray-700">
                         <p>ผู้แจ้ง: {selectedRequest.customerName || "-"}</p>
@@ -568,14 +578,14 @@ export default function CloseWorkDetailPage() {
 
                     <div>
                       <p className="text-[14px] font-bold text-gray-900">รายละเอียดงานย่อย</p>
-                      <p className="mt-3 whitespace-pre-wrap rounded-2xl border border-[#000000] p-4 text-[14px] leading-7 text-gray-700">
+                      <p className="mt-3 whitespace-pre-wrap rounded-2xl border border-gray-300 p-4 text-[14px] leading-7 text-gray-700">
                         {selectedTicket.description || "-"}
                       </p>
                     </div>
 
                     <div>
                       <p className="text-[14px] font-bold text-gray-900">สรุปผลการแก้ไข</p>
-                      <p className="mt-3 whitespace-pre-wrap rounded-2xl border border-[#000000] bg-[#F8FBFF] p-4 text-[14px] leading-7 text-gray-700">
+                      <p className="mt-3 whitespace-pre-wrap rounded-2xl border border-gray-300 bg-[#F8FBFF] p-4 text-[14px] leading-7 text-gray-700">
                         {selectedTicket.summary || "-"}
                       </p>
                     </div>
@@ -598,28 +608,27 @@ export default function CloseWorkDetailPage() {
                           <p className="text-[13px] text-gray-500">ไม่มีไฟล์หลักฐานการแก้ไข</p>
                         ) : (
                           ticketFiles.map((file) => {
-                            const isImage = IMAGE_EXTENSIONS.has(file.fileExt.toLowerCase());
+                            const ext = file.fileExt.toLowerCase().replace(/^\./, "");
+                            const isImage = IMAGE_EXTENSIONS.has(ext);
+                            const url = `${API_BASE_URL}/uploads/requests/${file.savedName}`;
+                            const nameNoExt = file.originalName.replace(/\.[^.]+$/, "");
                             return (
-                              <button
-                                key={file.id}
-                                type="button"
-                                onClick={() => openAttachment(file)}
-                                className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 text-left transition hover:border-[#366DBD] hover:bg-[#F8FBFF]"
-                              >
-                                {isImage ? (
-                                  <ImageIcon size={18} className="shrink-0 text-[#2F66C5]" />
-                                ) : (
-                                  <FileText size={18} className="shrink-0 text-[#D1435B]" />
-                                )}
-                                <div className="min-w-0">
-                                  <p className="truncate text-[13px] font-medium text-gray-800">
-                                    {file.originalName}
-                                  </p>
-                                  <p className="text-[11px] font-semibold uppercase text-gray-400">
-                                    {file.fileExt}
-                                  </p>
-                                </div>
-                              </button>
+                              <div key={file.id} className="flex items-center rounded-xl border border-gray-200 bg-white px-3 py-2.5">
+                                <button
+                                  type="button"
+                                  onClick={() => isImage && setLightbox(url)}
+                                  className={`flex min-w-0 items-center gap-3 ${isImage ? "cursor-zoom-in" : "cursor-default"}`}
+                                >
+                                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isImage ? "bg-blue-50" : "bg-red-50"}`}>
+                                    {isImage ? <ImageIcon size={20} className="text-blue-500" /> : <FileText size={20} className="text-red-500" />}
+                                  </div>
+                                  <div className="flex min-w-0 flex-col text-left">
+                                    <span className="truncate text-[13px] font-medium text-gray-800">{nameNoExt}</span>
+                                    <span className="text-[11px] text-gray-400">{ext.toUpperCase()}</span>
+                                  </div>
+                                </button>
+                                {!isImage && <a href={url} target="_blank" rel="noreferrer" className="ml-auto shrink-0 text-[12px] text-[#366DBD] hover:underline">เปิด</a>}
+                              </div>
                             );
                           })
                         )}

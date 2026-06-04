@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 
-import { useStaffSession } from "@/contexts/staff-session-context";
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 type StepInfo = { label: string; date: string; time: string } | null;
@@ -20,7 +18,6 @@ export interface TrackingItem {
 }
 
 export function useTracking() {
-  const { staff } = useStaffSession();
   const [items, setItems] = useState<TrackingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -39,29 +36,5 @@ export function useTracking() {
       .finally(() => setLoading(false));
   }, []);
 
-  async function submitWork(requestId: number, staffId?: number) {
-    const currentStaffId =
-      staffId ?? (typeof staff?.id === "number" ? staff.id : Number(staff?.id));
-
-    if (!currentStaffId) {
-      window.dispatchEvent(new CustomEvent("session:expired"));
-      throw new Error("ไม่พบข้อมูลเจ้าหน้าที่ กรุณาเข้าสู่ระบบใหม่");
-    }
-
-    await fetch(`${API_BASE_URL}/requests/${requestId}/submit-work`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ staffId: currentStaffId }),
-    });
-
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === requestId
-          ? { ...item, status: "in_progress" }
-          : item,
-      ),
-    );
-  }
-
-  return { items, loading, error, submitWork };
+  return { items, loading, error };
 }

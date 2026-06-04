@@ -1,7 +1,6 @@
 "use client";
 
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Paperclip, X } from "lucide-react";
+import { FileAttachZone } from "@/components/ui/file-attach-zone";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
@@ -13,6 +12,7 @@ import { useSubmit } from "@/hooks/use-submit";
 import { useUserSession } from "@/contexts/user-session-context";
 import styles from "../request.module.css";
 import { SuccessDialog } from "@/components/ui/success-dialog";
+import { useLoadingDelay } from "@/hooks/use-loading-delay";
 
 export default function RequestExternalPage() {
   const router = useRouter();
@@ -32,9 +32,11 @@ export default function RequestExternalPage() {
   const { fullName } = useCustomer(customerId);
   const { data: problemTypes, loading: problemTypesLoading } =
     useProblemTypes("issue");
+  const showSkeleton = useLoadingDelay(problemTypesLoading);
   const { data: systems } = useSystems(null, true);
   const [submitted, setSubmitted] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [validationMsg, setValidationMsg] = useState("");
   const { submit, loading, error } = useSubmit("/requests/external", () => {
     setShowSuccess(true);
     setSubmitted(false);
@@ -45,8 +47,10 @@ export default function RequestExternalPage() {
   const handleSubmit = async () => {
     setSubmitted(true);
     if (!form.title || !form.problem_type_id || !form.system_id || !form.detail) {
+      setValidationMsg("กรุณากรอกข้อมูลที่จำเป็นทั้งหมด");
       return;
     }
+    setValidationMsg("");
 
     const formData = new FormData();
     if (customerId) {
@@ -63,11 +67,69 @@ export default function RequestExternalPage() {
     await submit(formData);
   };
 
+  if (showSkeleton) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4 sm:p-6">
+        <Card className={styles.card}>
+          <div className="animate-pulse">
+            {/* Title bar */}
+            <div className="border-b px-4 pb-2 pt-6 sm:px-8">
+              <div className="h-7 w-3/4 rounded-lg bg-gray-200" />
+            </div>
+
+            <div className="flex flex-col gap-5 px-4 py-6 sm:px-8">
+              {/* Row 1: ผู้แจ้ง */}
+              <div className="flex flex-col gap-1">
+                <div className="h-4 w-16 rounded bg-gray-200" />
+                <div className="h-10 rounded-lg bg-gray-200" />
+              </div>
+
+              {/* Row 2: หัวข้อเรื่อง */}
+              <div className="flex flex-col gap-1">
+                <div className="h-4 w-24 rounded bg-gray-200" />
+                <div className="h-10 rounded-lg bg-gray-200" />
+              </div>
+
+              {/* Row 3: ประเภทปัญหา + ระบบ */}
+              <div className="flex flex-col gap-6 sm:flex-row">
+                <div className="flex flex-1 flex-col gap-1">
+                  <div className="h-4 w-28 rounded bg-gray-200" />
+                  <div className="h-10 rounded-lg bg-gray-200" />
+                </div>
+                <div className="flex flex-1 flex-col gap-1">
+                  <div className="h-4 w-12 rounded bg-gray-200" />
+                  <div className="h-10 rounded-lg bg-gray-200" />
+                </div>
+              </div>
+
+              {/* Textarea: รายละเอียด */}
+              <div className="flex flex-col gap-1">
+                <div className="h-4 w-20 rounded bg-gray-200" />
+                <div className="h-28 rounded-lg bg-gray-200 sm:h-35" />
+              </div>
+
+              {/* File attach placeholder */}
+              <div className="flex flex-col gap-2">
+                <div className="h-4 w-16 rounded bg-gray-200" />
+                <div className="h-20 rounded-lg bg-gray-200" />
+              </div>
+            </div>
+
+            {/* Submit button */}
+            <div className="flex justify-end px-4 pb-6 sm:px-8">
+              <div className="h-10 w-20 rounded-lg bg-gray-200" />
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4 sm:p-6">
       <Card className={styles.card}>
         <div className="border-b px-4 pb-2 pt-6 sm:px-8">
-          <h1 className="text-2xl font-bold">รายงานปัญหาเกี่ยวกับระบบสาธารณะ</h1>
+          <h1 className="text-xl font-bold sm:text-2xl">รายงานปัญหาเกี่ยวกับระบบสาธารณะ</h1>
         </div>
 
         <div className="flex flex-col gap-5 px-4 py-6 sm:px-8">
@@ -93,7 +155,7 @@ export default function RequestExternalPage() {
 
           <div className="flex flex-col gap-6 sm:flex-row">
             <div className="flex flex-1 flex-col gap-1">
-              <p style={{ fontSize: 16, fontWeight: 500 }}>
+              <p className="text-sm font-medium sm:text-base">
                 ประเภทปัญหา <span className="text-red-500">*</span>
               </p>
               <select
@@ -112,7 +174,7 @@ export default function RequestExternalPage() {
             </div>
 
             <div className="flex flex-1 flex-col gap-1">
-              <p style={{ fontSize: 16, fontWeight: 500 }}>
+              <p className="text-sm font-medium sm:text-base">
                 ระบบ <span className="text-red-500">*</span>
               </p>
               <select
@@ -131,11 +193,11 @@ export default function RequestExternalPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <p style={{ fontSize: 16, fontWeight: 500 }}>
+            <p className="text-sm font-medium sm:text-base">
               รายละเอียด <span className="text-red-500">*</span>
             </p>
             <textarea
-              className={`${styles.input} min-h-35 resize-none ${submitted && !form.detail ? styles.inputError : ""}`}
+              className={`${styles.input} min-h-28 resize-none sm:min-h-35 ${submitted && !form.detail ? styles.inputError : ""}`}
               placeholder="กรุณาอธิบายปัญหาที่พบ"
               value={form.detail}
               onChange={(e) => setForm({ ...form, detail: e.target.value })}
@@ -143,71 +205,18 @@ export default function RequestExternalPage() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <p style={{ fontSize: 16, fontWeight: 500 }}>แนบไฟล์</p>
-            <Popover>
-              <PopoverTrigger className="flex w-fit items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-2 text-sm text-gray-500 hover:bg-gray-50">
-                <Paperclip size={14} />
-                แนบไฟล์{" "}
-                {files.length > 0 && (
-                  <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-xs text-blue-600">
-                    {files.length}
-                  </span>
-                )}
-              </PopoverTrigger>
-              <PopoverContent className="w-72">
-                <div className="flex flex-col gap-3">
-                  <p className="text-sm font-medium">เลือกไฟล์ที่ต้องการแนบ</p>
-                  <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 p-5 transition hover:bg-gray-50">
-                    <Paperclip size={24} className="mb-1 text-gray-400" />
-                    <span className="text-sm text-gray-500">คลิกเพื่อเลือกไฟล์</span>
-                    <span className="text-xs text-gray-400">
-                      หรือลากไฟล์มาวางที่นี่
-                    </span>
-                    <input
-                      type="file"
-                      multiple
-                      accept=".pdf,.png,.jpg,.jpeg"
-                      className="hidden"
-                      onChange={(e) =>
-                        setFiles((prev) => [...prev, ...Array.from(e.target.files ?? [])])
-                      }
-                    />
-                  </label>
-                  {files.length > 0 && (
-                    <ul className="flex flex-col gap-1">
-                      {files.map((file, i) => (
-                        <li
-                          key={i}
-                          className="flex items-center justify-between rounded bg-gray-50 px-2 py-1.5 text-xs text-gray-600"
-                        >
-                          <span className="truncate">{file.name}</span>
-                          <button
-                            onClick={() =>
-                              setFiles((prev) => prev.filter((_, j) => j !== i))
-                            }
-                            className="ml-2 shrink-0 text-gray-400 hover:text-red-500"
-                          >
-                            <X size={12} />
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  <p className="text-xs text-gray-400">
-                    รองรับ PDF, JPG, PNG ขนาดไม่เกิน 10MB
-                  </p>
-                </div>
-              </PopoverContent>
-            </Popover>
+            <p className="text-sm font-medium sm:text-base">แนบไฟล์</p>
+            <FileAttachZone files={files} onChange={setFiles} />
           </div>
         </div>
 
-        {error ? <p className="px-8 pb-2 text-sm text-red-600">{error}</p> : null}
-        {loading ? <p className="px-8 pb-2 text-sm text-[#3A6FCF]">กำลังส่งข้อมูล...</p> : null}
+        {error ? <p className="px-4 pb-2 text-sm text-red-600 sm:px-8">{error}</p> : null}
+        {loading ? <p className="px-4 pb-2 text-sm text-[#3A6FCF] sm:px-8">กำลังส่งข้อมูล...</p> : null}
+        {validationMsg && <p className="px-4 pb-2 text-sm text-red-500 sm:px-8">{validationMsg}</p>}
 
-        <div className="flex justify-end px-8 pb-6">
+        <div className="flex justify-end px-4 pb-6 sm:px-8">
           <button className={styles.button} onClick={handleSubmit} disabled={loading}>
-            ส่ง
+            {loading ? "กำลังส่ง..." : "ส่ง"}
           </button>
         </div>
       </Card>

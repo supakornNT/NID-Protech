@@ -81,8 +81,8 @@ export function UserSessionProvider({
         method: "POST",
         skipSessionExpiredEvent: true,
       });
-    } catch (error) {
-      console.error("Logout error:", error);
+    } catch {
+      // logout failed silently
     } finally {
       clearSessionExpiryTimer();
       clearStoredUserSession();

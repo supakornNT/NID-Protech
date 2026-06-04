@@ -2,8 +2,15 @@
 
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { AlertCircle, FileText, ImageIcon, Plus, Trash2, X } from "lucide-react";
+import { useRef, useState } from "react";
+import {
+  AlertCircle,
+  FileText,
+  ImageIcon,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
 
 import { useComplaintDetail, useLightbox } from "@/hooks/use-complaint-detail";
 import { useTicketWork } from "@/hooks/use-ticket-work";
@@ -47,8 +54,14 @@ export default function OperationDetailPage() {
   const { id } = useParams();
   const router = useRouter();
 
-  const { data, loading, error, ticketAttachments, hideAttachment, submitResolution } =
-    useTicketWork(id);
+  const {
+    data,
+    loading,
+    error,
+    ticketAttachments,
+    hideAttachment,
+    submitResolution,
+  } = useTicketWork(id);
   const showSkeleton = useLoadingDelay(loading, 200);
   const { attachments } = useComplaintDetail(data?.requestId?.toString());
   const { lightbox, setLightbox } = useLightbox();
@@ -56,15 +69,17 @@ export default function OperationDetailPage() {
   const [resolution, setResolution] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [prevTicketId, setPrevTicketId] = useState<number | undefined>(undefined);
+
+  if (data?.ticketId !== prevTicketId) {
+    setPrevTicketId(data?.ticketId);
+    setResolution(data?.resolutionSummary ?? "");
+    setSelectedFiles([]);
+  }
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isPendingReview = data?.resolutionRequestStatus === "pending";
-
-  useEffect(() => {
-    setResolution(data?.resolutionSummary ?? "");
-    setSelectedFiles([]);
-  }, [data?.ticketId, data?.resolutionSummary]);
 
   async function handleSubmit() {
     if (!resolution.trim() || isPendingReview) return;
@@ -84,7 +99,9 @@ export default function OperationDetailPage() {
   }
 
   function removeFile(index: number) {
-    setSelectedFiles((prev) => prev.filter((_, currentIndex) => currentIndex !== index));
+    setSelectedFiles((prev) =>
+      prev.filter((_, currentIndex) => currentIndex !== index),
+    );
   }
 
   if (error || (!loading && !data)) {
@@ -127,7 +144,9 @@ export default function OperationDetailPage() {
             <h1 className="text-[28px] font-bold text-gray-900">
               {data?.ticketTitle ?? "รายละเอียดงาน"}
             </h1>
-            <p className="text-[14px] text-gray-500">{data?.ticketDescription ?? "-"}</p>
+            <p className="text-[14px] text-gray-500">
+              {data?.ticketDescription ?? "-"}
+            </p>
           </div>
           <a
             href={`${API_BASE_URL}/requests/${data?.requestId}/pdf`}
@@ -144,7 +163,9 @@ export default function OperationDetailPage() {
           <div className="flex items-start gap-3 rounded-xl border border-[#F4A0A0] bg-[#FFF5F5] px-4 py-3">
             <AlertCircle size={18} className="mt-0.5 shrink-0 text-[#D9534F]" />
             <div className="flex flex-col gap-0.5">
-              <p className="text-[13px] font-semibold text-[#D9534F]">ถูกตีกลับ</p>
+              <p className="text-[13px] font-semibold text-[#D9534F]">
+                ถูกตีกลับ
+              </p>
               <p className="text-[13px] text-gray-700">{data.rejectNote}</p>
             </div>
           </div>
@@ -182,7 +203,9 @@ export default function OperationDetailPage() {
           <div className="flex min-h-[700px] gap-12">
             <div className="flex flex-1 flex-col gap-5 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
               <div className="flex items-start justify-between gap-3">
-                <p className="text-[18px] font-bold text-gray-900">{data.title}</p>
+                <p className="text-[18px] font-bold text-gray-900">
+                  {data.title}
+                </p>
                 <span className="shrink-0 rounded-md border border-[#F4A0A0] bg-[#FFF0F0] px-2.5 py-0.5 text-[12px] text-[#D9534F]">
                   ประเภท : {data.problemName}
                 </span>
@@ -202,11 +225,15 @@ export default function OperationDetailPage() {
 
               {attachments.length > 0 && (
                 <div className="flex flex-col gap-2">
-                  <p className="text-[13px] text-gray-500">ไฟล์แนบ ({attachments.length})</p>
+                  <p className="text-[13px] text-gray-500">
+                    ไฟล์แนบ ({attachments.length})
+                  </p>
                   <div className="flex flex-col gap-2">
                     {attachments.map((file) => {
                       const url = `${API_BASE_URL}/uploads/requests/${file.savedName}`;
-                      const isImage = IMAGE_EXTS.includes((file.fileExt ?? "").toLowerCase());
+                      const isImage = IMAGE_EXTS.includes(
+                        (file.fileExt ?? "").toLowerCase(),
+                      );
                       return isImage ? (
                         <button
                           key={file.id}
@@ -214,7 +241,10 @@ export default function OperationDetailPage() {
                           onClick={() => setLightbox(url)}
                           className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-left hover:bg-gray-50"
                         >
-                          <ImageIcon size={20} className="shrink-0 text-blue-400" />
+                          <ImageIcon
+                            size={20}
+                            className="shrink-0 text-blue-400"
+                          />
                           <div className="flex flex-col gap-0.5">
                             <span className="text-[13px] font-medium text-gray-800">
                               {file.originalName}
@@ -240,13 +270,19 @@ export default function OperationDetailPage() {
 
             <div className="flex flex-1 flex-col rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
               <div>
-                <p className="text-[16px] font-bold text-gray-900">รายละเอียดการแก้ไขปัญหา</p>
-                <p className="text-[13px] text-gray-500">ขั้นตอนและสรุปผลการแก้ไข</p>
+                <p className="text-[16px] font-bold text-gray-900">
+                  รายละเอียดการแก้ไขปัญหา
+                </p>
+                <p className="text-[13px] text-gray-500">
+                  ขั้นตอนและสรุปผลการแก้ไข
+                </p>
               </div>
 
               {isPendingReview && (
                 <div className="mt-6 rounded-xl border border-dashed border-[#4CAF7D] bg-[#EDFAF3] p-4 text-center">
-                  <p className="text-[15px] font-semibold text-[#1A7A4A]">ส่งคำขอปิดงานแล้ว</p>
+                  <p className="text-[15px] font-semibold text-[#1A7A4A]">
+                    ส่งคำขอปิดงานแล้ว
+                  </p>
                   <p className="text-[13px] text-gray-500">
                     รอหัวหน้าพิจารณาผลการแก้ไขจากข้อมูลด้านล่าง
                   </p>
@@ -298,7 +334,8 @@ export default function OperationDetailPage() {
                             type="button"
                             disabled={!isImage}
                             onClick={() => {
-                              if (isImage) setLightbox(URL.createObjectURL(file));
+                              if (isImage)
+                                setLightbox(URL.createObjectURL(file));
                             }}
                             className="flex items-center gap-3 disabled:cursor-default"
                           >
@@ -312,7 +349,8 @@ export default function OperationDetailPage() {
                                 {file.name}
                               </span>
                               <span className="text-[11px] text-gray-400">
-                                {ext.toUpperCase()} | {(file.size / 1024).toFixed(0)} KB
+                                {ext.toUpperCase()} |{" "}
+                                {(file.size / 1024).toFixed(0)} KB
                               </span>
                             </div>
                           </button>
@@ -339,7 +377,9 @@ export default function OperationDetailPage() {
                   <div className="flex flex-col gap-2">
                     {ticketAttachments.map((file) => {
                       const url = `${API_BASE_URL}/uploads/requests/${file.savedName}`;
-                      const isImage = IMAGE_EXTS.includes((file.fileExt ?? "").toLowerCase());
+                      const isImage = IMAGE_EXTS.includes(
+                        (file.fileExt ?? "").toLowerCase(),
+                      );
                       return (
                         <div
                           key={file.id}
@@ -352,9 +392,15 @@ export default function OperationDetailPage() {
                             className="flex items-center gap-3 text-[13px] text-gray-700 hover:underline"
                           >
                             {isImage ? (
-                              <ImageIcon size={20} className="shrink-0 text-blue-400" />
+                              <ImageIcon
+                                size={20}
+                                className="shrink-0 text-blue-400"
+                              />
                             ) : (
-                              <FileText size={20} className="shrink-0 text-red-400" />
+                              <FileText
+                                size={20}
+                                className="shrink-0 text-red-400"
+                              />
                             )}
                             <div className="flex flex-col gap-0.5 text-left">
                               <span className="text-[13px] font-medium text-gray-800">
@@ -387,7 +433,11 @@ export default function OperationDetailPage() {
                   onClick={() => void handleSubmit()}
                   className="rounded-lg bg-[#366DBD] px-8 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-50"
                 >
-                  {submitting ? "กำลังส่ง..." : isPendingReview ? "รออนุมัติ" : "ส่งงาน"}
+                  {submitting
+                    ? "กำลังส่ง..."
+                    : isPendingReview
+                      ? "รออนุมัติ"
+                      : "ส่งงาน"}
                 </button>
               </div>
             </div>
