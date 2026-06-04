@@ -18,6 +18,7 @@ import { normalizeUploadedFileName } from '../common/utils/upload-file-name.util
 import { TicketsService } from './tickets.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
+import { SubmitTicketResolutionDto } from './dto/submit-ticket-resolution.dto';
 
 const uploadDir = resolve(process.cwd(), '..', 'uploads', 'requests');
 mkdirSync(uploadDir, { recursive: true });
@@ -87,6 +88,16 @@ export class TicketsController {
     @Body() dto: UpdateTicketDto,
   ) {
     return this.ticket.updateSubTicket(id, dto);
+  }
+
+  @Post(':id/submit-resolution')
+  @UseInterceptors(FilesInterceptor('files', 10, { storage }))
+  submitResolution(
+    @Param('id', ParseIntPipe) ticketId: number,
+    @Body() body: SubmitTicketResolutionDto,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    return this.ticket.submitResolution(ticketId, body, files ?? []);
   }
 
   @Patch(':id/cancel')

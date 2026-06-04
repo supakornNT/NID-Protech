@@ -30,6 +30,7 @@ export default function AssignWorkPage() {
     ? requestData.dueAt.slice(0, 10)
     : undefined;
   const localToday = new Date().toLocaleDateString("en-CA");
+  const isRequestDuePast = !!requestDueAt && requestDueAt < localToday;
 
   const { staffs, loading, refetch: refetchStaffs } = useStaffList();
   const [search, setSearch] = useState("");
@@ -373,8 +374,14 @@ export default function AssignWorkPage() {
               onChange={(e) => setDueDate(e.target.value)}
               min={localToday}
               max={requestDueAt}
-              className="h-9 rounded-lg border border-gray-300 px-3 text-[14px] outline-none focus:border-[#366DBD]"
+              disabled={isRequestDuePast}
+              className="h-9 rounded-lg border border-gray-300 px-3 text-[14px] outline-none focus:border-[#366DBD] disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
             />
+            {isRequestDuePast && (
+              <p className="text-[12px] text-[#D1435B]">
+                กำหนดส่งของเรื่องหลักเลยกำหนดแล้ว จึงไม่สามารถมอบหมายงานเพิ่มได้
+              </p>
+            )}
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button
@@ -389,11 +396,15 @@ export default function AssignWorkPage() {
             </button>
             <button
               type="button"
-              disabled={submitting || !title.trim() || !detail.trim()}
+              disabled={submitting || !title.trim() || !detail.trim() || isRequestDuePast}
               onClick={() => {
                 if (!modalStaff) return;
                 if (!dueDate) {
                   setError("กรุณาเลือกกำหนดส่งงาน");
+                  return;
+                }
+                if (isRequestDuePast) {
+                  setError("กำหนดส่งของเรื่องหลักเลยกำหนดแล้ว จึงไม่สามารถมอบหมายงานเพิ่มได้");
                   return;
                 }
                 if (requestDueAt && dueDate > requestDueAt) {
