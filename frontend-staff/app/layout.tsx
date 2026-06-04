@@ -9,6 +9,9 @@ import { SelectHandler } from "@/components/select-handler";
 export const metadata: Metadata = {
   title: "ProTech Staff",
   description: "ProTech staff portal",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 const rootStyle = {
