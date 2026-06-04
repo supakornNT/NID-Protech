@@ -30,7 +30,20 @@ export type RepairDetailModalProps = {
 };
 
 function formatDateTime(value: string): string {
-  return value.replace("T", " ");
+  if (!value || value === "-" || value === "") return "-";
+  try {
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return value;
+    return d.toLocaleString("th-TH", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return value;
+  }
 }
 
 function getFileMetaLabel(file: RepairFile) {
