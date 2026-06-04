@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText, X, TriangleAlert, CheckCircle2 } from "lucide-react";
 
 const IMAGE_EXTS = ["jpg", "jpeg", "png", "gif", "webp"];
 import { useRef, useState } from "react";
@@ -14,15 +14,9 @@ import { useUpdateTicket } from "@/hooks/assign/use-update-ticket";
 import { useDeleteTicket } from "@/hooks/assign/use-delete-ticket";
 import { useUpdateRequestDueDate } from "@/hooks/use-update-request-due-date";
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
+import { ProTechButton } from "@/components/tables/protech-button";
 import { useRequestStatusLog } from "@/hooks/use-request-status-log";
 import { useStaffSession } from "@/contexts/staff-session-context";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -62,11 +56,13 @@ export default function ManageWorkDetailPage() {
   const dueDate =
     editedDueDate ??
     (data?.dueAt ? new Date(data.dueAt).toLocaleDateString("en-CA") : "");
+  const localToday = new Date().toLocaleDateString("en-CA");
   const filteredSub = tickets.filter(
     (t) =>
-      subSearch === "" ||
-      t.title.includes(subSearch) ||
-      (t.assignedStaffName ?? "").includes(subSearch),
+      t.status === "assigned" &&
+      (subSearch === "" ||
+        t.title.includes(subSearch) ||
+        (t.assignedStaffName ?? "").includes(subSearch)),
   );
   const totalSubPages = Math.max(
     1,
@@ -92,6 +88,16 @@ export default function ManageWorkDetailPage() {
     dueAt: "",
   });
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
+
+  const [showEditConfirm, setShowEditConfirm] = useState(false);
+  const [showEditSuccess, setShowEditSuccess] = useState(false);
+  const [showCancelSuccess, setShowCancelSuccess] = useState(false);
+  const [showDueDateConfirm, setShowDueDateConfirm] = useState(false);
+  const [showDueDateSuccess, setShowDueDateSuccess] = useState(false);
+  const [showForwardConfirm, setShowForwardConfirm] = useState(false);
+  const [showForwardSuccess, setShowForwardSuccess] = useState(false);
+  const [showReopenModal, setShowReopenModal] = useState(false);
 
   const { updateTicket, loading: updateLoading } = useUpdateTicket(() => {
     setEditModal({
@@ -100,20 +106,33 @@ export default function ManageWorkDetailPage() {
       detail: null,
       detailLoading: false,
     });
+    setEditError(null);
+    setShowEditSuccess(true);
     refetch();
   });
 
   const { deleteTicket } = useDeleteTicket(() => {
+    setShowCancelSuccess(true);
     refetch();
   });
 
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  function formatDate(dateStr: string | null | undefined) {
+    if (!dateStr) return "-";
+    return new Date(dateStr).toLocaleDateString("th-TH", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  }
 
   async function openEditModal(ticketId: number) {
     abortControllerRef.current?.abort();
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
+    setEditError(null);
     setEditModal({ open: true, ticketId, detail: null, detailLoading: true });
     try {
       const res = await fetch(
@@ -162,7 +181,7 @@ export default function ManageWorkDetailPage() {
       updateStatus(String(requestId), "in_progress"),
       logStatus(requestId, "assigned"),
     ]);
-    router.push(`/consideration/issue-work`);
+    setShowForwardSuccess(true);
   }
 
   const canSubmit = !!dueDate && pagedSub.length > 0;
@@ -224,6 +243,7 @@ export default function ManageWorkDetailPage() {
               detail: null,
               detailLoading: false,
             });
+            setEditError(null);
           }
         }}
         title="แก้ไขงานย่อย"
@@ -234,6 +254,12 @@ export default function ManageWorkDetailPage() {
           </div>
         ) : (
           <div className="flex flex-col gap-4">
+            {editError && (
+              <p className="rounded-lg border border-[#FFB4C0] bg-[#FFF5F7] px-3 py-2 text-xs text-[#D1435B]">
+                {editError}
+              </p>
+            )}
+
             {editModal.detail?.fullName && (
               <div>
                 <p className="mb-1 text-[13px] text-gray-500">ผู้รับผิดชอบ</p>
@@ -281,7 +307,8 @@ export default function ManageWorkDetailPage() {
                 onChange={(e) =>
                   setEditForm((f) => ({ ...f, dueAt: e.target.value }))
                 }
-                min={new Date().toISOString().split("T")[0]}
+                min={localToday}
+                max={dueDate}
                 className="rounded-lg border border-gray-300 px-3 py-2 text-[14px] outline-none focus:border-[#366DBD]"
               />
             </div>
@@ -289,25 +316,38 @@ export default function ManageWorkDetailPage() {
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
-                onClick={() =>
+                onClick={() => {
                   setEditModal({
                     open: false,
                     ticketId: null,
                     detail: null,
                     detailLoading: false,
-                  })
-                }
+                  });
+                  setEditError(null);
+                }}
                 className="rounded-lg border border-gray-300 px-4 py-2 text-[13px] text-gray-600 hover:bg-gray-50"
               >
                 ยกเลิก
               </button>
               <button
                 type="button"
-                onClick={handleSaveEdit}
+                onClick={() => {
+                  if (!editForm.title.trim()) return;
+                  if (!editForm.dueAt) {
+                    setEditError("กรุณาเลือกกำหนดส่งงาน");
+                    return;
+                  }
+                  if (dueDate && editForm.dueAt > dueDate) {
+                    setEditError(`กำหนดส่งงานย่อยต้องไม่เกินกำหนดส่งเรื่องหลัก (${formatDate(dueDate)})`);
+                    return;
+                  }
+                  setEditError(null);
+                  setShowEditConfirm(true);
+                }}
                 disabled={updateLoading}
                 className="rounded-lg bg-[#366DBD] px-5 py-2 text-[13px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-60"
               >
-                {updateLoading ? "กำลังบันทึก..." : "บันทึก"}
+                บันทึก
               </button>
             </div>
           </div>
@@ -332,7 +372,7 @@ export default function ManageWorkDetailPage() {
             </button>
             <button
               type="button"
-              onClick={handleSave}
+              onClick={() => setShowForwardConfirm(true)}
               disabled={!canSubmit}
               className="rounded-lg bg-[#366DBD] px-5 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -398,6 +438,7 @@ export default function ManageWorkDetailPage() {
             </div>
 
             <div className="flex flex-col gap-1 text-l text-gray-500">
+              <p>หมายเลขแจ้ง : {data.requestNo}</p>
               <p>ผู้ใช้งานภายในองค์กร : {data.customerName}</p>
               <p>ระบบ : {data.systemName}</p>
             </div>
@@ -408,6 +449,20 @@ export default function ManageWorkDetailPage() {
               rows={12}
               className="w-full resize-none rounded-lg border border-[#000000] bg-gray-50 p-3 text-l text-gray-700 outline-none"
             />
+
+            {data.wasReopened ? (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowReopenModal(true)}
+                  className="rounded-lg border border-[#F4A0A0] bg-[#FFF0F0] px-4 py-2 text-[14px] font-semibold text-[#D9534F] hover:bg-[#FFF5F5] transition-colors"
+                >
+                  ดูการตีกลับล่าสุด
+                </button>
+              </div>
+            ) : null}
+
+
 
             {attachments.length > 0 && (
               <div className="flex flex-col gap-2">
@@ -492,7 +547,7 @@ export default function ManageWorkDetailPage() {
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                min={new Date().toISOString().split("T")[0]}
+                min={localToday}
                 className="h-9 rounded-lg border border-[#000000] bg-white px-3 text-[14px] outline-none focus:border-[#366DBD]"
               />
             </div>
@@ -529,10 +584,9 @@ export default function ManageWorkDetailPage() {
               </button>
             </div>
 
-            {/* Sub-task list */}
             <div className="flex flex-col gap-3 ">
               {pagedSub.length === 0 && (
-                <p className="py-10 text-center text-gray-400">ไม่มีข้อมูล</p>
+                <p className="py-10 text-center text-gray-400">ยังไม่มีงานย่อยที่ต้องดำเนินการ</p>
               )}
               {pagedSub.map((task) => (
                 <div
@@ -551,10 +605,21 @@ export default function ManageWorkDetailPage() {
                     <span className="text-[17px] text-gray-500">
                       {task.dueAt
                         ? (() => {
+                            const taskDate = new Date(task.dueAt);
+                            taskDate.setHours(0, 0, 0, 0);
+                            const todayDate = new Date();
+                            todayDate.setHours(0, 0, 0, 0);
                             const days = Math.ceil(
-                              (new Date(task.dueAt).getTime() - Date.now()) /
+                              (taskDate.getTime() - todayDate.getTime()) /
                                 86400000,
                             );
+                            if (days === 0) {
+                              return (
+                                <span className="text-gray-400">
+                                  วันนี้
+                                </span>
+                              );
+                            }
                             return days > 0 ? (
                               <span className="text-gray-400">
                                 เหลือ {days} วัน
@@ -580,7 +645,7 @@ export default function ManageWorkDetailPage() {
                         onClick={() => setDeleteConfirmId(task.id)}
                         className="rounded-md bg-[#D9534F] px-3  text-[14px] text-white hover:bg-red-600"
                       >
-                        ลบ
+                        ยกเลิกงาน
                       </button>
                     </div>
                   </div>
@@ -627,12 +692,7 @@ export default function ManageWorkDetailPage() {
                 <button
                   type="button"
                   disabled={dueDateLoading || !editedDueDate}
-                  onClick={() =>
-                    updateDueDate(
-                      effectiveRequestId,
-                      editedDueDate!,
-                    )
-                  }
+                  onClick={() => setShowDueDateConfirm(true)}
                   className="rounded-lg bg-[#366DBD] px-6 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-50"
                 >
                   {dueDateLoading ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
@@ -644,39 +704,327 @@ export default function ManageWorkDetailPage() {
       )}
     </div>
 
-      {/* Delete confirmation dialog */}
-      <Dialog
+      {/* Cancel confirmation dialog */}
+      <AdminModalShell
         open={deleteConfirmId !== null}
         onOpenChange={(open) => { if (!open) setDeleteConfirmId(null); }}
+        title="ยืนยันการยกเลิกงาน"
+        widthClassName="max-w-[460px]"
       >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>ยืนยันการลบ</DialogTitle>
-          </DialogHeader>
-          <p className="text-[14px] text-gray-600">คุณต้องการลบงานย่อยนี้ใช่หรือไม่? การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
-          <DialogFooter className="flex gap-2 pt-2">
-            <button
-              type="button"
+        <div className="space-y-5 text-center">
+          <div className="flex justify-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF4E5] text-[#F59E0B]">
+              <TriangleAlert size={28} />
+            </div>
+          </div>
+
+          <p className="text-[15px] text-[#6B7280]">
+            คุณต้องการยกเลิกงานย่อยนี้ใช่หรือไม่?
+          </p>
+
+          <div className="flex justify-center gap-3 pt-1">
+            <ProTechButton
+              variant="delete"
+              className="h-10 min-w-[120px]"
               onClick={() => setDeleteConfirmId(null)}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-[13px] text-gray-600 hover:bg-gray-50"
             >
               ยกเลิก
-            </button>
-            <button
-              type="button"
+            </ProTechButton>
+            <ProTechButton
+              variant="primary"
+              className="h-10 min-w-[120px]"
               onClick={() => {
                 if (deleteConfirmId !== null) {
-                  deleteTicket(deleteConfirmId);
+                  void deleteTicket(deleteConfirmId);
                   setDeleteConfirmId(null);
                 }
               }}
-              className="rounded-lg bg-[#D9534F] px-5 py-2 text-[13px] font-semibold text-white hover:bg-red-600"
             >
-              ลบ
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              ยืนยันการยกเลิก
+            </ProTechButton>
+          </div>
+        </div>
+      </AdminModalShell>
+
+      {/* Edit confirmation dialog */}
+      <AdminModalShell
+        open={showEditConfirm}
+        onOpenChange={setShowEditConfirm}
+        title="ยืนยันการแก้ไข"
+        widthClassName="max-w-[460px]"
+      >
+        <div className="space-y-5 text-center">
+          <div className="flex justify-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF4E5] text-[#F59E0B]">
+              <TriangleAlert size={28} />
+            </div>
+          </div>
+
+          <p className="text-[15px] text-[#6B7280]">
+            คุณต้องการบันทึกการเปลี่ยนแปลงของงานย่อยนี้ใช่หรือไม่?
+          </p>
+
+          <div className="flex justify-center gap-3 pt-1">
+            <ProTechButton
+              variant="delete"
+              className="h-10 min-w-[120px]"
+              onClick={() => setShowEditConfirm(false)}
+            >
+              ยกเลิก
+            </ProTechButton>
+            <ProTechButton
+              variant="primary"
+              className="h-10 min-w-[120px]"
+              onClick={async () => {
+                setShowEditConfirm(false);
+                await handleSaveEdit();
+              }}
+              disabled={updateLoading}
+            >
+              ยืนยัน
+            </ProTechButton>
+          </div>
+        </div>
+      </AdminModalShell>
+
+      {/* Edit success dialog */}
+      <AdminModalShell
+        open={showEditSuccess}
+        onOpenChange={setShowEditSuccess}
+        title="บันทึกสำเร็จ"
+        widthClassName="max-w-[460px]"
+      >
+        <div className="space-y-5 text-center">
+          <div className="flex justify-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#E8F8EE] text-[#1F9D55]">
+              <CheckCircle2 size={34} />
+            </div>
+          </div>
+
+          <p className="text-[15px] text-[#6B7280]">
+            บันทึกการเปลี่ยนแปลงงานย่อยเรียบร้อยแล้ว
+          </p>
+
+          <div className="flex justify-center pt-1">
+            <ProTechButton
+              variant="primary"
+              className="h-10 min-w-[120px]"
+              onClick={() => setShowEditSuccess(false)}
+            >
+              ตกลง
+            </ProTechButton>
+          </div>
+        </div>
+      </AdminModalShell>
+
+      {/* Cancel success dialog */}
+      <AdminModalShell
+        open={showCancelSuccess}
+        onOpenChange={setShowCancelSuccess}
+        title="ยกเลิกงานสำเร็จ"
+        widthClassName="max-w-[460px]"
+      >
+        <div className="space-y-5 text-center">
+          <div className="flex justify-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#E8F8EE] text-[#1F9D55]">
+              <CheckCircle2 size={34} />
+            </div>
+          </div>
+
+          <p className="text-[15px] text-[#6B7280]">
+            ยกเลิกงานย่อยเรียบร้อยแล้ว
+          </p>
+
+          <div className="flex justify-center pt-1">
+            <ProTechButton
+              variant="primary"
+              className="h-10 min-w-[120px]"
+              onClick={() => setShowCancelSuccess(false)}
+            >
+              ตกลง
+            </ProTechButton>
+          </div>
+        </div>
+      </AdminModalShell>
+
+      {/* Request due date confirmation dialog */}
+      <AdminModalShell
+        open={showDueDateConfirm}
+        onOpenChange={setShowDueDateConfirm}
+        title="ยืนยันการเปลี่ยนกำหนดวันส่ง"
+        widthClassName="max-w-[460px]"
+      >
+        <div className="space-y-5 text-center">
+          <div className="flex justify-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF4E5] text-[#F59E0B]">
+              <TriangleAlert size={28} />
+            </div>
+          </div>
+
+          <p className="text-[15px] text-[#6B7280]">
+            คุณต้องการเปลี่ยนวันส่งของเรื่องหลักนี้ใช่หรือไม่? (วันส่งของงานย่อยที่ยังไม่ได้เริ่มและเกินกำหนดจะถูกปรับลดให้อัตโนมัติ)
+          </p>
+
+          <div className="flex justify-center gap-3 pt-1">
+            <ProTechButton
+              variant="delete"
+              className="h-10 min-w-[120px]"
+              onClick={() => setShowDueDateConfirm(false)}
+            >
+              ยกเลิก
+            </ProTechButton>
+            <ProTechButton
+              variant="primary"
+              className="h-10 min-w-[120px]"
+              onClick={async () => {
+                setShowDueDateConfirm(false);
+                if (editedDueDate) {
+                  await updateDueDate(effectiveRequestId, editedDueDate);
+                  setShowDueDateSuccess(true);
+                  refetch();
+                }
+              }}
+            >
+              ยืนยัน
+            </ProTechButton>
+          </div>
+        </div>
+      </AdminModalShell>
+
+      {/* Request due date success dialog */}
+      <AdminModalShell
+        open={showDueDateSuccess}
+        onOpenChange={setShowDueDateSuccess}
+        title="เปลี่ยนกำหนดส่งสำเร็จ"
+        widthClassName="max-w-[460px]"
+      >
+        <div className="space-y-5 text-center">
+          <div className="flex justify-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#E8F8EE] text-[#1F9D55]">
+              <CheckCircle2 size={34} />
+            </div>
+          </div>
+
+          <p className="text-[15px] text-[#6B7280]">
+            เปลี่ยนวันกำหนดส่งของเรื่องหลักและปรับวันส่งงานย่อยเรียบร้อยแล้ว
+          </p>
+
+          <div className="flex justify-center pt-1">
+            <ProTechButton
+              variant="primary"
+              className="h-10 min-w-[120px]"
+              onClick={() => setShowDueDateSuccess(false)}
+            >
+              ตกลง
+            </ProTechButton>
+          </div>
+        </div>
+      </AdminModalShell>
+
+      {/* Forward request confirmation dialog */}
+      <AdminModalShell
+        open={showForwardConfirm}
+        onOpenChange={setShowForwardConfirm}
+        title="ยืนยันการส่งต่อ"
+        widthClassName="max-w-[460px]"
+      >
+        <div className="space-y-5 text-center">
+          <div className="flex justify-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF4E5] text-[#F59E0B]">
+              <TriangleAlert size={28} />
+            </div>
+          </div>
+
+          <p className="text-[15px] text-[#6B7280]">
+            คุณต้องการส่งต่องานนี้ใช่หรือไม่?
+          </p>
+
+          <div className="flex justify-center gap-3 pt-1">
+            <ProTechButton
+              variant="delete"
+              className="h-10 min-w-[120px]"
+              onClick={() => setShowForwardConfirm(false)}
+            >
+              ยกเลิก
+            </ProTechButton>
+            <ProTechButton
+              variant="primary"
+              className="h-10 min-w-[120px]"
+              onClick={async () => {
+                setShowForwardConfirm(false);
+                await handleSave();
+              }}
+            >
+              ยืนยัน
+            </ProTechButton>
+          </div>
+        </div>
+      </AdminModalShell>
+
+      {/* Forward success dialog */}
+      <AdminModalShell
+        open={showForwardSuccess}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowForwardSuccess(false);
+            router.push(`/consideration/issue-work`);
+          }
+        }}
+        title="ส่งต่อสำเร็จ"
+        widthClassName="max-w-[460px]"
+      >
+        <div className="space-y-5 text-center">
+          <div className="flex justify-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#E8F8EE] text-[#1F9D55]">
+              <CheckCircle2 size={34} />
+            </div>
+          </div>
+
+          <p className="text-[15px] text-[#6B7280]">
+            ส่งต่อการดำเนินการเรียบร้อยแล้ว
+          </p>
+
+          <div className="flex justify-center pt-1">
+            <ProTechButton
+              variant="primary"
+              className="h-10 min-w-[120px]"
+              onClick={() => {
+                setShowForwardSuccess(false);
+                router.push(`/consideration/issue-work`);
+              }}
+            >
+              ตกลง
+            </ProTechButton>
+          </div>
+        </div>
+      </AdminModalShell>
+
+      {/* Reopen comment modal */}
+      <AdminModalShell
+        open={showReopenModal}
+        onOpenChange={setShowReopenModal}
+        title="การตีกลับล่าสุด"
+        widthClassName="max-w-[480px]"
+      >
+        <div className="space-y-5 text-center">
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-[14px]">
+            <p className="font-semibold text-gray-700 mb-1">ความคิดเห็นการตีกลับ</p>
+            <p className="text-gray-600 whitespace-pre-wrap text-left indent-8">
+              {data?.latestReopenComment || "-"}
+            </p>
+          </div>
+
+          <div className="flex justify-center pt-1">
+            <ProTechButton
+              variant="primary"
+              className="h-10 min-w-[120px]"
+              onClick={() => setShowReopenModal(false)}
+            >
+              ตกลง
+            </ProTechButton>
+          </div>
+        </div>
+      </AdminModalShell>
   </>
 );
 }

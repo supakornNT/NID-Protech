@@ -91,7 +91,16 @@ export class RequestsService implements OnModuleInit {
         requests.status AS status,
         requests.closed_at AS closedAt,
         requests.due_at AS dueAt,
-        CONCAT(s2.name, ' ', s2.surname) AS assignedStaffName
+        CONCAT(s2.name, ' ', s2.surname) AS assignedStaffName,
+        EXISTS (
+          SELECT 1 FROM request_confirmations
+          WHERE request_id = requests.id AND result = 'reopened'
+        ) AS wasReopened,
+        (
+          SELECT comment FROM request_confirmations
+          WHERE request_id = requests.id AND result = 'reopened'
+          ORDER BY id DESC LIMIT 1
+        ) AS latestReopenComment
       FROM requests
       LEFT JOIN systems ON systems.id = requests.system_id
       LEFT JOIN problem_types ON problem_types.id = requests.problem_type_id
@@ -233,6 +242,7 @@ export class RequestsService implements OnModuleInit {
     const [rows] = await this.db.query<RequestsAssign[]>(
       `SELECT
         requests.id,
+        requests.request_no AS requestNo,
         requests.title,
         systems.name AS systemName,
         customers.name AS customerName,
@@ -414,6 +424,14 @@ export class RequestsService implements OnModuleInit {
       dueAt,
       id,
     ]);
+    await this.db.query(
+      `UPDATE tickets
+       SET due_at = ?
+       WHERE request_id = ?
+         AND status = 'assigned'
+         AND due_at > ?`,
+      [dueAt, id, dueAt],
+    );
   }
 
   async getOrGenerate(data: RequestData): Promise<string> {

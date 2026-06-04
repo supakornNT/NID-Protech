@@ -14,6 +14,8 @@ type Detail = {
   status: string;
   closedAt: string | null;
   dueAt: string | null;
+  wasReopened?: boolean;
+  latestReopenComment?: string | null;
 };
 
 type Attachment = {

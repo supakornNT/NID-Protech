@@ -48,7 +48,7 @@ export class TicketsService {
         tickets.resolved_at AS resolvedAt
       FROM tickets
       LEFT JOIN staffs ON staffs.id = tickets.assigned_staff_id
-      WHERE tickets.request_id = ? AND tickets.status != 'cancelled'
+      WHERE tickets.request_id = ? AND tickets.status = 'assigned'
       `,
       [id],
     );
