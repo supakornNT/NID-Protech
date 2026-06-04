@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useStaffSession } from "@/contexts/staff-session-context";
 import { useRequests } from "@/hooks/use-requests";
 import { useRejectComplaint } from "@/hooks/use-reject-complaint";
 import { useAcceptComplaint } from "@/hooks/use-accept-complaint";
@@ -64,13 +65,15 @@ function StatusCell({
 }
 
 export default function ComplaintsPage() {
+  const { staff } = useStaffSession();
+  const staffId = typeof staff?.id === "number" ? staff.id : Number(staff?.id);
   const { rows, setRows, loading } = useRequests("complaint");
   const { rejectId, rejectReason, setRejectReason, openReject, handleReject, closeReject } =
     useRejectComplaint((id) =>
       setRows((prev) => prev.filter((r) => r.id !== id)),
     );
   const { acceptId, acceptReason, setAcceptReason, openAccept, handleAccept, closeAccept } =
-    useAcceptComplaint((id) => setRows((prev) => prev.filter((r) => r.id !== id)), 0);
+    useAcceptComplaint((id) => setRows((prev) => prev.filter((r) => r.id !== id)), staffId);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
@@ -228,6 +231,7 @@ export default function ComplaintsPage() {
           </div>
           <button
             type="button"
+            onClick={() => setPage(1)}
             className="h-9 rounded-lg bg-[#366DBD] px-5 text-[14px] font-semibold text-white transition hover:bg-[#2d5da3]"
           >
             ค้นหา

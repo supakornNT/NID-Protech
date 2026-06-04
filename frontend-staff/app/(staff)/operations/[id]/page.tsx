@@ -5,7 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { AlertCircle, FileText, ImageIcon, Plus, Trash2, X } from "lucide-react";
 
-import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { useComplaintDetail, useLightbox } from "@/hooks/use-complaint-detail";
 import { useTicketWork } from "@/hooks/use-ticket-work";
 import { useLoadingDelay } from "@/hooks/use-loading-delay";
@@ -57,8 +56,6 @@ export default function OperationDetailPage() {
   const [resolution, setResolution] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  const [rejectOpen, setRejectOpen] = useState(false);
-  const [rejectReason, setRejectReason] = useState("");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -119,45 +116,7 @@ export default function OperationDetailPage() {
         </div>
       )}
 
-      <AdminModalShell
-        open={rejectOpen}
-        onOpenChange={(open) => {
-          if (!open) setRejectOpen(false);
-        }}
-        title="เหตุผลไม่อนุมัติ"
-        widthClassName="max-w-[440px]"
-      >
-        <div className="flex flex-col gap-4">
-          <textarea
-            rows={4}
-            value={rejectReason}
-            onChange={(e) => setRejectReason(e.target.value)}
-            placeholder="ระบุเหตุผล..."
-            className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-[14px] outline-none focus:border-[#366DBD]"
-          />
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setRejectOpen(false)}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-[13px] text-gray-600 hover:bg-gray-50"
-            >
-              ยกเลิก
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setRejectOpen(false);
-                setRejectReason("");
-              }}
-              className="rounded-lg bg-[#D9534F] px-5 py-2 text-[13px] font-semibold text-white hover:bg-red-600"
-            >
-              ยืนยัน
-            </button>
-          </div>
-        </div>
-      </AdminModalShell>
-
-      <div className="flex flex-1 flex-col gap-4 bg-[#F0F4FA] p-8">
+<div className="flex flex-1 flex-col gap-4 bg-[#F0F4FA] p-8">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-[28px] font-bold text-gray-900">

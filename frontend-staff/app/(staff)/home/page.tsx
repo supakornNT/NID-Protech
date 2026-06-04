@@ -23,7 +23,7 @@ function withBasePath(path: string) {
 export default function HomePage() {
   const [time, setTime] = useState<Date | null>(null);
   const { staff } = useStaffSession();
-  const staffName = staff?.name ?? "สมชาย ใจดี";
+  const staffName = staff?.name ?? "เจ้าหน้าที่";
 
   useEffect(() => {
     const interval = setInterval(() => setTime(new Date()), 1000);

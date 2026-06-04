@@ -63,7 +63,7 @@ export default function ReportEditHistoryPage() {
         setStats(d.stats);
         setRows(Array.isArray(d.rows) ? d.rows : []);
       })
-      .catch(console.error)
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
