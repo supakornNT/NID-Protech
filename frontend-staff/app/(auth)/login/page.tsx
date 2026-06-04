@@ -1,16 +1,19 @@
 "use client";
 
-import { type FormEvent, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 
-import styles from "@/app/(auth)/auth.module.css";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FormInputIcon } from "@/components/ui/form-input";
+import { ProTechButton } from "@/components/tables/protech-button";
 import { fetchJson } from "@/lib/fetch";
-import { setStoredStaffSession } from "@/lib/staff-session";
+import {
+  clearStoredStaffSession,
+  setStoredStaffSession,
+} from "@/lib/staff-session";
+import styles from "@/app/(auth)/auth.module.css";
 
 type StaffSession = {
   id: number;
@@ -27,18 +30,58 @@ type StaffSession = {
   }[];
 };
 
-export default function LoginPage() {
-  const router = useRouter();
+function withBasePath(path: string) {
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+  return `${basePath}${path}`;
+}
+
+function LoginContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+  const [error, setError] = useState("");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextPath = searchParams.get("next") || "/home";
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkSession() {
+      try {
+        const staff = await fetchJson<StaffSession>("/auth/me", {
+          skipSessionExpiredEvent: true,
+        });
+
+        if (cancelled) {
+          return;
+        }
+
+        setStoredStaffSession(staff);
+        router.replace(nextPath);
+      } catch {
+        if (cancelled) {
+          return;
+        }
+
+        clearStoredStaffSession();
+        setCheckingSession(false);
+      }
+    }
+
+    void checkSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [nextPath, router]);
+
+  async function handleLogin(event: React.FormEvent) {
     event.preventDefault();
 
-    if (!email.trim() || !password) {
+    if (!email.trim() || !password.trim()) {
       setError("กรุณากรอกอีเมลและรหัสผ่าน");
       return;
     }
@@ -51,10 +94,7 @@ export default function LoginPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         skipSessionExpiredEvent: true,
-        body: JSON.stringify({
-          email: email.trim(),
-          password,
-        }),
+        body: JSON.stringify({ email: email.trim(), password }),
       });
 
       const staff = await fetchJson<StaffSession>("/auth/me", {
@@ -63,137 +103,148 @@ export default function LoginPage() {
       });
 
       setStoredStaffSession(staff);
-      router.replace("/home");
+      router.push(nextPath);
       router.refresh();
-    } catch (e) {
+    } catch (loginError) {
       setError(
-        e instanceof Error
-          ? e.message
-          : "ไม่สามารถเข้าสู่ระบบได้ กรุณาลองใหม่อีกครั้ง",
+        loginError instanceof Error ? loginError.message : "เข้าสู่ระบบไม่สำเร็จ",
       );
     } finally {
       setLoading(false);
     }
   }
 
+  if (checkingSession) {
+    return (
+      <div className={styles.loginLoadingScreen}>
+        <div className={styles.loginLoadingCard}>
+          <p className={styles.loginLoadingTitle}>กำลังตรวจสอบการเข้าสู่ระบบ</p>
+          <p className={styles.loginLoadingText}>กรุณารอสักครู่...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex justify-center px-4 py-4 sm:px-0 sm:py-8">
-      <Card
-        className={`${styles.cardBackground} border-0 bg-transparent shadow-none md:border md:bg-white md:shadow-md`}
-      >
-        <div className="hidden flex-1 md:block">
-          <div className={styles.leftPanel} style={{ height: "100%" }}>
-            <div className={styles.decorCircle1} />
-            <div className={styles.decorCircle2} />
-            <div className={styles.leftLogo}>
-              <Image
-                src="/ProTechLogoFinal.png"
-                alt="ProTech Support"
-                width={160}
-                height={48}
-                style={{ objectFit: "contain" }}
-              />
-            </div>
-            <div className={styles.leftContent}>
-              <h2 className={styles.leftTitle}>
-                ระบบจัดการงาน
-                <br />
-                <span className={styles.leftTitleAccent}>
-                  ซ่อมบำรุงและบริการ
-                </span>
-              </h2>
-              <p className={styles.leftDesc}>
-                แจ้งปัญหา ติดตามงาน บริการรวดเร็ว
-                <br />
-                เชื่อมต่อทุกการซ่อมบำรุงอย่างมืออาชีพ
+    <main className={styles.loginShell}>
+      <section className={styles.loginBrandPanel}>
+        <div className={styles.loginLogoWrap}>
+          <Image
+            src={withBasePath("/ProTechLogoFinal.png")}
+            alt="ProTech Support"
+            width={136}
+            height={52}
+            priority
+            className={styles.loginLogo}
+          />
+        </div>
+
+        <div className={styles.loginHeroContent}>
+          <h1 className={styles.loginHeroTitle}>
+            <span className={styles.loginHeroTitleLine}>ระบบจัดการงาน</span>
+            <span
+              className={`${styles.loginHeroTitleLine} ${styles.loginHeroTitleAccent}`}
+            >
+              ซ่อมบำรุงและบริการ
+            </span>
+          </h1>
+          <p className={styles.loginHeroDescription}>
+            แจ้งปัญหา ติดตามงาน บริการรวดเร็ว
+            <br />
+            เชื่อมต่อทุกการซ่อมบำรุงอย่างมืออาชีพ
+          </p>
+        </div>
+
+        <div className={styles.loginIllustrationWrap}>
+          <Image
+            src={withBasePath("/man.png")}
+            alt="illustration"
+            width={624}
+            height={562}
+            priority
+            className={styles.loginIllustration}
+          />
+        </div>
+      </section>
+
+      <section className={styles.loginFormPanel}>
+        <Card className={styles.loginMainCard}>
+          <div className={styles.loginCardBody}>
+            <div className={styles.loginCardHeader}>
+              <h1 className={styles.loginCardTitle}>เข้าสู่ระบบ</h1>
+              <p className={styles.loginCardSubtitle}>
+                กรุณาเข้าสู่ระบบเพื่อเข้าใช้งาน
               </p>
-              <div className={styles.leftIllustration}>
-                <Image
-                  src="/man.png"
-                  alt="illustration"
-                  width={370}
-                  height={184}
-                  style={{
-                    objectFit: "contain",
-                    width: "100%",
-                    height: "auto",
-                  }}
-                />
-              </div>
             </div>
-          </div>
-        </div>
 
-        <div className="flex flex-1 items-center justify-center">
-          <Card className={styles.cardMain}>
-            <form className="flex flex-1 flex-col gap-6" onSubmit={handleSubmit}>
-              <div className="flex flex-col items-center gap-2">
-                <div className="flex w-full justify-center">
-                  <h1 className="text-2xl font-bold">เข้าสู่ระบบ</h1>
-                </div>
-                <div className="flex w-full justify-center">
-                  <p className="text-gray-500">
-                    กรุณาเข้าสู่ระบบเพื่อเข้าใช้งาน
-                  </p>
-                </div>
-              </div>
+            <form
+              className={styles.loginForm}
+              onSubmit={(event) => {
+                void handleLogin(event);
+              }}
+            >
+              <FormInputIcon
+                label="อีเมล"
+                placeholder="กรุณากรอกอีเมล"
+                className={styles.loginFieldGroup}
+                inputClassName={styles.loginFieldInput}
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                icon={<Mail size={20} className={styles.loginFieldIcon} />}
+              />
 
-              <div className="flex items-center justify-center gap-6 px-5">
-                <FormInputIcon
-                  label="อีเมล"
-                  placeholder="กรุณากรอกอีเมล"
-                  className="flex-1"
-                  type="email"
-                  value={email}
-                  disabled={loading}
-                  onChange={(event) => setEmail(event.target.value)}
-                  icon={<Mail size={16} className="text-gray-400" />}
-                />
-              </div>
+              <FormInputIcon
+                label="รหัสผ่าน"
+                placeholder="กรุณากรอกรหัสผ่าน"
+                className={styles.loginFieldGroup}
+                inputClassName={styles.loginFieldInput}
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                icon={<Lock size={20} className={styles.loginFieldIcon} />}
+                suffix={
+                  <button
+                    type="button"
+                    className={styles.loginPasswordToggle}
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff size={20} className={styles.loginFieldIcon} />
+                    ) : (
+                      <Eye size={20} className={styles.loginFieldIcon} />
+                    )}
+                  </button>
+                }
+              />
 
-              <div className="flex items-center justify-center gap-6 px-5">
-                <FormInputIcon
-                  label="รหัสผ่าน"
-                  placeholder="กรุณากรอกรหัสผ่าน"
-                  className="flex-1"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  disabled={loading}
-                  onChange={(event) => setPassword(event.target.value)}
-                  icon={<Lock size={16} className="text-gray-400" />}
-                  suffix={
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      disabled={loading}
-                    >
-                      {showPassword ? (
-                        <EyeOff size={16} className="text-gray-400" />
-                      ) : (
-                        <Eye size={16} className="text-gray-400" />
-                      )}
-                    </button>
-                  }
-                />
-              </div>
+              {error ? <p className={styles.loginErrorText}>{error}</p> : null}
 
-              {error ? (
-                <p className="px-5 text-sm font-medium text-red-500">{error}</p>
-              ) : null}
-
-              <div className="flex items-center justify-center gap-6 px-5">
-                <Button
-                  type="submit"
-                  className="w-full rounded-md bg-[#2F66C5] hover:bg-[#1a56b0]"
-                  disabled={loading}
-                >
-                  {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
-                </Button>
-              </div>
+              <ProTechButton
+                type="submit"
+                disabled={loading}
+                fullWidth
+                className={styles.loginPrimaryButton}
+              >
+                {loading ? "กำลังดำเนินการ..." : "เข้าสู่ระบบ"}
+              </ProTechButton>
             </form>
-          </Card>
+          </div>
+        </Card>
+      </section>
+    </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className={styles.loginLoadingScreen}>
+        <div className={styles.loginLoadingCard}>
+          <p className={styles.loginLoadingTitle}>กำลังโหลด...</p>
         </div>
-      </Card>
-    </div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }
