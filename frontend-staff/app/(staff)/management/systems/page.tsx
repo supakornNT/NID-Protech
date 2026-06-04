@@ -9,6 +9,10 @@ import {
   CheckCell,
   StatusBadge,
 } from "@/components/admin/admin-table-page";
+import {
+  ActionSuccessModal,
+  type ManagementSuccessAction,
+} from "@/components/admin/action-success-modal";
 import { DeleteConfirmDialog } from "@/components/admin/delete-confirm-dialog";
 import { SystemModal } from "@/components/systems/system-modal";
 import { ProTechButton } from "@/components/tables/protech-button";
@@ -52,6 +56,8 @@ export default function SystemsPage() {
   const [statusFilter, setStatusFilter] = useState<SystemStatusFilter>("all");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [dialogState, setDialogState] = useState<DialogState>(null);
+  const [successAction, setSuccessAction] =
+    useState<ManagementSuccessAction | null>(null);
   const [organizationOptions, setOrganizationOptions] = useState<OrganizationOption[]>([]);
   const [organizationError, setOrganizationError] = useState<string | null>(null);
 
@@ -186,10 +192,13 @@ export default function SystemsPage() {
 
     if (success) {
       resetSelection();
+      setSuccessAction("delete");
     }
   }
 
   async function handleSubmit(payload: SystemFormInput) {
+    const nextAction: ManagementSuccessAction =
+      dialogState?.mode === "edit" ? "update" : "create";
     const success =
       dialogState?.mode === "edit" && dialogState.item
         ? await updateSystem(dialogState.item.id, payload)
@@ -200,6 +209,7 @@ export default function SystemsPage() {
     }
 
     setDialogState(null);
+    setSuccessAction(nextAction);
   }
 
   const columns: Column<SystemTableRow>[] = [
@@ -384,6 +394,17 @@ export default function SystemsPage() {
         onSubmit={(payload) => {
           void handleSubmit(payload);
         }}
+      />
+
+      <ActionSuccessModal
+        open={successAction !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSuccessAction(null);
+          }
+        }}
+        action={successAction ?? "create"}
+        subject="ข้อมูลระบบ"
       />
     </div>
   );

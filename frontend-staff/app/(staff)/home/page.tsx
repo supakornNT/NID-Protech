@@ -6,10 +6,25 @@ import { Phone, Mail } from "lucide-react";
 
 export default function HomePage() {
   const [time, setTime] = useState<Date | null>(null);
+  const [staffName, setStaffName] = useState<string>("สมชาย ใจดี");
 
   useEffect(() => {
     const interval = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("protech_staff");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.name) {
+          setStaffName(parsed.name);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
   }, []);
 
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -45,7 +60,7 @@ export default function HomePage() {
             style={{ width: 360, height: 360 }}
           >
             <p className="text-5xl font-normal text-gray-900">ยินดีต้อนรับ</p>
-            <p className="mt-3 text-5xl font-bold text-[#3670BF]">สมชาย ใจดี</p>
+            <p className="mt-3 text-5xl font-bold text-[#3670BF]">{staffName}</p>
           </div>
 
           {/* Text below oval */}

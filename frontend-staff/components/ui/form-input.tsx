@@ -7,6 +7,8 @@ interface FormInputProps {
   placeholder?: string;
   className?: string;
   inputClassName?: string;
+  type?: string;
+  maxLength?: number;
   value?: string;
   disabled?: boolean;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -28,6 +30,8 @@ export function FormInput({
   placeholder,
   className,
   inputClassName,
+  type = "text",
+  maxLength,
   value,
   disabled,
   onChange,
@@ -36,8 +40,10 @@ export function FormInput({
     <div className={cn("flex flex-col gap-1", className)}>
       <p style={{ fontSize: 16, fontWeight: 500 }}>{label}</p>
       <Input
+        type={type}
         className={inputClassName}
         placeholder={placeholder}
+        maxLength={maxLength}
         disabled={disabled}
         {...(value !== undefined
           ? { value, onChange: onChange ?? (() => {}) }
@@ -54,6 +60,7 @@ export function FormInputIcon({
   inputClassName,
   value,
   onChange,
+  disabled,
   icon,
   suffix,
   type = "text",
@@ -72,6 +79,7 @@ export function FormInputIcon({
           placeholder={placeholder}
           value={value}
           onChange={onChange}
+          disabled={disabled}
         />
         {suffix}
       </div>

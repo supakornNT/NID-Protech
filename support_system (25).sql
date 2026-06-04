@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 25, 2026 at 06:09 AM
+-- Generation Time: May 26, 2026 at 03:59 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -34,24 +34,26 @@ CREATE TABLE `attachments` (
   `attachment_type` enum('request_evidence','customer_tracking_ticket','assignment_ticket','resolution_evidence') NOT NULL,
   `original_name` varchar(255) NOT NULL,
   `file_ext` enum('pdf','jpg','jpeg','png') NOT NULL,
-  `uploaded_at` datetime DEFAULT current_timestamp()
+  `uploaded_at` datetime DEFAULT current_timestamp(),
+  `saved_name` varchar(255) DEFAULT NULL,
+  `status` enum('show','hide') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `attachments`
 --
 
-INSERT INTO `attachments` (`id`, `request_id`, `ticket_id`, `attachment_type`, `original_name`, `file_ext`, `uploaded_at`) VALUES
-(1, 1, NULL, '', 'login-error-screen.png', 'png', '2026-05-08 08:01:00'),
-(2, 3, NULL, '', 'network-error.jpg', 'jpg', '2026-05-08 08:31:00'),
-(3, 5, NULL, '', 'complaint-detail.pdf', 'pdf', '2026-05-08 09:01:00'),
-(4, NULL, 1, 'assignment_ticket', 'assignment-TCK-20260508-0001.pdf', 'pdf', '2026-05-08 08:26:00'),
-(5, NULL, 3, 'resolution_evidence', 'fixed-report-result.png', 'png', '2026-05-08 11:25:00'),
-(6, NULL, 4, 'resolution_evidence', 'service-followup.pdf', 'pdf', '2026-05-08 13:50:00'),
-(7, NULL, 5, 'customer_tracking_ticket', 'tracking-TCK-20260508-0005.pdf', 'pdf', '2026-05-08 09:46:00'),
-(8, NULL, 6, 'resolution_evidence', 'server-log-result.jpeg', 'jpeg', '2026-05-08 10:28:00'),
-(9, 9, 8, 'customer_tracking_ticket', 'tracking-REP-20260508-0009.pdf', 'pdf', '2026-05-11 11:49:39'),
-(10, 15, NULL, '', 'support_system (7).sql', '', '2026-05-12 13:04:21');
+INSERT INTO `attachments` (`id`, `request_id`, `ticket_id`, `attachment_type`, `original_name`, `file_ext`, `uploaded_at`, `saved_name`, `status`) VALUES
+(1, 1, NULL, '', 'login-error-screen.png', 'png', '2026-05-08 08:01:00', NULL, 'show'),
+(2, 3, NULL, '', 'network-error.jpg', 'jpg', '2026-05-08 08:31:00', NULL, 'show'),
+(3, 5, NULL, '', 'complaint-detail.pdf', 'pdf', '2026-05-08 09:01:00', NULL, 'show'),
+(4, NULL, 1, 'assignment_ticket', 'assignment-TCK-20260508-0001.pdf', 'pdf', '2026-05-08 08:26:00', NULL, 'show'),
+(5, NULL, 3, 'resolution_evidence', 'fixed-report-result.png', 'png', '2026-05-08 11:25:00', NULL, 'show'),
+(6, NULL, 4, 'resolution_evidence', 'service-followup.pdf', 'pdf', '2026-05-08 13:50:00', NULL, 'show'),
+(7, NULL, 5, 'customer_tracking_ticket', 'tracking-TCK-20260508-0005.pdf', 'pdf', '2026-05-08 09:46:00', NULL, 'show'),
+(8, NULL, 6, 'resolution_evidence', 'server-log-result.jpeg', 'jpeg', '2026-05-08 10:28:00', NULL, 'show'),
+(9, 9, 8, 'customer_tracking_ticket', 'tracking-REP-20260508-0009.pdf', 'pdf', '2026-05-11 11:49:39', NULL, 'show'),
+(10, 15, NULL, '', 'support_system (7).sql', '', '2026-05-12 13:04:21', NULL, 'show');
 
 -- --------------------------------------------------------
 
@@ -1252,8 +1254,7 @@ INSERT INTO `organizations` (`id`, `name`, `type`, `email`, `phone`, `status`, `
 (1, 'NID Technology Co., Ltd.', 'company', 'you@gmail.com', '0245487878', 'active', '2026-05-01 09:05:00', '2026-05-15 16:27:16'),
 (2, 'Bangkok Digital Service', 'government', '22trai2548@gmail.com', '0245487878', 'active', '2026-05-01 09:10:00', '2026-05-14 15:53:34'),
 (3, 'ProTech Partner Group', 'company', 'you@gmail.com', '0245487878', 'active', '2026-05-01 09:15:00', '2026-05-22 14:19:44'),
-(4, 'Other Customer Organization', 'other', '12123@gmail.com', '0245487878', 'active', '2026-05-01 09:20:00', '2026-05-22 14:19:40'),
-(8, 'อ', 'company', NULL, '0987745845', 'active', '2026-05-18 09:22:27', '2026-05-18 09:27:54');
+(4, 'Other Customer Organization', 'other', '12123@gmail.com', '0245487878', 'active', '2026-05-01 09:20:00', '2026-05-22 14:19:40');
 
 -- --------------------------------------------------------
 
@@ -1278,7 +1279,8 @@ INSERT INTO `password_logs` (`id`, `user_type`, `user_id`, `password_hash`, `cha
 (2, 'customer', 1, '$2b$10$newcustomerhash1', '2026-05-07 18:00:00'),
 (3, 'staff', 1, '$2b$10$oldstaffhash1', '2026-05-01 11:00:00'),
 (4, 'staff', 4, '$2b$10$newstaffhash4', '2026-05-06 09:00:00'),
-(5, 'staff', 1, '$2b$10$.q3S1InwVcaAE35LjUAgfuAzPvChHcPT1typRBmGaUVRKCOOoLrO6', '2026-05-22 16:41:10');
+(5, 'staff', 1, '$2b$10$.q3S1InwVcaAE35LjUAgfuAzPvChHcPT1typRBmGaUVRKCOOoLrO6', '2026-05-22 16:41:10'),
+(6, 'staff', 1, '$2b$10$zMel.Ua8xDnNoSx67Pty7uPob.oZh9JXgAOtepb6p6asoLkTjMLnu', '2026-05-25 17:14:21');
 
 -- --------------------------------------------------------
 
@@ -1481,26 +1483,28 @@ CREATE TABLE `requests` (
   `status` enum('screening','assigned','in_progress','waiting_confirm','closed','rejected') DEFAULT 'screening',
   `score` tinyint(3) UNSIGNED DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp(),
-  `closed_at` datetime DEFAULT NULL
+  `closed_at` datetime DEFAULT NULL,
+  `due_at` date DEFAULT NULL,
+  `resolved_at` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `requests`
 --
 
-INSERT INTO `requests` (`id`, `request_no`, `customer_id`, `organization`, `system_id`, `problem_type_id`, `title`, `detail`, `status`, `score`, `created_at`, `closed_at`) VALUES
-(1, 'RP-2026-0001', 1, NULL, 1, 1, 'เข้าสู่ระบบไม่ได้', 'ลูกค้าแจ้งว่า login แล้วขึ้นรหัสผ่านไม่ถูกต้อง ทั้งที่กรอกถูก', 'screening', NULL, '2026-05-08 08:00:00', NULL),
-(2, 'RP-2026-0002', 1, NULL, 1, 2, 'ระบบโหลดช้ามาก', 'หน้า dashboard ใช้เวลานานกว่า 30 วินาที', 'assigned', NULL, '2026-05-08 08:15:00', NULL),
-(3, 'RP-2026-0003', 2, NULL, 3, 3, 'ใช้งานเครือข่ายไม่ได้', 'เข้าใช้งานระบบ E-Service ผ่านเครือข่ายสำนักงานไม่ได้', 'rejected', NULL, '2026-05-08 08:30:00', NULL),
-(4, 'RP-2026-0004', 3, NULL, 1, 4, 'ข้อมูลในรายงานไม่ถูกต้อง', 'รายงานสถานะงานแสดงจำนวนไม่ตรงกับข้อมูลจริง', 'closed', NULL, '2026-05-08 08:45:00', '2026-05-08 13:36:46'),
-(5, 'RP-2026-0005', 3, NULL, 1, 5, 'ร้องเรียนการให้บริการล่าช้า', 'รอเจ้าหน้าที่ติดต่อกลับนานเกินกำหนด', 'closed', 5, '2026-05-08 09:00:00', '2026-05-08 15:30:00'),
-(6, 'RP-2026-0006', 2, NULL, 2, 6, 'ร้องเรียนเจ้าหน้าที่พูดจาไม่เหมาะสม', 'ลูกค้าระบุว่าได้รับการสื่อสารไม่สุภาพ', 'rejected', NULL, '2026-05-08 09:15:00', NULL),
-(7, 'RP-2026-0007', 1, NULL, 1, 2, 'เปิดซ้ำหลังปิดงาน', 'ลูกค้ายืนยันว่าอาการเดิมกลับมาเกิดอีกครั้ง', 'in_progress', NULL, '2026-05-08 09:30:00', NULL),
-(8, 'RP-2026-0008', 2, NULL, 3, 1, 'ต้องการข้อมูลเพิ่มก่อนคัดกรอง', 'รายละเอียดที่แจ้งมายังไม่ชัดเจน', 'assigned', NULL, '2026-05-08 09:45:00', NULL),
-(9, 'RP-2026-0009', 1, NULL, 1, 4, 'งานถูกยกเลิก', 'แจ้งผิดระบบ ลูกค้าขอยกเลิกรายการ', 'closed', 4, '2026-05-08 10:00:00', '2026-05-08 12:00:00'),
-(15, 'RPT-20260512-001', 1, 'NID Technology Co., Ltd.', 2, 2, 'โหลดไม่ได้', 'ไม่รู้เเหทือรนกัน', 'screening', NULL, '2026-05-12 13:04:21', NULL),
-(16, 'RPT-20260512-002', 1, 'NID Technology Co., Ltd.', 1, 1, 'พพพ', 'พพพ', 'screening', NULL, '2026-05-12 13:04:39', NULL),
-(17, 'RPT-20260512-003', 1, 'NID Technology Co., Ltd.', 1, 1, 'วสส', '', 'closed', 4, '2026-05-12 13:05:44', '2026-05-13 11:23:34');
+INSERT INTO `requests` (`id`, `request_no`, `customer_id`, `organization`, `system_id`, `problem_type_id`, `title`, `detail`, `status`, `score`, `created_at`, `closed_at`, `due_at`, `resolved_at`) VALUES
+(1, 'RP-2026-0001', 1, NULL, 1, 1, 'เข้าสู่ระบบไม่ได้', 'ลูกค้าแจ้งว่า login แล้วขึ้นรหัสผ่านไม่ถูกต้อง ทั้งที่กรอกถูก', 'screening', NULL, '2026-05-08 08:00:00', NULL, NULL, NULL),
+(2, 'RP-2026-0002', 1, NULL, 1, 2, 'ระบบโหลดช้ามาก', 'หน้า dashboard ใช้เวลานานกว่า 30 วินาที', 'assigned', NULL, '2026-05-08 08:15:00', NULL, NULL, NULL),
+(3, 'RP-2026-0003', 2, NULL, 3, 3, 'ใช้งานเครือข่ายไม่ได้', 'เข้าใช้งานระบบ E-Service ผ่านเครือข่ายสำนักงานไม่ได้', 'rejected', NULL, '2026-05-08 08:30:00', NULL, NULL, NULL),
+(4, 'RP-2026-0004', 3, NULL, 1, 4, 'ข้อมูลในรายงานไม่ถูกต้อง', 'รายงานสถานะงานแสดงจำนวนไม่ตรงกับข้อมูลจริง', 'closed', NULL, '2026-05-08 08:45:00', '2026-05-08 13:36:46', NULL, NULL),
+(5, 'RP-2026-0005', 3, NULL, 1, 5, 'ร้องเรียนการให้บริการล่าช้า', 'รอเจ้าหน้าที่ติดต่อกลับนานเกินกำหนด', 'closed', 5, '2026-05-08 09:00:00', '2026-05-08 15:30:00', NULL, NULL),
+(6, 'RP-2026-0006', 2, NULL, 2, 6, 'ร้องเรียนเจ้าหน้าที่พูดจาไม่เหมาะสม', 'ลูกค้าระบุว่าได้รับการสื่อสารไม่สุภาพ', 'rejected', NULL, '2026-05-08 09:15:00', NULL, NULL, NULL),
+(7, 'RP-2026-0007', 1, NULL, 1, 2, 'เปิดซ้ำหลังปิดงาน', 'ลูกค้ายืนยันว่าอาการเดิมกลับมาเกิดอีกครั้ง', 'in_progress', NULL, '2026-05-08 09:30:00', NULL, NULL, NULL),
+(8, 'RP-2026-0008', 2, NULL, 3, 1, 'ต้องการข้อมูลเพิ่มก่อนคัดกรอง', 'รายละเอียดที่แจ้งมายังไม่ชัดเจน', 'assigned', NULL, '2026-05-08 09:45:00', NULL, NULL, NULL),
+(9, 'RP-2026-0009', 1, NULL, 1, 4, 'งานถูกยกเลิก', 'แจ้งผิดระบบ ลูกค้าขอยกเลิกรายการ', 'closed', 4, '2026-05-08 10:00:00', '2026-05-08 12:00:00', NULL, NULL),
+(15, 'RPT-20260512-001', 1, 'NID Technology Co., Ltd.', 2, 2, 'โหลดไม่ได้', 'ไม่รู้เเหทือรนกัน', 'screening', NULL, '2026-05-12 13:04:21', NULL, NULL, NULL),
+(16, 'RPT-20260512-002', 1, 'NID Technology Co., Ltd.', 1, 1, 'พพพ', 'พพพ', 'screening', NULL, '2026-05-12 13:04:39', NULL, NULL, NULL),
+(17, 'RPT-20260512-003', 1, 'NID Technology Co., Ltd.', 1, 1, 'วสส', '', 'closed', 4, '2026-05-12 13:05:44', '2026-05-13 11:23:34', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1538,8 +1542,7 @@ INSERT INTO `request_confirmations` (`id`, `request_id`, `customer_id`, `result`
 CREATE TABLE `request_status_logs` (
   `id` int(10) UNSIGNED NOT NULL,
   `request_id` int(10) UNSIGNED NOT NULL,
-  `old_status` varchar(50) DEFAULT NULL,
-  `new_status` varchar(50) NOT NULL,
+  `status` enum('screening','assigned','in_progress','waiting_confirm','closed','rejected') NOT NULL,
   `changed_by_type` enum('customer','staff','system') NOT NULL,
   `changed_by_id` int(10) UNSIGNED DEFAULT NULL,
   `note` text DEFAULT NULL,
@@ -1550,33 +1553,33 @@ CREATE TABLE `request_status_logs` (
 -- Dumping data for table `request_status_logs`
 --
 
-INSERT INTO `request_status_logs` (`id`, `request_id`, `old_status`, `new_status`, `changed_by_type`, `changed_by_id`, `note`, `created_at`) VALUES
-(1, 1, NULL, 'screening', 'customer', 1, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 08:00:00'),
-(2, 2, NULL, 'screening', 'customer', 1, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 08:15:00'),
-(3, 2, 'screening', 'assigned', 'staff', 2, 'คัดกรองผ่านและส่งมอบหมายงาน', '2026-05-08 08:20:00'),
-(4, 3, NULL, 'screening', 'customer', 2, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 08:30:00'),
-(5, 3, 'screening', 'assigned', 'staff', 2, 'คัดกรองผ่าน', '2026-05-08 08:35:00'),
-(6, 3, 'assigned', 'in_progress', 'staff', 5, 'เจ้าหน้าที่รับงานแล้ว', '2026-05-08 09:00:00'),
-(7, 4, NULL, 'screening', 'customer', 3, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 08:45:00'),
-(8, 4, 'screening', 'assigned', 'staff', 7, 'ส่งทีม Application', '2026-05-08 08:50:00'),
-(9, 4, 'assigned', 'in_progress', 'staff', 7, 'เริ่มแก้ไข', '2026-05-08 09:10:00'),
-(10, 4, 'in_progress', 'waiting_confirm', 'staff', 7, 'แก้ไขเสร็จ รอลูกค้ายืนยัน', '2026-05-05 11:30:00'),
-(11, 5, NULL, 'screening', 'customer', 3, 'ลูกค้าส่งข้อร้องเรียน', '2026-05-08 09:00:00'),
-(12, 5, 'screening', 'assigned', 'staff', 2, 'คัดกรองผ่าน', '2026-05-08 09:05:00'),
-(13, 5, 'assigned', 'in_progress', 'staff', 6, 'รับเรื่องร้องเรียน', '2026-05-08 09:30:00'),
-(14, 5, 'in_progress', 'waiting_confirm', 'staff', 6, 'สรุปผลการดำเนินการ', '2026-05-06 14:00:00'),
-(15, 5, 'waiting_confirm', 'closed', 'customer', 3, 'ลูกค้ายืนยันและให้คะแนน', '2026-05-08 15:30:00'),
-(16, 6, NULL, 'screening', 'customer', 2, 'ลูกค้าส่งข้อร้องเรียน', '2026-05-08 09:15:00'),
-(17, 6, 'screening', 'rejected', 'staff', 2, 'ปฏิเสธจากขั้นคัดกรอง', '2026-05-08 09:20:00'),
-(18, 7, NULL, 'screening', 'customer', 1, 'ลูกค้าแจ้งอาการเดิมกลับมา', '2026-05-08 09:30:00'),
-(19, 7, 'screening', 'assigned', 'staff', 7, 'ส่งให้ทีม IT ตรวจสอบซ้ำ', '2026-05-08 09:40:00'),
-(20, 7, 'assigned', 'in_progress', 'staff', 4, 'รับงานเปิดซ้ำ', '2026-05-08 10:00:00'),
-(21, 8, NULL, 'screening', 'customer', 2, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 09:45:00'),
-(22, 9, NULL, 'screening', 'customer', 1, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 10:00:00'),
-(23, 9, 'screening', 'closed', 'customer', 1, 'ลูกค้าขอยกเลิกหลังแจ้งผิดระบบ', '2026-05-08 12:00:00'),
-(24, 4, 'waiting_confirm', 'closed', 'system', NULL, 'System auto-closed after customer confirmation deadline expired', '2026-05-08 13:36:46'),
-(25, 8, 'waiting_confirm', 'assigned', 'customer', 2, 'ooooo', '2026-05-11 11:31:38'),
-(26, 17, 'waiting_confirm', 'closed', 'customer', 1, NULL, '2026-05-13 11:23:34');
+INSERT INTO `request_status_logs` (`id`, `request_id`, `status`, `changed_by_type`, `changed_by_id`, `note`, `created_at`) VALUES
+(1, 1, 'screening', 'customer', 1, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 08:00:00'),
+(2, 2, 'screening', 'customer', 1, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 08:15:00'),
+(3, 2, 'screening', 'staff', 2, 'คัดกรองผ่านและส่งมอบหมายงาน', '2026-05-08 08:20:00'),
+(4, 3, '', 'customer', 2, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 08:30:00'),
+(5, 3, 'screening', 'staff', 2, 'คัดกรองผ่าน', '2026-05-08 08:35:00'),
+(6, 3, 'assigned', 'staff', 5, 'เจ้าหน้าที่รับงานแล้ว', '2026-05-08 09:00:00'),
+(7, 4, '', 'customer', 3, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 08:45:00'),
+(8, 4, 'screening', 'staff', 7, 'ส่งทีม Application', '2026-05-08 08:50:00'),
+(9, 4, 'assigned', 'staff', 7, 'เริ่มแก้ไข', '2026-05-08 09:10:00'),
+(10, 4, 'in_progress', 'staff', 7, 'แก้ไขเสร็จ รอลูกค้ายืนยัน', '2026-05-05 11:30:00'),
+(11, 5, '', 'customer', 3, 'ลูกค้าส่งข้อร้องเรียน', '2026-05-08 09:00:00'),
+(12, 5, 'screening', 'staff', 2, 'คัดกรองผ่าน', '2026-05-08 09:05:00'),
+(13, 5, 'assigned', 'staff', 6, 'รับเรื่องร้องเรียน', '2026-05-08 09:30:00'),
+(14, 5, 'in_progress', 'staff', 6, 'สรุปผลการดำเนินการ', '2026-05-06 14:00:00'),
+(15, 5, 'waiting_confirm', 'customer', 3, 'ลูกค้ายืนยันและให้คะแนน', '2026-05-08 15:30:00'),
+(16, 6, '', 'customer', 2, 'ลูกค้าส่งข้อร้องเรียน', '2026-05-08 09:15:00'),
+(17, 6, 'screening', 'staff', 2, 'ปฏิเสธจากขั้นคัดกรอง', '2026-05-08 09:20:00'),
+(18, 7, '', 'customer', 1, 'ลูกค้าแจ้งอาการเดิมกลับมา', '2026-05-08 09:30:00'),
+(19, 7, 'screening', 'staff', 7, 'ส่งให้ทีม IT ตรวจสอบซ้ำ', '2026-05-08 09:40:00'),
+(20, 7, 'assigned', 'staff', 4, 'รับงานเปิดซ้ำ', '2026-05-08 10:00:00'),
+(21, 8, '', 'customer', 2, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 09:45:00'),
+(22, 9, '', 'customer', 1, 'ลูกค้าส่งเรื่องใหม่', '2026-05-08 10:00:00'),
+(23, 9, 'screening', 'customer', 1, 'ลูกค้าขอยกเลิกหลังแจ้งผิดระบบ', '2026-05-08 12:00:00'),
+(24, 4, 'waiting_confirm', 'system', NULL, 'System auto-closed after customer confirmation deadline expired', '2026-05-08 13:36:46'),
+(25, 8, 'waiting_confirm', 'customer', 2, 'ooooo', '2026-05-11 11:31:38'),
+(26, 17, 'waiting_confirm', 'customer', 1, NULL, '2026-05-13 11:23:34');
 
 -- --------------------------------------------------------
 
@@ -1587,7 +1590,7 @@ INSERT INTO `request_status_logs` (`id`, `request_id`, `old_status`, `new_status
 CREATE TABLE `screenings` (
   `id` int(10) UNSIGNED NOT NULL,
   `request_id` int(10) UNSIGNED NOT NULL,
-  `screened_by` int(10) UNSIGNED NOT NULL,
+  `screened_by` int(10) UNSIGNED DEFAULT NULL,
   `result` enum('accepted','rejected','need_more_info') NOT NULL,
   `note` text DEFAULT NULL,
   `screened_at` datetime DEFAULT current_timestamp()
@@ -1633,14 +1636,18 @@ CREATE TABLE `staffs` (
 --
 
 INSERT INTO `staffs` (`id`, `prefix_id`, `name`, `surname`, `email`, `phone`, `citizen_id`, `password_hash`, `status`, `created_at`, `updated_at`) VALUES
-(1, 3, 'อดิศักดิ์', 'ผู้ดูแล', '22trai2548@gmail.com', '0900000001', '1111111111111', '$2b$10$.q3S1InwVcaAE35LjUAgfuAzPvChHcPT1typRBmGaUVRKCOOoLrO6', 'active', '2026-05-01 11:00:00', '2026-05-22 16:41:10'),
+(1, 3, 'อดิศักดิ์', 'ผู้ดูแล', '22trai2548@gmail.com', '0900000001', '1111111111111', '$2b$10$zMel.Ua8xDnNoSx67Pty7uPob.oZh9JXgAOtepb6p6asoLkTjMLnu', 'active', '2026-05-01 11:00:00', '2026-05-25 17:14:21'),
 (2, NULL, 'ปวีณา', 'คัดกรอง', 'screening@protech.com', '0900000002', NULL, '$2b$10$mockhashstaff2', 'active', '2026-05-01 11:05:00', '2026-05-01 11:05:00'),
 (3, NULL, 'กิตติ', 'มอบหมาย', 'assignment@protech.com', '0900000003', NULL, '$2b$10$mockhashstaff3', 'active', '2026-05-01 11:10:00', '2026-05-01 11:10:00'),
 (4, NULL, 'ณัฐพล', 'ไอที', 'operator.it@protech.com', '0900000004', NULL, '$2b$10$mockhashstaff4', 'active', '2026-05-01 11:15:00', '2026-05-01 11:15:00'),
 (5, NULL, 'รัตนา', 'เน็ตเวิร์ก', 'operator.network@protech.com', '0900000005', NULL, '$2b$10$mockhashstaff5', 'active', '2026-05-01 11:20:00', '2026-05-01 11:20:00'),
 (6, NULL, 'วิชัย', 'ซัพพอร์ต', 'operator.support@protech.com', '0900000006', NULL, '$2b$10$mockhashstaff6', 'active', '2026-05-01 11:25:00', '2026-05-01 11:25:00'),
 (7, NULL, 'มานพ', 'หลายบทบาท', 'multi.role@protech.com', '0900000007', NULL, '$2b$10$mockhashstaff7', 'active', '2026-05-01 11:30:00', '2026-05-01 11:30:00'),
-(8, NULL, 'พนักงานเก่า', 'ปิดใช้งาน', 'inactive.staff@protech.com', '0900000008', NULL, '$2b$10$mockhashstaff8', 'inactive', '2026-05-01 11:35:00', '2026-05-01 11:35:00');
+(8, NULL, 'พนักงานเก่า', 'ปิดใช้งาน', 'inactive.staff@protech.com', '0900000008', NULL, '$2b$10$mockhashstaff8', 'inactive', '2026-05-01 11:35:00', '2026-05-01 11:35:00'),
+(14, 1, 'ggg', 'ggg', '22trai2546@gmail.com', '5555555555', '8888888888888', '$2b$10$owmQLuG0Yo7j9LV0AXso3emgHfgeKE.PxUC.EYaEKJ2BtT08DNuRO', 'active', '2026-05-25 11:27:14', '2026-05-25 11:27:14'),
+(15, 1, 'ggg', 'rrrr', 'trw@gmail.com', '4444444444', '5278527248525', '$2b$10$maprgvkisr6mIWnOhTGFoOZm5/BOmPtJLDqeqP/oLJVFbpd.M6cQm', 'active', '2026-05-25 11:29:06', '2026-05-25 11:29:06'),
+(16, 3, 'ggfgfg', 'fgfg', '22tstst@gmail.com', '8777787848', '4546464644654', '$2b$10$jQ4kG7/SglTHpXYN0bW4.eOHfegoJV9rdxtnV2Syt7aHBwU7NoQjW', 'active', '2026-05-25 16:00:36', '2026-05-25 16:00:36'),
+(17, NULL, 'ลบwwwwww', 'wwwww', '22tr@gmail.com', '2222222222', '2222222222222', '$2b$10$MkqfLPLM0H0ghb.LHU24ae0zjHi2UIt4aICeO81NZ6wFKxLPCkufW', 'active', '2026-05-25 16:25:16', '2026-05-25 16:25:16');
 
 -- --------------------------------------------------------
 
@@ -1676,7 +1683,16 @@ INSERT INTO `staff_team_roles` (`id`, `staff_id`, `team_id`, `created_at`) VALUE
 (21, 1, 5, '2026-05-18 13:48:26'),
 (22, 1, 6, '2026-05-18 13:48:26'),
 (23, 1, 10, '2026-05-18 13:48:52'),
-(24, 1, 11, '2026-05-18 13:48:52');
+(24, 1, 11, '2026-05-18 13:48:52'),
+(34, 14, 1, '2026-05-25 11:27:14'),
+(35, 15, 3, '2026-05-25 11:29:06'),
+(36, 15, 1, '2026-05-25 11:29:06'),
+(37, 15, 4, '2026-05-25 11:29:06'),
+(38, 15, 6, '2026-05-25 11:29:06'),
+(39, 15, 11, '2026-05-25 11:29:06'),
+(40, 15, 5, '2026-05-25 11:29:06'),
+(41, 16, 6, '2026-05-25 16:00:36'),
+(42, 17, 2, '2026-05-25 16:25:16');
 
 -- --------------------------------------------------------
 
@@ -2168,7 +2184,7 @@ ALTER TABLE `organizations`
 -- AUTO_INCREMENT for table `password_logs`
 --
 ALTER TABLE `password_logs`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `permissions`
@@ -2216,13 +2232,13 @@ ALTER TABLE `screenings`
 -- AUTO_INCREMENT for table `staffs`
 --
 ALTER TABLE `staffs`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `staff_team_roles`
 --
 ALTER TABLE `staff_team_roles`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 
 --
 -- AUTO_INCREMENT for table `systems`

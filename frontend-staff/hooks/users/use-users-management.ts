@@ -165,6 +165,8 @@ export function useUsersManagement({
   >([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [sendingPasswordOtp, setSendingPasswordOtp] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const buildUsersUrl = useCallback(() => {
@@ -351,7 +353,7 @@ export function useUsersManagement({
 
   const sendPasswordOtp = useCallback(async (user: UserListApiItem) => {
     try {
-      setSaving(true);
+      setSendingPasswordOtp(true);
       setError(null);
 
       const endpoint =
@@ -383,13 +385,13 @@ export function useUsersManagement({
       setError(message);
       return { success: false as const, message };
     } finally {
-      setSaving(false);
+      setSendingPasswordOtp(false);
     }
   }, []);
 
   const resetPassword = useCallback(async (user: UserListApiItem, password: string, otp: string) => {
     try {
-      setSaving(true);
+      setResettingPassword(true);
       setError(null);
 
       const endpoint =
@@ -429,9 +431,14 @@ export function useUsersManagement({
       setError(message);
       return { success: false as const, message };
     } finally {
-      setSaving(false);
+      setResettingPassword(false);
     }
   }, [loadUsers]);
+
+  const clearPasswordFlowState = useCallback(() => {
+    setSendingPasswordOtp(false);
+    setResettingPassword(false);
+  }, []);
 
   return {
     items,
@@ -440,10 +447,13 @@ export function useUsersManagement({
     roleOptions,
     loading,
     saving,
+    sendingPasswordOtp,
+    resettingPassword,
     error,
     clearError: () => {
       setError(null);
     },
+    clearPasswordFlowState,
     updateUser,
     sendPasswordOtp,
     resetPassword,

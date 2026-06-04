@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import { requireCurrentStaffId } from "@/lib/staff-session";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 type StepInfo = { label: string; date: string; time: string } | null;
@@ -36,11 +38,13 @@ export function useTracking() {
       .finally(() => setLoading(false));
   }, []);
 
-  async function submitWork(requestId: number, staffId = 1) {
+  async function submitWork(requestId: number, staffId?: number) {
+    const currentStaffId = staffId ?? requireCurrentStaffId();
+
     await fetch(`${API_BASE_URL}/requests/${requestId}/submit-work`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ staffId }),
+      body: JSON.stringify({ staffId: currentStaffId }),
     });
     setItems((prev) =>
       prev.map((item) =>

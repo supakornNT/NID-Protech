@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
 import Image from "next/image";
 import { useComplaintDetail, useLightbox } from "@/hooks/use-complaint-detail";
 import { useTicketsByRequest } from "@/hooks/use-tickets-by-request";
+import { requireCurrentStaffId } from "@/lib/staff-session";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 const IMAGE_EXTS = ["jpg", "jpeg", "png", "gif", "webp"];
@@ -59,10 +60,12 @@ export default function TrackingDetailPage() {
 
   async function handleSubmitWork() {
     if (!data) return;
+    const staffId = requireCurrentStaffId();
+
     await fetch(`${API_BASE_URL}/requests/${data.id}/submit-work`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ staffId: 1 }),
+      body: JSON.stringify({ staffId }),
     });
     setRequestStatus("waiting_confirm");
   }

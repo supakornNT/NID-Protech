@@ -57,7 +57,7 @@ export function ProTechTable<T>({
   const startIndex = (currentPage - 1) * limit;
   const endIndex = startIndex + limit;
 
-  const currentData = data.slice(startIndex, endIndex);
+  const currentData = isControlled ? data : data.slice(startIndex, endIndex);
   const visiblePages = getVisiblePages(currentPage, resolvedTotalPages);
 
   function handlePageChange(nextPage: number) {

@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 
+import { requireCurrentStaffId } from "@/lib/staff-session";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 export type TicketWorkDetail = {
@@ -28,7 +30,7 @@ export type TicketAttachment = {
 
 export function useTicketWork(
   ticketId: string | string[] | undefined,
-  staffId = 1,
+  staffId?: number,
 ) {
   const [data, setData] = useState<TicketWorkDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,13 +67,15 @@ export function useTicketWork(
   }
 
   async function submitResolution(resolution: string, files: File[]) {
+    const currentStaffId = staffId ?? requireCurrentStaffId();
+
     await fetch(`${API_BASE_URL}/admin/tickets/${resolvedId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         description: resolution,
         status: "waiting_confirm",
-        changedBy: staffId,
+        changedBy: currentStaffId,
         note: "รออนุมัติ",
       }),
     });

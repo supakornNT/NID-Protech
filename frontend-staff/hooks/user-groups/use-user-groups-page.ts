@@ -118,7 +118,7 @@ type GroupDialogState =
 
 type MemberDialogState =
   | {
-      mode: "create" | "edit";
+      mode: "edit";
       staffName: string;
       memberships: UserGroupMembershipApiItem[];
       value: UserGroupMemberFormInput;
@@ -430,6 +430,7 @@ export function useUserGroupsPage() {
       if (activeTab === "members") {
         await loadMembersData();
       }
+      return true;
     } catch (submitError) {
       setError(
         submitError instanceof Error
@@ -443,7 +444,7 @@ export function useUserGroupsPage() {
 
   async function deleteSelectedGroup() {
     if (selectedGroupId === null) {
-      return;
+      return false;
     }
 
     try {
@@ -471,6 +472,7 @@ export function useUserGroupsPage() {
       if (activeTab === "members") {
         await loadMembersData();
       }
+      return true;
     } catch (deleteError) {
       setError(
         deleteError instanceof Error
@@ -480,18 +482,6 @@ export function useUserGroupsPage() {
     } finally {
       setSaving(false);
     }
-  }
-
-  function openCreateMemberDialog() {
-    setMemberDialogState({
-      mode: "create",
-      staffName: "",
-      memberships: [],
-      value: {
-        staffId: null,
-        teamIds: [],
-      },
-    });
   }
 
   function openEditMemberDialog(staffId: number) {
@@ -514,7 +504,7 @@ export function useUserGroupsPage() {
 
   async function submitMemberDialog(value: UserGroupMemberFormInput) {
     if (!value.staffId) {
-      return;
+      return false;
     }
 
     try {
@@ -543,6 +533,7 @@ export function useUserGroupsPage() {
 
       setMemberDialogState(null);
       await Promise.all([loadMembersData(), loadGroupsData()]);
+      return true;
     } catch (submitError) {
       setError(
         submitError instanceof Error
@@ -591,7 +582,6 @@ export function useUserGroupsPage() {
     openEditGroupDialog,
     submitGroupDialog,
     deleteSelectedGroup,
-    openCreateMemberDialog,
     openEditMemberDialog,
     submitMemberDialog,
   };
