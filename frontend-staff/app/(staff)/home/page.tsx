@@ -98,7 +98,11 @@ export default function HomePage() {
 
         <div className="rounded-2xl bg-white px-6 py-5 shadow-sm">
           <p className="mb-4 font-semibold text-gray-900">เวลาปัจจุบัน</p>
-          <p className="text-3xl font-bold text-[#3670BF]">{timeStr}</p>
+          {!time ? (
+            <div className="mt-1 h-9 w-40 animate-pulse rounded bg-gray-200" />
+          ) : (
+            <p className="text-3xl font-bold text-[#3670BF]">{timeStr}</p>
+          )}
         </div>
       </div>
     </div>

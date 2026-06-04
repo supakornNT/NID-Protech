@@ -8,6 +8,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import { useComplaintDetail, useLightbox } from "@/hooks/use-complaint-detail";
 import { useTicketsByRequest } from "@/hooks/use-tickets-by-request";
+import { useLoadingDelay } from "@/hooks/use-loading-delay";
 import { useUpdateRequestStatus } from "@/hooks/use-update-request-status";
 import { useUpdateTicket } from "@/hooks/assign/use-update-ticket";
 import { useDeleteTicket } from "@/hooks/assign/use-delete-ticket";
@@ -38,7 +39,10 @@ export default function ManageWorkDetailPage() {
   const router = useRouter();
   const { data, attachments, loading, resolvedRequestId } = useComplaintDetail(id);
   const { lightbox, setLightbox } = useLightbox();
-  const { tickets, refetch } = useTicketsByRequest(resolvedRequestId ?? id);
+  const showSkeleton = useLoadingDelay(loading, 200);
+  const effectiveRequestId =
+    resolvedRequestId ?? (Array.isArray(id) ? id[0] : id);
+  const { tickets, refetch } = useTicketsByRequest(effectiveRequestId);
   const { updateStatus } = useUpdateRequestStatus();
   const { logStatus } = useRequestStatusLog(0);
   const { updateDueDate, loading: dueDateLoading } = useUpdateRequestDueDate();
@@ -139,11 +143,11 @@ export default function ManageWorkDetailPage() {
     );
 
     if (editedDueDate) {
-      await updateDueDate(requestId, editedDueDate);
+      await updateDueDate(String(requestId), editedDueDate);
     }
 
     await Promise.all([
-      updateStatus(id, "in_progress"),
+      updateStatus(String(requestId), "in_progress"),
       logStatus(requestId, "assigned"),
     ]);
     router.push(`/consideration/issue-work`);
@@ -325,46 +329,47 @@ export default function ManageWorkDetailPage() {
           </div>
         </div>
 
-        {/* Main content */}
         {loading ? (
-          <div className="flex min-h-[700px] gap-12 animate-pulse w-full">
-            {/* Left panel skeleton */}
-            <div className="flex flex-1 shrink-0 flex-col gap-5 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
-              <div className="flex items-start justify-between">
-                <div className="h-7 w-3/4 rounded bg-gray-200" />
-                <div className="h-6 w-28 rounded bg-gray-200" />
+          showSkeleton ? (
+            <div className="flex min-h-[700px] gap-12 animate-pulse w-full">
+              {/* Left panel skeleton */}
+              <div className="flex flex-1 shrink-0 flex-col gap-5 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
+                <div className="flex items-start justify-between">
+                  <div className="h-7 w-3/4 rounded bg-gray-200" />
+                  <div className="h-6 w-28 rounded bg-gray-200" />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="h-4 w-1/2 rounded bg-gray-200" />
+                  <div className="h-4 w-1/3 rounded bg-gray-200" />
+                </div>
+                <div className="h-80 w-full rounded-lg bg-gray-100" />
               </div>
-              <div className="flex flex-col gap-2">
-                <div className="h-4 w-1/2 rounded bg-gray-200" />
-                <div className="h-4 w-1/3 rounded bg-gray-200" />
-              </div>
-              <div className="h-80 w-full rounded-lg bg-gray-100" />
-            </div>
 
-            {/* Right panel skeleton */}
-            <div className="flex flex-1 flex-col gap-4 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
-              <div className="flex gap-4">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="flex flex-1 flex-col items-center justify-center rounded-xl border border-[#000000] py-4 gap-2">
-                    <div className="h-6 w-12 rounded bg-gray-200" />
-                    <div className="h-3 w-16 rounded bg-gray-200" />
-                  </div>
-                ))}
-              </div>
-              <div className="h-9 w-full rounded-lg bg-gray-200" />
-              <div className="flex flex-col gap-3">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="rounded-xl border border-[#000000] p-4 space-y-3">
-                    <div className="flex justify-between">
-                      <div className="h-5 w-24 rounded bg-gray-200" />
-                      <div className="h-4 w-16 rounded bg-gray-200" />
+              {/* Right panel skeleton */}
+              <div className="flex flex-1 flex-col gap-4 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
+                <div className="flex gap-4">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="flex flex-1 flex-col items-center justify-center rounded-xl border border-[#000000] py-4 gap-2">
+                      <div className="h-6 w-12 rounded bg-gray-200" />
+                      <div className="h-3 w-16 rounded bg-gray-200" />
                     </div>
-                    <div className="h-4 w-3/4 rounded bg-gray-200" />
-                  </div>
-                ))}
+                  ))}
+                </div>
+                <div className="h-9 w-full rounded-lg bg-gray-200" />
+                <div className="flex flex-col gap-3">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="rounded-xl border border-[#000000] p-4 space-y-3">
+                      <div className="flex justify-between">
+                        <div className="h-5 w-24 rounded bg-gray-200" />
+                        <div className="h-4 w-16 rounded bg-gray-200" />
+                      </div>
+                      <div className="h-4 w-3/4 rounded bg-gray-200" />
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          ) : null
         ) : !data ? (
           <div className="flex flex-1 items-center justify-center p-8 text-gray-500 bg-white rounded-2xl border border-[#000000] min-h-[700px]">
             ไม่พบข้อมูล
@@ -499,14 +504,13 @@ export default function ManageWorkDetailPage() {
               >
                 ค้นหา
               </button>
-              <button
-                type="button"
-                onClick={() =>
-                  router.push(
-                    `/consideration/issue-work/${Array.isArray(id) ? id[0] : id}/assign`,
-                    
-                  )
-                }
+                <button
+                  type="button"
+                  onClick={() =>
+                    router.push(
+                      `/consideration/issue-work/${effectiveRequestId}/assign`,
+                    )
+                  }
                 className="h-9 rounded-lg border border-[#366DBD] px-4 text-[14px] font-semibold text-[#366DBD] hover:bg-blue-50"
               >
                 + เพิ่ม
@@ -613,9 +617,7 @@ export default function ManageWorkDetailPage() {
                   disabled={dueDateLoading || !editedDueDate}
                   onClick={() =>
                     updateDueDate(
-                      Number(
-                        resolvedRequestId ?? (Array.isArray(id) ? id[0] : id),
-                      ),
+                      effectiveRequestId,
                       editedDueDate!,
                     )
                   }

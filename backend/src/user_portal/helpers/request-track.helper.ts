@@ -23,7 +23,7 @@ export function mapRepairStatus(
   }
 
   if (requestStatus === "assigned" || requestStatus === "in_progress") {
-    return "เกำลังดำเนินการแก้ไข";
+    return "กำลังดำเนินการแก้ไข";
   }
 
   if (requestStatus === "screening") {

@@ -9,6 +9,7 @@ import { ProTechButton } from "@/components/tables/protech-button";
 import { ProTechSearch } from "@/components/tables/protech-search";
 import { ProTechTable } from "@/components/tables/protech-table";
 import { RequestListItem, useRequestList } from "@/hooks/use-request-list";
+import { useLoadingDelay } from "@/hooks/use-loading-delay";
 import { Column } from "@/types/table";
 
 const columns: Column<RequestListItem>[] = [
@@ -88,7 +89,12 @@ export default function Page() {
     }
   }, [loading]);
 
+  const showSkeleton = useLoadingDelay(loading, 200);
+
   if (!hasFetched && loading) {
+    if (!showSkeleton) {
+      return null;
+    }
     return (
       <div className="mx-auto h-full w-full min-w-0 max-w-[90rem] px-4 pt-6 sm:px-6 lg:px-10 animate-pulse">
         {/* Title Skeleton */}

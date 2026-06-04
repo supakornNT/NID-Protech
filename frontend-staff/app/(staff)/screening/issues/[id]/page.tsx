@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { FileText, X } from "lucide-react";
 import { useComplaintDetail, useLightbox } from "@/hooks/use-complaint-detail";
+import { useLoadingDelay } from "@/hooks/use-loading-delay";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 const IMAGE_EXTS = ["jpg", "jpeg", "png", "gif", "webp"];
@@ -27,6 +28,7 @@ export default function IssueDetailPage() {
   const router = useRouter();
   const { data, attachments, loading } = useComplaintDetail(id);
   const { lightbox, setLightbox } = useLightbox();
+  const showSkeleton = useLoadingDelay(loading, 200);
 
   const isInternal = data?.organizationName !== null && data?.organizationName !== undefined;
 
@@ -59,7 +61,8 @@ export default function IssueDetailPage() {
       <div className="flex min-h-screen items-start justify-center bg-gray-50 p-6 pt-12">
         <div className="w-full max-w-3xl rounded-xl border border-gray-200 bg-white shadow-sm">
           {loading ? (
-            <div className="animate-pulse">
+            showSkeleton ? (
+              <div className="animate-pulse">
               <div className="border-b px-8 pt-6 pb-4">
                 <div className="h-6 w-48 rounded bg-gray-200" />
                 <div className="mt-2 h-4 w-24 rounded bg-gray-200" />
@@ -100,6 +103,7 @@ export default function IssueDetailPage() {
                 <div className="h-9 w-24 rounded-full bg-gray-200" />
               </div>
             </div>
+            ) : null
           ) : !data ? (
             <div className="flex min-h-[300px] items-center justify-center p-8 text-gray-400">
               ไม่พบข้อมูล

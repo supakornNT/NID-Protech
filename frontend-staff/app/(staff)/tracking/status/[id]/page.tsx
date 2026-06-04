@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useStaffSession } from "@/contexts/staff-session-context";
 import { useComplaintDetail, useLightbox } from "@/hooks/use-complaint-detail";
 import { useTicketsByRequest } from "@/hooks/use-tickets-by-request";
+import { useLoadingDelay } from "@/hooks/use-loading-delay";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 const IMAGE_EXTS = ["jpg", "jpeg", "png", "gif", "webp"];
@@ -42,10 +43,12 @@ export default function TrackingDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const { staff } = useStaffSession();
+  const rawId = Array.isArray(id) ? id[0] : id;
 
   const { data, attachments, loading } = useComplaintDetail(id);
   const { lightbox, setLightbox } = useLightbox();
-  const { tickets, loading: ticketsLoading } = useTicketsByRequest(id);
+  const showSkeleton = useLoadingDelay(loading, 200);
+  const { tickets, loading: ticketsLoading } = useTicketsByRequest(rawId);
 
   const [subPage, setSubPage] = useState(1);
   const [subSearch, setSubSearch] = useState("");
@@ -152,7 +155,8 @@ export default function TrackingDetailPage() {
 
         {/* Main content */}
         {loading ? (
-          <div className="flex min-h-[700px] gap-12 animate-pulse w-full">
+          showSkeleton ? (
+            <div className="flex min-h-[700px] gap-12 animate-pulse w-full">
             {/* Left panel skeleton */}
             <div className="flex flex-1 shrink-0 flex-col gap-5 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
               <div className="flex items-start justify-between">
@@ -190,6 +194,7 @@ export default function TrackingDetailPage() {
               </div>
             </div>
           </div>
+          ) : null
         ) : !data ? (
           <div className="flex flex-1 items-center justify-center p-8 text-gray-500 bg-white rounded-2xl border border-[#000000] min-h-[700px]">
             ไม่พบข้อมูล

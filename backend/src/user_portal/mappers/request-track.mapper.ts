@@ -1,4 +1,5 @@
 import {
+  formatDateOnly as formatDateOnlyUtil,
   formatDateTime as formatDateTimeUtil,
   toDateTimeParts as toDateTimePartsUtil,
 } from "../../common/utils/date-time.util";
@@ -101,5 +102,6 @@ export function mapTrackResponse(
       ? formatDateTimeUtil(rejectedLog?.created_at ?? null)
       : formatDateTimeUtil(request.reviewedAt),
     customerConfirmDueAt,
+    dueAt: formatDateOnlyUtil(request.dueAt),
   };
 }

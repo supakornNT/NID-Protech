@@ -59,12 +59,11 @@ export class TicketsService {
     const ticketNo = `TK-${Date.now().toString().slice(-6)}`;
     const [result] = await this.db.query<ResultSetHeader>(
       `INSERT INTO tickets
-        (ticket_no, request_id, assigned_team_id, assigned_staff_id, assigned_by, due_at, title, description, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        (ticket_no, request_id, assigned_staff_id, assigned_by, due_at, title, description, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         ticketNo,
         dto.requestId,
-        dto.assignedTeamId,
         dto.assignedStaffId,
         dto.assignedBy,
         dto.dueAt,
@@ -80,14 +79,13 @@ export class TicketsService {
         result.insertId,
         dto.status ?? 'assigned',
         dto.assignedBy ?? null,
-        'สร้าง ticket และมอบหมายทีม',
+        'สร้าง ticket และมอบหมายงาน',
       ],
     );
     return {
       id: result.insertId,
       ticketNo: ticketNo,
       requestId: dto.requestId,
-      assignedTeamId: dto.assignedTeamId,
       assignedStaffId: dto.assignedStaffId,
       assignedBy: dto.assignedBy,
       dueAt: dto.dueAt,

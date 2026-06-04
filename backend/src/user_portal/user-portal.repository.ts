@@ -230,11 +230,17 @@ export class UserPortalRepository {
         r.customer_id AS customerId,
         r.status AS requestStatus,
         r.created_at AS requestCreatedAt,
+        r.due_at AS dueAt,
         trr.status AS resolutionRequestStatus,
         trr.summary AS resolutionSummary,
         trr.reviewed_at AS reviewedAt,
-        staff.name AS repairedByName,
-        staff.surname AS repairedBySurname
+        (
+          SELECT GROUP_CONCAT(DISTINCT CONCAT(s.name, ' ', s.surname) SEPARATOR ', ')
+          FROM tickets t2
+          INNER JOIN staffs s ON s.id = t2.assigned_by
+          WHERE t2.request_id = r.id AND t2.status != 'cancelled'
+        ) AS repairedByName,
+        NULL AS repairedBySurname
       FROM requests r
       INNER JOIN problem_types pt
         ON pt.id = r.problem_type_id
@@ -254,8 +260,6 @@ export class UserPortalRepository {
           ORDER BY trr2.id DESC
           LIMIT 1
         )
-      LEFT JOIN staffs staff
-        ON staff.id = t.assigned_by
       WHERE r.request_no = ?
       LIMIT 1`,
       [requestNo],
@@ -275,11 +279,17 @@ export class UserPortalRepository {
         r.customer_id AS customerId,
         r.status AS requestStatus,
         r.created_at AS requestCreatedAt,
+        r.due_at AS dueAt,
         trr.status AS resolutionRequestStatus,
         trr.summary AS resolutionSummary,
         trr.reviewed_at AS reviewedAt,
-        staff.name AS repairedByName,
-        staff.surname AS repairedBySurname
+        (
+          SELECT GROUP_CONCAT(DISTINCT CONCAT(s.name, ' ', s.surname) SEPARATOR ', ')
+          FROM tickets t2
+          INNER JOIN staffs s ON s.id = t2.assigned_by
+          WHERE t2.request_id = r.id AND t2.status != 'cancelled'
+        ) AS repairedByName,
+        NULL AS repairedBySurname
       FROM requests r
       INNER JOIN problem_types pt
         ON pt.id = r.problem_type_id
@@ -299,8 +309,6 @@ export class UserPortalRepository {
           ORDER BY trr2.id DESC
           LIMIT 1
         )
-      LEFT JOIN staffs staff
-        ON staff.id = t.assigned_by
       WHERE r.id = ?
       LIMIT 1`,
       [id],

@@ -3,8 +3,6 @@ export class CreateTicketDto {
 
   requestId!: number;
 
-  assignedTeamId?: number;
-
   assignedStaffId?: number;
 
   assignedBy?: number;

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
@@ -8,6 +8,7 @@ import { AlertCircle, FileText, ImageIcon, Plus, Trash2, X } from "lucide-react"
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { useComplaintDetail, useLightbox } from "@/hooks/use-complaint-detail";
 import { useTicketWork } from "@/hooks/use-ticket-work";
+import { useLoadingDelay } from "@/hooks/use-loading-delay";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 const IMAGE_EXTS = ["jpg", "jpeg", "png"];
@@ -49,6 +50,7 @@ export default function OperationDetailPage() {
 
   const { data, loading, error, ticketAttachments, hideAttachment, submitResolution } =
     useTicketWork(id);
+  const showSkeleton = useLoadingDelay(loading, 200);
   const { attachments } = useComplaintDetail(data?.requestId?.toString());
   const { lightbox, setLightbox } = useLightbox();
 
@@ -185,7 +187,8 @@ export default function OperationDetailPage() {
         )}
 
         {loading ? (
-          <div className="flex min-h-[700px] w-full animate-pulse gap-12">
+          showSkeleton ? (
+            <div className="flex min-h-[700px] w-full animate-pulse gap-12">
             <div className="flex flex-1 shrink-0 flex-col gap-5 rounded-2xl border border-[#000000] bg-white p-6 shadow-sm">
               <div className="flex items-start justify-between">
                 <div className="h-7 w-3/4 rounded bg-gray-200" />
@@ -205,7 +208,8 @@ export default function OperationDetailPage() {
                 <div className="h-10 w-24 rounded bg-gray-200" />
               </div>
             </div>
-          </div>
+            </div>
+          ) : null
         ) : !data ? (
           <div className="flex min-h-[700px] flex-1 items-center justify-center rounded-2xl border border-[#000000] bg-white p-8 text-gray-500">
             ไม่พบข้อมูล

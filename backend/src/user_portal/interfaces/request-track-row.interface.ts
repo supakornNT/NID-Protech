@@ -9,6 +9,7 @@ export interface RequestTrackRow extends RowDataPacket {
   customerId: number;
   requestStatus: string;
   requestCreatedAt: Date | string;
+  dueAt: Date | string | null;
   resolutionRequestStatus: string | null;
   resolutionSummary: string | null;
   reviewedAt: Date | string | null;

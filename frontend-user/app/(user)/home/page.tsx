@@ -14,6 +14,7 @@ import {
 import { ProTechButton } from "@/components/tables/protech-button";
 import { useUserSession } from "@/contexts/user-session-context";
 import { useDashboardSummary } from "@/hooks/use-dashboard-summary";
+import { useLoadingDelay } from "@/hooks/use-loading-delay";
 
 import styles from "./home.module.css";
 
@@ -21,6 +22,7 @@ export default function HomePage() {
   const router = useRouter();
   const { user } = useUserSession();
   const { summary, loading, error } = useDashboardSummary();
+  const showSkeleton = useLoadingDelay(loading, 200);
 
   return (
     <main className={styles.page}>
@@ -114,7 +116,11 @@ export default function HomePage() {
               <div className={styles.statusBox}>
                 <span>ทั้งหมด</span>
                 {loading ? (
-                  <span className="mt-1 block h-9 w-12 animate-pulse rounded bg-gray-300/40" />
+                  showSkeleton ? (
+                    <span className="mt-1 block h-9 w-12 animate-pulse rounded bg-gray-300/40" />
+                  ) : (
+                    <span className="mt-1 block h-9 w-12 rounded bg-gray-100" />
+                  )
                 ) : (
                   <strong>{summary.total}</strong>
                 )}
@@ -123,7 +129,11 @@ export default function HomePage() {
               <div className={styles.statusBox}>
                 <span>ตรวจสอบ</span>
                 {loading ? (
-                  <span className="mt-1 block h-9 w-12 animate-pulse rounded bg-gray-300/40" />
+                  showSkeleton ? (
+                    <span className="mt-1 block h-9 w-12 animate-pulse rounded bg-gray-300/40" />
+                  ) : (
+                    <span className="mt-1 block h-9 w-12 rounded bg-gray-100" />
+                  )
                 ) : (
                   <strong>{summary.screening}</strong>
                 )}
@@ -132,7 +142,11 @@ export default function HomePage() {
               <div className={styles.statusBox}>
                 <span>ดำเนินการ</span>
                 {loading ? (
-                  <span className="mt-1 block h-9 w-12 animate-pulse rounded bg-gray-300/40" />
+                  showSkeleton ? (
+                    <span className="mt-1 block h-9 w-12 animate-pulse rounded bg-gray-300/40" />
+                  ) : (
+                    <span className="mt-1 block h-9 w-12 rounded bg-gray-100" />
+                  )
                 ) : (
                   <strong>{summary.inProgress}</strong>
                 )}
@@ -141,7 +155,11 @@ export default function HomePage() {
               <div className={styles.statusBox}>
                 <span>สำเร็จ</span>
                 {loading ? (
-                  <span className="mt-1 block h-9 w-12 animate-pulse rounded bg-gray-300/40" />
+                  showSkeleton ? (
+                    <span className="mt-1 block h-9 w-12 animate-pulse rounded bg-gray-300/40" />
+                  ) : (
+                    <span className="mt-1 block h-9 w-12 rounded bg-gray-100" />
+                  )
                 ) : (
                   <strong>{summary.completed}</strong>
                 )}

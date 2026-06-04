@@ -39,6 +39,15 @@ export function useTicketWork(
   const [ticketAttachments, setTicketAttachments] = useState<TicketAttachment[]>([]);
 
   const resolvedId = Array.isArray(ticketId) ? ticketId[0] : ticketId;
+  const [prevId, setPrevId] = useState<string | undefined>(resolvedId);
+
+  if (resolvedId !== prevId) {
+    setPrevId(resolvedId);
+    setLoading(true);
+    setData(null);
+    setTicketAttachments([]);
+    setError(false);
+  }
 
   useEffect(() => {
     if (!resolvedId) return;

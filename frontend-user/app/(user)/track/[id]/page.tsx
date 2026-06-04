@@ -10,6 +10,8 @@ import {
   History,
   Info,
   Wrench,
+  Calendar,
+  Hash,
 } from "lucide-react";
 
 import ConfirmCloseModal from "@/components/trackstep/popup/ConfirmCloseModal";
@@ -20,10 +22,25 @@ import RequestAttachmentModal from "@/components/trackstep/popup/RequestAttachme
 import StepProgress from "@/components/trackstep/StepProgress";
 import { ProTechButton } from "@/components/tables/protech-button";
 import { useTrackingDetail } from "@/hooks/use-tracking-detail";
+import { useLoadingDelay } from "@/hooks/use-loading-delay";
 import { Props, RepairDetail, ReopenRound } from "@/types/tracking";
 
 const labelClass = "whitespace-nowrap text-[14px] sm:text-[15px]";
 const valueClass = "whitespace-pre-wrap break-words text-[14px] text-gray-700 sm:text-[15px]";
+
+function formatThaiDate(dateStr: string): string {
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    return date.toLocaleDateString("th-TH", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+}
 
 export default function Page({ params }: Props) {
   const { id } = React.use(params);
@@ -80,7 +97,12 @@ export default function Page({ params }: Props) {
     setProblemDetailNeedsExpand(el.scrollHeight > el.clientHeight + 1);
   }, [showProblemDetail, request?.problemDetail]);
 
+  const showSkeleton = useLoadingDelay(loading, 200);
+
   if (loading || !id || id === "undefined") {
+    if (!showSkeleton) {
+      return null;
+    }
     return (
       <div className="mx-auto flex w-full max-w-3xl animate-pulse flex-col items-center px-4 py-6 sm:py-10">
         <div className="flex w-full items-center justify-between px-4 sm:px-12">
@@ -253,6 +275,16 @@ export default function Page({ params }: Props) {
           </div>
 
           <div className="px-4 py-5 sm:px-8">
+            <div className="flex flex-col gap-2 border-b py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+              <div className="flex items-center gap-3">
+                <Hash size={22} className="shrink-0 text-gray-500" />
+                <p className={labelClass}>หมายเลขการติดตาม</p>
+              </div>
+              <div className="sm:flex sm:min-w-[220px] sm:items-center sm:justify-end">
+                <p className={valueClass}>{request.trackingNo}</p>
+              </div>
+            </div>
+
             <div className="border-b py-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -278,7 +310,7 @@ export default function Page({ params }: Props) {
                 className={[
                   valueClass,
                   showProblem ? "" : "line-clamp-2 overflow-hidden",
-                  "mt-2 pl-[34px]",
+                  "mt-2 pl-[34px] indent-8",
                 ].join(" ")}
               >
                 {problem}
@@ -310,7 +342,7 @@ export default function Page({ params }: Props) {
                 className={[
                   valueClass,
                   showProblemDetail ? "" : "line-clamp-4 overflow-hidden",
-                  "mt-2 pl-[34px]",
+                  "mt-2 pl-[34px] indent-8",
                 ].join(" ")}
               >
                 {problemDetail}
@@ -325,6 +357,18 @@ export default function Page({ params }: Props) {
 
               <p className={valueClass}>{request.repairStatus}</p>
             </div>
+
+            {request.dueAt && (request.statusCode === "assigned" || request.statusCode === "in_progress") ? (
+              <div className="flex flex-col gap-2 border-b py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                <div className="flex items-center gap-3">
+                  <Calendar size={22} className="shrink-0 text-gray-500" />
+                  <p className={labelClass}>กำหนดวันส่งงาน</p>
+                </div>
+                <div className="sm:flex sm:min-w-[220px] sm:items-center sm:justify-end">
+                  <p className={valueClass}>{formatThaiDate(request.dueAt)}</p>
+                </div>
+              </div>
+            ) : null}
 
             <div className="flex flex-col gap-2 border-b py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
               <div className="flex items-center gap-3">

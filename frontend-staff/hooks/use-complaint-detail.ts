@@ -36,11 +36,21 @@ export function useComplaintDetail(id: string | string[] | undefined) {
     undefined,
   );
 
+  const rawId = Array.isArray(id) ? id[0] : id;
+  const [prevId, setPrevId] = useState<string | undefined>(rawId);
+
+  if (rawId !== prevId) {
+    setPrevId(rawId);
+    setLoading(true);
+    setData(null);
+    setAttachments([]);
+    setError(false);
+  }
+
   useEffect(() => {
     if (!id) return;
-    setLoading(true);
     setError(false);
-    const rawId = Array.isArray(id) ? id[0] : id;
+    const rawId = (Array.isArray(id) ? id[0] : id) as string;
 
     async function loadByRequestId(requestId: string) {
       const [detail, files] = await Promise.all([

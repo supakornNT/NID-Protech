@@ -49,6 +49,7 @@ export type TrackingDetail = {
   id: number;
   statusCode?: string;
   customerConfirmDueAt?: string | null;
+  dueAt?: string | null;
   trackingNo: string;
   status: string;
   repairStatus: string;

@@ -26,13 +26,12 @@ export default function IssueWorkPage() {
   const paged = filtered.slice((page - 1) * LIMIT, page * LIMIT);
 
   function getVisiblePages() {
-    if (totalPages <= 5)
-      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
     const start = Math.max(1, Math.min(page - 1, totalPages - 4));
-    return Array.from({ length: Math.min(3, totalPages) }, (_, i) => start + i);
+    return Array.from({ length: Math.min(3, totalPages) }, (_, index) => start + index);
   }
-
-
 
   return (
     <div className="flex flex-1 flex-col gap-6 bg-white p-8">
@@ -43,17 +42,23 @@ export default function IssueWorkPage() {
 
       <div className="flex items-center gap-3">
         <div className="relative">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search
+            size={15}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          />
           <input
             type="text"
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            placeholder="ค้นหาระบบ..."
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            placeholder="ค้นหางาน..."
             className="h-9 w-56 rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-[14px] outline-none focus:border-[#366DBD] focus:ring-2 focus:ring-[#366DBD]/10"
           />
         </div>
         <button
-          type="submit"
+          type="button"
           className="h-9 rounded-lg bg-[#366DBD] px-5 text-[14px] font-semibold text-white transition hover:bg-[#2d5da3]"
         >
           ค้นหา
@@ -62,16 +67,16 @@ export default function IssueWorkPage() {
 
       <div className="overflow-hidden rounded-[14px] border border-[#7FA7E8] bg-white">
         {loading && paged.length === 0 ? (
-          <div className="flex flex-col divide-y divide-[#7FA7E8] animate-pulse">
+          <div className="flex animate-pulse flex-col divide-y divide-[#7FA7E8]">
             {Array.from({ length: 3 }).map((_, idx) => (
-              <div key={idx} className="bg-white p-5 space-y-4">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-2 w-2/3">
+              <div key={idx} className="space-y-4 bg-white p-5">
+                <div className="flex items-start justify-between">
+                  <div className="w-2/3 space-y-2">
                     <div className="h-5 w-3/4 rounded bg-gray-200" />
                     <div className="h-4 w-1/2 rounded bg-gray-200" />
                     <div className="h-4 w-1/3 rounded bg-gray-200" />
                   </div>
-                  <div className="flex flex-col items-end gap-3 shrink-0">
+                  <div className="shrink-0 space-y-3">
                     <div className="h-4 w-28 rounded bg-gray-200" />
                     <div className="h-8 w-24 rounded bg-gray-200" />
                   </div>
@@ -92,15 +97,21 @@ export default function IssueWorkPage() {
               >
                 <div className="flex flex-col gap-1.5">
                   <div className="flex items-center gap-2">
-                    <p className="text-[17px] font-bold text-gray-900">{item.title}</p>
+                    <p className="text-[17px] font-bold text-gray-900">
+                      {item.title}
+                    </p>
                     {!!item.wasRejected && (
                       <span className="rounded-md border border-[#F4A0A0] bg-[#FFF0F0] px-2.5 py-0.5 text-[12px] text-[#D9534F]">
                         ถูกตีกลับ
                       </span>
                     )}
                   </div>
-                  <p className="text-[14px] text-gray-500">ผู้แจ้ง : {item.customerName} {item.customerSurname}</p>
-                  <p className="text-[14px] text-gray-500">ระบบ : {item.systemName}</p>
+                  <p className="text-[14px] text-gray-500">
+                    ผู้แจ้ง : {item.customerName} {item.customerSurname}
+                  </p>
+                  <p className="text-[14px] text-gray-500">
+                    ระบบ : {item.systemName}
+                  </p>
                   <span className="mt-1 inline-flex w-fit rounded-md border border-[#F4A0A0] bg-[#FFF0F0] px-3 py-0.5 text-[13px] text-[#D9534F]">
                     {item.problemName}
                   </span>
@@ -108,8 +119,16 @@ export default function IssueWorkPage() {
                 <div className="flex flex-col items-end gap-2">
                   <p className="text-[14px]">
                     ประเภท :{" "}
-                    <span className={`font-bold ${item.probleTypeName === "issue" ? "text-[#D9534F]" : "text-[#D4A017]"}`}>
-                      {item.probleTypeName === "issue" ? "ปัญหา" : "ร้องเรียน"}
+                    <span
+                      className={`font-bold ${
+                        item.probleTypeName === "issue"
+                          ? "text-[#D9534F]"
+                          : "text-[#D4A017]"
+                      }`}
+                    >
+                      {item.probleTypeName === "issue"
+                        ? "ประเด็นปัญหา"
+                        : "ข้อร้องเรียน"}
                     </span>
                   </p>
                   <button
@@ -128,27 +147,28 @@ export default function IssueWorkPage() {
 
       <div className="flex items-center justify-end gap-1 text-sm text-gray-600">
         <button
-          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          onClick={() => setPage((current) => Math.max(1, current - 1))}
           disabled={page === 1}
           className="flex h-9 items-center gap-1 rounded-md px-2 text-gray-500 hover:text-[#366DBD] disabled:opacity-40"
         >
           <ChevronLeft size={16} /> Previous
         </button>
-        {getVisiblePages().map((p) => (
+        {getVisiblePages().map((pageNumber) => (
           <button
-            key={p}
-            onClick={() => setPage(p)}
-            className={`flex h-9 w-9 items-center justify-center rounded-md border text-sm transition-all ${page === p
-              ? "border-[#7FA7E8] bg-[#EEF4FF] text-[#3A6FCF]"
-              : "border-transparent text-gray-600 hover:border-[#7FA7E8] hover:text-[#3A6FCF]"
-              }`}
+            key={pageNumber}
+            onClick={() => setPage(pageNumber)}
+            className={`flex h-9 w-9 items-center justify-center rounded-md border text-sm transition-all ${
+              page === pageNumber
+                ? "border-[#7FA7E8] bg-[#EEF4FF] text-[#3A6FCF]"
+                : "border-transparent text-gray-600 hover:border-[#7FA7E8] hover:text-[#3A6FCF]"
+            }`}
           >
-            {p}
+            {pageNumber}
           </button>
         ))}
         {totalPages > 3 && <span className="px-1 text-gray-400">...</span>}
         <button
-          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
           disabled={page === totalPages}
           className="flex h-9 items-center gap-1 rounded-md px-2 text-gray-500 hover:text-[#366DBD] disabled:opacity-40"
         >

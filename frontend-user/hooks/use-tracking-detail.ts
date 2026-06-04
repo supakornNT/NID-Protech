@@ -38,6 +38,7 @@ interface TrackingDetailApiResponse {
   solution: string;
   repairedAt: string | null;
   customerConfirmDueAt: string | null;
+  dueAt: string | null;
   reopenRounds?: ReopenRoundApiItem[];
 }
 
@@ -130,6 +131,7 @@ function mapTrackingDetail(
     repairedBy: data.repairedBy,
     ratingStatus: data.ratingStatus,
     customerConfirmDueAt: data.customerConfirmDueAt,
+    dueAt: data.dueAt,
     requestFiles,
     repairFiles,
     timeline: data.timeline.map((item) => ({
@@ -193,6 +195,15 @@ export function useTrackingDetail(requestNo: string) {
   const [ratingSubmitting, setRatingSubmitting] = React.useState(false);
   const [rejectSubmitting, setRejectSubmitting] = React.useState(false);
   const [refreshKey, setRefreshKey] = React.useState(0);
+
+  const [prevRequestNo, setPrevRequestNo] = React.useState(requestNo);
+
+  if (requestNo !== prevRequestNo) {
+    setPrevRequestNo(requestNo);
+    setLoading(true);
+    setRequest(null);
+    setError(null);
+  }
 
   React.useEffect(() => {
     if (!requestNo || requestNo === "undefined") {

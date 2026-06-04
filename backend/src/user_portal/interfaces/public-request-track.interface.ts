@@ -35,5 +35,6 @@ export interface PublicRequestTrack {
   solution: string;
   repairedAt: string | null;
   customerConfirmDueAt: string | null;
+  dueAt: string | null;
   reopenRounds?: ReopenRound[];
 }
