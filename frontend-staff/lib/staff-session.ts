@@ -17,10 +17,28 @@ const STAFF_STORAGE_KEY = "protech_staff";
 const STAFF_AUTH_COOKIE = "protech_staff_auth";
 
 function setStaffAuthCookie(staff: StoredStaffSession) {
-  const value = encodeURIComponent(JSON.stringify(staff));
-  const maxAge = staff.sessionExpiresAt
-    ? Math.floor((new Date(staff.sessionExpiresAt).getTime() - Date.now()) / 1000)
-    : 3600;
+  // Minimize the session object by stripping out Thai labels to fit within 4KB cookie limit
+  const minimizedStaff = {
+    id: staff.id,
+    email: staff.email,
+    name: staff.name,
+    sessionExpiresAt: staff.sessionExpiresAt,
+    modules: (staff.modules ?? []).map((module) => ({
+      key: module.key,
+      children: (module.children ?? []).map((p) => ({
+        key: p.key,
+      })),
+    })),
+  };
+
+  const value = encodeURIComponent(JSON.stringify(minimizedStaff));
+  let maxAge = 3600;
+  if (staff.sessionExpiresAt) {
+    const diff = Math.floor((new Date(staff.sessionExpiresAt).getTime() - Date.now()) / 1000);
+    if (diff > 0) {
+      maxAge = diff;
+    }
+  }
   document.cookie = `${STAFF_AUTH_COOKIE}=${value}; path=/; max-age=${maxAge}; SameSite=Lax`;
 }
 

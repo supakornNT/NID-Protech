@@ -18,6 +18,14 @@ const nextConfig: NextConfig = {
   output: "standalone",
   allowedDevOrigins: ["192.168.1.37", "192.168.24.18"],
   basePath,
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${process.env.BACKEND_API_URL ?? "http://localhost:4000"}/:path*`,
+      },
+    ];
+  },
   async redirects() {
     if (!basePath) {
       return [];

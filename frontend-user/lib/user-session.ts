@@ -12,9 +12,13 @@ const USER_AUTH_COOKIE = "protech_user_auth";
 
 function setUserAuthCookie(user: StoredUserSession) {
   const value = encodeURIComponent(JSON.stringify(user));
-  const maxAge = user.sessionExpiresAt
-    ? Math.floor((new Date(user.sessionExpiresAt).getTime() - Date.now()) / 1000)
-    : 3600;
+  let maxAge = 3600;
+  if (user.sessionExpiresAt) {
+    const diff = Math.floor((new Date(user.sessionExpiresAt).getTime() - Date.now()) / 1000);
+    if (diff > 0) {
+      maxAge = diff;
+    }
+  }
   document.cookie = `${USER_AUTH_COOKIE}=${value}; path=/; max-age=${maxAge}; SameSite=Lax`;
 }
 

@@ -43,9 +43,10 @@ function findRequiredPermission(pathname: string) {
 }
 
 function getAllowedPermissions(session: StaffSession) {
+  if (!session) return new Set<string>();
   return new Set(
     (session.modules ?? []).flatMap((module) =>
-      module.children.map((permission) => permission.key),
+      (module?.children ?? []).map((permission) => permission?.key).filter(Boolean),
     ),
   );
 }
@@ -88,27 +89,38 @@ export async function proxy(request: NextRequest) {
 
   const authCookie = request.cookies.get("protech_staff_auth")?.value;
 
+  console.log("[Middleware Staff] Request path:", pathname);
+  console.log("[Middleware Staff] Raw cookie length:", authCookie ? authCookie.length : "undefined/missing");
+
   if (!authCookie) {
+    console.log("[Middleware Staff] Redirecting to /login because cookie is missing");
     return redirectTo(request, "/login");
   }
 
   let session: StaffSession;
   try {
     session = JSON.parse(decodeURIComponent(authCookie)) as StaffSession;
-  } catch {
+    console.log("[Middleware Staff] Parsed session staff id:", session?.id);
+  } catch (err) {
+    console.log("[Middleware Staff] Redirecting to /login because JSON parse failed:", err);
     return redirectTo(request, "/login");
   }
 
   if (!requiredPermission) {
+    console.log("[Middleware Staff] No permission required for", pathname, "- Allowing request");
     return allowWithRememberedPath(request);
   }
 
   const allowedPermissions = getAllowedPermissions(session);
+  console.log("[Middleware Staff] Required permission:", requiredPermission);
+  console.log("[Middleware Staff] Session permissions count:", allowedPermissions.size);
 
   if (!allowedPermissions.has(requiredPermission)) {
+    console.log("[Middleware Staff] Redirecting because permission missing:", requiredPermission);
     return redirectTo(request, getRedirectBackPath(request));
   }
 
+  console.log("[Middleware Staff] Permission verified - Allowing request");
   return allowWithRememberedPath(request);
 }
 

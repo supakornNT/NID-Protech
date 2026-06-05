@@ -90,14 +90,18 @@ function LoginContent() {
     setError("");
 
     try {
-      const loginRes = await fetchJson<{ staff: StaffSession }>("/auth/login", {
+      await fetchJson("/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         skipSessionExpiredEvent: true,
         body: JSON.stringify({ email: email.trim(), password }),
       });
 
-      setStoredStaffSession(loginRes.staff);
+      const staff = await fetchJson<StaffSession>("/auth/me", {
+        skipSessionExpiredEvent: true,
+      });
+
+      setStoredStaffSession(staff);
       router.push(nextPath);
       router.refresh();
     } catch (loginError) {

@@ -21,6 +21,14 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [{ protocol: "http", hostname: "localhost" }],
   },
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${process.env.BACKEND_API_URL ?? "http://localhost:4000"}/:path*`,
+      },
+    ];
+  },
   async redirects() {
     if (!basePath) {
       return [];
