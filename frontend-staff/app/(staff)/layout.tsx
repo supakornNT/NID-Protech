@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTopLoader } from "nextjs-toploader";
 
 import { LogOut, Menu } from "lucide-react";
 
@@ -24,7 +25,9 @@ function AdminLayoutShell({
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const sessionLoaderStartedRef = useRef(false);
   const { staff, loading, logout, sessionExpiredOpen } = useStaffSession();
+  const topLoader = useTopLoader();
 
   const staffName = staff?.name?.trim() || "Screener User";
   const avatarInitial = staffName.charAt(0).toUpperCase() || "A";
@@ -47,6 +50,29 @@ function AdminLayoutShell({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  useEffect(() => {
+    if (loading) {
+      const timer = window.setTimeout(() => {
+        sessionLoaderStartedRef.current = true;
+        topLoader.start();
+      }, 180);
+
+      return () => {
+        window.clearTimeout(timer);
+
+        if (sessionLoaderStartedRef.current) {
+          topLoader.done(true);
+          sessionLoaderStartedRef.current = false;
+        }
+      };
+    }
+
+    if (sessionLoaderStartedRef.current) {
+      topLoader.done(true);
+      sessionLoaderStartedRef.current = false;
+    }
+  }, [loading]);
 
   const sessionExpiredModal = (
     <AdminModalShell
@@ -99,9 +125,8 @@ function AdminLayoutShell({
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white text-gray-500">
+      <div className="min-h-screen bg-white">
         {sessionExpiredModal}
-        กำลังโหลด...
       </div>
     );
   }

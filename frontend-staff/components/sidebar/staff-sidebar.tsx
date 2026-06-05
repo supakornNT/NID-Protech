@@ -1,20 +1,39 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import {
+  Activity,
+  AlertCircle,
+  Briefcase,
+  Building2,
   ChartBar,
   ChevronDown,
-  List,
+  ClipboardList,
+  FileCheck,
+  FileSignature,
   FileText,
-  ChartPie,
+  FolderCheck,
+  History,
   Home,
+  Key,
+  LayoutDashboard,
+  LogIn,
+  Monitor,
+  Radar,
+  Rss,
+  Settings,
   ShieldAlert,
   ShieldCheck,
-  FolderCheck,
   Siren,
-  Rss,
+  Timer,
+  User,
+  UserCheck,
+  UserPlus,
+  Users,
+  Wrench,
   X,
 } from "lucide-react";
 
@@ -82,111 +101,111 @@ const menuItems = [
   },
   {
     title: STAFF_SECTION_LABELS.assignment,
-    icon: List,
+    icon: ClipboardList,
     children: [
       {
         title: STAFF_PERMISSION_LABELS["assignment.ticket.approve"],
         href: "/consideration/issue-work",
-        icon: Rss,
+        icon: FileSignature,
       },
       {
         title: STAFF_PERMISSION_LABELS["assignment.request.approve"],
         href: "/consideration/close-work",
-        icon: Rss,
+        icon: FileCheck,
       },
     ],
   },
   {
     title: STAFF_SECTION_LABELS.tracking,
-    icon: List,
+    icon: Activity,
     children: [
       {
         title: STAFF_PERMISSION_LABELS["tracking.status.view"],
         href: "/tracking/status",
-        icon: Rss,
+        icon: Radar,
       },
     ],
   },
   {
     title: STAFF_SECTION_LABELS.operation,
-    icon: List,
+    icon: Briefcase,
     children: [
       {
         title: STAFF_PERMISSION_LABELS["operation.result.view"],
         href: "/operations",
-        icon: Rss,
+        icon: Wrench,
       },
     ],
   },
   {
     title: STAFF_SECTION_LABELS.report,
-    icon: FileText,
+    icon: ChartBar,
     children: [
       {
         title: STAFF_PERMISSION_LABELS["report.dashboard.view"],
         href: "/reports/executive",
-        icon: ChartBar,
+        icon: LayoutDashboard,
       },
       {
         title: STAFF_PERMISSION_LABELS["report.operation.view"],
         href: "/reports/operations",
-        icon: ChartPie,
+        icon: Timer,
       },
       {
         title: STAFF_PERMISSION_LABELS["report.history.view"],
         href: "/reports/edit-history",
-        icon: ChartPie,
+        icon: History,
       },
       {
         title: STAFF_PERMISSION_LABELS["report.login_log.view"],
         href: "/reports/login-history",
-        icon: ChartPie,
+        icon: LogIn,
       },
     ],
   },
   {
     title: STAFF_SECTION_LABELS.management,
-    icon: FileText,
+    icon: Settings,
     children: [
       {
         title: STAFF_PERMISSION_LABELS["admin.organization.manage"],
         href: "/management/organizations",
-        icon: ChartBar,
+        icon: Building2,
       },
       {
         title: STAFF_PERMISSION_LABELS["admin.system.manage"],
         href: "/management/systems",
-        icon: ChartPie,
+        icon: Monitor,
       },
       {
         title: STAFF_PERMISSION_LABELS["admin.customer.manage"],
         href: "/management/reporters",
-        icon: ChartPie,
+        icon: UserPlus,
       },
       {
         title: STAFF_PERMISSION_LABELS["admin.staff.manage"],
         href: "/management/teams",
-        icon: ChartPie,
+        icon: Wrench,
       },
       {
         title: STAFF_PERMISSION_LABELS["admin.team.manage"],
         href: "/management/user-groups",
-        icon: ChartPie,
+        icon: Users,
       },
       {
         title: STAFF_PERMISSION_LABELS["admin.permission.manage"],
         href: "/management/permissions",
-        icon: ChartPie,
+        icon: Key,
       },
       {
         title: STAFF_PERMISSION_LABELS["admin.user.manage"],
         href: "/management/users",
-        icon: ChartPie,
+        icon: User,
       },
       {
         title: STAFF_PERMISSION_LABELS["admin.problem_type.manage"],
         href: "/management/issue-and-complaint-types",
-        icon: ChartPie,
+        icon: AlertCircle,
       },
     ],
   },
@@ -235,17 +254,19 @@ export default function StaffSidebar({
     })
     .filter((item): item is NonNullable<typeof item> => item !== null);
 
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
   const sidebarContent = (
     <div className="flex min-h-full flex-col px-4 py-8">
-      <div className="mb-8 flex items-center gap-3 px-2">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/18">
-          <ShieldCheck size={24} />
-        </div>
-
-        <div className="leading-tight">
-          <p className="text-[18px] font-bold">ProTech</p>
-          <p className="text-[18px] font-bold">Support</p>
-        </div>
+      <div className="mb-8 flex items-center px-2">
+        <Image
+          src={`${basePath}/ProTechLogoFinal.png`}
+          alt="ProTech Support"
+          width={130}
+          height={37}
+          priority
+          className="h-auto w-auto object-contain"
+        />
       </div>
 
       <nav className="space-y-2.5 text-[13px] font-semibold">

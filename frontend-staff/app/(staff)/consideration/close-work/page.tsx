@@ -7,6 +7,14 @@ import { useCloseWork } from "@/hooks/use-close-work";
 
 const LIMIT = 4;
 
+const STATUS_MAP: Record<string, string> = {
+  screening: "รอคัดกรอง",
+  assigned: "รอดำเนินการ",
+  in_progress: "กำลังดำเนินการ",
+  waiting_confirm: "รอตรวจสอบโดยลูกค้า",
+  closed: "เสร็จสิ้น",
+};
+
 export default function CloseWorkListPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -151,7 +159,7 @@ export default function CloseWorkListPage() {
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <p className="text-[14px]">
-                    สถานะ : <span className="font-bold text-[#366DBD]">{item.status}</span>
+                    สถานะ : <span className="font-bold text-[#366DBD]">{STATUS_MAP[item.status] || item.status}</span>
                   </p>
                   <button
                     type="button"

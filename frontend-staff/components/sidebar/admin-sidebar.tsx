@@ -1,18 +1,23 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  AlertCircle,
   Building2,
   ChevronDown,
   ClipboardList,
-  FileText,
   FolderKanban,
   Home,
-  List,
   ShieldCheck,
+  User,
   UserCheck,
+  UserCog,
+  UserPlus,
   Users,
+  Wrench,
+  Settings,
 } from "lucide-react";
 
 import {
@@ -29,12 +34,12 @@ const menuItems = [
   },
   {
     title: "จัดการผู้ใช้และสิทธิ์",
-    icon: UserCheck,
+    icon: UserCog,
     children: [
       {
         title: "จัดการข้อมูลลงทะเบียนผู้แจ้งประเด็น",
         href: "/management/customers",
-        icon: List,
+        icon: UserPlus,
       },
       {
         title: "จัดการกลุ่มผู้ใช้งาน",
@@ -49,18 +54,18 @@ const menuItems = [
       {
         title: "จัดการข้อมูลผู้ใช้งาน",
         href: "/management/users",
-        icon: UserCheck,
+        icon: User,
       },
       {
         title: "จัดการข้อมูลลงทะเบียนทีมแก้ไขประเด็น",
         href: "/management/teams",
-        icon: Users,
+        icon: Wrench,
       },
     ],
   },
   {
     title: "จัดการโครงสร้างระบบ",
-    icon: FileText,
+    icon: Settings,
     children: [
       {
         title: "จัดการข้อมูลองค์กร",
@@ -75,7 +80,7 @@ const menuItems = [
       {
         title: "จัดการรูปแบบประเด็นและคำร้อง",
         href: "/system-management/problem-types",
-        icon: FileText,
+        icon: AlertCircle,
       },
     ],
   },
@@ -88,19 +93,20 @@ const menuItems = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
   return (
     <aside className="sticky top-0 h-screen w-[240px] shrink-0 overflow-y-auto bg-[#3670BF] text-white">
       <div className="flex min-h-full flex-col px-5 py-8">
-        <div className="mb-10 flex items-center gap-3 px-2">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20">
-            <ShieldCheck size={26} />
-          </div>
-
-          <div className="leading-tight">
-            <p className="text-lg font-bold">ProTech</p>
-            <p className="text-lg font-bold">Support</p>
-          </div>
+        <div className="mb-10 flex items-center px-2">
+          <Image
+            src={`${basePath}/ProTechLogoFinal.png`}
+            alt="ProTech Support"
+            width={136}
+            height={39}
+            priority
+            className="h-auto w-auto object-contain"
+          />
         </div>
 
         <nav className="space-y-3 text-sm font-semibold">

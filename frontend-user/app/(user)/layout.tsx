@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useTopLoader } from "nextjs-toploader";
 
 import Navbar from "@/components/navbar";
 import {
@@ -15,6 +17,8 @@ function UserLayoutShell({
 }) {
   const router = useRouter();
   const { loading, sessionExpiredOpen } = useUserSession();
+  const topLoader = useTopLoader();
+  const sessionLoaderStartedRef = useRef(false);
 
   const sessionExpiredModal = sessionExpiredOpen ? (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-4">
@@ -58,11 +62,33 @@ function UserLayoutShell({
     </div>
   ) : null;
 
+  useEffect(() => {
+    if (loading) {
+      const timer = window.setTimeout(() => {
+        sessionLoaderStartedRef.current = true;
+        topLoader.start();
+      }, 180);
+
+      return () => {
+        window.clearTimeout(timer);
+
+        if (sessionLoaderStartedRef.current) {
+          topLoader.done(true);
+          sessionLoaderStartedRef.current = false;
+        }
+      };
+    }
+
+    if (sessionLoaderStartedRef.current) {
+      topLoader.done(true);
+      sessionLoaderStartedRef.current = false;
+    }
+  }, [loading]);
+
   if (loading) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-white px-4">
+      <div className="min-h-dvh bg-white">
         {sessionExpiredModal}
-        <p className="text-sm text-gray-500">กำลังตรวจสอบ session...</p>
       </div>
     );
   }

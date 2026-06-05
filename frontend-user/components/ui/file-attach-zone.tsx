@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { FileText, ImageIcon, Camera, Paperclip, X } from "lucide-react";
 
 const IMAGE_EXTS = ["jpg", "jpeg", "png", "gif", "webp"];
@@ -27,6 +27,71 @@ export function FileAttachZone({ files, onChange }: FileAttachZoneProps) {
   const browseRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
+  const [showWebcam, setShowWebcam] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (showWebcam && stream && videoRef.current) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [showWebcam, stream]);
+
+  async function startWebcam() {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 1280, height: 720 },
+        audio: false,
+      });
+      setStream(mediaStream);
+      setShowWebcam(true);
+    } catch (err) {
+      alert("ไม่สามารถเข้าถึงกล้องได้: " + err);
+    }
+  }
+
+  function stopWebcam() {
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+      setStream(null);
+    }
+    setShowWebcam(false);
+  }
+
+  function capturePhoto() {
+    if (!videoRef.current) return;
+    const video = videoRef.current;
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const file = new File(
+            [blob],
+            `webcam-${Date.now()}.jpg`,
+            { type: "image/jpeg" }
+          );
+          onChange([...files, file]);
+          stopWebcam();
+        }
+      }, "image/jpeg", 0.9);
+    }
+  }
+
+  function handleCameraClick() {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
+    if (isMobile) {
+      cameraRef.current?.click();
+    } else {
+      startWebcam();
+    }
+  }
 
   function handleFiles(incoming: FileList | null) {
     if (!incoming) return;
@@ -69,7 +134,7 @@ export function FileAttachZone({ files, onChange }: FileAttachZoneProps) {
           </button>
           <button
             type="button"
-            onClick={() => cameraRef.current?.click()}
+            onClick={handleCameraClick}
             className="flex min-h-11 items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-2.5 text-sm text-gray-500 hover:bg-gray-50 active:bg-gray-100"
           >
             <Camera size={16} />
@@ -170,6 +235,45 @@ export function FileAttachZone({ files, onChange }: FileAttachZoneProps) {
             className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           />
+        </div>
+      )}
+
+      {showWebcam && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/85 p-4">
+          <div className="relative flex w-full max-w-lg flex-col items-center rounded-xl bg-white p-6 shadow-2xl">
+            <button
+              type="button"
+              onClick={stopWebcam}
+              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200"
+            >
+              <X size={20} />
+            </button>
+            <h3 className="mb-4 text-base font-bold text-gray-900">ถ่ายรูปด้วยกล้องเว็บบอร์ด</h3>
+            <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div className="mt-5 flex gap-3">
+              <button
+                type="button"
+                onClick={stopWebcam}
+                className="rounded-lg border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={capturePhoto}
+                className="rounded-lg bg-[#366DBD] px-6 py-2 text-sm font-semibold text-white hover:bg-[#2d5da3]"
+              >
+                ถ่ายภาพ
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </>
