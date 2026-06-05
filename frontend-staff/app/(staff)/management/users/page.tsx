@@ -393,7 +393,7 @@ export default function UsersPage() {
                 setStatusFilter(value as UserStatusFilter);
                 setPage(1);
               }}
-              className="min-w-[132px]"
+              className="w-full sm:w-[132px]"
             />
           </div>
         </div>

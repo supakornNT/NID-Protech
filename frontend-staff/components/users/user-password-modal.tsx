@@ -328,11 +328,11 @@ export function UserPasswordModal({
           </p>
         ) : null}
 
-        <div className="flex justify-end gap-3 pt-2">
+        <div className="flex w-full justify-end gap-3 pt-2">
           {!otpRequested ? (
             <ProTechButton
               variant="delete"
-              className="h-10 min-w-[88px]"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-[88px]"
               onClick={() => {
                 resetForm();
                 onOpenChange(false);
@@ -343,7 +343,7 @@ export function UserPasswordModal({
           ) : (
             <ProTechButton
               variant="outline"
-              className="h-10 min-w-[116px]"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-[116px]"
               onClick={resetToPasswordStep}
             >
               แก้ไขรหัสผ่าน
@@ -353,8 +353,8 @@ export function UserPasswordModal({
           {!otpRequested ? (
             <ProTechButton
               variant="primary"
-              className="h-10 min-w-[104px]"
-              disabled={sendingOtp}
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-[104px]"
+              disabled={sendingOtp || !password.trim() || !confirmPassword.trim()}
               onClick={handleSendOtp}
             >
               {sendingOtp ? "กำลังส่ง OTP..." : "ส่ง OTP"}
@@ -362,8 +362,8 @@ export function UserPasswordModal({
           ) : (
             <ProTechButton
               variant="primary"
-              className="h-10 min-w-[88px]"
-              disabled={resettingPassword}
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-[88px]"
+              disabled={resettingPassword || otpValue.length !== OTP_LENGTH}
               onClick={handleSubmit}
             >
               {resettingPassword ? "กำลังยืนยัน..." : "ยืนยัน"}

@@ -637,7 +637,7 @@ export default function ReportLoginHistoryPage() {
                     }));
                   }}
                   placeholder="ค้นหาชื่อผู้ใช้ อีเมล"
-                  className="w-56 flex-none"
+                  className="w-full sm:w-56 flex-none"
                   inputClassName="h-[31px] rounded-md border border-[#A8B1C2] px-3 text-[14px]"
                 />
 
@@ -654,6 +654,7 @@ export default function ReportLoginHistoryPage() {
                       userType: value as LoginLogFilters["userType"],
                     }));
                   }}
+                  className="flex-1 min-w-[120px] sm:flex-none sm:min-w-31"
                 />
 
                 <ToolbarSelect
@@ -669,11 +670,12 @@ export default function ReportLoginHistoryPage() {
                       status: value as LoginLogFilters["status"],
                     }));
                   }}
+                  className="flex-1 min-w-[120px] sm:flex-none sm:min-w-31"
                 />
 
-                <div className="flex items-center gap-2 rounded-md border border-[#A8B1C2] bg-white px-3">
-                  <span className="text-[13px] text-[#6B7280]">
-                    วันที่เริ่มต้น
+                <div className="flex flex-1 min-w-[140px] sm:flex-none items-center gap-2 rounded-md border border-[#A8B1C2] bg-white px-3">
+                  <span className="text-[13px] text-[#6B7280] shrink-0">
+                    เริ่ม
                   </span>
                   <input
                     type="date"
@@ -685,13 +687,13 @@ export default function ReportLoginHistoryPage() {
                         startDate: event.target.value,
                       }));
                     }}
-                    className="h-7.75 border-0 bg-transparent text-[14px] text-[#6B7280] outline-none [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-clear-button]:hidden [&::-webkit-inner-spin-button]:hidden"
+                    className="h-7.75 border-0 bg-transparent text-[14px] text-[#6B7280] outline-none [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-clear-button]:hidden [&::-webkit-inner-spin-button]:hidden w-full"
                   />
                 </div>
 
-                <div className="flex items-center gap-2 rounded-md border border-[#A8B1C2] bg-white px-3">
-                  <span className="text-[13px] text-[#6B7280]">
-                    วันที่สิ้นสุด
+                <div className="flex flex-1 min-w-[140px] sm:flex-none items-center gap-2 rounded-md border border-[#A8B1C2] bg-white px-3">
+                  <span className="text-[13px] text-[#6B7280] shrink-0">
+                    ถึง
                   </span>
                   <input
                     type="date"
@@ -703,13 +705,13 @@ export default function ReportLoginHistoryPage() {
                         endDate: event.target.value,
                       }));
                     }}
-                    className="h-7.75 border-0 bg-transparent text-[14px] text-[#6B7280] outline-none [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-clear-button]:hidden [&::-webkit-inner-spin-button]:hidden"
+                    className="h-7.75 border-0 bg-transparent text-[14px] text-[#6B7280] outline-none [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-clear-button]:hidden [&::-webkit-inner-spin-button]:hidden w-full"
                   />
                 </div>
 
                 <ProTechButton
                   variant="primary"
-                  className="h-7.75 min-w-18.5 px-4 text-[14px]"
+                  className="h-7.75 w-full sm:w-auto px-4 text-[14px]"
                   onClick={() => {
                     if (
                       !isValidDateRange(

@@ -292,6 +292,7 @@ export default function UserGroupsPage() {
                   setGroupPage(1);
                   setSelectedGroupId(null);
                 }}
+                className="w-full sm:w-[150px]"
               />
             ) : (
               <>
@@ -308,6 +309,7 @@ export default function UserGroupsPage() {
                     setTeamFilter(value === "all" ? "all" : Number(value));
                     setMemberPage(1);
                   }}
+                  className="flex-1 min-w-[120px] sm:flex-none sm:w-[180px]"
                 />
                 <ToolbarSelect
                   value={memberGroupFilter}
@@ -316,7 +318,7 @@ export default function UserGroupsPage() {
                     { value: "with-group", label: "มีกลุ่ม" },
                     { value: "without-group", label: "ไม่มีกลุ่ม" },
                   ]}
-                  className="min-w-[168px]"
+                  className="flex-1 min-w-[140px] sm:flex-none sm:w-[188px]"
                   onChange={(value) => {
                     setMemberGroupFilter(
                       value as "all" | "with-group" | "without-group",

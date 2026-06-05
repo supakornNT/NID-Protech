@@ -97,7 +97,7 @@ export default function AssignWorkPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 bg-[#F0F4FA] p-8">
+    <div className="flex flex-1 flex-col gap-6 bg-[#F0F4FA] p-4 sm:p-6 lg:p-8">
       {/* ── Header ── */}
       <div className="flex items-center gap-4">
         <button
@@ -114,9 +114,9 @@ export default function AssignWorkPage() {
       </div>
 
       {/* ── Two-column layout ── */}
-      <div className="flex min-h-170 gap-6">
+      <div className="flex flex-col lg:flex-row min-h-170 gap-6">
         {/* ── Left panel: staff list ── */}
-        <div className="flex w-105 shrink-0 flex-col gap-4 rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
+        <div className="flex w-full lg:w-105 shrink-0 lg:shrink flex-col gap-4 rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
           <h3 className="text-[15px] font-semibold text-gray-900">รายชื่อเจ้าหน้าที่</h3>
 
           {loading ? (
@@ -440,7 +440,7 @@ export default function AssignWorkPage() {
             </button>
             <button
               type="button"
-              disabled={submitting || !title.trim() || !detail.trim() || isRequestDuePast}
+              disabled={submitting || !title.trim() || !detail.trim() || !dueDate || isRequestDuePast}
               onClick={() => {
                 if (!modalStaff) return;
                 if (!dueDate) {
@@ -484,17 +484,17 @@ export default function AssignWorkPage() {
             คุณต้องการมอบหมายงานย่อยนี้ให้ {modalStaff?.fullName} ใช่หรือไม่?
           </p>
 
-          <div className="flex justify-center gap-3 pt-1">
+          <div className="flex w-full justify-center gap-3 pt-1">
             <ProTechButton
               variant="delete"
-              className="h-10 min-w-[120px]"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-[120px]"
               onClick={() => setShowCreateConfirm(false)}
             >
               ยกเลิก
             </ProTechButton>
             <ProTechButton
               variant="primary"
-              className="h-10 min-w-[120px]"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-[120px]"
               onClick={() => {
                 setShowCreateConfirm(false);
                 if (modalStaff) {

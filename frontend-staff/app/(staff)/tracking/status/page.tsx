@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
@@ -82,7 +82,7 @@ function StepperBar({
   const currentStepIndex = STATUS_TO_STEP[status] ?? -1;
 
   return (
-    <div className="mt-3 flex items-start gap-0">
+    <div className="mt-3 flex items-start gap-0 min-w-[550px] md:min-w-0">
       {STATUS_STEPS.map((label, stepIndex) => {
         const stepInfo = steps[stepIndex];
         const isLast = stepIndex === STATUS_STEPS.length - 1;
@@ -211,30 +211,34 @@ export default function TrackingStatusPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 bg-[#F0F4FA] p-8">
+    <div className="flex flex-1 flex-col gap-6 bg-[#F0F4FA] p-4 sm:p-6 lg:p-8">
       <div>
         <h1 className="text-[28px] font-bold text-gray-900">การติดตามสถานะงาน</h1>
         <p className="text-[14px] text-gray-500">ติดตามสถานะการดำเนินการของคำขอ</p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          placeholder="ค้นหา..."
-          className="h-9 w-56 rounded-lg border border-gray-300 bg-white px-3 text-[14px] outline-none focus:border-[#366DBD]"
-        />
-        <ProTechButton
-          variant="search"
-          className="h-9 px-5 text-[14px]"
-          onClick={() => setPage(1)}
-        >
-          ค้นหา
-        </ProTechButton>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="flex gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-none">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              placeholder="ค้นหา..."
+              className="h-9 w-full sm:w-56 rounded-lg border border-gray-300 bg-white px-3 text-[14px] outline-none focus:border-[#366DBD]"
+            />
+          </div>
+          <ProTechButton
+            variant="search"
+            className="h-9 shrink-0 px-5 text-[14px]"
+            onClick={() => setPage(1)}
+          >
+            ค้นหา
+          </ProTechButton>
+        </div>
 
         <ToolbarSelect
           value={statusFilter}
@@ -244,7 +248,7 @@ export default function TrackingStatusPage() {
             setStatusFilter(value);
             setPage(1);
           }}
-          className="w-[190px]"
+          className="w-full sm:w-[190px]"
         />
       </div>
 
@@ -322,14 +326,14 @@ export default function TrackingStatusPage() {
                     </div>
                   </div>
 
-                  <div className="mt-3 flex items-end gap-4">
-                    <div className="flex-1">
+                  <div className="mt-3 flex flex-col md:flex-row md:items-end gap-4">
+                    <div className="flex-1 w-full overflow-x-auto pb-2">
                       <StepperBar steps={item.steps} status={item.status} />
                     </div>
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-3 shrink-0 items-end w-full md:w-auto">
                       <button
                         type="button"
-                        className="rounded-lg border border-gray-400 bg-white px-4 py-1.5 text-[13px] text-gray-700 hover:bg-gray-50"
+                        className="w-full md:w-auto rounded-lg border border-gray-400 bg-white px-4 py-1.5 text-[13px] text-gray-700 hover:bg-gray-50"
                         onClick={() => router.push(`/tracking/status/${item.id}`)}
                       >
                         ดูรายละเอียด

@@ -249,7 +249,6 @@ function AdminLayoutShell({
           <main
             className="
               min-w-0 flex flex-1 flex-col
-              overflow-x-auto
               bg-white
             "
           >

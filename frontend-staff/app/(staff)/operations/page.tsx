@@ -95,63 +95,69 @@ export default function OperationsPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 bg-[#F0F4FA] p-8">
+    <div className="flex flex-1 flex-col gap-6 bg-[#F0F4FA] p-4 sm:p-6 lg:p-8">
       <div>
         <h1 className="text-[28px] font-bold text-gray-900">งานของฉัน</h1>
         <p className="text-[14px] text-gray-500">งานที่ต้องมอบหมาย</p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          placeholder="ค้นหา..."
-          className="h-9 w-56 rounded-lg border border-gray-300 bg-white px-3 text-[14px] outline-none focus:border-[#366DBD]"
-        />
-        <ProTechButton
-              variant="search"
-              className="h-9 px-5 text-[14px]"
-              onClick={() => setPage(1)}
-            >
-              ค้นหา
-            </ProTechButton>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="flex gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-none">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              placeholder="ค้นหา..."
+              className="h-9 w-full sm:w-56 rounded-lg border border-gray-300 bg-white px-3 text-[14px] outline-none focus:border-[#366DBD]"
+            />
+          </div>
+          <ProTechButton
+            variant="search"
+            className="h-9 shrink-0 px-5 text-[14px]"
+            onClick={() => setPage(1)}
+          >
+            ค้นหา
+          </ProTechButton>
+        </div>
 
-        <ToolbarSelect
-          value={typeFilter}
-          options={typeOptions}
-          placeholder="ประเภททั้งหมด"
-          onChange={(value) => {
-            setTypeFilter(value);
-            setPage(1);
-          }}
-          className="w-[190px]"
-        />
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          <ToolbarSelect
+            value={typeFilter}
+            options={typeOptions}
+            placeholder="ประเภททั้งหมด"
+            onChange={(value) => {
+              setTypeFilter(value);
+              setPage(1);
+            }}
+            className="flex-1 min-w-[120px] sm:flex-none sm:w-[190px]"
+          />
 
-        <ToolbarSelect
-          value={systemFilter}
-          options={systemOptions}
-          placeholder="ระบบทั้งหมด"
-          onChange={(value) => {
-            setSystemFilter(value);
-            setPage(1);
-          }}
-          className="w-[190px]"
-        />
+          <ToolbarSelect
+            value={systemFilter}
+            options={systemOptions}
+            placeholder="ระบบทั้งหมด"
+            onChange={(value) => {
+              setSystemFilter(value);
+              setPage(1);
+            }}
+            className="flex-1 min-w-[120px] sm:flex-none sm:w-[190px]"
+          />
 
-        <ToolbarSelect
-          value={sortTime}
-          options={timeOptions}
-          placeholder="เวลา"
-          onChange={(value) => {
-            setSortTime(value as "latest" | "earliest");
-            setPage(1);
-          }}
-          className="w-[170px]"
-        />
+          <ToolbarSelect
+            value={sortTime}
+            options={timeOptions}
+            placeholder="เวลา"
+            onChange={(value) => {
+              setSortTime(value as "latest" | "earliest");
+              setPage(1);
+            }}
+            className="w-full sm:w-[170px]"
+          />
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-[14px] border border-[#7FA7E8] bg-white">
@@ -184,7 +190,7 @@ export default function OperationsPage() {
 
               return (
                 <div key={item.id} className="bg-white p-5">
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                     <div className="flex flex-col gap-1">
                       <p className="text-[16px] font-bold text-gray-900">{item.title}</p>
                       <div className="flex flex-col gap-0.5">
@@ -202,7 +208,7 @@ export default function OperationsPage() {
                       </div>
                     </div>
 
-                    <div className="flex shrink-0 flex-col items-end gap-3">
+                    <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t border-gray-100 sm:border-0">
                       <p className="text-[13px] text-gray-500">
                         ประเภท :{" "}
                         <span className="font-semibold text-gray-800">

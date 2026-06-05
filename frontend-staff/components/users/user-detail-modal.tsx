@@ -288,10 +288,10 @@ export function UserDetailModal({
           </p>
         ) : null}
 
-        <div className="flex justify-end gap-3 pt-2">
+        <div className="flex w-full justify-end gap-3 pt-2">
           <ProTechButton
             variant="delete"
-            className="h-10 min-w-[88px]"
+            className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-[88px]"
             onClick={() => {
               onOpenChange(false);
             }}
@@ -300,8 +300,8 @@ export function UserDetailModal({
           </ProTechButton>
           <ProTechButton
             variant="primary"
-            className="h-10 min-w-[110px]"
-            disabled={saving}
+            className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-[110px]"
+            disabled={saving || !formState.name.trim() || !formState.email.trim()}
             onClick={() => {
               const normalized = normalizeUserFormInput(formState);
               const message = validateUserFormInput(normalized);

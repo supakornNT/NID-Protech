@@ -34,35 +34,37 @@ export default function IssueWorkPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 bg-white p-8">
+    <div className="flex flex-1 flex-col gap-6 bg-[#F0F4FA] p-4 sm:p-6 lg:p-8">
       <div>
         <h1 className="text-[32px] font-bold text-gray-900">การจัดการงาน</h1>
         <p className="text-[16px] text-gray-500">งานที่ต้องมอบหมาย</p>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="relative">
-          <Search
-            size={15}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            placeholder="ค้นหางาน..."
-            className="h-9 w-56 rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-[14px] outline-none focus:border-[#366DBD] focus:ring-2 focus:ring-[#366DBD]/10"
-          />
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="flex gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-none">
+            <Search
+              size={15}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              placeholder="ค้นหางาน..."
+              className="h-9 w-full sm:w-56 rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-[14px] outline-none focus:border-[#366DBD] focus:ring-2 focus:ring-[#366DBD]/10"
+            />
+          </div>
+          <button
+            type="button"
+            className="h-9 shrink-0 rounded-lg bg-[#366DBD] px-5 text-[14px] font-semibold text-white transition hover:bg-[#2d5da3]"
+          >
+            ค้นหา
+          </button>
         </div>
-        <button
-          type="button"
-          className="h-9 rounded-lg bg-[#366DBD] px-5 text-[14px] font-semibold text-white transition hover:bg-[#2d5da3]"
-        >
-          ค้นหา
-        </button>
       </div>
 
       <div className="overflow-hidden rounded-[14px] border border-[#7FA7E8] bg-white">
@@ -93,7 +95,7 @@ export default function IssueWorkPage() {
             {paged.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between bg-white px-6 py-5"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white px-4 sm:px-6 py-5"
               >
                 <div className="flex flex-col gap-1.5">
                   <div className="flex items-center gap-2">
@@ -119,7 +121,7 @@ export default function IssueWorkPage() {
                     {item.problemName}
                   </span>
                 </div>
-                <div className="flex flex-col items-end gap-2">
+                <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t border-gray-100 sm:border-0">
                   <p className="text-[14px]">
                     ประเภท :{" "}
                     <span
@@ -137,7 +139,7 @@ export default function IssueWorkPage() {
                   <button
                     type="button"
                     onClick={() => router.push(`/consideration/issue-work/${item.id}`)}
-                    className="mt-1 rounded-lg border border-[#929396] bg-white px-5 py-1.5 text-[14px] text-gray-700 hover:bg-gray-50"
+                    className="sm:mt-1 rounded-lg border border-[#929396] bg-white px-5 py-1.5 text-[14px] text-gray-700 hover:bg-gray-50"
                   >
                     จัดการ
                   </button>

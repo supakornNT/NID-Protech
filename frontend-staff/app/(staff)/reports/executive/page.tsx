@@ -27,9 +27,9 @@ export default function ReportExecutivePage() {
   const donutTotal = data ? data.donutData.reduce((s, d) => s + d.value, 0) : 0;
 
   return (
-    <div className="flex flex-1 flex-col gap-6 bg-white p-8">
+    <div className="flex flex-1 flex-col gap-6 bg-white p-4 sm:p-6 lg:p-8">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
           <h1 className="text-[32px] font-semibold text-gray-900">รายงานสรุปผล</h1>
           <p className="text-[16px] text-gray-500">สำหรับผู้บริหาร</p>
@@ -47,7 +47,7 @@ export default function ReportExecutivePage() {
       {loading ? (
         <div className="animate-pulse flex flex-col gap-6 w-full">
           {/* Stat cards skeleton */}
-          <div className="flex gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="flex flex-1 flex-col gap-2 rounded-xl border border-gray-200 bg-white p-4">
                 <div className="h-6 w-6 rounded bg-gray-200" />
@@ -58,7 +58,7 @@ export default function ReportExecutivePage() {
           </div>
 
           {/* Charts and bottom grids skeleton */}
-          <div className="flex gap-5">
+          <div className="flex flex-col lg:flex-row gap-5">
             <div className="flex-3 h-80 rounded-xl border border-gray-200 bg-white p-5" />
             <div className="flex-2 h-80 rounded-xl border border-gray-200 bg-white p-5" />
           </div>
@@ -70,7 +70,7 @@ export default function ReportExecutivePage() {
         </div>
       ) : (
         <>
-      <div className="flex gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <StatCard icon={<Ticket size={28} className="text-[#366DBD]" />} value={String(data.stats.total)} label="ตั๋วทั้งหมด" valueColor="text-[#366DBD]" />
         <StatCard icon={<CheckCircle2 size={28} className="text-[#4CAF50]" />} value={String(data.stats.closed)} label="ปิดงานสำเร็จทั้งหมด" valueColor="text-[#4CAF50]" />
         <StatCard icon={<Loader2 size={28} className="text-[#FFC107]" />} value={String(data.stats.inProgress)} label="กำลังดำเนินการทั้งหมด" valueColor="text-[#FFC107]" />
@@ -79,7 +79,7 @@ export default function ReportExecutivePage() {
       </div>
 
       {/* Weekly bar + Donut */}
-      <div className="flex gap-5">
+      <div className="flex flex-col lg:flex-row gap-5">
         <div className="flex-3 rounded-xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
           <p className="mb-3 text-center text-[15px] font-semibold text-gray-800">จำนวนตั๋วรายสัปดาห์</p>
           <ResponsiveContainer width="100%" height={220}>
@@ -138,7 +138,7 @@ export default function ReportExecutivePage() {
       </div>
 
       {/* Bottom row */}
-      <div className="flex gap-5">
+      <div className="flex flex-col lg:flex-row gap-5">
         {/* Common problems */}
         <div className="flex-3 rounded-xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
           <p className="mb-4 text-center text-[15px] font-semibold text-gray-800">ปัญหาที่พบบ่อย</p>

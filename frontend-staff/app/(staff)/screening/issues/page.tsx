@@ -230,7 +230,7 @@ export default function IssuesPage() {
           <DialogFooter className="gap-2">
             <ProTechButton
               variant="delete"
-              className="h-10 min-w-24 text-[14px]"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-24 text-[14px]"
               onClick={() => {
                 setRejectError(null);
                 closeReject();
@@ -241,11 +241,11 @@ export default function IssuesPage() {
 
             <ProTechButton
               variant="primary"
-              className="h-10 min-w-24 text-[14px]"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-24 text-[14px]"
               onClick={() => {
                 void submitReject();
               }}
-              disabled={rejectSubmitting}
+              disabled={rejectSubmitting || !rejectReason.trim()}
             >
               {rejectSubmitting ? "กำลังบันทึก..." : "ยืนยัน"}
             </ProTechButton>
@@ -275,7 +275,7 @@ export default function IssuesPage() {
           <DialogFooter className="gap-2">
             <ProTechButton
               variant="delete"
-              className="h-10 min-w-24 text-[14px]"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-24 text-[14px]"
               onClick={closeAccept}
             >
               ยกเลิก
@@ -283,7 +283,7 @@ export default function IssuesPage() {
 
             <ProTechButton
               variant="primary"
-              className="h-10 min-w-24 text-[14px]"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-24 text-[14px]"
               onClick={() => {
                 void handleAccept();
               }}
@@ -295,7 +295,7 @@ export default function IssuesPage() {
         </DialogContent>
       </Dialog>
 
-      <div className="flex flex-1 flex-col gap-5 bg-white px-10 py-8">
+      <div className="flex flex-1 flex-col gap-5 bg-white px-4 sm:px-6 lg:px-10 py-8">
         <div>
           <h1 className="text-[26px] font-bold text-gray-900">
             รับเรื่องและคัดกรอง
@@ -303,32 +303,32 @@ export default function IssuesPage() {
           <p className="mt-1 text-[14px] text-gray-400">ประเด็นปัญหา</p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search
-              size={15}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            />
-
-            <input
-              type="text"
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
-                setPage(1);
-              }}
-              placeholder="ค้นหาระบบ..."
-              className="h-9 w-56 rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-[14px] outline-none focus:border-[#366DBD] focus:ring-2 focus:ring-[#366DBD]/10"
-            />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:flex-none">
+              <Search
+                size={15}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+              <input
+                type="text"
+                value={search}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setPage(1);
+                }}
+                placeholder="ค้นหาระบบ..."
+                className="h-9 w-full sm:w-56 rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-[14px] outline-none focus:border-[#366DBD] focus:ring-2 focus:ring-[#366DBD]/10"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setPage(1)}
+              className="h-9 shrink-0 rounded-lg bg-[#366DBD] px-5 text-[14px] font-semibold text-white transition hover:bg-[#2d5da3]"
+            >
+              ค้นหา
+            </button>
           </div>
-
-          <button
-            type="button"
-            onClick={() => setPage(1)}
-            className="h-9 rounded-lg bg-[#366DBD] px-5 text-[14px] font-semibold text-white transition hover:bg-[#2d5da3]"
-          >
-            ค้นหา
-          </button>
         </div>
 
         <ProTechTable

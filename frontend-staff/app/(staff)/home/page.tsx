@@ -36,9 +36,9 @@ export default function HomePage() {
     : "-- : -- : --";
 
   return (
-    <div className="flex flex-1 flex-col gap-8 bg-[#F0F4FA] px-32 py-10">
+    <div className="flex flex-1 flex-col gap-8 bg-[#F0F4FA] px-4 py-6 sm:px-12 md:px-20 lg:px-32 sm:py-10">
       <div className="relative w-full overflow-hidden" style={{ minHeight: 560 }}>
-        <div className="absolute right-0 top-0 h-full w-[60%]">
+        <div className="absolute right-0 top-0 h-full w-[60%] hidden lg:block">
           <Image
             src={withBasePath("/home-illustration.png")}
             alt="illustration"
@@ -52,16 +52,15 @@ export default function HomePage() {
         <span className="pointer-events-none absolute right-[36%] bottom-8 select-none text-base text-[#93B4DF]">✧</span>
         <span className="pointer-events-none absolute right-[50%] bottom-20 select-none text-xs text-[#93B4DF]">✧</span>
 
-        <div className="relative z-10 flex flex-col gap-3">
+        <div className="relative z-10 flex flex-col gap-3 items-center lg:items-start">
           <div
-            className="flex flex-col items-center justify-center rounded-full bg-white shadow-lg"
-            style={{ width: 360, height: 360 }}
+            className="flex flex-col items-center justify-center rounded-full bg-white shadow-lg w-72 h-72 sm:w-[360px] sm:h-[360px]"
           >
-            <p className="text-5xl font-normal text-gray-900">ยินดีต้อนรับ</p>
-            <p className="mt-3 text-5xl font-bold text-[#3670BF]">{staffName}</p>
+            <p className="text-3xl sm:text-5xl font-normal text-gray-900">ยินดีต้อนรับ</p>
+            <p className="mt-3 text-3xl sm:text-5xl font-bold text-[#3670BF]">{staffName}</p>
           </div>
 
-          <div className="space-y-2 pl-1">
+          <div className="space-y-2 pl-1 text-center lg:text-left">
             <p className="text-base text-[#8B95A7]">เข้าสู่ระบบ ProTech Support</p>
             <p className="text-base font-bold leading-8 text-gray-900">
               ระบบรับแจ้งปัญหา ประเด็นการใช้งาน/ข้อร้องเรียน
@@ -72,7 +71,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div className="rounded-2xl bg-white px-6 py-5 shadow-sm">
           <p className="mb-4 font-semibold text-gray-900">ติดต่อผู้ดูแลระบบ</p>
           <div className="space-y-3 text-sm text-gray-500">

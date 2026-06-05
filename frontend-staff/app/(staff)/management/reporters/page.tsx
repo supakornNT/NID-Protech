@@ -219,7 +219,7 @@ export default function CustomersPage() {
       >
         <DialogContent
           showCloseButton={false}
-          className="max-w-105 rounded-[32px] bg-white p-0 shadow-xl ring-0"
+          className="w-[calc(100%-2rem)] sm:w-full max-w-105 rounded-[32px] bg-white p-0 shadow-xl ring-0"
         >
           <div className="space-y-6 px-7 py-7">
             <DialogHeader className="space-y-2 text-center">

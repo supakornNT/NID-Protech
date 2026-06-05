@@ -345,7 +345,7 @@ export default function ManageWorkDetailPage() {
                   setEditError(null);
                   setShowEditConfirm(true);
                 }}
-                disabled={updateLoading}
+                disabled={updateLoading || !editForm.title.trim() || !editForm.dueAt}
                 className="rounded-lg bg-[#366DBD] px-5 py-2 text-[13px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-60"
               >
                 บันทึก
@@ -355,7 +355,7 @@ export default function ManageWorkDetailPage() {
         )}
       </AdminModalShell>
 
-      <div className="flex flex-1 flex-col gap-5 bg-[#F0F4FA] p-8">
+      <div className="flex flex-1 flex-col gap-5 bg-[#F0F4FA] p-4 sm:p-6 lg:p-8">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -419,7 +419,7 @@ export default function ManageWorkDetailPage() {
             ไม่พบข้อมูล
           </div>
         ) : (
-          <div className="flex min-h-[680px] gap-6">
+          <div className="flex flex-col lg:flex-row min-h-[680px] gap-6">
             {/* ── Left panel ── */}
             <div className="flex flex-1 flex-col gap-5 rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
               {/* Title + type */}
@@ -515,7 +515,7 @@ export default function ManageWorkDetailPage() {
               <h3 className="text-[15px] font-bold text-gray-800">งานย่อย</h3>
 
               {/* Stats */}
-              <div className="flex gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 {[
                   {
                     icon: <FileText size={16} className="text-[#366DBD]" />,
@@ -538,7 +538,7 @@ export default function ManageWorkDetailPage() {
                 ].map((stat) => (
                   <div
                     key={stat.label}
-                    className={`flex flex-1 flex-col items-center justify-center gap-1 rounded-xl py-3 ${stat.bg}`}
+                    className={`flex flex-col items-center justify-center gap-1 rounded-xl py-3 ${stat.bg}`}
                   >
                     {stat.icon}
                     <span className="text-[18px] font-bold text-gray-800">
@@ -600,7 +600,7 @@ export default function ManageWorkDetailPage() {
               {pagedSub.map((task) => (
                 <div
                   key={task.id}
-                  className="text-[15px] flex items-start justify-between rounded-xl border border-gray-200 p-4"
+                  className="text-[15px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-gray-200 p-4"
                 >
                   <div className="flex flex-col gap-1 min-w-0 flex-1">
                     <span className="rounded-md border border-gray-200 px-3 py-0.5 text-[13px] text-gray-700 w-fit">
@@ -617,7 +617,7 @@ export default function ManageWorkDetailPage() {
                       </p>
                     )}
                   </div>
-                  <div className="flex flex-col items-end gap-2 shrink-0 ml-4">
+                  <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 w-full sm:w-auto shrink-0 mt-4 sm:mt-0 pt-3 sm:pt-0 border-t border-gray-100 sm:border-0">
                     {(task.status === "resolved" || task.status === "closed") ? (
                       <span className="rounded-md border border-green-200 bg-green-50 px-3 py-1 text-[13px] font-semibold text-green-700">
                         เสร็จสิ้น
@@ -746,17 +746,17 @@ export default function ManageWorkDetailPage() {
             คุณต้องการยกเลิกงานย่อยนี้ใช่หรือไม่?
           </p>
 
-          <div className="flex justify-center gap-3 pt-1">
+          <div className="flex w-full justify-center gap-3 pt-1">
             <ProTechButton
               variant="delete"
-              className="h-10 min-w-30"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30"
               onClick={() => setDeleteConfirmId(null)}
             >
               ยกเลิก
             </ProTechButton>
             <ProTechButton
               variant="primary"
-              className="h-10 min-w-30"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30"
               onClick={() => {
                 if (deleteConfirmId !== null) {
                   void deleteTicket(deleteConfirmId);
@@ -788,17 +788,17 @@ export default function ManageWorkDetailPage() {
             คุณต้องการบันทึกการเปลี่ยนแปลงของงานย่อยนี้ใช่หรือไม่?
           </p>
 
-          <div className="flex justify-center gap-3 pt-1">
+          <div className="flex w-full justify-center gap-3 pt-1">
             <ProTechButton
               variant="delete"
-              className="h-10 min-w-30"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30"
               onClick={() => setShowEditConfirm(false)}
             >
               ยกเลิก
             </ProTechButton>
             <ProTechButton
               variant="primary"
-              className="h-10 min-w-30"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30"
               onClick={async () => {
                 setShowEditConfirm(false);
                 await handleSaveEdit();
@@ -889,17 +889,18 @@ export default function ManageWorkDetailPage() {
             คุณต้องการเปลี่ยนวันส่งของเรื่องหลักนี้ใช่หรือไม่? (วันส่งของงานย่อยที่ยังไม่ได้เริ่มและเกินกำหนดจะถูกปรับลดให้อัตโนมัติ)
           </p>
 
-          <div className="flex justify-center gap-3 pt-1">
+          <div className="flex w-full justify-center gap-3 pt-1">
             <ProTechButton
               variant="delete"
-              className="h-10 min-w-30"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30"
               onClick={() => setShowDueDateConfirm(false)}
             >
               ยกเลิก
             </ProTechButton>
             <ProTechButton
               variant="primary"
-              className="h-10 min-w-30"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30"
+              disabled={!editedDueDate}
               onClick={async () => {
                 setShowDueDateConfirm(false);
                 if (editedDueDate) {
@@ -963,17 +964,17 @@ export default function ManageWorkDetailPage() {
             คุณต้องการส่งต่องานนี้ใช่หรือไม่?
           </p>
 
-          <div className="flex justify-center gap-3 pt-1">
+          <div className="flex w-full justify-center gap-3 pt-1">
             <ProTechButton
               variant="delete"
-              className="h-10 min-w-30"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30"
               onClick={() => setShowForwardConfirm(false)}
             >
               ยกเลิก
             </ProTechButton>
             <ProTechButton
               variant="primary"
-              className="h-10 min-w-30"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30"
               onClick={async () => {
                 setShowForwardConfirm(false);
                 await handleSave();

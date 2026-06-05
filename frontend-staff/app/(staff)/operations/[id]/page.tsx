@@ -6,13 +6,17 @@ import { useRef, useState } from "react";
 import {
   AlertCircle,
   ArrowLeft,
+  CheckCircle2,
   FileText,
   ImageIcon,
   Plus,
   Trash2,
+  TriangleAlert,
   X,
 } from "lucide-react";
 
+import { AdminModalShell } from "@/components/admin/admin-modal-shell";
+import { ProTechButton } from "@/components/tables/protech-button";
 import { useComplaintDetail, useLightbox } from "@/hooks/use-complaint-detail";
 import { useTicketWork } from "@/hooks/use-ticket-work";
 import { useLoadingDelay } from "@/hooks/use-loading-delay";
@@ -71,6 +75,8 @@ export default function OperationDetailPage() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [prevTicketId, setPrevTicketId] = useState<number | undefined>(undefined);
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
+  const [showSubmitSuccess, setShowSubmitSuccess] = useState(false);
 
   if (data?.ticketId !== prevTicketId) {
     setPrevTicketId(data?.ticketId);
@@ -87,7 +93,10 @@ export default function OperationDetailPage() {
     setSubmitting(true);
     try {
       await submitResolution(resolution, selectedFiles);
-      router.push("/operations");
+      setShowSubmitConfirm(false);
+      setShowSubmitSuccess(true);
+    } catch (err) {
+      console.error("Submit resolution failed", err);
     } finally {
       setSubmitting(false);
     }
@@ -139,8 +148,8 @@ export default function OperationDetailPage() {
         </div>
       )}
 
-      <div className="flex flex-1 flex-col gap-4 bg-[#F0F4FA] p-8">
-        <div className="flex items-center justify-between">
+      <div className="flex flex-1 flex-col gap-4 bg-[#F0F4FA] p-4 sm:p-6 lg:p-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <button
               type="button"
@@ -217,7 +226,7 @@ export default function OperationDetailPage() {
             ไม่พบข้อมูล
           </div>
         ) : (
-          <div className="flex min-h-[700px] gap-12">
+          <div className="flex flex-col lg:flex-row min-h-[700px] gap-12">
             <div className="flex flex-1 flex-col gap-5 rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
               <div className="flex items-start justify-between gap-3">
                 <p className="text-[18px] font-bold text-gray-900">
@@ -312,7 +321,7 @@ export default function OperationDetailPage() {
                 rows={12}
                 placeholder="ระบุสรุปผลการแก้ไข"
                 disabled={isPendingReview}
-                className="mt-16 w-full resize-none rounded-lg border border-gray-300 p-3 text-[13px] text-gray-700 outline-none focus:border-[#366DBD] disabled:bg-gray-100 disabled:text-gray-500"
+                className="mt-6 lg:mt-16 w-full resize-none rounded-lg border border-gray-300 p-3 text-[13px] text-gray-700 outline-none focus:border-[#366DBD] disabled:bg-gray-100 disabled:text-gray-500"
               />
 
               <div className="mt-2 flex flex-col gap-2">
@@ -443,24 +452,93 @@ export default function OperationDetailPage() {
                 </div>
               )}
 
-              <div className="mt-auto flex justify-end pt-4">
+              <div className="mt-auto flex justify-end pt-4 w-full">
                 <button
                   type="button"
                   disabled={submitting || !resolution.trim() || isPendingReview}
-                  onClick={() => void handleSubmit()}
-                  className="rounded-lg bg-[#366DBD] px-8 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-50"
+                  onClick={() => setShowSubmitConfirm(true)}
+                  className="w-full sm:w-auto rounded-lg bg-[#366DBD] px-8 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-50"
                 >
-                  {submitting
-                    ? "กำลังส่ง..."
-                    : isPendingReview
-                      ? "รออนุมัติ"
-                      : "ส่งงาน"}
+                  {isPendingReview ? "รออนุมัติ" : "ส่งงาน"}
                 </button>
               </div>
             </div>
           </div>
         )}
       </div>
+
+      <AdminModalShell
+        open={showSubmitConfirm}
+        onOpenChange={(open) => {
+          if (!open) setShowSubmitConfirm(false);
+        }}
+        title="ยืนยันการส่งงาน"
+        widthClassName="max-w-[420px]"
+      >
+        <div className="space-y-5 text-center">
+          <div className="flex justify-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF9EB] text-[#D97706]">
+              <TriangleAlert size={28} />
+            </div>
+          </div>
+          <p className="text-[15px] leading-7 text-gray-600">
+            คุณต้องการส่งรายงานการแก้ไขปัญหานี้ใช่หรือไม่
+          </p>
+          <div className="flex w-full justify-center gap-3">
+            <ProTechButton
+              variant="delete"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30 text-[14px]"
+              onClick={() => setShowSubmitConfirm(false)}
+              disabled={submitting}
+            >
+              ยกเลิก
+            </ProTechButton>
+            <ProTechButton
+              variant="primary"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30 text-[14px]"
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
+              ยืนยัน
+            </ProTechButton>
+          </div>
+        </div>
+      </AdminModalShell>
+
+      <AdminModalShell
+        open={showSubmitSuccess}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowSubmitSuccess(false);
+            router.push("/operations");
+          }
+        }}
+        title="ส่งงานสำเร็จ"
+        widthClassName="max-w-[420px]"
+      >
+        <div className="space-y-5 text-center">
+          <div className="flex justify-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#EAF8EF] text-[#1F9D55]">
+              <CheckCircle2 size={34} />
+            </div>
+          </div>
+          <p className="text-[15px] leading-7 text-gray-600">
+            ส่งรายงานการแก้ไขปัญหาเรียบร้อยแล้ว
+          </p>
+          <div className="flex justify-center">
+            <ProTechButton
+              variant="primary"
+              className="h-10 min-w-30"
+              onClick={() => {
+                setShowSubmitSuccess(false);
+                router.push("/operations");
+              }}
+            >
+              ตกลง
+            </ProTechButton>
+          </div>
+        </div>
+      </AdminModalShell>
     </>
   );
 }

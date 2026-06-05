@@ -302,6 +302,7 @@ export default function OrganizationsPage() {
                     resetToFirstPage();
                     resetSelection();
                   }}
+                  className="flex-1 min-w-[120px] sm:flex-none sm:w-[132px]"
                 />
 
                 <ToolbarSelect
@@ -316,7 +317,7 @@ export default function OrganizationsPage() {
                     resetToFirstPage();
                     resetSelection();
                   }}
-                  className="min-w-[132px]"
+                  className="flex-1 min-w-[120px] sm:flex-none sm:w-[132px]"
                 />
               </div>
 

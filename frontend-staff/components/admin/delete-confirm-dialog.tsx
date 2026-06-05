@@ -36,7 +36,7 @@ export function DeleteConfirmDialog({
       <DialogTrigger render={trigger} />
       <DialogContent
         showCloseButton={false}
-        className="max-w-105 rounded-[28px] bg-[#ffffff] p-0 shadow-xl ring-0"
+        className="w-[calc(100%-2rem)] sm:max-w-105 rounded-[28px] bg-[#ffffff] p-0 shadow-xl ring-0"
       >
         <div className="space-y-6 px-7 py-7">
           <div className="flex justify-center">
@@ -54,10 +54,10 @@ export function DeleteConfirmDialog({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex items-center justify-center gap-3 pt-1">
+          <div className="flex w-full items-center justify-center gap-3 pt-1">
             <DialogClose
               render={
-                <ProTechButton variant="delete" className="h-10 min-w-26 text-[16px]" />
+                <ProTechButton variant="delete" className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-26 text-[16px]" />
               }
             >
               {cancelLabel}
@@ -67,7 +67,7 @@ export function DeleteConfirmDialog({
               render={
                 <ProTechButton
                   variant="primary"
-                  className="h-10 min-w-26 text-[16px]"
+                  className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-26 text-[16px]"
                   onClick={onConfirm}
                 />
               }

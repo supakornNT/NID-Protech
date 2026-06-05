@@ -90,7 +90,7 @@ export function ProTechSearchBar({
   const resolvedValue = isControlled ? value : internalValue;
 
   return (
-    <div className={`flex flex-wrap items-center gap-3 ${className}`}>
+    <div className={`flex gap-2 w-full sm:w-auto ${className}`}>
       <ProTechSearch
         value={resolvedValue}
         onChange={(event) => {
@@ -104,13 +104,13 @@ export function ProTechSearchBar({
         }}
         placeholder={placeholder}
         icon={icon}
-        className="w-50 flex-none"
+        className="flex-1 sm:flex-none sm:w-50"
         inputClassName={inputClassName}
         inputProps={inputProps}
       />
       <ProTechButton
         variant="search"
-        className={`h-7.75 min-w-18.5 px-4 text-[14px] ${buttonClassName}`}
+        className={`h-7.75 min-w-18.5 shrink-0 px-4 text-[14px] ${buttonClassName}`}
         onClick={() => onSearch?.(resolvedValue)}
       >
         {buttonLabel}

@@ -186,10 +186,10 @@ export function PermissionEditModal({
             </p>
           ) : null}
 
-          <div className="flex justify-end gap-2 pt-1">
+          <div className="flex w-full justify-end gap-2 pt-1">
             <ProTechButton
               variant="delete"
-              className="h-8 min-w-18 text-[12px]"
+              className="h-8 flex-1 min-w-0 sm:flex-none sm:min-w-18 text-[12px]"
               onClick={closeModal}
             >
               ยกเลิก
@@ -197,8 +197,8 @@ export function PermissionEditModal({
 
             <ProTechButton
               variant="primary"
-              className="h-8 min-w-18 text-[12px]"
-              disabled={saving}
+              className="h-8 flex-1 min-w-0 sm:flex-none sm:min-w-18 text-[12px]"
+              disabled={saving || value.permissionIds.length === 0}
               onClick={() => {
                 if (value.permissionIds.length === 0) {
                   setValidationError("กรุณาเลือกอย่างน้อย 1 สิทธิ์");

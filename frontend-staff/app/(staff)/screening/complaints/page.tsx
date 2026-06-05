@@ -68,7 +68,7 @@ export default function ComplaintsPage() {
   const { staff } = useStaffSession();
   const staffId = typeof staff?.id === "number" ? staff.id : Number(staff?.id);
   const { rows, setRows, loading } = useRequests("complaint");
-  const { rejectId, rejectReason, setRejectReason, openReject, handleReject, closeReject } =
+  const { rejectId, rejectReason, submitting: rejectSubmitting, setRejectReason, openReject, handleReject, closeReject } =
     useRejectComplaint((id) =>
       setRows((prev) => prev.filter((r) => r.id !== id)),
     );
@@ -160,15 +160,16 @@ export default function ComplaintsPage() {
           <DialogFooter>
             <button
               onClick={closeReject}
-              className="rounded-lg border border-gray-200 px-4 py-2 text-[14px] hover:bg-gray-50"
+              className="flex-1 min-w-0 sm:flex-none rounded-lg border border-gray-200 px-4 py-2 text-[14px] hover:bg-gray-50"
             >
               ยกเลิก
             </button>
             <button
               onClick={handleReject}
-              className="rounded-lg bg-red-500 px-4 py-2 text-[14px] font-semibold text-white hover:bg-red-600"
+              disabled={rejectSubmitting || !rejectReason.trim()}
+              className="flex-1 min-w-0 sm:flex-none rounded-lg bg-red-500 px-4 py-2 text-[14px] font-semibold text-white hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              ยืนยัน
+              {rejectSubmitting ? "กำลังบันทึก..." : "ยืนยัน"}
             </button>
           </DialogFooter>
         </DialogContent>
@@ -190,13 +191,13 @@ export default function ComplaintsPage() {
           <DialogFooter>
             <button
               onClick={closeAccept}
-              className="rounded-lg border border-gray-200 px-4 py-2 text-[14px] hover:bg-gray-50"
+              className="flex-1 min-w-0 sm:flex-none rounded-lg border border-gray-200 px-4 py-2 text-[14px] hover:bg-gray-50"
             >
               ยกเลิก
             </button>
             <button
               onClick={handleAccept}
-              className="rounded-lg bg-green-500 px-4 py-2 text-[14px] font-semibold text-white hover:bg-green-600"
+              className="flex-1 min-w-0 sm:flex-none rounded-lg bg-green-500 px-4 py-2 text-[14px] font-semibold text-white hover:bg-green-600"
             >
               ยืนยัน
             </button>
@@ -204,7 +205,7 @@ export default function ComplaintsPage() {
         </DialogContent>
       </Dialog>
 
-      <div className="flex flex-1 flex-col gap-5 bg-white px-10 py-8">
+      <div className="flex flex-1 flex-col gap-5 bg-white px-4 sm:px-6 lg:px-10 py-8">
         <div>
           <h1 className="text-[26px] font-bold text-gray-900">
             รับเรื่องและคัดกรอง
@@ -212,30 +213,32 @@ export default function ComplaintsPage() {
           <p className="mt-1 text-[14px] text-gray-400">ข้อร้องเรียน</p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search
-              size={15}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              placeholder="ค้นหาระบบ..."
-              className="h-9 w-56 rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-[14px] outline-none focus:border-[#366DBD] focus:ring-2 focus:ring-[#366DBD]/10"
-            />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:flex-none">
+              <Search
+                size={15}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="ค้นหาระบบ..."
+                className="h-9 w-full sm:w-56 rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-[14px] outline-none focus:border-[#366DBD] focus:ring-2 focus:ring-[#366DBD]/10"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setPage(1)}
+              className="h-9 shrink-0 rounded-lg bg-[#366DBD] px-5 text-[14px] font-semibold text-white transition hover:bg-[#2d5da3]"
+            >
+              ค้นหา
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setPage(1)}
-            className="h-9 rounded-lg bg-[#366DBD] px-5 text-[14px] font-semibold text-white transition hover:bg-[#2d5da3]"
-          >
-            ค้นหา
-          </button>
         </div>
 
         <ProTechTable

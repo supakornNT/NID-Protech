@@ -379,7 +379,7 @@ export default function CloseWorkDetailPage() {
         </div>
       )}
 
-      <div className="flex flex-1 flex-col gap-6 bg-[#F0F4FA] p-8">
+      <div className="flex flex-1 flex-col gap-6 bg-[#F0F4FA] p-4 sm:p-6 lg:p-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
@@ -643,10 +643,10 @@ export default function CloseWorkDetailPage() {
                     </div>
 
                     {tab === "pending" && selectedTicket.resolutionStatus === "pending" ? (
-                      <div className="flex flex-wrap justify-end gap-3">
+                      <div className="flex justify-end gap-3 w-full">
                           <ProTechButton
                             variant="delete"
-                            className="h-10 min-w-35"
+                            className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-35 text-[14px]"
                             onClick={() => {
                               setRejectReason("");
                               setModal("confirmReject");
@@ -657,7 +657,7 @@ export default function CloseWorkDetailPage() {
                           </ProTechButton>
                           <ProTechButton
                             variant="primary"
-                            className="h-10 min-w-35"
+                            className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-35 text-[14px]"
                             onClick={() => setModal("confirmApprove")}
                             disabled={actionLoading}
                           >
@@ -691,11 +691,11 @@ export default function CloseWorkDetailPage() {
           <p className="text-[15px] leading-7 text-gray-600">
             คุณต้องการอนุมัติผลการแก้ไขของตั๋วย่อยนี้ใช่หรือไม่
           </p>
-          <div className="flex justify-center gap-3">
-            <ProTechButton variant="delete" className="h-10 min-w-30" onClick={() => setModal(null)}>
+          <div className="flex w-full justify-center gap-3">
+            <ProTechButton variant="delete" className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30 text-[14px]" onClick={() => setModal(null)}>
               ยกเลิก
             </ProTechButton>
-            <ProTechButton variant="primary" className="h-10 min-w-30" onClick={handleApprove} disabled={actionLoading}>
+            <ProTechButton variant="primary" className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30 text-[14px]" onClick={handleApprove} disabled={actionLoading}>
               ยืนยัน
             </ProTechButton>
           </div>
@@ -719,7 +719,7 @@ export default function CloseWorkDetailPage() {
               htmlFor="reject-reason"
               className="text-[13px] font-semibold text-gray-700"
             >
-              เหตุผลที่ไม่อนุมัติ
+              เหตุผลที่ไม่อนุมัติ <span className="text-red-500">*</span>
             </label>
             <textarea
               id="reject-reason"
@@ -730,10 +730,10 @@ export default function CloseWorkDetailPage() {
               className="resize-none rounded-xl border border-gray-300 px-3 py-2 text-[14px] outline-none focus:border-[#366DBD]"
             />
           </div>
-          <div className="flex justify-center gap-3">
+          <div className="flex w-full justify-center gap-3">
             <ProTechButton
               variant="delete"
-              className="h-10 min-w-30"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30 text-[14px]"
               onClick={() => {
                 setModal(null);
                 setRejectReason("");
@@ -743,9 +743,9 @@ export default function CloseWorkDetailPage() {
             </ProTechButton>
             <ProTechButton
               variant="primary"
-              className="h-10 min-w-30"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30 text-[14px]"
               onClick={handleReject}
-              disabled={actionLoading}
+              disabled={actionLoading || !rejectReason.trim()}
             >
               ยืนยัน
             </ProTechButton>

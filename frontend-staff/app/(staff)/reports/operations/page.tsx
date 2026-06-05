@@ -43,7 +43,7 @@ export default function ReportOperationsPage() {
 
 
   return (
-    <div className="flex flex-1 flex-col gap-6 bg-white p-8">
+    <div className="flex flex-1 flex-col gap-6 bg-white p-4 sm:p-6 lg:p-8">
       {/* Header */}
       <div>
         <h1 className="text-[32px] font-semibold text-gray-900">รายงานสรุปผล</h1>
@@ -54,7 +54,7 @@ export default function ReportOperationsPage() {
         <div className="animate-pulse flex flex-col gap-6 w-full">
           {/* Stat cards skeleton */}
           <div className="rounded-2xl bg-[#EEF3FB] p-5">
-            <div className="flex gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
               {Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="flex flex-1 flex-col gap-2 rounded-xl border border-gray-200 bg-white p-4">
                   <div className="h-6 w-6 rounded bg-gray-200" />
@@ -67,7 +67,7 @@ export default function ReportOperationsPage() {
 
           {/* Ticket columns skeleton */}
           <div className="rounded-2xl bg-[#EEF3FB] p-5">
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="flex flex-col gap-3 rounded-2xl border border-[#D6E4F7] bg-white p-4">
                   <div className="h-5 w-24 rounded bg-gray-200" />
@@ -92,7 +92,7 @@ export default function ReportOperationsPage() {
       ) : (
         <>
       <div className="rounded-2xl bg-[#EEF3FB] p-5">
-        <div className="flex gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           <StatCard icon={<Ticket size={28} className="text-[#366DBD]" />} value={String(data.stats.todayTotal)} label="ตั๋วทั้งหมด(วันนี้)" valueColor="text-[#366DBD]" />
           <StatCard icon={<CheckCircle2 size={28} className="text-[#4CAF50]" />} value={String(data.stats.todayClosed)} label="ปิดงาน(วันนี้)" valueColor="text-[#4CAF50]" />
           <StatCard icon={<Loader2 size={28} className="text-[#FFC107]" />} value={String(data.stats.inProgress)} label="กำลังดำเนินการ" valueColor="text-[#FFC107]" />
@@ -103,7 +103,7 @@ export default function ReportOperationsPage() {
 
       {/* Ticket columns */}
       <div className="rounded-2xl bg-[#EEF3FB] p-5">
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {data.columns.map((col) => (
             <div key={col.title} className="flex flex-col gap-3 rounded-2xl border border-[#D6E4F7] bg-white p-4">
               <p className="text-[15px] font-semibold text-gray-800">{col.title}</p>

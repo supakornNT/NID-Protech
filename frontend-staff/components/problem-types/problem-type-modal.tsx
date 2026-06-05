@@ -165,18 +165,18 @@ export function ProblemTypeModal({
           </p>
         ) : null}
 
-        <div className="mt-16 flex justify-end gap-3">
+        <div className="mt-16 flex w-full justify-end gap-3">
           <ProTechButton
             variant="delete"
-            className="h-8.25 min-w-19 text-[14px]"
+            className="h-8.25 flex-1 min-w-0 sm:flex-none sm:min-w-19 text-[14px]"
             onClick={() => onOpenChange(false)}
           >
             ยกเลิก
           </ProTechButton>
           <ProTechButton
             variant="primary"
-            className="h-8.25 min-w-21.5 text-[14px]"
-            disabled={saving}
+            className="h-8.25 flex-1 min-w-0 sm:flex-none sm:min-w-21.5 text-[14px]"
+            disabled={saving || !formState.name.trim()}
             onClick={() => {
               const trimmedName = normalizeTextInput(formState.name);
 

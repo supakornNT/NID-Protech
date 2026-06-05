@@ -84,13 +84,13 @@ export default function ReportEditHistoryPage() {
   const typeOptions = [...new Set(rows.map((r) => r.type).filter(Boolean))];
 
   return (
-    <div className="flex flex-1 flex-col gap-6 bg-white p-8">
+    <div className="flex flex-1 flex-col gap-6 bg-white p-4 sm:p-6 lg:p-8">
       <div>
         <h1 className="text-[32px] font-bold text-gray-900">การจัดการงาน</h1>
         <p className="text-[16px] text-gray-500">ประวัติการแก้ไข</p>
       </div>
 
-      <div className="flex gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
           icon={<MessageCircle size={36} className="text-[#366DBD]" strokeWidth={1.5} />}
           value={String(stats.total)}

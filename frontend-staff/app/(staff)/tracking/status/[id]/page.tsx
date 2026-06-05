@@ -140,7 +140,7 @@ export default function TrackingDetailPage() {
         </div>
       )}
 
-      <div className="flex flex-1 flex-col gap-5 bg-[#F0F4FA] p-8">
+      <div className="flex flex-1 flex-col gap-5 bg-[#F0F4FA] p-4 sm:p-6 lg:p-8">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -202,7 +202,7 @@ export default function TrackingDetailPage() {
             ไม่พบข้อมูล
           </div>
         ) : (
-          <div className="flex min-h-[680px] gap-6">
+          <div className="flex flex-col lg:flex-row min-h-[680px] gap-6">
             {/* ── Left panel ── */}
             <div className="flex flex-1 flex-col gap-5 rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
               {/* Title + problem type */}
@@ -297,7 +297,7 @@ export default function TrackingDetailPage() {
               <h3 className="text-[15px] font-bold text-gray-800">งานย่อย</h3>
 
               {/* Stats */}
-              <div className="flex gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 {[
                   {
                     icon: <FileText size={16} className="text-[#366DBD]" />,
@@ -323,7 +323,7 @@ export default function TrackingDetailPage() {
                 ].map((stat) => (
                   <div
                     key={stat.label}
-                    className={`flex flex-1 flex-col items-center justify-center gap-1 rounded-xl py-3 ${stat.bg}`}
+                    className={`flex flex-col items-center justify-center gap-1 rounded-xl py-3 ${stat.bg}`}
                   >
                     {stat.icon}
                     <span className="text-[18px] font-bold text-gray-800">

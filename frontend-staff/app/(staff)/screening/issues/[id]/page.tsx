@@ -110,7 +110,7 @@ export default function IssueDetailPage() {
             </div>
           ) : (
             <>
-              <div className="border-b px-8 pt-6 pb-4">
+              <div className="border-b px-4 sm:px-8 pt-6 pb-4">
                 <div className="flex items-center gap-4">
                   <button
                     type="button"
@@ -128,24 +128,24 @@ export default function IssueDetailPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-5 px-8 py-6">
+              <div className="flex flex-col gap-5 px-4 sm:px-8 py-6">
             {isInternal ? (
-              <div className="flex gap-6">
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                 <Field label="ผู้แจ้ง" value={data.customerName} />
                 <Field label="หน่วยงาน" value={data.organizationName} />
               </div>
             ) : (
-              <div className="flex gap-6">
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                 <Field label="ผู้แจ้ง" value={data.customerName} />
               </div>
             )}
 
-            <div className="flex gap-6">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
               <Field label="ระบบ" value={data.systemName} />
               <Field label="ประเภทปัญหา" value={data.problemName} />
             </div>
 
-            <div className="flex gap-6">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
               <Field label="หัวข้อเรื่อง" value={data.title} />
             </div>
 
@@ -195,7 +195,7 @@ export default function IssueDetailPage() {
             )}
           </div>
 
-          <div className="flex justify-end px-8 pb-6">
+          <div className="flex justify-end px-4 sm:px-8 pb-6">
             <button
               type="button"
               onClick={() => router.back()}

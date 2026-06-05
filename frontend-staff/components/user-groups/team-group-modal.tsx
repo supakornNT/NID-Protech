@@ -110,18 +110,18 @@ export function TeamGroupModal({
           </p>
         ) : null}
 
-        <div className="flex justify-end gap-3 pt-1">
+        <div className="flex w-full justify-end gap-3 pt-1">
           <ProTechButton
             variant="delete"
-            className="h-8.25 min-w-19 text-[14px]"
+            className="h-8.25 flex-1 min-w-0 sm:flex-none sm:min-w-19 text-[14px]"
             onClick={() => onOpenChange(false)}
           >
             ยกเลิก
           </ProTechButton>
           <ProTechButton
             variant="primary"
-            className="h-8.25 min-w-21.5 text-[14px]"
-            disabled={saving}
+            className="h-8.25 flex-1 min-w-0 sm:flex-none sm:min-w-21.5 text-[14px]"
+            disabled={saving || !formState.name.trim()}
             onClick={() => {
               const normalizedName = normalizeTextInput(formState.name);
 
