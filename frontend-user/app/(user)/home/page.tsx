@@ -15,6 +15,7 @@ import { ProTechButton } from "@/components/tables/protech-button";
 import { useUserSession } from "@/contexts/user-session-context";
 import { useDashboardSummary } from "@/hooks/use-dashboard-summary";
 import { useLoadingDelay } from "@/hooks/use-loading-delay";
+import bannerImage from "@/public/images/banner.png";
 
 import styles from "./home.module.css";
 
@@ -28,7 +29,7 @@ export default function HomePage() {
     <main className={styles.page}>
       <section className={styles.hero}>
         <Image
-          src="/images/banner.png"
+          src={bannerImage}
           alt="ProTech Support banner"
           width={1600}
           height={720}

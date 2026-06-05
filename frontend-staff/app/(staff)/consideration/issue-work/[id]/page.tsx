@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Clock, FileText, ImageIcon, Users, X, TriangleAlert, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Clock, FileText, ImageIcon, Users, X, TriangleAlert, CheckCircle2 } from "lucide-react";
 import { useRef, useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import { useComplaintDetail, useLightbox } from "@/hooks/use-complaint-detail";
@@ -700,8 +700,7 @@ export default function ManageWorkDetailPage() {
                     >
                       {p}
                     </button>
-                  ),
-                )}
+                  ))}
                 <button
                   onClick={() =>
                     setSubPage((p) => Math.min(totalSubPages, p + 1))
@@ -725,6 +724,7 @@ export default function ManageWorkDetailPage() {
               </div>
             </div>
           </div>
+        </div>
         )}
       </div>
 

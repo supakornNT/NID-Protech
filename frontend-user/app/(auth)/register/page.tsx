@@ -149,7 +149,7 @@ export default function RegisterPage() {
   function fillMock() {
     setForm({
       ...MOCK_FORM,
-      prefix_id: prefixes[0]?.id?.toString() ?? "",
+      prefix_id: prefixes[0]?.value?.toString() ?? "",
     });
   }
 
