@@ -4,9 +4,6 @@ type CustomerSession = {
   organizationId?: number | null;
 };
 
-const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"
-).replace(/\/$/, "");
 
 function redirectTo(
   request: NextRequest,
@@ -25,40 +22,32 @@ function redirectTo(
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const cookie = request.headers.get("cookie");
   const nextPath = `${pathname}${request.nextUrl.search}`;
 
-  if (!cookie) {
+  const authCookie = request.cookies.get("protech_user_auth")?.value;
+
+  if (!authCookie) {
     return redirectTo(request, "/login", { next: nextPath });
   }
 
+  let session: CustomerSession;
   try {
-    const response = await fetch(`${API_BASE_URL}/auth/me/customer`, {
-      cache: "no-store",
-      headers: {
-        cookie,
-      },
-    });
-
-    if (!response.ok) {
-      return redirectTo(request, "/login", { next: nextPath });
-    }
-
-    const session = (await response.json()) as CustomerSession;
-    const organizationId = session.organizationId ?? null;
-
-    if (pathname.startsWith("/request/internal") && !organizationId) {
-      return redirectTo(request, "/request/external");
-    }
-
-    if (pathname.startsWith("/request/external") && organizationId) {
-      return redirectTo(request, "/request/internal");
-    }
-
-    return NextResponse.next();
+    session = JSON.parse(decodeURIComponent(authCookie)) as CustomerSession;
   } catch {
     return redirectTo(request, "/login", { next: nextPath });
   }
+
+  const organizationId = session.organizationId ?? null;
+
+  if (pathname.startsWith("/request/internal") && !organizationId) {
+    return redirectTo(request, "/request/external");
+  }
+
+  if (pathname.startsWith("/request/external") && organizationId) {
+    return redirectTo(request, "/request/internal");
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {

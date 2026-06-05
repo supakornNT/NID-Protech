@@ -366,17 +366,19 @@ export class CustomersService {
         ? current.prefix_id
         : parsePositiveOptionalId(dto.prefixId ?? dto.prefix_id, 'prefixId');
     const name =
-      dto.name === undefined ? current.name : requireText(dto.name, 'name', 255);
+      dto.name === undefined
+        ? current.name
+        : requireText(dto.name, 'name', 255);
     const surname =
       dto.surname === undefined
         ? current.surname
-        : optionalText(dto.surname, 'surname', 255) ?? null;
+        : (optionalText(dto.surname, 'surname', 255) ?? null);
     const email =
       dto.email === undefined ? current.email : parseRequiredEmail(dto.email);
     const phone =
       dto.phone === undefined
         ? current.phone
-        : optionalPhone(dto.phone, 'phone', 20) ?? null;
+        : (optionalPhone(dto.phone, 'phone', 20) ?? null);
     const citizenId =
       dto.citizenId === undefined && dto.citizen_id === undefined
         ? current.citizen_id

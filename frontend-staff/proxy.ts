@@ -9,9 +9,6 @@ type StaffSession = {
   }[];
 };
 
-const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"
-).replace(/\/$/, "");
 
 const LAST_ALLOWED_PATH_COOKIE = "protech_staff_last_allowed_path";
 
@@ -89,40 +86,30 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const requiredPermission = findRequiredPermission(pathname);
 
-  const cookie = request.headers.get("cookie");
+  const authCookie = request.cookies.get("protech_staff_auth")?.value;
 
-  if (!cookie) {
+  if (!authCookie) {
     return redirectTo(request, "/login");
   }
 
+  let session: StaffSession;
   try {
-    const response = await fetch(`${API_BASE_URL}/auth/me`, {
-      cache: "no-store",
-      headers: {
-        cookie,
-      },
-    });
-
-    if (!response.ok) {
-      return redirectTo(request, "/login");
-    }
-
-    const session = (await response.json()) as StaffSession;
-
-    if (!requiredPermission) {
-      return allowWithRememberedPath(request);
-    }
-
-    const allowedPermissions = getAllowedPermissions(session);
-
-    if (!allowedPermissions.has(requiredPermission)) {
-      return redirectTo(request, getRedirectBackPath(request));
-    }
-
-    return allowWithRememberedPath(request);
+    session = JSON.parse(decodeURIComponent(authCookie)) as StaffSession;
   } catch {
     return redirectTo(request, "/login");
   }
+
+  if (!requiredPermission) {
+    return allowWithRememberedPath(request);
+  }
+
+  const allowedPermissions = getAllowedPermissions(session);
+
+  if (!allowedPermissions.has(requiredPermission)) {
+    return redirectTo(request, getRedirectBackPath(request));
+  }
+
+  return allowWithRememberedPath(request);
 }
 
 export const config = {

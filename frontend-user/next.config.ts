@@ -15,6 +15,7 @@ function normalizeBasePath(basePath: string | undefined): string {
 const basePath = normalizeBasePath(process.env.NEXT_PUBLIC_BASE_PATH);
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   allowedDevOrigins: ["192.168.1.37", "192.168.24.18"],
   basePath,
   async redirects() {

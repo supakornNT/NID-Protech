@@ -95,6 +95,31 @@ export function UserSessionProvider({
     let cancelled = false;
 
     async function loadSession() {
+      // Use localStorage session first to avoid cross-origin cookie issues
+      const stored = localStorage.getItem("protech_user");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored) as StoredUserSession;
+          if (parsed?.id) {
+            if (cancelled) return;
+            const expiresAt = parsed.sessionExpiresAt;
+            if (expiresAt && new Date(expiresAt).getTime() <= Date.now()) {
+              clearStoredUserSession();
+              setUser(null);
+              router.replace("/login");
+              return;
+            }
+            setUser(parsed);
+            scheduleSessionExpiry(parsed.sessionExpiresAt);
+            setLoading(false);
+            return;
+          }
+        } catch {
+          // invalid JSON, fall through
+        }
+      }
+
+      // No local session — try server session (works when same-origin)
       try {
         const session = await fetchJson<StoredUserSession>(
           "/auth/me/customer",
@@ -104,18 +129,14 @@ export function UserSessionProvider({
           },
         );
 
-        if (cancelled) {
-          return;
-        }
+        if (cancelled) return;
 
         setStoredUserSession(session);
         setUser(session);
         scheduleSessionExpiry(session.sessionExpiresAt);
         setLoading(false);
       } catch {
-        if (cancelled) {
-          return;
-        }
+        if (cancelled) return;
 
         clearStoredUserSession();
         setUser(null);
