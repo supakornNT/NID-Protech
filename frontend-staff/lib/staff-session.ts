@@ -14,6 +14,19 @@ export type StoredStaffSession = {
 };
 
 const STAFF_STORAGE_KEY = "protech_staff";
+const STAFF_AUTH_COOKIE = "protech_staff_auth";
+
+function setStaffAuthCookie(staff: StoredStaffSession) {
+  const value = encodeURIComponent(JSON.stringify(staff));
+  const maxAge = staff.sessionExpiresAt
+    ? Math.floor((new Date(staff.sessionExpiresAt).getTime() - Date.now()) / 1000)
+    : 3600;
+  document.cookie = `${STAFF_AUTH_COOKIE}=${value}; path=/; max-age=${maxAge}; SameSite=Lax`;
+}
+
+function clearStaffAuthCookie() {
+  document.cookie = `${STAFF_AUTH_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
+}
 
 export function getCurrentStaff() {
   if (typeof window === "undefined") {
@@ -46,6 +59,7 @@ export function setStoredStaffSession(staff: StoredStaffSession) {
   }
 
   window.localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(staff));
+  setStaffAuthCookie(staff);
 }
 
 export function clearStoredStaffSession() {
@@ -54,6 +68,7 @@ export function clearStoredStaffSession() {
   }
 
   window.localStorage.removeItem(STAFF_STORAGE_KEY);
+  clearStaffAuthCookie();
 }
 
 export function requireCurrentStaffId() {

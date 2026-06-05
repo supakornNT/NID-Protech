@@ -8,6 +8,19 @@ export type StoredUserSession = {
 };
 
 const USER_STORAGE_KEY = "protech_user";
+const USER_AUTH_COOKIE = "protech_user_auth";
+
+function setUserAuthCookie(user: StoredUserSession) {
+  const value = encodeURIComponent(JSON.stringify(user));
+  const maxAge = user.sessionExpiresAt
+    ? Math.floor((new Date(user.sessionExpiresAt).getTime() - Date.now()) / 1000)
+    : 3600;
+  document.cookie = `${USER_AUTH_COOKIE}=${value}; path=/; max-age=${maxAge}; SameSite=Lax`;
+}
+
+function clearUserAuthCookie() {
+  document.cookie = `${USER_AUTH_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
+}
 
 export function syncOrganizationCookie(organizationId?: number | null) {
   if (typeof document === "undefined") {
@@ -47,6 +60,7 @@ export function setStoredUserSession(user: StoredUserSession) {
 
   window.localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
   syncOrganizationCookie(user.organizationId);
+  setUserAuthCookie(user);
 }
 
 export function clearStoredUserSession() {
@@ -56,6 +70,7 @@ export function clearStoredUserSession() {
 
   window.localStorage.removeItem(USER_STORAGE_KEY);
   syncOrganizationCookie(null);
+  clearUserAuthCookie();
 }
 
 export function getCurrentUserId() {

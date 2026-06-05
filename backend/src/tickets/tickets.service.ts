@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { Pool, ResultSetHeader } from 'mysql2/promise';
+import type { Pool, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
+import * as nodemailer from 'nodemailer';
 import {
   findById,
   MyRequestItem,
@@ -93,8 +94,16 @@ export class TicketsService {
         'สร้าง ticket และมอบหมายงาน',
       ],
     );
+    const ticketId = result.insertId;
+
+    if (dto.assignedStaffId) {
+      this.notifyAssignedStaff(dto.assignedStaffId, ticketId, dto.title).catch(
+        (err) => console.error('[Ticket] notify staff failed:', err),
+      );
+    }
+
     return {
-      id: result.insertId,
+      id: ticketId,
       ticketNo: ticketNo,
       requestId: dto.requestId,
       assignedStaffId: dto.assignedStaffId,
@@ -104,6 +113,44 @@ export class TicketsService {
       description: dto.description,
       status: dto.status,
     };
+  }
+
+  private async notifyAssignedStaff(
+    staffId: number,
+    ticketId: number,
+    ticketTitle: string,
+  ): Promise<void> {
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) return;
+
+    const [rows] = await this.db.query<
+      (RowDataPacket & { email: string; name: string })[]
+    >(
+      `SELECT email, CONCAT(name, ' ', surname) AS name FROM staffs WHERE id = ?`,
+      [staffId],
+    );
+    const staff = rows[0];
+    if (!staff?.email) return;
+
+    const staffPortalUrl =
+      process.env.STAFF_PORTAL_URL ?? 'http://localhost:3001';
+    const link = `${staffPortalUrl}/operations/${ticketId}`;
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST ?? 'smtp.gmail.com',
+      port: Number(process.env.SMTP_PORT ?? 587),
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    });
+
+    await transporter.sendMail({
+      from: process.env.SMTP_USER,
+      to: staff.email,
+      subject: 'มีงานใหม่ถูกมอบหมายให้คุณ',
+      html: `
+        <p>สวัสดีคุณ ${staff.name},</p>
+        <p>มีงานใหม่ถูกมอบหมายให้คุณ: <strong>${ticketTitle}</strong></p>
+        <p><a href="${link}">คลิกเพื่อดูรายละเอียดงาน</a></p>
+      `,
+    });
   }
 
   async findById(id: number) {

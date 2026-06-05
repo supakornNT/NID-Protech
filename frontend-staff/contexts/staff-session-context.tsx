@@ -97,24 +97,45 @@ export function StaffSessionProvider({
     let cancelled = false;
 
     async function loadSession() {
+      // Use localStorage session first to avoid cross-origin cookie issues
+      const stored = localStorage.getItem("protech_staff");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored) as StoredStaffSession;
+          if (parsed?.id) {
+            if (cancelled) return;
+            const expiresAt = parsed.sessionExpiresAt;
+            if (expiresAt && new Date(expiresAt).getTime() <= Date.now()) {
+              clearStoredStaffSession();
+              setStaff(null);
+              router.replace("/login");
+              return;
+            }
+            setStaff(parsed);
+            scheduleSessionExpiry(parsed.sessionExpiresAt);
+            setLoading(false);
+            return;
+          }
+        } catch {
+          // invalid JSON, fall through
+        }
+      }
+
+      // No local session — try server session (works when same-origin)
       try {
         const session = await fetchJson<StoredStaffSession>("/auth/me", {
           cache: "no-store",
           skipSessionExpiredEvent: true,
         });
 
-        if (cancelled) {
-          return;
-        }
+        if (cancelled) return;
 
         setStoredStaffSession(session);
         setStaff(session);
         scheduleSessionExpiry(session.sessionExpiresAt);
         setLoading(false);
       } catch {
-        if (cancelled) {
-          return;
-        }
+        if (cancelled) return;
 
         clearStoredStaffSession();
         setStaff(null);
