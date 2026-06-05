@@ -7,6 +7,7 @@ import Link from "next/link";
 import { ChevronDown, LogOut, Menu, UserRound, X } from "lucide-react";
 
 import { useUserSession } from "@/contexts/user-session-context";
+import proTechLogo from "@/public/ProTechLogoFinal.png";
 import styles from "./navbar.module.css";
 
 export default function Navbar() {
@@ -14,6 +15,8 @@ export default function Navbar() {
   const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const mobileDropdownRef = useRef<HTMLDivElement>(null);
+  const mobileAvatarRef = useRef<HTMLButtonElement>(null);
   const { user, logout } = useUserSession();
 
   useEffect(() => {
@@ -31,12 +34,30 @@ export default function Navbar() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
+      const target = event.target as Node;
+
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        dropdownRef.current.contains(target)
       ) {
-        setDropdownOpen(false);
+        return;
       }
+
+      if (
+        mobileDropdownRef.current &&
+        mobileDropdownRef.current.contains(target)
+      ) {
+        return;
+      }
+
+      if (
+        mobileAvatarRef.current &&
+        mobileAvatarRef.current.contains(target)
+      ) {
+        return;
+      }
+
+      setDropdownOpen(false);
     }
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -76,7 +97,7 @@ export default function Navbar() {
 
         <div className={styles.logoArea}>
           <Image
-            src="/ProTechLogoFinal.png"
+            src={proTechLogo}
             alt="ProTech Logo"
             width={148}
             height={42}
@@ -151,15 +172,44 @@ export default function Navbar() {
 
         {user ? (
           <button
+            ref={mobileAvatarRef}
             type="button"
             className={styles.mobileAvatarButton}
             aria-label="โปรไฟล์ผู้ใช้"
-            onClick={() => setMobileMenuOpen((open) => !open)}
+            onClick={() => {
+              setMobileMenuOpen(false);
+              setDropdownOpen((open) => !open);
+            }}
           >
-            <UserRound size={20} />
+            <span className={styles.mobileAvatarInitial}>
+              {user.name ? user.name.charAt(0).toUpperCase() : <UserRound size={18} />}
+            </span>
           </button>
         ) : null}
       </nav>
+
+      {user ? (
+        <div
+          ref={mobileDropdownRef}
+          className={`${styles.mobileUserMenu} ${
+            dropdownOpen ? styles.mobileUserMenuOpen : ""
+          }`}
+        >
+          <div className={styles.dropdownHeader}>
+            <div className={styles.dropdownUserName}>{user.name}</div>
+            <div className={styles.dropdownUserEmail}>{user.email}</div>
+          </div>
+          <button
+            onClick={() => {
+              void handleLogout();
+            }}
+            className={`${styles.dropdownItem} ${styles.logoutButton}`}
+          >
+            <LogOut size={16} />
+            ออกจากระบบ
+          </button>
+        </div>
+      ) : null}
 
       <div
         className={`${styles.mobileOverlay} ${
@@ -229,30 +279,16 @@ export default function Navbar() {
         </Link>
 
         {user ? (
-          <div className={styles.mobileProfileWrapper}>
-            <div className={styles.mobileProfileInfo}>
-              <div className={styles.mobileProfileAvatar}>
-                {user.name ? (
-                  user.name.charAt(0).toUpperCase()
-                ) : (
-                  <UserRound size={16} />
-                )}
-              </div>
-              <div className={styles.mobileProfileDetails}>
-                <span className={styles.mobileProfileName}>{user.name}</span>
-                <span className={styles.mobileProfileEmail}>{user.email}</span>
-              </div>
-            </div>
-            <button
-              onClick={() => {
-                void handleLogout();
-              }}
-              className={styles.mobileLogoutButton}
-            >
-              <LogOut size={16} />
-              ออกจากระบบ
-            </button>
-          </div>
+          <button
+            onClick={() => {
+              setMobileMenuOpen(false);
+              setDropdownOpen(true);
+            }}
+            className={styles.mobileItemButton}
+          >
+            <span className={styles.mobileItemLeft}>บัญชีผู้ใช้</span>
+            <UserRound size={18} />
+          </button>
         ) : null}
       </div>
     </>

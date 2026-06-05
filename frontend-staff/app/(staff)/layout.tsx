@@ -187,8 +187,8 @@ function AdminLayoutShell({
                   focus:outline-none cursor-pointer
                 "
               >
-                <div className="hidden text-right sm:block">
-                  <p className="text-sm font-semibold text-gray-700">
+                <div className="hidden max-w-[180px] text-right sm:block">
+                  <p className="truncate text-sm font-semibold text-gray-700">
                     {staffName}
                   </p>
                   <p className="text-xs text-gray-400">เจ้าหน้าที่</p>
@@ -208,12 +208,23 @@ function AdminLayoutShell({
               {dropdownOpen ? (
                 <div
                   className="
-                    absolute right-0 z-50 mt-2 w-48
-                    rounded-2xl border border-gray-200/60 bg-white p-1.5
+                    absolute right-0 z-50 mt-2 w-[260px] sm:w-48
+                    rounded-2xl border border-gray-200/60 bg-white p-2
                     shadow-xl shadow-gray-200/80
                     animate-in fade-in slide-in-from-top-2 duration-150
                   "
                 >
+                  <div className="border-b border-gray-100 px-3 py-2.5">
+                    <p className="truncate text-sm font-semibold text-gray-800">
+                      {staffName}
+                    </p>
+                    {staff?.email ? (
+                      <p className="mt-0.5 truncate text-xs text-gray-500">
+                        {staff.email}
+                      </p>
+                    ) : null}
+                  </div>
+
                   <button
                     type="button"
                     onClick={() => {
