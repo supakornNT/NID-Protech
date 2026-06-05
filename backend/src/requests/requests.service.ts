@@ -442,7 +442,7 @@ export class RequestsService {
         pt.name AS problemName,
         CASE WHEN
           (SELECT COUNT(*) FROM tickets t2 WHERE t2.request_id = r.id
-           AND t2.status NOT IN ('resolved', 'waiting_confirm', 'closed', 'cancelled')) = 0
+           AND t2.status NOT IN ('closed', 'cancelled')) = 0
           AND
           (SELECT COUNT(*) FROM tickets t2 WHERE t2.request_id = r.id
            AND t2.status != 'cancelled') > 0

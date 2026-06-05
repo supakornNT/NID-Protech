@@ -25,20 +25,10 @@ const TICKET_STATUS_MAP: Record<
   string,
   { label: string; badge: string; accent: string }
 > = {
-  waiting_confirm: {
-    label: "รอพิจารณา",
-    badge: "border-[#E8A84C] bg-[#FFF8EC] text-[#C47F00]",
-    accent: "bg-[#E8A84C]",
-  },
   in_progress: {
     label: "กำลังดำเนินการ",
     badge: "border-[#366DBD] bg-[#EEF4FF] text-[#366DBD]",
     accent: "bg-[#366DBD]",
-  },
-  resolved: {
-    label: "เสร็จสิ้น",
-    badge: "border-[#4CAF7D] bg-[#EDFAF3] text-[#1A7A4A]",
-    accent: "bg-[#4CAF7D]",
   },
   closed: {
     label: "เสร็จสิ้น",

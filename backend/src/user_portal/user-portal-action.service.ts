@@ -71,23 +71,6 @@ export class UserPortalActionService {
         [identity.id],
       );
 
-      const [ticketRows] = await connection.query<
-        Array<RowDataPacket & { id: number; status: string }>
-      >(
-        `SELECT id, status
-        FROM tickets
-        WHERE request_id = ?`,
-        [identity.id],
-      );
-
-      await connection.query<ResultSetHeader>(
-        `UPDATE tickets
-        SET status = 'closed',
-            closed_at = NOW()
-        WHERE request_id = ?`,
-        [identity.id],
-      );
-
       await connection.query<ResultSetHeader>(
         `INSERT INTO request_status_logs (
           request_id,
@@ -98,23 +81,6 @@ export class UserPortalActionService {
         ) VALUES (?, 'closed', 'customer', ?, ?)`,
         [identity.id, identity.customerId, dto.comment ?? null],
       );
-
-      for (const ticket of ticketRows) {
-        await connection.query<ResultSetHeader>(
-          `INSERT INTO ticket_status_logs (
-            ticket_id,
-            old_status,
-            new_status,
-            changed_by,
-            note
-          ) VALUES (?, ?, 'closed', NULL, ?)`,
-          [
-            ticket.id,
-            ticket.status,
-            dto.comment ?? "Customer confirmed completion",
-          ],
-        );
-      }
 
       await connection.commit();
     } catch (error) {

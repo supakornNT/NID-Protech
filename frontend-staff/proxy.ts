@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 type StaffSession = {
+  id?: number | string;
   modules?: {
     key: string;
     children: {

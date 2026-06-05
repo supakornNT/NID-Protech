@@ -16,6 +16,7 @@ import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { ProTechButton } from "@/components/tables/protech-button";
 import { useCreateTicket } from "@/hooks/assign/use-create-ticket";
 import { useComplaintDetail } from "@/hooks/use-complaint-detail";
+import { useStaffSession } from "@/contexts/staff-session-context";
 
 const STAFF_LIMIT = 5;
 const TICKET_LIMIT = 5;
@@ -29,6 +30,8 @@ type SelectedStaff = {
 export default function AssignWorkPage() {
   const router = useRouter();
   const params = useParams();
+  const { staff } = useStaffSession();
+  const staffId = typeof staff?.id === "number" ? staff.id : Number(staff?.id);
   const { data: requestData, resolvedRequestId } = useComplaintDetail(params.id);
   const requestId = Number(
     resolvedRequestId ?? (Array.isArray(params.id) ? params.id[0] : params.id),
@@ -501,7 +504,7 @@ export default function AssignWorkPage() {
                   createTicket({
                     requestId,
                     assignedStaffId: modalStaff.id,
-                    assignedBy: null,
+                    assignedBy: Number.isFinite(staffId) ? staffId : null,
                     dueAt: dueDate,
                     title,
                     description: detail,

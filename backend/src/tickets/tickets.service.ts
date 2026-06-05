@@ -23,7 +23,7 @@ export class TicketsService {
         tickets.id,
         tickets.title,
         requests.detail,
-        tickets.resolved_at AS resolvedAt,
+        COALESCE(tickets.closed_at, tickets.resolved_at) AS resolvedAt,
         tickets.due_at AS dueAt,
         problem_types.name AS problemName,
         problem_types.request_type AS requestType
@@ -31,7 +31,7 @@ export class TicketsService {
       LEFT JOIN requests ON requests.id = tickets.request_id
       LEFT JOIN problem_types ON problem_types.id = requests.problem_type_id
       WHERE tickets.assigned_staff_id = ?
-        AND tickets.status NOT IN ('resolved', 'closed', 'cancelled') `,
+        AND tickets.status NOT IN ('closed', 'cancelled') `,
       [staffId],
     );
     return rows;
@@ -47,7 +47,7 @@ export class TicketsService {
         tickets.description,
         tickets.status,
         tickets.due_at AS dueAt,
-        tickets.resolved_at AS resolvedAt,
+        COALESCE(latest_trr.reviewed_at, tickets.closed_at, tickets.resolved_at, latest_trr.created_at) AS resolvedAt,
         trr.reject_reason AS rejectReason
       FROM tickets
       LEFT JOIN staffs ON staffs.id = tickets.assigned_staff_id
@@ -60,7 +60,7 @@ export class TicketsService {
           GROUP BY ticket_id
         ) picked ON picked.latest_id = latest.id
       ) trr ON trr.ticket_id = tickets.id
-      WHERE tickets.request_id = ? AND tickets.status IN ('assigned', 'resolved', 'closed')
+      WHERE tickets.request_id = ? AND tickets.status IN ('assigned', 'in_progress', 'closed')
       `,
       [id],
     );
@@ -245,8 +245,8 @@ export class TicketsService {
       sets.push('status = ?');
       params.push(dto.status);
     }
-    if (dto.status === 'resolved') {
-      sets.push('resolved_at = NOW()');
+    if (dto.status === 'closed') {
+      sets.push('closed_at = NOW()');
     }
 
     if (sets.length === 0) return;
@@ -317,7 +317,7 @@ export class TicketsService {
           ON picked.latest_id = latest.id
       ) latest_trr ON latest_trr.ticket_id = tickets.id
       WHERE tickets.assigned_staff_id = ?
-        AND tickets.status NOT IN ('cancelled', 'resolved')
+        AND tickets.status NOT IN ('cancelled', 'closed')
         AND COALESCE(latest_trr.status, '') != 'pending'
       ORDER BY tickets.created_at DESC`,
       [staffId],
@@ -505,7 +505,7 @@ export class TicketsService {
         CASE WHEN
           (SELECT COUNT(*) FROM tickets t2
            WHERE t2.request_id = r.id
-             AND t2.status NOT IN ('waiting_confirm', 'resolved', 'closed', 'cancelled')) = 0
+             AND t2.status NOT IN ('closed', 'cancelled')) = 0
           AND
           (SELECT COUNT(*) FROM tickets t2
            WHERE t2.request_id = r.id AND t2.status != 'cancelled') > 0
@@ -545,8 +545,18 @@ export class TicketsService {
       LEFT JOIN systems ON systems.id = requests.system_id
       LEFT JOIN problem_types ON problem_types.id = requests.problem_type_id
       LEFT JOIN staffs ON staffs.id = tickets.assigned_staff_id
-      WHERE tickets.status IN ('waiting_confirm', 'closed')
-      ORDER BY tickets.resolved_at DESC`,
+      LEFT JOIN (
+        SELECT latest.*
+        FROM ticket_resolution_requests latest
+        INNER JOIN (
+          SELECT ticket_id, MAX(id) AS latest_id
+          FROM ticket_resolution_requests
+          GROUP BY ticket_id
+        ) picked ON picked.latest_id = latest.id
+      ) latest_trr ON latest_trr.ticket_id = tickets.id
+      WHERE tickets.status = 'closed'
+        OR latest_trr.status IN ('approved', 'rejected')
+      ORDER BY COALESCE(latest_trr.reviewed_at, tickets.closed_at, tickets.resolved_at, latest_trr.created_at) DESC`,
     );
     return rows;
   }
@@ -558,7 +568,7 @@ export class TicketsService {
         tickets.request_id AS requestId,
         tickets.title,
         tickets.description AS resolution,
-        tickets.resolved_at AS resolvedAt,
+        COALESCE(latest_trr.created_at, tickets.closed_at, tickets.resolved_at) AS resolvedAt,
         tickets.due_at AS dueAt,
         CONCAT(staffs.name, ' ', staffs.surname) AS assignedStaffName,
         CONCAT(customers.name, ' ', customers.surname) AS customerName,
@@ -571,8 +581,18 @@ export class TicketsService {
       LEFT JOIN systems ON systems.id = requests.system_id
       LEFT JOIN problem_types ON problem_types.id = requests.problem_type_id
       LEFT JOIN staffs ON staffs.id = tickets.assigned_staff_id
-      WHERE tickets.status = 'waiting_confirm'
-      ORDER BY tickets.resolved_at DESC`,
+      INNER JOIN (
+        SELECT latest.*
+        FROM ticket_resolution_requests latest
+        INNER JOIN (
+          SELECT ticket_id, MAX(id) AS latest_id
+          FROM ticket_resolution_requests
+          GROUP BY ticket_id
+        ) picked ON picked.latest_id = latest.id
+      ) latest_trr ON latest_trr.ticket_id = tickets.id
+      WHERE latest_trr.status = 'pending'
+        AND tickets.status NOT IN ('closed', 'cancelled')
+      ORDER BY COALESCE(latest_trr.created_at, tickets.closed_at, tickets.resolved_at) DESC`,
     );
     return rows;
   }

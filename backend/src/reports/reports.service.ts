@@ -14,9 +14,9 @@ export class ReportsService {
     const [statsRows] = await this.db.query<RowDataPacket[]>(
       `SELECT
         COUNT(*) AS total,
-        SUM(t.status NOT IN ('resolved','closed','cancelled')) AS inProgress,
-        SUM(t.status IN ('resolved','closed')) AS done,
-        SUM(t.due_at < NOW() AND t.status NOT IN ('resolved','closed','cancelled')) AS overdue
+        SUM(t.status NOT IN ('closed','cancelled')) AS inProgress,
+        SUM(t.status = 'closed') AS done,
+        SUM(t.due_at < NOW() AND t.status NOT IN ('closed','cancelled')) AS overdue
        FROM tickets t`,
     );
     const s = statsRows[0];
@@ -24,7 +24,6 @@ export class ReportsService {
     const STATUS_MAP: Record<string, string> = {
       in_progress: 'การดำเนินการ',
       waiting_confirm: 'รอประเมิน',
-      resolved: 'เสร็จสิ้น',
       closed: 'เสร็จสิ้น',
       cancelled: 'ยกเลิก',
     };

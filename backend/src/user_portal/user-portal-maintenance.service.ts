@@ -11,8 +11,6 @@ interface ExpiredWaitingConfirmRow extends RowDataPacket {
   requestId: number;
   customerId: number;
   requestStatus: string;
-  ticketId: number;
-  ticketStatus: string;
   waitingConfirmAt: Date | string;
 }
 
@@ -109,8 +107,6 @@ export class UserPortalMaintenanceService
           r.id AS requestId,
           r.customer_id AS customerId,
           r.status AS requestStatus,
-          t.id AS ticketId,
-          t.status AS ticketStatus,
           (
             SELECT rsl.created_at
             FROM request_status_logs rsl
@@ -120,16 +116,19 @@ export class UserPortalMaintenanceService
             LIMIT 1
           ) AS waitingConfirmAt
         FROM requests r
-        INNER JOIN tickets t
-          ON t.id = (
-            SELECT t2.id
-            FROM tickets t2
-            WHERE t2.request_id = r.id
-            ORDER BY t2.id DESC
-            LIMIT 1
-          )
         WHERE r.status = 'waiting_confirm'
-          AND t.status = 'waiting_confirm'
+          AND EXISTS (
+            SELECT 1
+            FROM tickets t
+            WHERE t.request_id = r.id
+              AND t.status != 'cancelled'
+          )
+          AND NOT EXISTS (
+            SELECT 1
+            FROM tickets t
+            WHERE t.request_id = r.id
+              AND t.status NOT IN ('closed', 'cancelled')
+          )
           AND (
             SELECT rsl.created_at
             FROM request_status_logs rsl
@@ -161,14 +160,6 @@ export class UserPortalMaintenanceService
         );
 
         await connection.query<ResultSetHeader>(
-          `UPDATE tickets
-          SET status = 'closed',
-              closed_at = NOW()
-          WHERE id = ?`,
-          [row.ticketId],
-        );
-
-        await connection.query<ResultSetHeader>(
           `INSERT INTO request_status_logs (
             request_id,
             status,
@@ -177,17 +168,6 @@ export class UserPortalMaintenanceService
             note
           ) VALUES (?, 'closed', 'system', NULL, ?)`,
           [row.requestId, AUTO_CLOSE_NOTE],
-        );
-
-        await connection.query<ResultSetHeader>(
-          `INSERT INTO ticket_status_logs (
-            ticket_id,
-            old_status,
-            new_status,
-            changed_by,
-            note
-          ) VALUES (?, ?, 'closed', NULL, ?)`,
-          [row.ticketId, row.ticketStatus, AUTO_CLOSE_NOTE],
         );
       }
 
