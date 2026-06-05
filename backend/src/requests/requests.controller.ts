@@ -14,6 +14,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import type { Response } from 'express';
+import { existsSync } from 'fs';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { mkdirSync } from 'fs';
 import { diskStorage } from 'multer';
@@ -169,20 +170,11 @@ export class RequestsController {
   @Header('Content-Type', 'application/pdf')
   @Header('Content-Disposition', 'inline; filename="report.pdf"')
   async getPdf(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
-    const data = await this.request.findDetail(id);
-    if (!data) {
+    const filePath = this.request.getPdfPath(id);
+    if (!existsSync(filePath)) {
       res.status(404).send('Not found');
       return;
     }
-    const filePath = await this.request.getOrGenerate({
-      id: data.id,
-      title: data.title,
-      detail: data.detail,
-      customerName: data.customerName,
-      systemName: data.systemName,
-      assignedStaffName: data.assignedStaffName ?? null,
-      dueAt: data.dueAt ?? null,
-    });
     res.sendFile(filePath);
   }
 }

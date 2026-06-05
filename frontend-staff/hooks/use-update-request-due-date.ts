@@ -9,11 +9,12 @@ export function useUpdateRequestDueDate() {
     const requestId = Array.isArray(id) ? id[0] : id;
     setLoading(true);
     try {
-      await fetch(`${API_BASE_URL}/requests/update/due-at?id=${requestId}`, {
+      const res = await fetch(`${API_BASE_URL}/requests/update/due-at?id=${requestId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ dueAt: resolvedAt }),
       });
+      if (!res.ok) throw new Error("Update due date failed");
     } finally {
       setLoading(false);
     }

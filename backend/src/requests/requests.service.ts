@@ -1,9 +1,5 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
-import { renderToBuffer } from '@react-pdf/renderer';
-import { existsSync, mkdirSync } from 'fs';
-import { writeFile } from 'fs/promises';
+import { Inject, Injectable } from '@nestjs/common';
 import { join } from 'path';
-import React from 'react';
 import type { Pool, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { CreateExternalRequestDto } from './dto/create-request-external.dto';
@@ -22,13 +18,8 @@ import type {
 import { RequestTemplate, type RequestData } from './templates/report.template';
 
 @Injectable()
-export class RequestsService implements OnModuleInit {
+export class RequestsService {
   constructor(@Inject('DB') private readonly db: Pool) {}
-  private readonly pdfDir = join(process.cwd(), '..', 'uploads', 'pdf');
-
-  onModuleInit() {
-    mkdirSync(this.pdfDir, { recursive: true });
-  }
 
   async findAll(): Promise<RequestRecord[]> {
     const [rows] = await this.db.query<RequestRecord[]>(
@@ -434,18 +425,8 @@ export class RequestsService implements OnModuleInit {
     );
   }
 
-  async getOrGenerate(data: RequestData): Promise<string> {
-    const filePath = join(this.pdfDir, `${data.id}.pdf`);
-
-    if (!existsSync(filePath)) {
-      const element = React.createElement(RequestTemplate, {
-        data,
-      }) as unknown as React.ReactElement<any>;
-      const buffer = await renderToBuffer(element);
-      await writeFile(filePath, buffer);
-    }
-
-    return filePath;
+  getPdfPath(id: number): string {
+    return join(process.cwd(), '..', 'uploads', 'pdf', 'screening', `${id}.pdf`);
   }
 
   async findTracking(): Promise<RequestTracking[]> {

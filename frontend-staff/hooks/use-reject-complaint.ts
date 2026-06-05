@@ -12,15 +12,17 @@ export function useRejectComplaint(onSuccess: (id: number) => void) {
 
     setSubmitting(true);
     try {
-      await Promise.all([
+      const [r1, r2] = await Promise.all([
         fetch(`${API_BASE_URL}/requests/update/status?id=${rejectId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({ status: "rejected" }),
         }),
         fetch(`${API_BASE_URL}/admin/screenings`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({
             requestId: rejectId,
             result: "rejected",
@@ -29,6 +31,7 @@ export function useRejectComplaint(onSuccess: (id: number) => void) {
         }),
       ]);
 
+      if (!r1.ok || !r2.ok) throw new Error("Reject complaint failed");
       onSuccess(rejectId);
       close();
     } finally {

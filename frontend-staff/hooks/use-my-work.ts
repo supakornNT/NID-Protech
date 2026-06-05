@@ -33,11 +33,12 @@ export function useMyWork(staffId: number) {
   }, [staffId]);
 
   async function submitWork(requestId: number) {
-    await fetch(`${API_BASE_URL}/requests/${requestId}/submit-work`, {
+    const res = await fetch(`${API_BASE_URL}/requests/${requestId}/submit-work`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ staffId }),
     });
+    if (!res.ok) throw new Error("Submit work failed");
     setItems((prev) =>
       prev.map((item) =>
         item.requestId === requestId

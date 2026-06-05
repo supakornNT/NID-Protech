@@ -357,7 +357,20 @@ export default function ManageWorkDetailPage() {
 
       <div className="flex flex-1 flex-col gap-5 bg-[#F0F4FA] p-8">
         {/* Header */}
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 shadow-sm hover:bg-gray-50 hover:text-gray-700"
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <div>
+              <h1 className="text-[22px] font-bold text-gray-900">มอบหมายงาน</h1>
+              <p className="text-[13px] text-gray-500">เลือกเจ้าหน้าที่เพื่อมอบหมายงานย่อย</p>
+            </div>
+          </div>
           <button
             type="button"
             onClick={() => setShowForwardConfirm(true)}
@@ -459,45 +472,37 @@ export default function ManageWorkDetailPage() {
                       const ext = (file.fileExt ?? "").toLowerCase();
                       const isImage = IMAGE_EXTS.includes(ext);
                       const nameNoExt = file.originalName.replace(new RegExp(`\\.${ext}$`, "i"), "");
-                      return (
-                        <div
+                      return isImage ? (
+                        <button
                           key={file.id}
-                          className="flex items-center rounded-xl border border-gray-200 bg-white px-3 py-2.5"
+                          type="button"
+                          onClick={() => setLightbox(url)}
+                          className="flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5 cursor-zoom-in hover:bg-gray-50"
                         >
-                          <button
-                            type="button"
-                            onClick={() => isImage && setLightbox(url)}
-                            className={`flex min-w-0 items-center gap-3 ${isImage ? "cursor-zoom-in" : "cursor-default"}`}
-                          >
-                            <div
-                              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isImage ? "bg-blue-50" : "bg-red-50"}`}
-                            >
-                              {isImage ? (
-                                <ImageIcon size={20} className="text-blue-500" />
-                              ) : (
-                                <FileText size={20} className="text-red-500" />
-                              )}
-                            </div>
-                            <div className="flex min-w-0 flex-col text-left">
-                              <span className="truncate text-[13px] font-medium text-gray-800">
-                                {nameNoExt}
-                              </span>
-                              <span className="text-[11px] text-gray-400">
-                                {ext.toUpperCase()}
-                              </span>
-                            </div>
-                          </button>
-                          {!isImage && (
-                            <a
-                              href={url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="ml-auto shrink-0 text-[12px] text-[#366DBD] hover:underline"
-                            >
-                              เปิด
-                            </a>
-                          )}
-                        </div>
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50">
+                            <ImageIcon size={20} className="text-blue-500" />
+                          </div>
+                          <div className="flex min-w-0 flex-col text-left">
+                            <span className="truncate text-[13px] font-medium text-gray-800">{nameNoExt}</span>
+                            <span className="text-[11px] text-gray-400">{ext.toUpperCase()}</span>
+                          </div>
+                        </button>
+                      ) : (
+                        <a
+                          key={file.id}
+                          href={url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5 hover:bg-gray-50"
+                        >
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-50">
+                            <FileText size={20} className="text-red-500" />
+                          </div>
+                          <div className="flex min-w-0 flex-col text-left">
+                            <span className="truncate text-[13px] font-medium text-gray-800">{nameNoExt}</span>
+                            <span className="text-[11px] text-gray-400">{ext.toUpperCase()}</span>
+                          </div>
+                        </a>
                       );
                     })}
                   </div>
@@ -707,8 +712,8 @@ export default function ManageWorkDetailPage() {
                   Next <ChevronRight size={14} />
                 </button>
               </div>
-            )}
-              <div className="flex justify-end">
+              )}
+              <div className="mt-auto flex justify-end pt-4">
                 <button
                   type="button"
                   disabled={dueDateLoading || !editedDueDate}
@@ -720,9 +725,8 @@ export default function ManageWorkDetailPage() {
               </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
 
       {/* Cancel confirmation dialog */}
       <AdminModalShell
@@ -745,14 +749,14 @@ export default function ManageWorkDetailPage() {
           <div className="flex justify-center gap-3 pt-1">
             <ProTechButton
               variant="delete"
-              className="h-10 min-w-[120px]"
+              className="h-10 min-w-30"
               onClick={() => setDeleteConfirmId(null)}
             >
               ยกเลิก
             </ProTechButton>
             <ProTechButton
               variant="primary"
-              className="h-10 min-w-[120px]"
+              className="h-10 min-w-30"
               onClick={() => {
                 if (deleteConfirmId !== null) {
                   void deleteTicket(deleteConfirmId);
@@ -787,14 +791,14 @@ export default function ManageWorkDetailPage() {
           <div className="flex justify-center gap-3 pt-1">
             <ProTechButton
               variant="delete"
-              className="h-10 min-w-[120px]"
+              className="h-10 min-w-30"
               onClick={() => setShowEditConfirm(false)}
             >
               ยกเลิก
             </ProTechButton>
             <ProTechButton
               variant="primary"
-              className="h-10 min-w-[120px]"
+              className="h-10 min-w-30"
               onClick={async () => {
                 setShowEditConfirm(false);
                 await handleSaveEdit();
@@ -828,7 +832,7 @@ export default function ManageWorkDetailPage() {
           <div className="flex justify-center pt-1">
             <ProTechButton
               variant="primary"
-              className="h-10 min-w-[120px]"
+              className="h-10 min-w-30"
               onClick={() => setShowEditSuccess(false)}
             >
               ตกลง
@@ -858,7 +862,7 @@ export default function ManageWorkDetailPage() {
           <div className="flex justify-center pt-1">
             <ProTechButton
               variant="primary"
-              className="h-10 min-w-[120px]"
+              className="h-10 min-w-30"
               onClick={() => setShowCancelSuccess(false)}
             >
               ตกลง
@@ -888,14 +892,14 @@ export default function ManageWorkDetailPage() {
           <div className="flex justify-center gap-3 pt-1">
             <ProTechButton
               variant="delete"
-              className="h-10 min-w-[120px]"
+              className="h-10 min-w-30"
               onClick={() => setShowDueDateConfirm(false)}
             >
               ยกเลิก
             </ProTechButton>
             <ProTechButton
               variant="primary"
-              className="h-10 min-w-[120px]"
+              className="h-10 min-w-30"
               onClick={async () => {
                 setShowDueDateConfirm(false);
                 if (editedDueDate) {
@@ -932,7 +936,7 @@ export default function ManageWorkDetailPage() {
           <div className="flex justify-center pt-1">
             <ProTechButton
               variant="primary"
-              className="h-10 min-w-[120px]"
+              className="h-10 min-w-30"
               onClick={() => setShowDueDateSuccess(false)}
             >
               ตกลง
@@ -962,14 +966,14 @@ export default function ManageWorkDetailPage() {
           <div className="flex justify-center gap-3 pt-1">
             <ProTechButton
               variant="delete"
-              className="h-10 min-w-[120px]"
+              className="h-10 min-w-30"
               onClick={() => setShowForwardConfirm(false)}
             >
               ยกเลิก
             </ProTechButton>
             <ProTechButton
               variant="primary"
-              className="h-10 min-w-[120px]"
+              className="h-10 min-w-30"
               onClick={async () => {
                 setShowForwardConfirm(false);
                 await handleSave();
@@ -1007,7 +1011,7 @@ export default function ManageWorkDetailPage() {
           <div className="flex justify-center pt-1">
             <ProTechButton
               variant="primary"
-              className="h-10 min-w-[120px]"
+              className="h-10 min-w-30"
               onClick={() => {
                 setShowForwardSuccess(false);
                 router.push(`/consideration/issue-work`);
@@ -1075,7 +1079,7 @@ export default function ManageWorkDetailPage() {
           <div className="flex justify-center pt-1">
             <ProTechButton
               variant="primary"
-              className="h-10 min-w-[120px]"
+              className="h-10 min-w-30"
               onClick={() => setShowReopenModal(false)}
             >
               ตกลง

@@ -67,8 +67,8 @@ export default function RequestAttachmentModal({
                     onClick={() => setLightbox(file.url)}
                     className="flex w-full items-center gap-3 rounded-lg border border-gray-300 bg-white px-3 py-2 text-left transition-colors hover:bg-gray-50 cursor-pointer"
                   >
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center">
-                      <ImageIcon size={20} className="text-gray-600" />
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50">
+                      <ImageIcon size={20} className="text-blue-500" />
                     </div>
 
                     <div className="min-w-0 flex-1">
@@ -88,7 +88,7 @@ export default function RequestAttachmentModal({
                     rel="noreferrer"
                     className="flex items-center gap-3 rounded-lg border border-gray-300 bg-white px-3 py-2 transition-colors hover:bg-gray-50"
                   >
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-50">
                       <FileText size={20} className="text-red-500" />
                     </div>
 
@@ -110,7 +110,7 @@ export default function RequestAttachmentModal({
 
       {lightbox && (
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 px-4 py-6"
+          className="fixed inset-0 z-60 flex items-center justify-center bg-black/85 px-4 py-6"
           onClick={() => setLightbox(null)}
         >
           <button

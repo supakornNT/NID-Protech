@@ -18,11 +18,12 @@ export function useCreateTicket(onSuccess?: () => void) {
   async function createTicket(payload: CreateTicketPayload) {
     setLoading(true);
     try {
-      await fetch(`${API_BASE_URL}/admin/tickets`, {
+      const res = await fetch(`${API_BASE_URL}/admin/tickets`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+      if (!res.ok) throw new Error("Create ticket failed");
       onSuccess?.();
     } finally {
       setLoading(false);
