@@ -17,6 +17,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { ProTechButton } from "@/components/tables/protech-button";
 
 function formatDate(iso: string) {
   const d = new Date(iso);
@@ -72,16 +73,29 @@ export default function ComplaintsPage() {
     useRejectComplaint((id) =>
       setRows((prev) => prev.filter((r) => r.id !== id)),
     );
-  const { acceptId, acceptReason, setAcceptReason, openAccept, handleAccept, closeAccept } =
+  const { acceptId, submitting: acceptSubmitting, openAccept, handleAccept, closeAccept } =
     useAcceptComplaint((id) => setRows((prev) => prev.filter((r) => r.id !== id)), staffId);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [rejectError, setRejectError] = useState<string | null>(null);
 
   const filtered = rows.filter(
     (r) =>
       search === "" ||
       r.systemName.toLowerCase().includes(search.toLowerCase()),
   );
+
+  async function submitReject() {
+    const trimmedReason = rejectReason.trim();
+
+    if (!trimmedReason) {
+      setRejectError("กรุณาระบุเหตุผลการปฏิเสธ");
+      return;
+    }
+
+    setRejectError(null);
+    await handleReject();
+  }
 
   const columns: Column<ComplaintRow>[] = [
     { key: "requestNo", title: "รหัส", className: "w-24" },
@@ -126,7 +140,10 @@ export default function ComplaintsPage() {
       render: (_, _row) => (
         <StatusCell
           onAccept={() => openAccept(_row.id)}
-          onReject={() => openReject(_row.id)}
+          onReject={() => {
+            setRejectError(null);
+            openReject(_row.id);
+          }}
         />
       ),
     },
@@ -137,40 +154,65 @@ export default function ComplaintsPage() {
       <Dialog
         open={rejectId !== null}
         onOpenChange={(open) => {
-          if (!open) closeReject();
+          if (!open) {
+            setRejectError(null);
+            closeReject();
+          }
         }}
       >
-        <DialogContent className="border border-red-300 rounded-2xl">
+        <DialogContent className="rounded-2xl">
           <DialogHeader>
             <DialogTitle>ยืนยันการปฏิเสธ</DialogTitle>
           </DialogHeader>
-          <div className="flex flex-col gap-2">
+
+          <div className="flex flex-col gap-3">
             <p className="text-[14px] text-gray-600">
-              คุณต้องการปฏิเสธคำร้องนี้ใช่หรือไม่?
+              กรุณาระบุเหตุผลการปฏิเสธก่อนบันทึก
             </p>
-            {/* <label className="text-[13px] font-medium text-gray-700">เหตุผล</label> */}
+
             <textarea
               value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
+              onChange={(event) => {
+                if (rejectError) {
+                  setRejectError(null);
+                }
+
+                setRejectReason(event.target.value);
+              }}
               placeholder="ระบุเหตุผลการปฏิเสธ..."
-              rows={3}
-              className="w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-[14px] text-gray-700 outline-none focus:ring-red-100"
+              rows={4}
+              className="w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-[14px] text-gray-700 outline-none focus:border-[#2F66C5] focus:ring-2 focus:ring-[#DCE9FF]"
             />
+
+            {rejectError ? (
+              <p className="text-[13px] font-medium text-[#D1435B]">
+                {rejectError}
+              </p>
+            ) : null}
           </div>
-          <DialogFooter>
-            <button
-              onClick={closeReject}
-              className="flex-1 min-w-0 sm:flex-none rounded-lg border border-gray-200 px-4 py-2 text-[14px] hover:bg-gray-50"
+
+          <DialogFooter className="gap-2">
+            <ProTechButton
+              variant="delete"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-24 text-[14px]"
+              onClick={() => {
+                setRejectError(null);
+                closeReject();
+              }}
             >
               ยกเลิก
-            </button>
-            <button
-              onClick={handleReject}
+            </ProTechButton>
+
+            <ProTechButton
+              variant="primary"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-24 text-[14px]"
+              onClick={() => {
+                void submitReject();
+              }}
               disabled={rejectSubmitting || !rejectReason.trim()}
-              className="flex-1 min-w-0 sm:flex-none rounded-lg bg-red-500 px-4 py-2 text-[14px] font-semibold text-white hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {rejectSubmitting ? "กำลังบันทึก..." : "ยืนยัน"}
-            </button>
+            </ProTechButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -183,24 +225,32 @@ export default function ComplaintsPage() {
           <DialogHeader>
             <DialogTitle>ยืนยันการยอมรับ</DialogTitle>
           </DialogHeader>
+
           <div className="flex flex-col gap-2">
             <p className="text-[14px] text-gray-600">
               คุณต้องการยอมรับคำร้องนี้ใช่หรือไม่?
             </p>
           </div>
-          <DialogFooter>
-            <button
+
+          <DialogFooter className="gap-2">
+            <ProTechButton
+              variant="delete"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-24 text-[14px]"
               onClick={closeAccept}
-              className="flex-1 min-w-0 sm:flex-none rounded-lg border border-gray-200 px-4 py-2 text-[14px] hover:bg-gray-50"
             >
               ยกเลิก
-            </button>
-            <button
-              onClick={handleAccept}
-              className="flex-1 min-w-0 sm:flex-none rounded-lg bg-green-500 px-4 py-2 text-[14px] font-semibold text-white hover:bg-green-600"
+            </ProTechButton>
+
+            <ProTechButton
+              variant="primary"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-24 text-[14px]"
+              onClick={() => {
+                void handleAccept();
+              }}
+              disabled={acceptSubmitting}
             >
-              ยืนยัน
-            </button>
+              {acceptSubmitting ? "กำลังบันทึก..." : "ยืนยัน"}
+            </ProTechButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>

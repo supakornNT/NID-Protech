@@ -30,7 +30,7 @@ export default function ComplaintDetailPage() {
   const { lightbox, setLightbox } = useLightbox();
   const showSkeleton = useLoadingDelay(loading, 200);
 
-
+  const isInternal = data?.organizationName !== null && data?.organizationName !== undefined;
 
   return (
     <>
@@ -113,19 +113,34 @@ export default function ComplaintDetailPage() {
                   >
                     <ArrowLeft size={18} />
                   </button>
-                  <h1 className="text-[22px] font-bold text-gray-900">รายละเอียดข้อร้องเรียน</h1>
+                  <div>
+                    <h1 className="text-[22px] font-bold text-gray-900">รายละเอียดข้อร้องเรียน</h1>
+                    <p className="mt-1 text-[13px] text-gray-400">
+                      {isInternal ? "ภายในองค์กร" : "บุคคลทั่วไป"}
+                    </p>
+                  </div>
                 </div>
               </div>
 
               <div className="flex flex-col gap-5 px-4 sm:px-8 py-6">
+            {isInternal ? (
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                <Field label="ผู้แจ้ง" value={data.customerName} />
+                <Field label="หน่วยงาน" value={data.organizationName} />
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                <Field label="ผู้แจ้ง" value={data.customerName} />
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-              <Field label="ผู้แจ้ง" value={data.customerName} />
               <Field label="ระบบ" value={data.systemName} />
+              <Field label="ประเภทข้อร้องเรียน" value={data.problemName} />
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
               <Field label="หัวข้อเรื่อง" value={data.title} />
-              <Field label="ประเภท" value={data.problemName} />
             </div>
 
             <div className="flex flex-col gap-1">

@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTopLoader } from "nextjs-toploader";
 
 import {
   Activity,
@@ -211,6 +213,10 @@ const menuItems = [
   },
 ];
 
+function isRouteActive(pathname: string, href: string) {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 type Props = {
   mobileOpen: boolean;
   onMobileOpenChange: (open: boolean) => void;
@@ -223,9 +229,22 @@ export default function StaffSidebar({
   modules,
 }: Props) {
   const pathname = usePathname();
+  const topLoader = useTopLoader();
   const allowedPermissionKeys = new Set(
     modules.flatMap((module) => module.children.map((child) => child.key)),
   );
+
+  useEffect(() => {
+    topLoader.done(true);
+  }, [pathname, topLoader]);
+
+  function handleNavigate(href: string) {
+    onMobileOpenChange(false);
+
+    if (pathname !== href) {
+      topLoader.start();
+    }
+  }
 
   const visibleMenuItems = menuItems
     .map((item) => {
@@ -275,7 +294,7 @@ export default function StaffSidebar({
 
           if ("children" in item && item.children) {
             const isOpen = item.children.some((child) =>
-              pathname.startsWith(child.href),
+              isRouteActive(pathname, child.href),
             );
 
             return (
@@ -305,13 +324,13 @@ export default function StaffSidebar({
                 <CollapsibleContent className="mt-2 space-y-1.5 pl-3">
                   {item.children.map((child) => {
                     const ChildIcon = child.icon;
-                    const active = pathname === child.href;
+                    const active = isRouteActive(pathname, child.href);
 
                     return (
                       <Link
                         key={child.href}
                         href={child.href}
-                        onClick={() => onMobileOpenChange(false)}
+                        onClick={() => handleNavigate(child.href)}
                         className={`flex min-h-9 items-center gap-2 rounded-xl px-3 py-2 text-[12px] leading-snug transition ${
                           active
                             ? "bg-white/30 text-white"
@@ -328,13 +347,13 @@ export default function StaffSidebar({
             );
           }
 
-          const active = pathname === item.href;
+          const active = isRouteActive(pathname, item.href);
 
           return (
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => onMobileOpenChange(false)}
+              onClick={() => handleNavigate(item.href)}
               className={`flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 transition ${
                 active ? "bg-white/20" : "hover:bg-white/15"
               }`}

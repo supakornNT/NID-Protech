@@ -18,7 +18,6 @@ import {
 import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { ProTechButton } from "@/components/tables/protech-button";
 import { useStaffSession } from "@/contexts/staff-session-context";
-import { useLoadingDelay } from "@/hooks/use-loading-delay";
 import { useLightbox } from "@/hooks/use-complaint-detail";
 import {
   useCloseWork,
@@ -151,6 +150,25 @@ function CloseWorkDetailSkeleton() {
   );
 }
 
+function TicketFilesSkeleton() {
+  return (
+    <div className="animate-pulse space-y-2">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <div
+          key={index}
+          className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5"
+        >
+          <div className="h-10 w-10 shrink-0 rounded-lg bg-gray-200" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="h-3.5 w-48 max-w-full rounded bg-gray-200" />
+            <div className="h-3 w-12 rounded bg-gray-100" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function CloseWorkDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -187,7 +205,6 @@ export default function CloseWorkDetailPage() {
   const [rejectReason, setRejectReason] = useState("");
   const [modal, setModal] = useState<ModalState>(null);
   const [errorMessage, setErrorMessage] = useState("");
-  const showSkeleton = useLoadingDelay(loading || requestLoading, 200);
 
   useEffect(() => {
     fetchRequests(tab);
@@ -219,13 +236,25 @@ export default function CloseWorkDetailPage() {
       fetchRequestEvidence(selectedRequest.id),
       fetchLatestReject(selectedRequest.id),
     ])
-      .then(([tickets, files, latestReject]) => {
+      .then(async ([tickets, files, latestReject]) => {
         if (cancelled) return;
         setRequestTickets(tickets);
         setRequestFiles(files);
         setLatestRejectComment(latestReject);
         const firstOpenableTicket = tickets.find((ticket) => canOpenTicket(ticket)) ?? null;
         setSelectedTicket(firstOpenableTicket);
+
+        if (!firstOpenableTicket) {
+          setTicketFiles([]);
+          return;
+        }
+
+        setTicketLoading(true);
+        const filesByTicket = await fetchTicketAttachments(firstOpenableTicket.id);
+        if (!cancelled) {
+          setTicketFiles(filesByTicket);
+          setRejectReason(firstOpenableTicket.rejectReason ?? "");
+        }
       })
       .catch((err) => {
         console.error("Failed to load close-work detail", err);
@@ -235,16 +264,29 @@ export default function CloseWorkDetailPage() {
         }
       })
       .finally(() => {
-        if (!cancelled) setRequestLoading(false);
+        if (!cancelled) {
+          setRequestLoading(false);
+          setTicketLoading(false);
+        }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [selectedRequest, tab, fetchLatestReject, fetchRequestEvidence, fetchRequestTickets]);
+  }, [
+    selectedRequest,
+    tab,
+    fetchLatestReject,
+    fetchRequestEvidence,
+    fetchRequestTickets,
+    fetchTicketAttachments,
+  ]);
 
   async function handleSelectTicket(ticket: TicketCloseItem) {
     if (!canOpenTicket(ticket)) {
+      return;
+    }
+    if (selectedTicket?.id === ticket.id) {
       return;
     }
 
@@ -360,7 +402,7 @@ export default function CloseWorkDetailPage() {
   }
 
   const emptyReason = useMemo(() => {
-    if (loading || requestLoading) return "กำลังโหลดข้อมูล...";
+    if (loading || requestLoading) return "";
     if (error) return "โหลดข้อมูลไม่สำเร็จ";
     if (!selectedRequest) return "ไม่พบคำขอนี้ในรายการปัจจุบัน";
     return "";
@@ -400,7 +442,7 @@ export default function CloseWorkDetailPage() {
           </div>
         </div>
 
-        {((loading && !selectedRequest) || requestLoading) && showSkeleton ? (
+        {(loading && !selectedRequest) || requestLoading ? (
           <CloseWorkDetailSkeleton />
         ) : !selectedRequest ? (
           <div className="flex min-h-[620px] items-center justify-center rounded-2xl border border-gray-300 bg-white text-[14px] text-gray-500 shadow-sm">
@@ -491,18 +533,19 @@ export default function CloseWorkDetailPage() {
                     {requestTickets.map((ticket) => {
                       const active = selectedTicket?.id === ticket.id;
                       const openable = canOpenTicket(ticket);
+                      const disabled = active || !openable;
                       return (
                         <button
                           key={ticket.id}
                           type="button"
                           onClick={() => handleSelectTicket(ticket)}
-                          disabled={!openable}
+                          disabled={disabled}
                           className={`flex w-full flex-col gap-2 rounded-2xl border p-3 text-left transition ${
                             active
-                              ? "border-[#366DBD] bg-[#EEF4FF]"
+                              ? "cursor-default border-[#366DBD] bg-[#EEF4FF]"
                               : openable
-                                ? "border-gray-200 bg-white hover:bg-gray-50"
-                                : "border-gray-200 bg-gray-50 opacity-70"
+                                ? "cursor-pointer border-gray-200 bg-white hover:bg-gray-50"
+                                : "cursor-not-allowed border-gray-200 bg-gray-50 opacity-70"
                           }`}
                         >
                           <div className="flex items-start justify-between gap-3">
@@ -536,11 +579,7 @@ export default function CloseWorkDetailPage() {
             </div>
 
             <div className="flex min-h-0 flex-col rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
-              {ticketLoading ? (
-                <div className="flex flex-1 items-center justify-center text-[14px] text-gray-500">
-                  กำลังโหลดรายละเอียดตั๋วย่อย...
-                </div>
-              ) : !selectedTicket ? (
+              {!selectedTicket ? (
                 <div className="flex flex-1 flex-col items-center justify-center text-center">
                   <ShieldCheck size={36} className="mb-3 text-[#A8B1C2]" />
                   <p className="text-[18px] font-bold text-gray-800">เลือกตั๋วย่อยเพื่อพิจารณา</p>
@@ -611,7 +650,9 @@ export default function CloseWorkDetailPage() {
                         ไฟล์หลักฐานการแก้ไข ({ticketFiles.length})
                       </p>
                       <div className="mt-3 flex flex-col gap-2">
-                        {ticketFiles.length === 0 ? (
+                        {ticketLoading ? (
+                          <TicketFilesSkeleton />
+                        ) : ticketFiles.length === 0 ? (
                           <p className="text-[13px] text-gray-500">ไม่มีไฟล์หลักฐานการแก้ไข</p>
                         ) : (
                           ticketFiles.map((file) => {

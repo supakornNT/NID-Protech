@@ -47,7 +47,7 @@ export class TicketsService {
         tickets.description,
         tickets.status,
         tickets.due_at AS dueAt,
-        COALESCE(latest_trr.reviewed_at, tickets.closed_at, tickets.resolved_at, latest_trr.created_at) AS resolvedAt,
+        COALESCE(trr.reviewed_at, tickets.closed_at, tickets.resolved_at, trr.created_at) AS resolvedAt,
         trr.reject_reason AS rejectReason
       FROM tickets
       LEFT JOIN staffs ON staffs.id = tickets.assigned_staff_id
@@ -60,7 +60,7 @@ export class TicketsService {
           GROUP BY ticket_id
         ) picked ON picked.latest_id = latest.id
       ) trr ON trr.ticket_id = tickets.id
-      WHERE tickets.request_id = ? AND tickets.status IN ('assigned', 'in_progress', 'closed')
+      WHERE tickets.request_id = ? AND tickets.status != 'cancelled'
       `,
       [id],
     );
@@ -317,6 +317,7 @@ export class TicketsService {
           ON picked.latest_id = latest.id
       ) latest_trr ON latest_trr.ticket_id = tickets.id
       WHERE tickets.assigned_staff_id = ?
+        AND requests.status = 'in_progress'
         AND tickets.status NOT IN ('cancelled', 'closed')
         AND COALESCE(latest_trr.status, '') != 'pending'
       ORDER BY tickets.created_at DESC`,
