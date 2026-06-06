@@ -233,9 +233,10 @@ export default function Page({ params }: Props) {
   const canRate =
     request.statusCode === "closed" && request.ratingStatus !== "ประเมินแล้ว";
   const canViewRepairDetail =
-    request.statusCode === "waiting_confirm" ||
-    request.statusCode === "closed" ||
-    request.statusCode === "rejected";
+    request.statusCode === "rejected" ||
+    ((request.statusCode === "waiting_confirm" ||
+      request.statusCode === "closed") &&
+      (request.repairFiles?.length ?? 0) > 0);
   const hasRequestFiles = (request.requestFiles?.length ?? 0) > 0;
   const problem = request.problem?.trim() || "-";
   const problemDetail = request.problemDetail?.trim() || "-";
@@ -397,6 +398,7 @@ export default function Page({ params }: Props) {
               </ProTechButton>
             </div>
 
+            {canViewRepairDetail ? (
             <div className="py-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -405,14 +407,14 @@ export default function Page({ params }: Props) {
                 </div>
 
                 <ProTechButton
-                  onClick={canViewRepairDetail ? handleOpenRepairDetail : undefined}
+                  onClick={handleOpenRepairDetail}
                   variant="detail"
-                  disabled={!canViewRepairDetail}
                 >
                   ดูรายละเอียด
                 </ProTechButton>
               </div>
             </div>
+            ) : null}
 
             {request.reopenRounds && request.reopenRounds.length > 0 ? (
               <div className="mt-4 border-t pt-4">

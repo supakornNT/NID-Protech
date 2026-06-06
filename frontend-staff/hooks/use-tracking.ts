@@ -6,6 +6,7 @@ type StepInfo = { label: string; date: string; time: string } | null;
 
 export interface TrackingItem {
   id: number;
+  requestNo: string;
   title: string;
   status: string;
   customerName: string;

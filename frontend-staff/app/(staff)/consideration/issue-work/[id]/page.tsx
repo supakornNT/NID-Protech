@@ -1,7 +1,18 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, ChevronLeft, ChevronRight, Clock, FileText, ImageIcon, Users, X, TriangleAlert, CheckCircle2 } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  FileText,
+  ImageIcon,
+  Users,
+  X,
+  TriangleAlert,
+  CheckCircle2,
+} from "lucide-react";
 import { useRef, useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import { useComplaintDetail, useLightbox } from "@/hooks/use-complaint-detail";
@@ -34,13 +45,13 @@ interface EditModal {
   detailLoading: boolean;
 }
 
-
 export default function ManageWorkDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const { staff } = useStaffSession();
   const staffId = typeof staff?.id === "number" ? staff.id : Number(staff?.id);
-  const { data, attachments, loading, resolvedRequestId } = useComplaintDetail(id);
+  const { data, attachments, loading, resolvedRequestId } =
+    useComplaintDetail(id);
   const { lightbox, setLightbox } = useLightbox();
   const showSkeleton = useLoadingDelay(loading, 200);
   const effectiveRequestId =
@@ -63,19 +74,24 @@ export default function ManageWorkDetailPage() {
 
   const dueDate =
     editedDueDate ??
-    (data?.dueAt ? new Date(data.dueAt).toLocaleDateString("en-CA") : defaultDueDate);
+    (data?.dueAt
+      ? new Date(data.dueAt).toLocaleDateString("en-CA")
+      : defaultDueDate);
   const localToday = new Date().toLocaleDateString("en-CA");
-
-
 
   const filteredSub = tickets.filter(
     (t) =>
-      (t.status === "assigned" || t.status === "resolved" || t.status === "closed") &&
+      (t.status === "assigned" ||
+        t.status === "resolved" ||
+        t.status === "closed") &&
       (subSearch === "" ||
         t.title.includes(subSearch) ||
         (t.assignedStaffName ?? "").includes(subSearch)),
   );
-  const totalSubPages = Math.max(1, Math.ceil(filteredSub.length / SUBTASK_LIMIT));
+  const totalSubPages = Math.max(
+    1,
+    Math.ceil(filteredSub.length / SUBTASK_LIMIT),
+  );
   const pagedSub = filteredSub.slice(
     (subPage - 1) * SUBTASK_LIMIT,
     subPage * SUBTASK_LIMIT,
@@ -112,7 +128,9 @@ export default function ManageWorkDetailPage() {
     if (!effectiveRequestId) return;
     let cancelled = false;
 
-    fetch(`${API_BASE_URL}/admin/close-work/requests/${effectiveRequestId}/reopen-attachments`)
+    fetch(
+      `${API_BASE_URL}/admin/close-work/requests/${effectiveRequestId}/reopen-attachments`,
+    )
       .then((r) => {
         if (!r.ok) throw new Error();
         return r.json();
@@ -165,9 +183,12 @@ export default function ManageWorkDetailPage() {
     setEditError(null);
     setEditModal({ open: true, ticketId, detail: null, detailLoading: true });
     try {
-      const res = await fetch(`${API_BASE_URL}/admin/tickets/id?id=${ticketId}`, {
-        signal: controller.signal,
-      });
+      const res = await fetch(
+        `${API_BASE_URL}/admin/tickets/id?id=${ticketId}`,
+        {
+          signal: controller.signal,
+        },
+      );
       if (!res.ok) throw new Error();
       const detail: TicketDetail = await res.json();
       setEditForm({
@@ -178,7 +199,12 @@ export default function ManageWorkDetailPage() {
       setEditModal({ open: true, ticketId, detail, detailLoading: false });
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
-      setEditModal({ open: false, ticketId: null, detail: null, detailLoading: false });
+      setEditModal({
+        open: false,
+        ticketId: null,
+        detail: null,
+        detailLoading: false,
+      });
     }
   }
 
@@ -192,24 +218,32 @@ export default function ManageWorkDetailPage() {
   }
 
   async function handleSave() {
-    const requestId = Number(resolvedRequestId ?? (Array.isArray(id) ? id[0] : id));
+    const requestId = Number(
+      resolvedRequestId ?? (Array.isArray(id) ? id[0] : id),
+    );
     if (editedDueDate) await updateDueDate(String(requestId), editedDueDate);
     await Promise.all([
       updateStatus(String(requestId), "in_progress"),
-      logStatus(requestId, "assigned"),
+      logStatus(requestId, "in_progress"),
     ]);
     setShowForwardSuccess(true);
   }
 
   const hasActiveTicket = tickets.some(
-    (t) => t.status !== "resolved" && t.status !== "closed" && t.status !== "cancelled"
+    (t) =>
+      t.status !== "resolved" &&
+      t.status !== "closed" &&
+      t.status !== "cancelled",
   );
   const canSubmit = !!dueDate && hasActiveTicket;
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const daysLeft = dueDate
-    ? Math.max(0, Math.ceil((new Date(dueDate).getTime() - today.getTime()) / 86400000))
+    ? Math.max(
+        0,
+        Math.ceil((new Date(dueDate).getTime() - today.getTime()) / 86400000),
+      )
     : null;
 
   if (!loading && !data)
@@ -284,25 +318,35 @@ export default function ManageWorkDetailPage() {
               </div>
             )}
             <div>
-              <label className="mb-1 block text-[13px] text-gray-500">ชื่องาน</label>
+              <label className="mb-1 block text-[13px] text-gray-500">
+                ชื่องาน
+              </label>
               <input
                 type="text"
                 value={editForm.title}
-                onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
+                onChange={(e) =>
+                  setEditForm((f) => ({ ...f, title: e.target.value }))
+                }
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-[14px] outline-none focus:border-[#366DBD]"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[13px] text-gray-500">รายละเอียด</label>
+              <label className="mb-1 block text-[13px] text-gray-500">
+                รายละเอียด
+              </label>
               <textarea
                 rows={4}
                 value={editForm.description}
-                onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
+                onChange={(e) =>
+                  setEditForm((f) => ({ ...f, description: e.target.value }))
+                }
                 className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-[14px] outline-none focus:border-[#366DBD]"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[13px] text-gray-500">กำหนดวันส่ง</label>
+              <label className="mb-1 block text-[13px] text-gray-500">
+                กำหนดวันส่ง
+              </label>
               <input
                 type="date"
                 value={editForm.dueAt}
@@ -339,13 +383,17 @@ export default function ManageWorkDetailPage() {
                     return;
                   }
                   if (dueDate && editForm.dueAt > dueDate) {
-                    setEditError(`กำหนดส่งงานย่อยต้องไม่เกินกำหนดส่งเรื่องหลัก (${formatDate(dueDate)})`);
+                    setEditError(
+                      `กำหนดส่งงานย่อยต้องไม่เกินกำหนดส่งเรื่องหลัก (${formatDate(dueDate)})`,
+                    );
                     return;
                   }
                   setEditError(null);
                   setShowEditConfirm(true);
                 }}
-                disabled={updateLoading || !editForm.title.trim() || !editForm.dueAt}
+                disabled={
+                  updateLoading || !editForm.title.trim() || !editForm.dueAt
+                }
                 className="rounded-lg bg-[#366DBD] px-5 py-2 text-[13px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-60"
               >
                 บันทึก
@@ -367,8 +415,12 @@ export default function ManageWorkDetailPage() {
               <ArrowLeft size={18} />
             </button>
             <div>
-              <h1 className="text-[22px] font-bold text-gray-900">มอบหมายงาน</h1>
-              <p className="text-[13px] text-gray-500">เลือกเจ้าหน้าที่เพื่อมอบหมายงานย่อย</p>
+              <h1 className="text-[22px] font-bold text-gray-900">
+                มอบหมายงาน
+              </h1>
+              <p className="text-[13px] text-gray-500">
+                เลือกเจ้าหน้าที่เพื่อมอบหมายงานย่อย
+              </p>
             </div>
           </div>
           <button
@@ -398,7 +450,10 @@ export default function ManageWorkDetailPage() {
               <div className="flex flex-1 flex-col gap-4 rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
                 <div className="flex gap-3">
                   {Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="flex flex-1 flex-col items-center gap-2 rounded-xl bg-gray-100 py-4">
+                    <div
+                      key={i}
+                      className="flex flex-1 flex-col items-center gap-2 rounded-xl bg-gray-100 py-4"
+                    >
                       <div className="h-6 w-10 rounded bg-gray-200" />
                       <div className="h-3 w-16 rounded bg-gray-200" />
                     </div>
@@ -406,7 +461,10 @@ export default function ManageWorkDetailPage() {
                 </div>
                 <div className="h-9 w-full rounded-lg bg-gray-200" />
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-2">
+                  <div
+                    key={i}
+                    className="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-2"
+                  >
                     <div className="h-4 w-1/3 rounded bg-gray-200" />
                     <div className="h-3 w-2/3 rounded bg-gray-200" />
                   </div>
@@ -432,32 +490,30 @@ export default function ManageWorkDetailPage() {
                 </span>
               </div>
 
-            <div className="flex flex-col gap-1 text-sm text-gray-500">
-              <p>หมายเลขแจ้ง : {data.requestNo}</p>
-              <p>ผู้ใช้งานภายในองค์กร : {data.customerName}</p>
-              <p>ระบบ : {data.systemName}</p>
-            </div>
-
-            <textarea
-              readOnly
-              value={data.detail}
-              rows={12}
-              className="w-full resize-none rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 outline-none"
-            />
-
-            {data.wasReopened ? (
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setShowReopenModal(true)}
-                  className="rounded-lg border border-[#F4A0A0] bg-[#FFF0F0] px-4 py-2 text-[14px] font-semibold text-[#D9534F] hover:bg-[#FFF5F5] transition-colors"
-                >
-                  ดูการตีกลับล่าสุด
-                </button>
+              <div className="flex flex-col gap-1 text-sm text-gray-500">
+                <p>หมายเลขแจ้ง : {data.requestNo}</p>
+                <p>ผู้ใช้งานภายในองค์กร : {data.customerName}</p>
+                <p>ระบบ : {data.systemName}</p>
               </div>
-            ) : null}
 
+              <textarea
+                readOnly
+                value={data.detail}
+                rows={12}
+                className="w-full resize-none rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 outline-none"
+              />
 
+              {data.wasReopened ? (
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setShowReopenModal(true)}
+                    className="rounded-lg border border-[#F4A0A0] bg-[#FFF0F0] px-4 py-2 text-[14px] font-semibold text-[#D9534F] hover:bg-[#FFF5F5] transition-colors"
+                  >
+                    ดูการตีกลับล่าสุด
+                  </button>
+                </div>
+              ) : null}
 
               {/* Attachments */}
               {attachments.length > 0 && (
@@ -471,7 +527,10 @@ export default function ManageWorkDetailPage() {
                       const url = `${API_BASE_URL}/uploads/requests/${fileName}`;
                       const ext = (file.fileExt ?? "").toLowerCase();
                       const isImage = IMAGE_EXTS.includes(ext);
-                      const nameNoExt = file.originalName.replace(new RegExp(`\\.${ext}$`, "i"), "");
+                      const nameNoExt = file.originalName.replace(
+                        new RegExp(`\\.${ext}$`, "i"),
+                        "",
+                      );
                       return isImage ? (
                         <button
                           key={file.id}
@@ -483,8 +542,12 @@ export default function ManageWorkDetailPage() {
                             <ImageIcon size={20} className="text-blue-500" />
                           </div>
                           <div className="flex min-w-0 flex-col text-left">
-                            <span className="truncate text-[13px] font-medium text-gray-800">{nameNoExt}</span>
-                            <span className="text-[11px] text-gray-400">{ext.toUpperCase()}</span>
+                            <span className="truncate text-[13px] font-medium text-gray-800">
+                              {nameNoExt}
+                            </span>
+                            <span className="text-[11px] text-gray-400">
+                              {ext.toUpperCase()}
+                            </span>
                           </div>
                         </button>
                       ) : (
@@ -499,8 +562,12 @@ export default function ManageWorkDetailPage() {
                             <FileText size={20} className="text-red-500" />
                           </div>
                           <div className="flex min-w-0 flex-col text-left">
-                            <span className="truncate text-[13px] font-medium text-gray-800">{nameNoExt}</span>
-                            <span className="text-[11px] text-gray-400">{ext.toUpperCase()}</span>
+                            <span className="truncate text-[13px] font-medium text-gray-800">
+                              {nameNoExt}
+                            </span>
+                            <span className="text-[11px] text-gray-400">
+                              {ext.toUpperCase()}
+                            </span>
                           </div>
                         </a>
                       );
@@ -544,24 +611,26 @@ export default function ManageWorkDetailPage() {
                     <span className="text-[18px] font-bold text-gray-800">
                       {stat.value}
                     </span>
-                    <span className="text-[11px] text-gray-500">{stat.label}</span>
+                    <span className="text-[11px] text-gray-500">
+                      {stat.label}
+                    </span>
                   </div>
                 ))}
               </div>
 
-            {/* Due date */}
-            <div className="flex items-center gap-3">
-              <label className="text-[14px] font-semibold text-gray-700 whitespace-nowrap">
-                กำหนดวันส่ง
-              </label>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                min={localToday}
-                className="h-9 rounded-lg border border-gray-300 bg-white px-3 text-[14px] outline-none focus:border-[#366DBD]"
-              />
-            </div>
+              {/* Due date */}
+              <div className="flex items-center gap-3">
+                <label className="text-[14px] font-semibold text-gray-700 whitespace-nowrap">
+                  กำหนดวันส่ง
+                </label>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  min={localToday}
+                  className="h-9 rounded-lg border border-gray-300 bg-white px-3 text-[14px] outline-none focus:border-[#366DBD]"
+                />
+              </div>
 
               {/* Toolbar */}
               <div className="flex gap-2">
@@ -585,7 +654,9 @@ export default function ManageWorkDetailPage() {
                 <button
                   type="button"
                   onClick={() =>
-                    router.push(`/consideration/issue-work/${effectiveRequestId}/assign`)
+                    router.push(
+                      `/consideration/issue-work/${effectiveRequestId}/assign`,
+                    )
                   }
                   className="h-9 rounded-lg border border-[#366DBD] px-4 text-[13px] font-semibold text-[#366DBD] hover:bg-blue-50"
                 >
@@ -593,145 +664,152 @@ export default function ManageWorkDetailPage() {
                 </button>
               </div>
 
-            <div className="flex flex-col gap-3 ">
-              {pagedSub.length === 0 && (
-                <p className="py-10 text-center text-gray-400">ยังไม่มีงานย่อยที่ต้องดำเนินการ</p>
-              )}
-              {pagedSub.map((task) => (
-                <div
-                  key={task.id}
-                  className="text-[15px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-gray-200 p-4"
-                >
-                  <div className="flex flex-col gap-1 min-w-0 flex-1">
-                    <span className="rounded-md border border-gray-200 px-3 py-0.5 text-[13px] text-gray-700 w-fit">
-                      {task.assignedStaffName ?? "ยังไม่มอบหมาย"}
-                    </span>
-                    <p className="text-[17px] px-2 text-gray-500 mt-6">
-                      {task.title}
-                    </p>
-
-                    {/* แสดงเหตุผลการตีกลับล่าสุด (ถ้ามี) */}
-                    {task.rejectReason && (
-                      <p className="mt-2 text-[13px] text-[#D9534F] bg-[#FFF0F0] border border-[#F4A0A0] px-3 py-1.5 rounded-lg w-fit ml-2">
-                        เหตุผลที่ตีกลับ: {task.rejectReason}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 w-full sm:w-auto shrink-0 mt-4 sm:mt-0 pt-3 sm:pt-0 border-t border-gray-100 sm:border-0">
-                    {(task.status === "resolved" || task.status === "closed") ? (
-                      <span className="rounded-md border border-green-200 bg-green-50 px-3 py-1 text-[13px] font-semibold text-green-700">
-                        เสร็จสิ้น
+              <div className="flex flex-col gap-3 ">
+                {pagedSub.length === 0 && (
+                  <p className="py-10 text-center text-gray-400">
+                    ยังไม่มีงานย่อยที่ต้องดำเนินการ
+                  </p>
+                )}
+                {pagedSub.map((task) => (
+                  <div
+                    key={task.id}
+                    className="text-[15px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-gray-200 p-4"
+                  >
+                    <div className="flex flex-col gap-1 min-w-0 flex-1">
+                      <span className="rounded-md border border-gray-200 px-3 py-0.5 text-[13px] text-gray-700 w-fit">
+                        {task.assignedStaffName ?? "ยังไม่มอบหมาย"}
                       </span>
-                    ) : (
-                      <>
-                        <span className="text-[17px] text-gray-500">
-                          {task.dueAt
-                            ? (() => {
-                                const taskDate = new Date(task.dueAt);
-                                taskDate.setHours(0, 0, 0, 0);
-                                const todayDate = new Date();
-                                todayDate.setHours(0, 0, 0, 0);
-                                const days = Math.ceil(
-                                  (taskDate.getTime() - todayDate.getTime()) /
-                                    86400000,
-                                );
-                                if (days === 0) {
-                                  return (
+                      <p className="text-[17px] px-2 text-gray-500 mt-6">
+                        {task.title}
+                      </p>
+
+                      {/* แสดงเหตุผลการตีกลับล่าสุด (ถ้ามี) */}
+                      {task.rejectReason && (
+                        <p className="mt-2 text-[13px] text-[#D9534F] bg-[#FFF0F0] border border-[#F4A0A0] px-3 py-1.5 rounded-lg w-fit ml-2">
+                          เหตุผลที่ตีกลับ: {task.rejectReason}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 w-full sm:w-auto shrink-0 mt-4 sm:mt-0 pt-3 sm:pt-0 border-t border-gray-100 sm:border-0">
+                      {task.status === "resolved" ||
+                      task.status === "closed" ? (
+                        <span className="rounded-md border border-green-200 bg-green-50 px-3 py-1 text-[13px] font-semibold text-green-700">
+                          เสร็จสิ้น
+                        </span>
+                      ) : (
+                        <>
+                          <span className="text-[17px] text-gray-500">
+                            {task.dueAt
+                              ? (() => {
+                                  const taskDate = new Date(task.dueAt);
+                                  taskDate.setHours(0, 0, 0, 0);
+                                  const todayDate = new Date();
+                                  todayDate.setHours(0, 0, 0, 0);
+                                  const days = Math.ceil(
+                                    (taskDate.getTime() - todayDate.getTime()) /
+                                      86400000,
+                                  );
+                                  if (days === 0) {
+                                    return (
+                                      <span className="text-gray-400">
+                                        วันนี้
+                                      </span>
+                                    );
+                                  }
+                                  return days > 0 ? (
                                     <span className="text-gray-400">
-                                      วันนี้
+                                      เหลือ {days} วัน
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-400">
+                                      เกินกำหนด {Math.abs(days)} วัน
                                     </span>
                                   );
-                                }
-                                return days > 0 ? (
-                                  <span className="text-gray-400">
-                                    เหลือ {days} วัน
-                                  </span>
-                                ) : (
-                                  <span className="text-gray-400">
-                                    เกินกำหนด {Math.abs(days)} วัน
-                                  </span>
-                                );
-                              })()
-                            : ""}
-                        </span>
-                        <div className="flex gap-1 mt-6">
-                          <button
-                            type="button"
-                            onClick={() => openEditModal(task.id)}
-                            className="rounded-md border border-gray-300 px-3 text-[14px] text-gray-600 hover:bg-gray-50"
-                          >
-                            แก้ไข
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDeleteConfirmId(task.id)}
-                            className="rounded-md bg-[#D9534F] px-3  text-[14px] text-white hover:bg-red-600"
-                          >
-                            ยกเลิกงาน
-                          </button>
-                        </div>
-                      </>
-                    )}
+                                })()
+                              : ""}
+                          </span>
+                          <div className="flex gap-1 mt-6">
+                            <button
+                              type="button"
+                              onClick={() => openEditModal(task.id)}
+                              className="rounded-md border border-gray-300 px-3 text-[14px] text-gray-600 hover:bg-gray-50"
+                            >
+                              แก้ไข
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDeleteConfirmId(task.id)}
+                              className="rounded-md bg-[#D9534F] px-3  text-[14px] text-white hover:bg-red-600"
+                            >
+                              ยกเลิกงาน
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-auto flex flex-col gap-2">
-              {/* Pagination */}
-              {totalSubPages > 1 && (
-                <div className="flex items-center justify-end gap-1">
-                  <button
-                    onClick={() => setSubPage((p) => Math.max(1, p - 1))}
-                    disabled={subPage === 1}
-                    className="flex h-8 items-center gap-1 rounded-md px-2 text-[13px] text-gray-500 hover:text-[#366DBD] disabled:opacity-40"
-                  >
-                    <ChevronLeft size={14} /> Previous
-                  </button>
-                  {Array.from({ length: totalSubPages }, (_, i) => i + 1).map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setSubPage(p)}
-                      className={`flex h-8 w-8 items-center justify-center rounded-md border text-[13px] ${
-                        subPage === p
-                          ? "border-[#7FA7E8] bg-[#EEF4FF] text-[#3A6FCF]"
-                          : "border-transparent text-gray-600 hover:border-[#7FA7E8]"
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                <button
-                  onClick={() =>
-                    setSubPage((p) => Math.min(totalSubPages, p + 1))
-                  }
-                  disabled={subPage === totalSubPages}
-                  className="flex h-8 items-center gap-1 rounded-md px-2 text-gray-500 hover:text-[#366DBD] disabled:opacity-40"
-                >
-                  Next <ChevronRight size={14} />
-                </button>
+                ))}
               </div>
-              )}
-              <div className="mt-auto flex justify-end pt-4">
-                <button
-                  type="button"
-                  disabled={dueDateLoading || !editedDueDate}
-                  onClick={() => setShowDueDateConfirm(true)}
-                  className="rounded-lg bg-[#366DBD] px-6 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-50"
-                >
-                  {dueDateLoading ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
-                </button>
+
+              <div className="mt-auto flex flex-col gap-2">
+                {/* Pagination */}
+                {totalSubPages > 1 && (
+                  <div className="flex items-center justify-end gap-1">
+                    <button
+                      onClick={() => setSubPage((p) => Math.max(1, p - 1))}
+                      disabled={subPage === 1}
+                      className="flex h-8 items-center gap-1 rounded-md px-2 text-[13px] text-gray-500 hover:text-[#366DBD] disabled:opacity-40"
+                    >
+                      <ChevronLeft size={14} /> Previous
+                    </button>
+                    {Array.from({ length: totalSubPages }, (_, i) => i + 1).map(
+                      (p) => (
+                        <button
+                          key={p}
+                          onClick={() => setSubPage(p)}
+                          className={`flex h-8 w-8 items-center justify-center rounded-md border text-[13px] ${
+                            subPage === p
+                              ? "border-[#7FA7E8] bg-[#EEF4FF] text-[#3A6FCF]"
+                              : "border-transparent text-gray-600 hover:border-[#7FA7E8]"
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      ),
+                    )}
+                    <button
+                      onClick={() =>
+                        setSubPage((p) => Math.min(totalSubPages, p + 1))
+                      }
+                      disabled={subPage === totalSubPages}
+                      className="flex h-8 items-center gap-1 rounded-md px-2 text-gray-500 hover:text-[#366DBD] disabled:opacity-40"
+                    >
+                      Next <ChevronRight size={14} />
+                    </button>
+                  </div>
+                )}
+                <div className="mt-auto flex justify-end pt-4">
+                  <button
+                    type="button"
+                    disabled={dueDateLoading || !editedDueDate}
+                    onClick={() => setShowDueDateConfirm(true)}
+                    className="rounded-lg bg-[#366DBD] px-6 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-50"
+                  >
+                    {dueDateLoading ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
         )}
       </div>
 
       {/* Cancel confirmation dialog */}
       <AdminModalShell
         open={deleteConfirmId !== null}
-        onOpenChange={(open) => { if (!open) setDeleteConfirmId(null); }}
+        onOpenChange={(open) => {
+          if (!open) setDeleteConfirmId(null);
+        }}
         title="ยืนยันการยกเลิกงาน"
         widthClassName="max-w-[460px]"
       >
@@ -886,7 +964,8 @@ export default function ManageWorkDetailPage() {
           </div>
 
           <p className="text-[15px] text-[#6B7280]">
-            คุณต้องการเปลี่ยนวันส่งของเรื่องหลักนี้ใช่หรือไม่? (วันส่งของงานย่อยที่ยังไม่ได้เริ่มและเกินกำหนดจะถูกปรับลดให้อัตโนมัติ)
+            คุณต้องการเปลี่ยนวันส่งของเรื่องหลักนี้ใช่หรือไม่?
+            (วันส่งของงานย่อยที่ยังไม่ได้เริ่มและเกินกำหนดจะถูกปรับลดให้อัตโนมัติ)
           </p>
 
           <div className="flex w-full justify-center gap-3 pt-1">
@@ -1033,7 +1112,9 @@ export default function ManageWorkDetailPage() {
       >
         <div className="space-y-5">
           <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-[14px]">
-            <p className="font-semibold text-gray-700 mb-1">ความคิดเห็นการตีกลับ</p>
+            <p className="font-semibold text-gray-700 mb-1">
+              ความคิดเห็นการตีกลับ
+            </p>
             <p className="text-gray-600 whitespace-pre-wrap text-left indent-8">
               {data?.latestReopenComment || "-"}
             </p>
@@ -1041,12 +1122,16 @@ export default function ManageWorkDetailPage() {
 
           {reopenFiles.length > 0 && (
             <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-[14px]">
-              <p className="font-semibold text-gray-700 mb-2">ไฟล์แนบการตีกลับ ({reopenFiles.length})</p>
+              <p className="font-semibold text-gray-700 mb-2">
+                ไฟล์แนบการตีกลับ ({reopenFiles.length})
+              </p>
               <div className="flex flex-col gap-2">
                 {reopenFiles.map((file) => {
                   const fileName = file.savedName ?? file.originalName;
                   const url = `${API_BASE_URL}/uploads/requests/${fileName}`;
-                  const isImage = IMAGE_EXTS.includes((file.fileExt ?? "").toLowerCase());
+                  const isImage = IMAGE_EXTS.includes(
+                    (file.fileExt ?? "").toLowerCase(),
+                  );
                   return (
                     <button
                       key={file.id}
@@ -1061,9 +1146,15 @@ export default function ManageWorkDetailPage() {
                       className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 text-left transition hover:border-[#366DBD] hover:bg-[#F8FBFF] w-full"
                     >
                       {isImage ? (
-                        <ImageIcon size={18} className="shrink-0 text-[#2F66C5]" />
+                        <ImageIcon
+                          size={18}
+                          className="shrink-0 text-[#2F66C5]"
+                        />
                       ) : (
-                        <FileText size={18} className="shrink-0 text-[#D1435B]" />
+                        <FileText
+                          size={18}
+                          className="shrink-0 text-[#D1435B]"
+                        />
                       )}
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[13px] font-medium text-gray-800">
@@ -1088,6 +1179,6 @@ export default function ManageWorkDetailPage() {
           </div>
         </div>
       </AdminModalShell>
-  </>
-);
+    </>
+  );
 }

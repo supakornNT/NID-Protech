@@ -16,6 +16,7 @@ export default function IssueWorkPage() {
   const filtered = rows.filter(
     (item) =>
       search === "" ||
+      item.requestNo.includes(search) ||
       item.title.includes(search) ||
       item.systemName.includes(search) ||
       item.customerName.includes(search) ||
@@ -100,7 +101,7 @@ export default function IssueWorkPage() {
                 <div className="flex flex-col gap-1.5">
                   <div className="flex items-center gap-2">
                     <p className="text-[17px] font-bold text-gray-900">
-                      {item.title}
+                      {item.requestNo}
                     </p>
                     {!!item.wasRejected && (
                       <span className="rounded-md border border-[#F4A0A0] bg-[#FFF0F0] px-2.5 py-0.5 text-[12px] text-[#D9534F]">
@@ -108,6 +109,9 @@ export default function IssueWorkPage() {
                       </span>
                     )}
                   </div>
+                  <p className="text-[14px] text-gray-500">
+                    หัวข้อ : {item.title}
+                  </p>
                   <p className="text-[14px] text-gray-500">
                     หมายเลขแจ้ง : {item.requestNo}
                   </p>

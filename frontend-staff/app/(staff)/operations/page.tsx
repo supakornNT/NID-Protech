@@ -56,6 +56,7 @@ export default function OperationsPage() {
       const typeLabel = TYPE_LABEL[item.requestType] ?? item.requestType;
       const matchSearch =
         search === "" ||
+        item.ticketNo.includes(search) ||
         item.title.includes(search) ||
         item.customerName.includes(search) ||
         (item.systemName ?? "").includes(search);
@@ -192,8 +193,13 @@ export default function OperationsPage() {
                 <div key={item.id} className="bg-white p-5">
                   <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                     <div className="flex flex-col gap-1">
-                      <p className="text-[16px] font-bold text-gray-900">{item.title}</p>
+                      <p className="text-[16px] font-bold text-gray-900">
+                        {item.ticketNo}
+                      </p>
                       <div className="flex flex-col gap-0.5">
+                        <p className="text-[13px] text-gray-500">
+                          หัวข้อ : {item.title}
+                        </p>
                         <p className="text-[13px] text-gray-500">
                           ผู้ใช้งานภายในองค์กร : {item.customerName}
                         </p>

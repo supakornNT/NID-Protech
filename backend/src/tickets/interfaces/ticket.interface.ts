@@ -78,6 +78,7 @@ export interface WorkDetail extends RowDataPacket {
 
 export interface MyWorkItem extends RowDataPacket {
   id: number;
+  ticketNo: string;
   requestId: number;
   title: string;
   status: string;

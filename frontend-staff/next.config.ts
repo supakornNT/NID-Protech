@@ -30,11 +30,20 @@ const nextConfig: NextConfig = {
     ];
   },
   async redirects() {
+    const routeAliases = [
+      {
+        source: "/issue-work/:path*",
+        destination: "/consideration/issue-work/:path*",
+        permanent: false,
+      },
+    ];
+
     if (!basePath) {
-      return [];
+      return routeAliases;
     }
 
     return [
+      ...routeAliases,
       {
         source: "/",
         destination: basePath,

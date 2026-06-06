@@ -80,10 +80,10 @@ export class RequestsController {
     return this.request.findOne(id);
   }
 
-  @Post()
-  create(@Body() body: CreateRequestDto) {
-    return this.request.create(body);
-  }
+  // @Post()
+  // create(@Body() body: CreateRequestDto) {
+  //   return this.request.create(body);
+  // }
 
   @Post('internal')
   @UseInterceptors(FilesInterceptor('files', 10, { storage: internalStorage }))

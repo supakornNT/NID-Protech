@@ -25,23 +25,46 @@ export function mapTrackResponse(
   requestStatusLogs: StatusLogRow[],
 ): PublicRequestTrack {
   const currentStep = getCurrentStepHelper(request.requestStatus);
-  const firstInProgressLog = requestStatusLogs.find(
-    (log) => log.status === "assigned" || log.status === "in_progress",
-  );
-  const waitingConfirmLog = requestStatusLogs.find(
-    (log) => log.status === "waiting_confirm",
-  );
-  const screeningLog = requestStatusLogs.find(
-    (log) => log.status === "screening",
-  );
-  const rejectedLog = requestStatusLogs.find(
-    (log) => log.status === "rejected",
-  );
+  const findFirst = (status: string, after?: Date | string) => {
+    const afterTime = after
+      ? new Date(after).getTime()
+      : Number.NEGATIVE_INFINITY;
+    return requestStatusLogs.find(
+      (log) =>
+        log.status === status && new Date(log.created_at).getTime() >= afterTime,
+    );
+  };
+  const findLast = (status: string) => {
+    for (let index = requestStatusLogs.length - 1; index >= 0; index -= 1) {
+      if (requestStatusLogs[index].status === status) {
+        return requestStatusLogs[index];
+      }
+    }
+    return undefined;
+  };
+
+  const firstAssignedLog = findFirst("assigned");
+  const latestAssignedLog = findLast("assigned");
+  const currentCycleStart = latestAssignedLog?.created_at;
+  const inProgressLog = currentCycleStart
+    ? findFirst("in_progress", currentCycleStart)
+    : findFirst("in_progress");
+  const waitingConfirmLog = inProgressLog
+    ? findFirst("waiting_confirm", inProgressLog.created_at)
+    : undefined;
+  const closedLog = waitingConfirmLog
+    ? findFirst("closed", waitingConfirmLog.created_at)
+    : undefined;
+  const rejectedLog = findLast("rejected");
 
   const requestedAt = toDateTimePartsUtil(request.requestCreatedAt);
-  const screeningAt = toDateTimePartsUtil(screeningLog?.created_at);
-  const inProgressAt = toDateTimePartsUtil(firstInProgressLog?.created_at);
+  const screeningAt = toDateTimePartsUtil(
+    request.requestStatus === "rejected"
+      ? rejectedLog?.created_at
+      : firstAssignedLog?.created_at,
+  );
   const waitingConfirmAt = toDateTimePartsUtil(waitingConfirmLog?.created_at);
+  const closedAt = toDateTimePartsUtil(closedLog?.created_at);
   const customerConfirmDueAt = getCustomerConfirmDueAtHelper(
     waitingConfirmLog?.created_at,
   );
@@ -67,14 +90,14 @@ export function mapTrackResponse(
     {
       label: "ดำเนินการ",
       status: step3Status,
-      date: step3Status === "pending" ? undefined : inProgressAt.date,
-      time: step3Status === "pending" ? undefined : inProgressAt.time,
+      date: step3Status === "pending" ? undefined : waitingConfirmAt.date,
+      time: step3Status === "pending" ? undefined : waitingConfirmAt.time,
     },
     {
       label: "รอตรวจสอบโดยลูกค้า",
       status: step4Status,
-      date: step4Status === "pending" ? undefined : waitingConfirmAt.date,
-      time: step4Status === "pending" ? undefined : waitingConfirmAt.time,
+      date: step4Status === "pending" ? undefined : closedAt.date,
+      time: step4Status === "pending" ? undefined : closedAt.time,
     },
   ];
 

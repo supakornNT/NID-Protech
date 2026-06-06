@@ -95,6 +95,7 @@ export default function IssuesPage() {
     closeReject,
   } = useRejectComplaint((id) =>
     setRows((prev) => prev.filter((row) => row.id !== id)),
+    staffId,
   );
   const {
     acceptId,

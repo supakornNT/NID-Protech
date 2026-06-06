@@ -150,25 +150,25 @@ export class RequestsService {
     return rows;
   }
 
-  async create(dto: CreateRequestDto): Promise<RequestRecord | null> {
-    const [result] = await this.db.query<ResultSetHeader>(
-      'INSERT INTO requests (request_no, customer_id, organization, system_id, problem_type_id, title, detail, status, score, closed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [
-        dto.requestNo ?? dto.request_no,
-        dto.customerId ?? dto.customer_id,
-        dto.organization ?? null,
-        dto.systemId ?? dto.system_id ?? null,
-        dto.problemTypeId ?? dto.problem_type_id,
-        dto.title,
-        dto.detail,
-        dto.status,
-        dto.score ?? null,
-        dto.closedAt ?? dto.closed_at ?? null,
-      ],
-    );
+  // async create(dto: CreateRequestDto): Promise<RequestRecord | null> {
+  //   const [result] = await this.db.query<ResultSetHeader>(
+  //     'INSERT INTO requests (request_no, customer_id, organization, system_id, problem_type_id, title, detail, status, score, closed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+  //     [
+  //       dto.requestNo ?? dto.request_no,
+  //       dto.customerId ?? dto.customer_id,
+  //       dto.organization ?? null,
+  //       dto.systemId ?? dto.system_id ?? null,
+  //       dto.problemTypeId ?? dto.problem_type_id,
+  //       dto.title,
+  //       dto.detail,
+  //       dto.status,
+  //       dto.score ?? null,
+  //       dto.closedAt ?? dto.closed_at ?? null,
+  //     ],
+  //   );
 
-    return this.findOne(result.insertId);
-  }
+  //   return this.findOne(result.insertId);
+  // }
 
   async update(
     id: number,
@@ -426,13 +426,21 @@ export class RequestsService {
   }
 
   getPdfPath(id: number): string {
-    return join(process.cwd(), '..', 'uploads', 'pdf', 'screening', `${id}.pdf`);
+    return join(
+      process.cwd(),
+      '..',
+      'uploads',
+      'pdf',
+      'screening',
+      `${id}.pdf`,
+    );
   }
 
   async findTracking(): Promise<RequestTracking[]> {
     const [requests] = await this.db.query<RequestTrackingRow[]>(
       `SELECT
         r.id,
+        r.request_no AS requestNo,
         r.title,
         r.status,
         r.created_at AS createdAt,
@@ -459,7 +467,13 @@ export class RequestsService {
       LEFT JOIN customers c ON c.id = r.customer_id
       LEFT JOIN systems s ON s.id = r.system_id
       LEFT JOIN problem_types pt ON pt.id = r.problem_type_id
-      WHERE r.status NOT IN ('screening', 'rejected')
+      WHERE r.status IN (
+      'screening',
+      'assigned',
+      'in_progress',
+      'waiting_confirm',
+      'closed'
+)
       ORDER BY r.created_at DESC`,
     );
 
@@ -470,7 +484,7 @@ export class RequestsService {
       `SELECT request_id, status, created_at
        FROM request_status_logs
        WHERE request_id IN (?)
-       ORDER BY created_at DESC`,
+       ORDER BY created_at ASC`,
       [ids],
     );
 
@@ -492,12 +506,26 @@ export class RequestsService {
       };
     };
 
-    const STATUS_STEP_MAP = {
-      screening: 0,
-      assigned: 1,
-      in_progress: 2,
-      waiting_confirm: 3,
-      closed: 4,
+    const findFirst = (
+      logs: RequestTrackingLogRow[],
+      status: string,
+      after?: Date | string,
+    ) => {
+      const afterTime = after
+        ? new Date(after).getTime()
+        : Number.NEGATIVE_INFINITY;
+      return logs.find(
+        (log) =>
+          log.status === status &&
+          new Date(log.created_at).getTime() >= afterTime,
+      );
+    };
+
+    const findLast = (logs: RequestTrackingLogRow[], status: string) => {
+      for (let index = logs.length - 1; index >= 0; index -= 1) {
+        if (logs[index].status === status) return logs[index];
+      }
+      return undefined;
     };
 
     return requests.map((r) => {
@@ -519,12 +547,31 @@ export class RequestsService {
         fmt(rLogs.find((l) => l.status === 'closed')?.created_at, 'เสร็จสิ้น'),
       ];
 
-      const currentStepIndex =
-        STATUS_STEP_MAP[r.status as keyof typeof STATUS_STEP_MAP] ?? 0;
-      const steps = allSteps.slice(0, currentStepIndex);
+      const screeningLog = findFirst(rLogs, 'screening');
+      const firstAssignedLog = findFirst(rLogs, 'assigned');
+      const currentAssignedLog = findLast(rLogs, 'assigned');
+      const assignedCompletedLog = currentAssignedLog
+        ? findFirst(rLogs, 'in_progress', currentAssignedLog.created_at) ??
+          findFirst(rLogs, 'waiting_confirm', currentAssignedLog.created_at)
+        : findFirst(rLogs, 'in_progress');
+      const inProgressCompletedLog = assignedCompletedLog
+        ? findFirst(rLogs, 'waiting_confirm', assignedCompletedLog.created_at)
+        : undefined;
+      const waitingConfirmCompletedLog = inProgressCompletedLog
+        ? findFirst(rLogs, 'closed', inProgressCompletedLog.created_at)
+        : undefined;
+
+      const steps = [
+        fmt(screeningLog?.created_at ?? r.createdAt, 'รับเรื่อง'),
+        fmt(firstAssignedLog?.created_at, 'คัดกรอง'),
+        fmt(assignedCompletedLog?.created_at, 'มอบหมายงาน'),
+        fmt(inProgressCompletedLog?.created_at, 'ดำเนินการแก้ไข'),
+        fmt(waitingConfirmCompletedLog?.created_at, 'รอลูกค้ายืนยัน'),
+      ];
 
       return {
         id: r.id,
+        requestNo: r.requestNo,
         title: r.title,
         status: r.status,
         customerName: r.customerName,

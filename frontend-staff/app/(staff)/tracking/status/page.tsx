@@ -12,11 +12,27 @@ const LIMIT = 10;
 const ALL_OPTION = "ทั้งหมด";
 
 const STATUS_STEPS = [
-  "แจ้งปัญหา",
   "คัดกรอง",
+  "มอบหมายงาน",
   "ดำเนินการ",
   "รอตรวจสอบโดยลูกค้า",
   "เสร็จสิ้น",
+];
+
+const STATUS_TO_STEP : Record<string, number>= {
+  screening: 1,
+  assigned: 2,
+  in_progress: 3,
+  waiting_confirm: 4,
+  closed: 4,
+};
+
+const TRACKING_STEP_LABELS = [
+  "รับเรื่อง",
+  "คัดกรอง",
+  "มอบหมายงาน",
+  "ดำเนินการแก้ไข",
+  "รอลูกค้ายืนยัน",
 ];
 
 const STATUS_MAP: Record<string, { label: string; style: string }> = {
@@ -51,13 +67,6 @@ const STATUS_FILTER_OPTIONS = [
   { value: "เสร็จสิ้น", label: "เสร็จสิ้น" },
 ];
 
-const STATUS_TO_STEP: Record<string, number> = {
-  screening: 0,
-  assigned: 1,
-  in_progress: 2,
-  waiting_confirm: 3,
-  closed: 4,
-};
 
 function formatTimeLeft(dueAt: string | null, status: string): string {
   if (status === "closed") return "เสร็จสิ้นแล้ว";
@@ -83,9 +92,9 @@ function StepperBar({
 
   return (
     <div className="mt-3 flex items-start gap-0 min-w-[550px] md:min-w-0">
-      {STATUS_STEPS.map((label, stepIndex) => {
+      {TRACKING_STEP_LABELS.map((label, stepIndex) => {
         const stepInfo = steps[stepIndex];
-        const isLast = stepIndex === STATUS_STEPS.length - 1;
+        const isLast = stepIndex === TRACKING_STEP_LABELS.length - 1;
         const done = isLast ? status === "closed" : allDone || !!stepInfo;
         const isCurrent = !allDone && stepIndex === currentStepIndex;
 
@@ -177,6 +186,7 @@ export default function TrackingStatusPage() {
       const statusLabel = STATUS_MAP[item.status]?.label ?? item.status;
       const matchSearch =
         search === "" ||
+        item.requestNo.includes(search) ||
         item.title.includes(search) ||
         item.customerName.includes(search) ||
         item.systemName.includes(search);
@@ -292,7 +302,7 @@ export default function TrackingStatusPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-[16px] font-bold text-gray-900">
-                        {item.title}
+                        {item.requestNo}
                       </p>
                       <span className="rounded-md border border-[#F4A0A0] bg-[#FFF0F0] px-2.5 py-0.5 text-[12px] text-[#D9534F]">
                         {item.problemName}
@@ -305,6 +315,9 @@ export default function TrackingStatusPage() {
 
                   <div className="flex items-start justify-between gap-4">
                     <div className="mt-1 flex flex-col gap-0.5">
+                      <p className="text-[13px] text-gray-500">
+                        หัวข้อ : {item.title}
+                      </p>
                       <p className="text-[13px] text-gray-500">
                         ผู้ใช้งานภายในองค์กร : {item.customerName}
                       </p>

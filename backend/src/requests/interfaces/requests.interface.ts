@@ -8,6 +8,7 @@ export interface StepInfo {
 
 export interface RequestTracking {
   id: number;
+  requestNo: string;
   title: string;
   status: string;
   customerName: string;
@@ -21,6 +22,7 @@ export interface RequestTracking {
 
 export interface RequestTrackingRow extends RowDataPacket {
   id: number;
+  requestNo: string;
   title: string;
   status: string;
   createdAt: Date | string;

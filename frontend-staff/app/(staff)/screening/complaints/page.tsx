@@ -72,6 +72,7 @@ export default function ComplaintsPage() {
   const { rejectId, rejectReason, submitting: rejectSubmitting, setRejectReason, openReject, handleReject, closeReject } =
     useRejectComplaint((id) =>
       setRows((prev) => prev.filter((r) => r.id !== id)),
+      staffId,
     );
   const { acceptId, submitting: acceptSubmitting, openAccept, handleAccept, closeAccept } =
     useAcceptComplaint((id) => setRows((prev) => prev.filter((r) => r.id !== id)), staffId);

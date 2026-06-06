@@ -293,6 +293,7 @@ export class TicketsService {
     const [rows] = await this.db.query<MyWorkItem[]>(
       `SELECT
         tickets.id,
+        tickets.ticket_no AS ticketNo,
         tickets.request_id AS requestId,
         tickets.title,
         tickets.status,

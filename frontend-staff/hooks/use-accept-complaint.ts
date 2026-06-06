@@ -39,7 +39,7 @@ export function useAcceptComplaint(
           credentials: "include",
           body: JSON.stringify({
             requestId: acceptId,
-            status: "screening",
+            status: "assigned",
             changedByType: "staff",
             changedById: staffId,
             note: acceptReason || null,

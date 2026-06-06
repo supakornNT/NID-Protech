@@ -166,9 +166,17 @@ function getActiveStep(statusCode: string | undefined): number {
 }
 
 function buildRepairDetail(request: TrackingDetailView): RepairDetail {
+  if (request.statusCode === "rejected") {
+    return {
+      description: request.solution ?? "-",
+      repairedAt: request.repairedAt ?? "-",
+      files: request.repairFiles ?? [],
+    };
+  }
+
   return {
-    description: request.solution ?? "-",
-    repairedAt: request.repairedAt ?? "-",
+    description: "",
+    repairedAt: "",
     files: request.repairFiles ?? [],
   };
 }

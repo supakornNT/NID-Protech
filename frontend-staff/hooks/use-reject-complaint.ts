@@ -2,7 +2,10 @@ import { useState } from "react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
-export function useRejectComplaint(onSuccess: (id: number) => void) {
+export function useRejectComplaint(
+  onSuccess: (id: number) => void,
+  staffId?: number,
+) {
   const [rejectId, setRejectId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -12,7 +15,7 @@ export function useRejectComplaint(onSuccess: (id: number) => void) {
 
     setSubmitting(true);
     try {
-      const [r1, r2] = await Promise.all([
+      const [r1, r2, r3] = await Promise.all([
         fetch(`${API_BASE_URL}/requests/update/status?id=${rejectId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -27,11 +30,24 @@ export function useRejectComplaint(onSuccess: (id: number) => void) {
             requestId: rejectId,
             result: "rejected",
             note: rejectReason,
+            screenedBy: staffId,
+          }),
+        }),
+        fetch(`${API_BASE_URL}/admin/request-status-logs`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            requestId: rejectId,
+            status: "rejected",
+            changedByType: "staff",
+            changedById: staffId ?? null,
+            note: rejectReason || null,
           }),
         }),
       ]);
 
-      if (!r1.ok || !r2.ok) throw new Error("Reject complaint failed");
+      if (!r1.ok || !r2.ok || !r3.ok) throw new Error("Reject complaint failed");
       onSuccess(rejectId);
       close();
     } finally {
