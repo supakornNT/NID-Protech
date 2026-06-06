@@ -120,7 +120,7 @@ export function mapTrackResponse(
     timeline,
     solution: request.requestStatus === "rejected"
       ? (rejectedLog?.note ?? "")
-      : (request.resolutionSummary ?? ""),
+      : (waitingConfirmLog?.note ?? ""),
     repairedAt: request.requestStatus === "rejected"
       ? formatDateTimeUtil(rejectedLog?.created_at ?? null)
       : formatDateTimeUtil(request.reviewedAt),

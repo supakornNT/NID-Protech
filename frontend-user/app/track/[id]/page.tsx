@@ -236,7 +236,8 @@ export default function Page({ params }: Props) {
     request.statusCode === "rejected" ||
     ((request.statusCode === "waiting_confirm" ||
       request.statusCode === "closed") &&
-      (request.repairFiles?.length ?? 0) > 0);
+      ((request.repairFiles?.length ?? 0) > 0 ||
+        !!request.solution?.trim()));
   const hasRequestFiles = (request.requestFiles?.length ?? 0) > 0;
   const problem = request.problem?.trim() || "-";
   const problemDetail = request.problemDetail?.trim() || "-";

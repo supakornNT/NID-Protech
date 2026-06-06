@@ -151,7 +151,8 @@ export default function CloseWorkListPage() {
                 className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white px-4 sm:px-6 py-5"
               >
                 <div className="flex flex-col gap-1.5">
-                  <p className="text-[17px] font-bold text-gray-900">{item.title}</p>
+                  <p className="text-[17px] font-bold text-gray-900">{item.requestNo}</p>
+                  <p className="text-[14px] text-gray-500">หัวข้อ : {item.title}</p>
                   <p className="text-[14px] text-gray-500">เลขคำขอ : {item.requestNo}</p>
                   <p className="text-[14px] text-gray-500">ผู้แจ้ง : {item.customerName}</p>
                   <p className="text-[14px] text-gray-500">ระบบ : {item.systemName || "-"}</p>

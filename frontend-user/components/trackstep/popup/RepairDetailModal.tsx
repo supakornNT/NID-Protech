@@ -103,7 +103,7 @@ export default function RepairDetailModal({
               <p className="text-xs font-semibold text-gray-500 mb-1">
                 {descriptionLabel || "รายละเอียดการแก้ไข"}
               </p>
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">
+              <p className="break-words text-sm text-gray-700 whitespace-pre-wrap [overflow-wrap:anywhere]">
                 {data.description}
               </p>
             </div>

@@ -175,7 +175,7 @@ function buildRepairDetail(request: TrackingDetailView): RepairDetail {
   }
 
   return {
-    description: "",
+    description: request.solution ?? "-",
     repairedAt: "",
     files: request.repairFiles ?? [],
   };

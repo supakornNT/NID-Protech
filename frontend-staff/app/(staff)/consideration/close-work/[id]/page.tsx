@@ -203,6 +203,7 @@ export default function CloseWorkDetailPage() {
   const [ticketLoading, setTicketLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
+  const [approvalSummary, setApprovalSummary] = useState("");
   const [modal, setModal] = useState<ModalState>(null);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -293,6 +294,7 @@ export default function CloseWorkDetailPage() {
     setSelectedTicket(ticket);
     setTicketFiles([]);
     setRejectReason(ticket.rejectReason ?? "");
+    setApprovalSummary("");
     setTicketLoading(true);
 
     try {
@@ -327,20 +329,29 @@ export default function CloseWorkDetailPage() {
       setModal("error");
       return;
     }
+    if (isFinalApproval && !approvalSummary.trim()) {
+      setErrorMessage("กรุณาระบุรายละเอียดการแก้ไขโดยรวม");
+      setModal("error");
+      return;
+    }
+    setModal(null);
     setActionLoading(true);
     try {
       await approveTicket(
         selectedTicket.id,
         selectedTicket.resolutionRequestId,
         Number(staff?.id ?? 0),
+        isFinalApproval ? approvalSummary.trim() : undefined,
       );
       const updatedTickets = await refreshRequestDetail();
       await fetchRequests(tab);
       setSelectedTicket(null);
       setTicketFiles([]);
       setRejectReason("");
+      setApprovalSummary("");
 
       if (tab === "pending" && updatedTickets.length === 0) {
+        setModal(null);
         router.push(`/consideration/close-work?tab=${tab}`);
         return;
       }
@@ -407,6 +418,12 @@ export default function CloseWorkDetailPage() {
     if (!selectedRequest) return "ไม่พบคำขอนี้ในรายการปัจจุบัน";
     return "";
   }, [loading, requestLoading, error, selectedRequest]);
+  const isFinalApproval =
+    tab === "pending" &&
+    !!selectedTicket &&
+    requestTickets.filter(
+      (ticket) => ticket.status !== "closed" && ticket.status !== "cancelled",
+    ).length <= 1;
 
   return (
     <>
@@ -718,25 +735,45 @@ export default function CloseWorkDetailPage() {
       <AdminModalShell
         open={modal === "confirmApprove"}
         onOpenChange={(open) => {
-          if (!open) setModal(null);
+          if (!open) {
+            setModal(null);
+            setApprovalSummary("");
+          }
         }}
         title="ยืนยันการอนุมัติ"
         widthClassName="max-w-[420px]"
       >
         <div className="space-y-5 text-center">
           <div className="flex justify-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#EEF4FF] text-[#2F66C5]">
-              <ShieldCheck size={28} />
-            </div>
+           
           </div>
-          <p className="text-[15px] leading-7 text-gray-600">
-            คุณต้องการอนุมัติผลการแก้ไขของตั๋วย่อยนี้ใช่หรือไม่
-          </p>
+          
+          {isFinalApproval ? (
+            <div className="text-left">
+              <label
+                htmlFor="approval-summary"
+                className="mb-1 block text-[13px] font-semibold text-gray-700"
+              >
+                รายละเอียดการแก้ไขโดยรวม <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                id="approval-summary"
+                value={approvalSummary}
+                onChange={(event) => setApprovalSummary(event.target.value)}
+                rows={4}
+                placeholder="สรุปรายละเอียดการแก้ไขทั้งหมดสำหรับให้ลูกค้าตรวจสอบ"
+                className="w-full resize-none rounded-xl border border-gray-300 px-3 py-2 text-[14px] outline-none focus:border-[#366DBD]"
+              />
+            </div>
+          ) : null}
           <div className="flex w-full justify-center gap-3">
-            <ProTechButton variant="delete" className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30 text-[14px]" onClick={() => setModal(null)}>
+            <ProTechButton variant="delete" className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30 text-[14px]" onClick={() => {
+              setModal(null);
+              setApprovalSummary("");
+            }}>
               ยกเลิก
             </ProTechButton>
-            <ProTechButton variant="primary" className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30 text-[14px]" onClick={handleApprove} disabled={actionLoading}>
+            <ProTechButton variant="primary" className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30 text-[14px]" onClick={handleApprove} disabled={actionLoading || (isFinalApproval && !approvalSummary.trim())}>
               ยืนยัน
             </ProTechButton>
           </div>

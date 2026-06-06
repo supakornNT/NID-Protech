@@ -123,11 +123,16 @@ export function useCloseWork() {
   }, []);
 
   const approveTicket = useCallback(
-    async (ticketId: number, resolutionRequestId: number, reviewedBy: number) => {
+    async (
+      ticketId: number,
+      resolutionRequestId: number,
+      reviewedBy: number,
+      summary?: string,
+    ) => {
       const response = await fetch(`${API_BASE_URL}/admin/close-work/tickets/${ticketId}/approve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resolutionRequestId, reviewedBy }),
+        body: JSON.stringify({ resolutionRequestId, reviewedBy, summary }),
       });
 
       if (!response.ok) {

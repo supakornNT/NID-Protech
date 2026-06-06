@@ -139,6 +139,7 @@ export class CloseWorkService {
     ticketId: number,
     resolutionRequestId: number,
     reviewedBy: number,
+    summary?: string,
   ) {
     const connection = await this.db.getConnection();
     try {
@@ -187,6 +188,9 @@ export class CloseWorkService {
 
         const total = Number(countRows[0]?.total ?? 0);
         if (total === 0) {
+          const requestSummary =
+            summary?.trim() ||
+            'เธ—เธธเธเธเธฒเธเธขเนเธญเธขเธเนเธฒเธเธญเธเธธเธกเธฑเธ•เธดเนเธฅเธฐเธฃเธญเธฅเธนเธเธเนเธฒเธขเธทเธเธขเธฑเธ';
           await connection.query(
             `UPDATE requests
              SET status = 'waiting_confirm'
@@ -199,6 +203,13 @@ export class CloseWorkService {
               request_id, status, changed_by_type, changed_by_id, note
             ) VALUES (?, 'waiting_confirm', 'staff', ?, 'ทุกงานย่อยผ่านอนุมัติและรอลูกค้ายืนยัน')`,
             [requestId, reviewedBy],
+          );
+
+          await connection.query(
+            `UPDATE request_status_logs
+             SET note = ?
+             WHERE id = LAST_INSERT_ID()`,
+            [requestSummary],
           );
         }
       }

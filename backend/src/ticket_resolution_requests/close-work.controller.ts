@@ -75,6 +75,7 @@ export class CloseWorkController {
     @Param('ticketId', ParseIntPipe) ticketId: number,
     @Body('resolutionRequestId', ParseIntPipe) resolutionRequestId: number,
     @Body('reviewedBy') reviewedByBody: number,
+    @Body('summary') summary: string | undefined,
     @Req() req: Request,
   ) {
     const reviewedBy = this.getStaffId(req, reviewedByBody);
@@ -82,6 +83,7 @@ export class CloseWorkController {
       ticketId,
       resolutionRequestId,
       reviewedBy,
+      summary,
     );
   }
 
