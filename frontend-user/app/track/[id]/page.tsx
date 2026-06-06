@@ -177,14 +177,15 @@ export default function Page({ params }: Props) {
 
   function handleOpenRoundStaffDetail(round: ReopenRound) {
     setRepairDetail({
-      description: "",
-      repairedAt: "",
+      description: round.staffSummary || "-",
+      repairedAt: round.staffRepairedAt || "-",
       files: round.staffFiles,
     });
     setRepairDetailModalProps({
       title: `ไฟล์หลักฐานการแก้ไข (รอบที่ ${round.roundNumber})`,
       subtitle: "ไฟล์หลักฐานที่เจ้าหน้าที่อัพโหลดในรอบนี้",
-      dateLabel: "วันที่ดำเนินการ",
+      descriptionLabel: "รายละเอียดการแก้ไข",
+      dateLabel: "วันที่เริ่มรอตรวจสอบ",
       filesLabel: "ไฟล์หลักฐานการแก้ไข",
     });
     setShowRepairDetail(true);

@@ -32,14 +32,14 @@ export default function ReopenHistoryModal({
   function handleOpenStaff(round: ReopenRound) {
     setRepairDetail({
       description: round.staffSummary || "-",
-      repairedAt: round.reopenedAt || "-",
+      repairedAt: round.staffRepairedAt || "-",
       files: round.staffFiles,
     });
     setRepairDetailProps({
       title: `หลักฐานการแก้ไขของเจ้าหน้าที่ (รอบที่ ${round.roundNumber})`,
       subtitle: "ขั้นตอนและหลักฐานการแก้ไขในรอบนี้",
       descriptionLabel: "รายละเอียดการแก้ไข",
-      dateLabel: "วันที่ดำเนินการ",
+      dateLabel: "วันที่เริ่มรอตรวจสอบ",
       filesLabel: "ไฟล์หลักฐานการแก้ไข",
     });
     setShowRepairDetail(true);

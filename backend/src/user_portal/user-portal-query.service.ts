@@ -161,6 +161,7 @@ export class UserPortalQueryService {
     const confirmations = await this.repository.findReopenConfirmations(requestId);
     const attachments = await this.repository.findReopenAttachments(requestId);
     const resolutionAttachments = await this.repository.findResolutionAttachments(requestId);
+    const waitingConfirmLogs = await this.repository.findRequestWaitingConfirmLogs(requestId);
 
     const sortedConfirmations = [...confirmations].sort((a, b) => a.id - b.id);
     const getTime = (date: any): number => (date ? new Date(date).getTime() : 0);
@@ -181,6 +182,12 @@ export class UserPortalQueryService {
           fileExt: att.fileExt,
         }));
 
+      const staffSummaryLog = [...waitingConfirmLogs]
+        .reverse()
+        .find(
+          (log) => getTime(log.createdAt) < tReopen && getTime(log.createdAt) >= tPrev
+        );
+
       const roundFiles = attachments
         .filter((att) => att.requestConfirmationId === conf.id)
         .map((att) => ({
@@ -196,6 +203,8 @@ export class UserPortalQueryService {
         reopenedAt: conf.reopenedAt,
         comment: conf.comment,
         files: roundFiles,
+        staffSummary: staffSummaryLog?.note ?? null,
+        staffRepairedAt: staffSummaryLog?.createdAt ?? null,
         staffFiles: staffFiles,
       };
     });

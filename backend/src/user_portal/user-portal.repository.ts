@@ -360,6 +360,17 @@ export class UserPortalRepository {
     return rows;
   }
 
+  async findRequestWaitingConfirmLogs(requestId: number): Promise<any[]> {
+    const [rows] = await this.db.query<RowDataPacket[]>(
+      `SELECT id, note, created_at AS createdAt
+       FROM request_status_logs
+       WHERE request_id = ? AND status = 'waiting_confirm'
+       ORDER BY created_at ASC, id ASC`,
+      [requestId],
+    );
+    return rows;
+  }
+
   async findTicketResolutionRequests(requestId: number): Promise<any[]> {
     const [rows] = await this.db.query<RowDataPacket[]>(
       `SELECT trr.id, trr.summary, trr.reviewed_at AS reviewedAt

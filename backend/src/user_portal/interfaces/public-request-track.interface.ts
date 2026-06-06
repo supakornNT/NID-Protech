@@ -18,6 +18,8 @@ export interface ReopenRound {
   reopenedAt: string | null;
   comment: string | null;
   files: ReopenRoundFile[];
+  staffSummary: string | null;
+  staffRepairedAt: string | null;
   staffFiles: ReopenRoundFile[];
 }
 

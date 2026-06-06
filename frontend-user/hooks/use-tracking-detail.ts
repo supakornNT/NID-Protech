@@ -21,6 +21,7 @@ interface ReopenRoundApiItem {
   comment: string | null;
   files: AttachmentApiResponse[];
   staffSummary: string | null;
+  staffRepairedAt: string | null;
   staffFiles: AttachmentApiResponse[];
 }
 
@@ -148,6 +149,7 @@ function mapTrackingDetail(
       comment: round.comment,
       files: mapFiles(round.files),
       staffSummary: round.staffSummary,
+      staffRepairedAt: round.staffRepairedAt,
       staffFiles: mapFiles(round.staffFiles),
     })),
   };
