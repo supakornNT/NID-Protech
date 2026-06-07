@@ -1,5 +1,3 @@
-import { format } from 'date-fns';
-
 // Helper to extract YYYY-MM-DD from ISO string or any date string
 function normalizeDate(dateStr: string): string {
   // If already in YYYY-MM-DD format, return it
@@ -23,6 +21,7 @@ import {
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { SubmitTicketResolutionDto } from './dto/submit-ticket-resolution.dto';
+import { Inject, Injectable } from '@nestjs/common';
 
 @Injectable()
 export class TicketsService {
@@ -57,7 +56,7 @@ export class TicketsService {
         tickets.title,
         tickets.description,
         tickets.status,
-        tickets.due_at AS dueAt,
+       DATE_FORMAT(tickets.due_at, '%Y-%m-%d') AS dueAt,
         COALESCE(trr.reviewed_at, tickets.closed_at, tickets.resolved_at, trr.created_at) AS resolvedAt,
         trr.reject_reason AS rejectReason
       FROM tickets
@@ -171,7 +170,7 @@ export class TicketsService {
         CONCAT(staffs.name,' ',staffs.surname) AS fullName,
         tickets.title,
         tickets.description,
-        tickets.due_at AS dueAt
+       DATE_FORMAT(tickets.due_at, '%Y-%m-%d') AS dueAt
       FROM tickets
       LEFT JOIN staffs ON staffs.id = tickets.assigned_staff_id
       WHERE tickets.id = ?
@@ -234,61 +233,91 @@ export class TicketsService {
     await this.db.query(`UPDATE attachments SET status = 'hide' WHERE id = ?`, [
       attachmentId,
     ]);
+  }async updateSubTicket(id: number, dto: UpdateTicketDto) {
+  const sets: string[] = [];
+  const params: unknown[] = [];
+
+  if (dto.title !== undefined) {
+    sets.push('title = ?');
+    params.push(dto.title);
   }
 
-  async updateSubTicket(id: number, dto: UpdateTicketDto) {
-    if (dto.description !== undefined) {
-      sets.push('description = ?');
-      params.push(dto.description);
-    }
-    if (dto.status !== undefined) {
-      sets.push('status = ?');
-      params.push(dto.status);
-    }
-    if (dto.status === 'closed') {
-      sets.push('closed_at = NOW()');
-    }
+  if (dto.description !== undefined) {
+    sets.push('description = ?');
+    params.push(dto.description);
+  }
 
-    if (sets.length === 0) return;
+  if (dto.dueAt !== undefined) {
+    sets.push('due_at = ?');
+    params.push(dto.dueAt);
+  }
 
-    type TicketRow = {
-      status: string;
-      request_id: number;
-    } & import('mysql2/promise').RowDataPacket;
-    const [[current]] = await this.db.query<TicketRow[]>(
-      'SELECT status, request_id FROM tickets WHERE id = ?',
-      [id],
-    );
+  if (dto.status !== undefined) {
+    sets.push('status = ?');
+    params.push(dto.status);
+  }
 
-    params.push(id);
+  if (dto.status === 'closed') {
+    sets.push('closed_at = NOW()');
+  }
+
+  if (sets.length === 0) {
+    return;
+  }
+
+  type TicketRow = {
+    status: string;
+    request_id: number;
+  } & RowDataPacket;
+
+  const [rows] = await this.db.query<TicketRow[]>(
+    'SELECT status, request_id FROM tickets WHERE id = ?',
+    [id],
+  );
+
+  const current = rows[0];
+
+  params.push(id);
+
+  await this.db.query(
+    `UPDATE tickets SET ${sets.join(', ')} WHERE id = ?`,
+    params,
+  );
+
+  if (dto.status !== undefined && current) {
     await this.db.query(
-      `UPDATE tickets SET ${sets.join(', ')} WHERE id = ?`,
-      params,
+      `INSERT INTO ticket_status_logs (
+        ticket_id,
+        old_status,
+        new_status,
+        changed_by,
+        note
+      )
+      VALUES (?, ?, ?, ?, ?)`,
+      [
+        id,
+        current.status,
+        dto.status,
+        dto.changedBy ?? null,
+        dto.note ?? null,
+      ],
     );
 
-    if (dto.status !== undefined && current) {
+    if (dto.status === 'in_progress') {
       await this.db.query(
-        `INSERT INTO ticket_status_logs (ticket_id, old_status, new_status, changed_by, note)
-         VALUES (?, ?, ?, ?, ?)`,
-        [
-          id,
-          current.status,
-          dto.status,
-          dto.changedBy ?? null,
-          dto.note ?? null,
-        ],
+        `INSERT INTO request_status_logs (
+          request_id,
+          status,
+          changed_by_type,
+          changed_by_id,
+          note
+        )
+        VALUES (?, 'in_progress', 'staff', ?, NULL)`,
+        [current.request_id, dto.changedBy ?? null],
       );
-
-      if (dto.status === 'in_progress') {
-        await this.db.query(
-          `INSERT INTO request_status_logs (request_id, status, changed_by_type, changed_by_id, note)
-           VALUES (?, 'in_progress', 'staff', ?, NULL)`,
-          [current.request_id, dto.changedBy ?? null],
-        );
-      }
     }
   }
-
+}
   async findMyWork(staffId: number): Promise<MyWorkItem[]> {
     const [rows] = await this.db.query<MyWorkItem[]>(
       `SELECT

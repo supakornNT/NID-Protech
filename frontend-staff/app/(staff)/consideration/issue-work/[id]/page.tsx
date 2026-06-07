@@ -26,6 +26,7 @@ import { AdminModalShell } from "@/components/admin/admin-modal-shell";
 import { ProTechButton } from "@/components/tables/protech-button";
 import { useRequestStatusLog } from "@/hooks/use-request-status-log";
 import { useStaffSession } from "@/contexts/staff-session-context";
+import { formatBangkokTimeLeft } from "@/lib/tracking-time";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 const IMAGE_EXTS = ["jpg", "jpeg", "png", "gif", "webp"];
@@ -236,15 +237,6 @@ export default function ManageWorkDetailPage() {
       t.status !== "cancelled",
   );
   const canSubmit = !!dueDate && hasActiveTicket;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const daysLeft = dueDate
-    ? Math.max(
-        0,
-        Math.ceil((new Date(dueDate).getTime() - today.getTime()) / 86400000),
-      )
-    : null;
 
   if (!loading && !data)
     return (
@@ -598,7 +590,15 @@ export default function ManageWorkDetailPage() {
                   },
                   {
                     icon: <Clock size={16} className="text-[#C47F00]" />,
-                    value: daysLeft !== null ? `${daysLeft} วัน` : "ไม่กำหนด",
+                    value: formatBangkokTimeLeft(
+                      dueDate ?? null,
+                      data?.status ?? "",
+                      {
+                        closedLabel: "ส่งงานแล้ว",
+                        emptyLabel: "ไม่กำหนด",
+                        overdueLabel: "เกินกำหนด",
+                      },
+                    ),
                     label: "ครบกำหนด",
                     bg: "bg-[#FFF8EC]",
                   },

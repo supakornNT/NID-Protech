@@ -47,17 +47,28 @@ export function formatBangkokTimeLeft(
     return options.closedLabel ?? "เสร็จสิ้นแล้ว";
   }
 
-  const deadlineMs = getBangkokDueDeadlineMs(dueAt);
-  if (deadlineMs === null) {
-    return options.emptyLabel ?? "ยังไม่กำหนดเวลา";
+  const dateKey = getBangkokDateKey(dueAt ?? "");
+  if (!dateKey) {
+    return options.emptyLabel ?? "ยังไม่กำหนด";
   }
 
-  const diff = deadlineMs - Date.now();
-  if (diff <= 0) {
-    return options.overdueLabel ?? "เกินกำหนดแล้ว";
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const dueDate = new Date(`${dateKey}T00:00:00+07:00`);
+  dueDate.setHours(0, 0, 0, 0);
+
+  const days = Math.ceil(
+    (dueDate.getTime() - today.getTime()) / DAY_MS,
+  );
+
+  if (days < 0) {
+    return options.overdueLabel ?? "เกินกำหนด";
   }
 
-  const days = Math.floor(diff / DAY_MS);
-  const hours = Math.floor((diff % DAY_MS) / HOUR_MS);
-  return `เหลือเวลาอีก ${days} วัน ${hours} ชั่วโมง`;
+  if (days === 0) {
+    return "วันนี้";
+  }
+
+  return `เหลือ ${days} วัน`;
 }

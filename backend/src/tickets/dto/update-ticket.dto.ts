@@ -5,7 +5,6 @@ export class UpdateTicketDto {
   @IsOptional()
   @IsDate()
   @Type(() => Date)
-  @MaxDate(() => new Date(), { message: 'dueAt must not be in the future' })
   dueAt?: Date;
 
   @IsOptional()
