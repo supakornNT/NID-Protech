@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { ProTechButton } from "@/components/tables/protech-button";
 import { ToolbarSelect } from "@/components/ui/toolbar-select";
 import { useTracking, type TrackingItem } from "@/hooks/use-tracking";
+import { formatBangkokTimeLeft } from "@/lib/tracking-time";
 
 const LIMIT = 10;
 const ALL_OPTION = "ทั้งหมด";
@@ -296,7 +297,7 @@ export default function TrackingStatusPage() {
               const statusLabel = mapped?.label ?? item.status;
               const statusStyle =
                 mapped?.style ?? "border-gray-300 bg-gray-50 text-gray-600";
-              const timeLeft = formatTimeLeft(item.dueAt, item.status);
+              const timeLeft = formatBangkokTimeLeft(item.dueAt, item.status);
               return (
                 <div key={item.id} className="bg-white p-5">
                   <div className="flex items-start justify-between gap-4">

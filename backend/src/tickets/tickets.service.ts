@@ -1,4 +1,15 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { format } from 'date-fns';
+
+// Helper to extract YYYY-MM-DD from ISO string or any date string
+function normalizeDate(dateStr: string): string {
+  // If already in YYYY-MM-DD format, return it
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+  // Otherwise parse and format as date only (UTC) to avoid timezone offset
+  const d = new Date(dateStr);
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+}
+
+// Existing imports remain unchanged
 import type { Pool, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import * as nodemailer from 'nodemailer';
 import {
@@ -226,17 +237,6 @@ export class TicketsService {
   }
 
   async updateSubTicket(id: number, dto: UpdateTicketDto) {
-    const sets: string[] = [];
-    const params: unknown[] = [];
-
-    if (dto.dueAt !== undefined) {
-      sets.push('due_at = ?');
-      params.push(dto.dueAt);
-    }
-    if (dto.title !== undefined) {
-      sets.push('title = ?');
-      params.push(dto.title);
-    }
     if (dto.description !== undefined) {
       sets.push('description = ?');
       params.push(dto.description);

@@ -16,6 +16,7 @@ import Image from "next/image";
 import { useComplaintDetail, useLightbox } from "@/hooks/use-complaint-detail";
 import { useTicketsByRequest } from "@/hooks/use-tickets-by-request";
 import { useLoadingDelay } from "@/hooks/use-loading-delay";
+import { formatBangkokTimeLeft } from "@/lib/tracking-time";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 const IMAGE_EXTS = ["jpg", "jpeg", "png", "gif", "webp"];
@@ -51,7 +52,8 @@ const REQUEST_STATUS_MAP: Record<string, { label: string; style: string }> = {
   closed: { label: "เสร็จสิ้น", style: "border-[#4CAF7D] bg-[#EDFAF3] text-[#1A7A4A]" },
 };
 
-function calcDaysLeft(dueAt: string | null): string {
+function calcDaysLeft(dueAt: string | null, status?: string): string {
+  if (status === "closed" || status === "cancelled") return "ส่งงานแล้ว";
   if (!dueAt) return "ไม่กำหนด";
   const diff = new Date(dueAt).getTime() - Date.now();
   if (diff <= 0) return "เกินกำหนด";
@@ -317,9 +319,21 @@ export default function TrackingDetailPage() {
                   >
                     {stat.icon}
                     <span className="text-[18px] font-bold text-gray-800">
-                      {stat.value}
+                      {stat.bg === "bg-[#FFF8EC]"
+                        ? formatBangkokTimeLeft(
+                            data?.dueAt ?? null,
+                            data?.status ?? "",
+                            {
+                              closedLabel: "ส่งงานแล้ว",
+                              emptyLabel: "ยังไม่กำหนด",
+                              overdueLabel: "เกินกำหนด",
+                            },
+                          )
+                        : stat.value}
                     </span>
-                    <span className="text-[11px] text-gray-500">{stat.label}</span>
+                    <span className="text-[11px] text-gray-500">
+                      {stat.bg === "bg-[#FFF8EC]" ? "กำหนดส่งเรื่องหลัก" : stat.label}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -382,7 +396,11 @@ export default function TrackingDetailPage() {
                           </p>
                           <div className="flex items-center gap-1 text-[11px] text-gray-400">
                             <Clock size={11} />
-                            {calcDaysLeft(task.dueAt)}
+                            {formatBangkokTimeLeft(task.dueAt, task.status, {
+                              closedLabel: "ส่งงานแล้ว",
+                              emptyLabel: "ไม่กำหนด",
+                              overdueLabel: "เกินกำหนด",
+                            })}
                           </div>
                         </div>
                       </div>
