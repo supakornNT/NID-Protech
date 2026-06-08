@@ -492,6 +492,7 @@ export class AuthService {
     const [permissionRows] = await this.db.query<PermissionRow[]>(
       `
       SELECT DISTINCT
+        permissions.id,
         permissions.code AS \`key\`,
         permissions.name AS label
       FROM staff_team_roles

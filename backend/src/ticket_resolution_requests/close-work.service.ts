@@ -18,6 +18,7 @@ export class CloseWorkService {
         r.title,
         r.detail,
         r.status,
+        r.created_at AS createdAt,
         CONCAT(c.name, ' ', COALESCE(c.surname, '')) AS customerName,
         s.name AS systemName,
         pt.name AS problemName
