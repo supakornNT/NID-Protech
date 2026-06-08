@@ -27,7 +27,15 @@
       "Bash(grep -A 40 \"CREATE TABLE \\\\`requests\\\\`\" /c/Users/deadc/NID-Protech/\"support_system \\(30\\).sql\")",
       "Bash(sed -n '28,42p' C:/Users/deadc/NID-Protech/backend/src/screenings/screenings.service.ts)",
       "Bash(sed -n '115,125p' C:/Users/deadc/NID-Protech/backend/src/screenings/screenings.service.ts)",
-      "Bash(node --input-type=module)"
+      "Bash(node --input-type=module)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://192.168.25.80:4000/)",
+      "Bash(curl -s -c /tmp/staff_cookies.txt -X POST http://192.168.25.80:4000/auth/login -H 'Content-Type: application/json' -d '{\"username\":\"admin\",\"password\":\"admin\"}')",
+      "Bash(curl -s http://192.168.25.80:4000/auth/register-options)",
+      "Bash(curl -s -c /tmp/staff_cookies.txt -X POST http://192.168.25.80:4000/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"22trai2548@gmail.com\",\"password\":\"Tt4477669999@\"}')",
+      "Bash(curl -s -b /tmp/staff_cookies.txt 'http://192.168.25.80:4000/admin/login-logs/chart?period=day')",
+      "Bash(curl -s -b /tmp/staff_cookies.txt 'http://192.168.25.80:4000/admin/login-logs/chart?period=month')",
+      "Bash(curl -s -b /tmp/staff_cookies.txt http://192.168.25.80:4000/admin/ticket-status-logs/242)",
+      "Bash(curl -s -X POST http://192.168.25.80:4000/auth/login/customer -H 'Content-Type: application/json' -d '{\"email\":\"somchai@example.com\",\"password\":\"test\"}')"
     ]
   }
 }
