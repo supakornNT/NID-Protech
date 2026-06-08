@@ -415,14 +415,27 @@ export default function ManageWorkDetailPage() {
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowForwardConfirm(true)}
-            disabled={!canSubmit}
-            className="rounded-lg bg-[#366DBD] px-5 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3] disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            ส่งต่อ
-          </button>
+
+          <div className="flex items-center gap-3">
+            <a
+              href={`${API_BASE_URL}/requests/${effectiveRequestId}/pdf`}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-[14px] text-gray-700 hover:bg-gray-50"
+            >
+              <FileText size={15} />
+              ดูเอกสาร
+            </a>
+
+            <button
+              type="button"
+              onClick={() => setShowForwardConfirm(true)}
+              disabled={!canSubmit}
+              className="rounded-lg bg-[#366DBD] px-5 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              ส่งต่อ
+            </button>
+          </div>
         </div>
 
         {loading ? (

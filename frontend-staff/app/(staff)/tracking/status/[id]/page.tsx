@@ -45,11 +45,26 @@ const FALLBACK_STATUS = {
 };
 
 const REQUEST_STATUS_MAP: Record<string, { label: string; style: string }> = {
-  screening: { label: "รอคัดกรอง", style: "border-gray-300 bg-gray-50 text-gray-600" },
-  assigned: { label: "รอดำเนินการ", style: "border-gray-300 bg-gray-50 text-gray-600" },
-  in_progress: { label: "กำลังดำเนินการ", style: "border-[#366DBD] bg-[#EEF4FF] text-[#366DBD]" },
-  waiting_confirm: { label: "รอตรวจสอบโดยลูกค้า", style: "border-[#E8A84C] bg-[#FFF8EC] text-[#C47F00]" },
-  closed: { label: "เสร็จสิ้น", style: "border-[#4CAF7D] bg-[#EDFAF3] text-[#1A7A4A]" },
+  screening: {
+    label: "รอคัดกรอง",
+    style: "border-gray-300 bg-gray-50 text-gray-600",
+  },
+  assigned: {
+    label: "รอดำเนินการ",
+    style: "border-gray-300 bg-gray-50 text-gray-600",
+  },
+  in_progress: {
+    label: "กำลังดำเนินการ",
+    style: "border-[#366DBD] bg-[#EEF4FF] text-[#366DBD]",
+  },
+  waiting_confirm: {
+    label: "รอตรวจสอบโดยลูกค้า",
+    style: "border-[#E8A84C] bg-[#FFF8EC] text-[#C47F00]",
+  },
+  closed: {
+    label: "เสร็จสิ้น",
+    style: "border-[#4CAF7D] bg-[#EDFAF3] text-[#1A7A4A]",
+  },
 };
 
 function calcDaysLeft(dueAt: string | null, status?: string): string {
@@ -79,7 +94,10 @@ export default function TrackingDetailPage() {
       t.title.includes(subSearch) ||
       (t.assignedStaffName ?? "").includes(subSearch),
   );
-  const totalSubPages = Math.max(1, Math.ceil(filteredSub.length / SUBTASK_LIMIT));
+  const totalSubPages = Math.max(
+    1,
+    Math.ceil(filteredSub.length / SUBTASK_LIMIT),
+  );
   const pagedSub = filteredSub.slice(
     (subPage - 1) * SUBTASK_LIMIT,
     subPage * SUBTASK_LIMIT,
@@ -97,12 +115,17 @@ export default function TrackingDetailPage() {
   const daysLeftRequest = requestDueDate
     ? Math.max(
         0,
-        Math.ceil((new Date(requestDueDate).getTime() - today.getTime()) / 86400000),
+        Math.ceil(
+          (new Date(requestDueDate).getTime() - today.getTime()) / 86400000,
+        ),
       )
     : null;
 
   const reqStatus = data?.status
-    ? (REQUEST_STATUS_MAP[data.status] ?? { label: data.status, style: "border-gray-300 bg-gray-50 text-gray-600" })
+    ? (REQUEST_STATUS_MAP[data.status] ?? {
+        label: data.status,
+        style: "border-gray-300 bg-gray-50 text-gray-600",
+      })
     : null;
 
   return (
@@ -144,15 +167,38 @@ export default function TrackingDetailPage() {
               <ArrowLeft size={18} />
             </button>
             <div>
-              <h1 className="text-[22px] font-bold text-gray-900">การติดตามงาน</h1>
-              <p className="text-[13px] text-gray-400">ดูรายละเอียดคำขอและงานย่อย</p>
+              <h1 className="text-[22px] font-bold text-gray-900">
+                การติดตามงาน
+              </h1>
+              <p className="text-[13px] text-gray-400">
+                ดูรายละเอียดคำขอและงานย่อย
+              </p>
             </div>
           </div>
-          {reqStatus && (
-            <span className={`rounded-full border px-4 py-1 text-[13px] font-medium ${reqStatus.style}`}>
-              {reqStatus.label}
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            {data &&
+              ["in_progress", "waiting_confirm", "closed"].includes(
+                data.status,
+              ) && (
+                <a
+                  href={`${API_BASE_URL}/requests/${rawId}/pdf`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-[14px] text-gray-700 hover:bg-gray-50"
+                >
+                  <FileText size={15} />
+                  ดูเอกสาร
+                </a>
+              )}
+
+            {reqStatus && (
+              <span
+                className={`rounded-full border px-4 py-1 text-[13px] font-medium ${reqStatus.style}`}
+              >
+                {reqStatus.label}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Main content */}
@@ -173,7 +219,10 @@ export default function TrackingDetailPage() {
               <div className="flex flex-1 flex-col gap-4 rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
                 <div className="flex gap-3">
                   {Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="flex flex-1 flex-col items-center gap-2 rounded-xl bg-gray-100 py-4">
+                    <div
+                      key={i}
+                      className="flex flex-1 flex-col items-center gap-2 rounded-xl bg-gray-100 py-4"
+                    >
                       <div className="h-6 w-10 rounded bg-gray-200" />
                       <div className="h-3 w-16 rounded bg-gray-200" />
                     </div>
@@ -181,7 +230,10 @@ export default function TrackingDetailPage() {
                 </div>
                 <div className="h-9 w-full rounded-lg bg-gray-200" />
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-2">
+                  <div
+                    key={i}
+                    className="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-2"
+                  >
                     <div className="h-4 w-1/3 rounded bg-gray-200" />
                     <div className="h-3 w-2/3 rounded bg-gray-200" />
                   </div>
@@ -222,7 +274,9 @@ export default function TrackingDetailPage() {
 
               {/* Detail */}
               <div className="flex flex-col gap-2">
-                <p className="text-[13px] font-medium text-gray-500">รายละเอียดปัญหา</p>
+                <p className="text-[13px] font-medium text-gray-500">
+                  รายละเอียดปัญหา
+                </p>
                 <textarea
                   readOnly
                   value={data.detail}
@@ -257,8 +311,12 @@ export default function TrackingDetailPage() {
                             <ImageIcon size={20} className="text-blue-500" />
                           </div>
                           <div className="flex min-w-0 flex-col text-left">
-                            <span className="truncate text-[13px] font-medium text-gray-800">{nameNoExt}</span>
-                            <span className="text-[11px] text-gray-400">{ext.toUpperCase()}</span>
+                            <span className="truncate text-[13px] font-medium text-gray-800">
+                              {nameNoExt}
+                            </span>
+                            <span className="text-[11px] text-gray-400">
+                              {ext.toUpperCase()}
+                            </span>
                           </div>
                         </button>
                       ) : (
@@ -273,8 +331,12 @@ export default function TrackingDetailPage() {
                             <FileText size={20} className="text-red-500" />
                           </div>
                           <div className="flex min-w-0 flex-col text-left">
-                            <span className="truncate text-[13px] font-medium text-gray-800">{nameNoExt}</span>
-                            <span className="text-[11px] text-gray-400">{ext.toUpperCase()}</span>
+                            <span className="truncate text-[13px] font-medium text-gray-800">
+                              {nameNoExt}
+                            </span>
+                            <span className="text-[11px] text-gray-400">
+                              {ext.toUpperCase()}
+                            </span>
                           </div>
                         </a>
                       );
@@ -332,7 +394,9 @@ export default function TrackingDetailPage() {
                         : stat.value}
                     </span>
                     <span className="text-[11px] text-gray-500">
-                      {stat.bg === "bg-[#FFF8EC]" ? "กำหนดส่งเรื่องหลัก" : stat.label}
+                      {stat.bg === "bg-[#FFF8EC]"
+                        ? "กำหนดส่งเรื่องหลัก"
+                        : stat.label}
                     </span>
                   </div>
                 ))}
@@ -372,7 +436,8 @@ export default function TrackingDetailPage() {
                   </div>
                 ) : (
                   pagedSub.map((task) => {
-                    const mapped = TICKET_STATUS_MAP[task.status] ?? FALLBACK_STATUS;
+                    const mapped =
+                      TICKET_STATUS_MAP[task.status] ?? FALLBACK_STATUS;
                     return (
                       <div
                         key={task.id}
@@ -435,7 +500,9 @@ export default function TrackingDetailPage() {
                     ),
                   )}
                   <button
-                    onClick={() => setSubPage((p) => Math.min(totalSubPages, p + 1))}
+                    onClick={() =>
+                      setSubPage((p) => Math.min(totalSubPages, p + 1))
+                    }
                     disabled={subPage === totalSubPages}
                     className="flex h-8 items-center gap-1 rounded-md px-2 text-[13px] text-gray-500 hover:text-[#366DBD] disabled:opacity-40"
                   >
