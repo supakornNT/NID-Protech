@@ -15,7 +15,7 @@ export function useOrganizations() {
   useEffect(() => {
     const controller = new AbortController();
 
-    fetchJson<Organization[]>('/admin/organizations/active', {
+    fetchJson<Organization[]>('/admin-organizations/active', {
       signal: controller.signal,
     })
       .then(setData)

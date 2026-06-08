@@ -174,7 +174,8 @@ export default function CloseWorkDetailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestId = Number(Array.isArray(params.id) ? params.id[0] : params.id);
-  const initialTab = searchParams.get("tab") === "history" ? "history" : "pending";
+  const initialTab =
+    searchParams.get("tab") === "history" ? "history" : "pending";
 
   const { staff } = useStaffSession();
   const {
@@ -193,12 +194,17 @@ export default function CloseWorkDetailPage() {
   const { lightbox, setLightbox } = useLightbox();
 
   const [tab] = useState<"pending" | "history">(initialTab);
-  const [selectedRequest, setSelectedRequest] = useState<RequestCloseItem | null>(null);
-  const [selectedTicket, setSelectedTicket] = useState<TicketCloseItem | null>(null);
+  const [selectedRequest, setSelectedRequest] =
+    useState<RequestCloseItem | null>(null);
+  const [selectedTicket, setSelectedTicket] = useState<TicketCloseItem | null>(
+    null,
+  );
   const [requestTickets, setRequestTickets] = useState<TicketCloseItem[]>([]);
   const [requestFiles, setRequestFiles] = useState<CloseAttachment[]>([]);
   const [ticketFiles, setTicketFiles] = useState<CloseAttachment[]>([]);
-  const [latestRejectComment, setLatestRejectComment] = useState<string | null>(null);
+  const [latestRejectComment, setLatestRejectComment] = useState<string | null>(
+    null,
+  );
   const [requestLoading, setRequestLoading] = useState(false);
   const [ticketLoading, setTicketLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
@@ -242,7 +248,8 @@ export default function CloseWorkDetailPage() {
         setRequestTickets(tickets);
         setRequestFiles(files);
         setLatestRejectComment(latestReject);
-        const firstOpenableTicket = tickets.find((ticket) => canOpenTicket(ticket)) ?? null;
+        const firstOpenableTicket =
+          tickets.find((ticket) => canOpenTicket(ticket)) ?? null;
         setSelectedTicket(firstOpenableTicket);
 
         if (!firstOpenableTicket) {
@@ -251,7 +258,9 @@ export default function CloseWorkDetailPage() {
         }
 
         setTicketLoading(true);
-        const filesByTicket = await fetchTicketAttachments(firstOpenableTicket.id);
+        const filesByTicket = await fetchTicketAttachments(
+          firstOpenableTicket.id,
+        );
         if (!cancelled) {
           setTicketFiles(filesByTicket);
           setRejectReason(firstOpenableTicket.rejectReason ?? "");
@@ -385,7 +394,8 @@ export default function CloseWorkDetailPage() {
       const updatedTickets = await refreshRequestDetail();
       await fetchRequests(tab);
 
-      const nextTicket = updatedTickets.find((item) => item.id === selectedTicket.id) ?? null;
+      const nextTicket =
+        updatedTickets.find((item) => item.id === selectedTicket.id) ?? null;
       setSelectedTicket(nextTicket);
 
       if (nextTicket) {
@@ -428,12 +438,25 @@ export default function CloseWorkDetailPage() {
   return (
     <>
       {lightbox && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80" onClick={() => setLightbox(null)}>
-          <button className="absolute right-4 top-4 text-white hover:text-gray-300" onClick={() => setLightbox(null)}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+          onClick={() => setLightbox(null)}
+        >
+          <button
+            className="absolute right-4 top-4 text-white hover:text-gray-300"
+            onClick={() => setLightbox(null)}
+          >
             <X size={32} />
           </button>
           <div onClick={(e) => e.stopPropagation()}>
-            <Image src={lightbox} alt="preview" width={900} height={700} unoptimized className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain" />
+            <Image
+              src={lightbox}
+              alt="preview"
+              width={900}
+              height={700}
+              unoptimized
+              className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain"
+            />
           </div>
         </div>
       )}
@@ -448,8 +471,11 @@ export default function CloseWorkDetailPage() {
             >
               <ArrowLeft size={18} />
             </button>
+
             <div>
-              <h1 className="text-[22px] font-bold text-gray-900">พิจารณาปิดงาน</h1>
+              <h1 className="text-[22px] font-bold text-gray-900">
+                พิจารณาปิดงาน
+              </h1>
               <p className="text-[13px] text-gray-500">
                 {tab === "pending"
                   ? "เลือกตั๋วย่อยจากฝั่งซ้ายเพื่อดูรายละเอียดและพิจารณาอนุมัติ"
@@ -457,6 +483,18 @@ export default function CloseWorkDetailPage() {
               </p>
             </div>
           </div>
+
+          {selectedRequest && (
+            <a
+              href={`${API_BASE_URL}/requests/${selectedRequest.id}/pdf`}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-[14px] text-gray-700 hover:bg-gray-50"
+            >
+              <FileText size={15} />
+              ดูเอกสาร
+            </a>
+          )}
         </div>
 
         {(loading && !selectedRequest) || requestLoading ? (
@@ -469,7 +507,9 @@ export default function CloseWorkDetailPage() {
           <div className="grid min-h-[720px] gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
             <div className="flex min-h-0 flex-col rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
               <div className="mb-4">
-                <p className="text-[13px] font-semibold text-[#2F66C5]">{selectedRequest.requestNo}</p>
+                <p className="text-[13px] font-semibold text-[#2F66C5]">
+                  {selectedRequest.requestNo}
+                </p>
                 <h2 className="mt-1 text-[22px] font-bold leading-tight text-gray-900">
                   {selectedRequest.title}
                 </h2>
@@ -492,25 +532,47 @@ export default function CloseWorkDetailPage() {
                       const ext = file.fileExt.toLowerCase().replace(/^\./, "");
                       const isImage = IMAGE_EXTENSIONS.has(ext);
                       const url = `${API_BASE_URL}/uploads/requests/${file.savedName}`;
-                      const nameNoExt = file.originalName.replace(/\.[^.]+$/, "");
+                      const nameNoExt = file.originalName.replace(
+                        /\.[^.]+$/,
+                        "",
+                      );
                       return isImage ? (
-                        <button key={file.id} type="button" onClick={() => setLightbox(url)} className="flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5 cursor-zoom-in hover:bg-gray-50">
+                        <button
+                          key={file.id}
+                          type="button"
+                          onClick={() => setLightbox(url)}
+                          className="flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5 cursor-zoom-in hover:bg-gray-50"
+                        >
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50">
                             <ImageIcon size={20} className="text-blue-500" />
                           </div>
                           <div className="flex min-w-0 flex-col text-left">
-                            <span className="truncate text-[13px] font-medium text-gray-800">{nameNoExt}</span>
-                            <span className="text-[11px] text-gray-400">{ext.toUpperCase()}</span>
+                            <span className="truncate text-[13px] font-medium text-gray-800">
+                              {nameNoExt}
+                            </span>
+                            <span className="text-[11px] text-gray-400">
+                              {ext.toUpperCase()}
+                            </span>
                           </div>
                         </button>
                       ) : (
-                        <a key={file.id} href={url} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5 hover:bg-gray-50">
+                        <a
+                          key={file.id}
+                          href={url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5 hover:bg-gray-50"
+                        >
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-50">
                             <FileText size={20} className="text-red-500" />
                           </div>
                           <div className="flex min-w-0 flex-col text-left">
-                            <span className="truncate text-[13px] font-medium text-gray-800">{nameNoExt}</span>
-                            <span className="text-[11px] text-gray-400">{ext.toUpperCase()}</span>
+                            <span className="truncate text-[13px] font-medium text-gray-800">
+                              {nameNoExt}
+                            </span>
+                            <span className="text-[11px] text-gray-400">
+                              {ext.toUpperCase()}
+                            </span>
                           </div>
                         </a>
                       );
@@ -520,7 +582,9 @@ export default function CloseWorkDetailPage() {
               </div>
 
               <div className="mb-3 flex items-center justify-between">
-                <p className="text-[14px] font-bold text-gray-900">รายการตั๋วย่อย</p>
+                <p className="text-[14px] font-bold text-gray-900">
+                  รายการตั๋วย่อย
+                </p>
                 <span className="rounded-full bg-[#EEF4FF] px-3 py-1 text-[12px] font-semibold text-[#2F66C5]">
                   {requestTickets.length} งาน
                 </span>
@@ -584,7 +648,9 @@ export default function CloseWorkDetailPage() {
                           </div>
 
                           <div className="space-y-1 text-[12px] text-gray-500">
-                            <p className="truncate">ผู้รับผิดชอบ: {ticket.assignedStaffName || "-"}</p>
+                            <p className="truncate">
+                              ผู้รับผิดชอบ: {ticket.assignedStaffName || "-"}
+                            </p>
                             <p>กำหนดส่ง: {formatThaiDate(ticket.dueAt)}</p>
                           </div>
                         </button>
@@ -599,7 +665,9 @@ export default function CloseWorkDetailPage() {
               {!selectedTicket ? (
                 <div className="flex flex-1 flex-col items-center justify-center text-center">
                   <ShieldCheck size={36} className="mb-3 text-[#A8B1C2]" />
-                  <p className="text-[18px] font-bold text-gray-800">เลือกตั๋วย่อยเพื่อพิจารณา</p>
+                  <p className="text-[18px] font-bold text-gray-800">
+                    เลือกตั๋วย่อยเพื่อพิจารณา
+                  </p>
                   <p className="mt-1 max-w-90 text-[14px] text-gray-500">
                     ฝั่งขวาจะแสดงรายละเอียดการแก้ไขของตั๋วที่คุณกดเลือกจากฝั่งซ้าย
                   </p>
@@ -607,22 +675,29 @@ export default function CloseWorkDetailPage() {
               ) : (
                 <div className="flex min-h-0 flex-1 flex-col gap-5">
                   <div className="border-b border-gray-100 pb-4">
-                    <p className="text-[12px] font-semibold text-[#2F66C5]">{selectedTicket.ticketNo}</p>
+                    <p className="text-[12px] font-semibold text-[#2F66C5]">
+                      {selectedTicket.ticketNo}
+                    </p>
                     <h3 className="mt-1 text-[22px] font-bold text-gray-900">
                       {selectedTicket.title}
                     </h3>
                     <div className="mt-3 grid grid-cols-2 gap-3 text-[13px] text-gray-600">
-                      <p>ผู้รับผิดชอบ: {selectedTicket.assignedStaffName || "-"}</p>
+                      <p>
+                        ผู้รับผิดชอบ: {selectedTicket.assignedStaffName || "-"}
+                      </p>
                       <p>กำหนดส่ง: {formatThaiDate(selectedTicket.dueAt)}</p>
                       <p className="col-span-2">
-                        สถานะคำขอปิดงาน: {getResolutionLabel(selectedTicket.resolutionStatus)}
+                        สถานะคำขอปิดงาน:{" "}
+                        {getResolutionLabel(selectedTicket.resolutionStatus)}
                       </p>
                     </div>
                   </div>
 
                   <div className="grid min-h-0 flex-1 gap-5 overflow-y-auto pr-1">
                     <div className="rounded-2xl border border-gray-300 p-4">
-                      <p className="text-[14px] font-bold text-gray-900">ข้อมูลคำขอหลัก</p>
+                      <p className="text-[14px] font-bold text-gray-900">
+                        ข้อมูลคำขอหลัก
+                      </p>
                       <div className="mt-3 space-y-2 text-[14px] text-gray-700">
                         <p>ผู้แจ้ง: {selectedRequest.customerName || "-"}</p>
                         <p>ระบบ: {selectedRequest.systemName || "-"}</p>
@@ -632,7 +707,9 @@ export default function CloseWorkDetailPage() {
                         {selectedRequest.detail || "-"}
                       </p>
                       <div className="mt-4 border-t border-gray-100 pt-4">
-                        <p className="text-[14px] font-bold text-gray-900">การตีกลับล่าสุด</p>
+                        <p className="text-[14px] font-bold text-gray-900">
+                          การตีกลับล่าสุด
+                        </p>
                         <p className="mt-2 whitespace-pre-wrap text-[14px] leading-7 text-gray-700">
                           {latestRejectComment || "-"}
                         </p>
@@ -640,14 +717,18 @@ export default function CloseWorkDetailPage() {
                     </div>
 
                     <div>
-                      <p className="text-[14px] font-bold text-gray-900">รายละเอียดงานย่อย</p>
+                      <p className="text-[14px] font-bold text-gray-900">
+                        รายละเอียดงานย่อย
+                      </p>
                       <p className="mt-3 whitespace-pre-wrap rounded-2xl border border-gray-300 p-4 text-[14px] leading-7 text-gray-700">
                         {selectedTicket.description || "-"}
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-[14px] font-bold text-gray-900">สรุปผลการแก้ไข</p>
+                      <p className="text-[14px] font-bold text-gray-900">
+                        สรุปผลการแก้ไข
+                      </p>
                       <p className="mt-3 whitespace-pre-wrap rounded-2xl border border-gray-300 bg-[#F8FBFF] p-4 text-[14px] leading-7 text-gray-700">
                         {selectedTicket.summary || "-"}
                       </p>
@@ -655,7 +736,9 @@ export default function CloseWorkDetailPage() {
 
                     {selectedTicket.rejectReason ? (
                       <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-                        <p className="text-[14px] font-bold text-amber-800">เหตุผลที่เคยส่งกลับแก้ไข</p>
+                        <p className="text-[14px] font-bold text-amber-800">
+                          เหตุผลที่เคยส่งกลับแก้ไข
+                        </p>
                         <p className="mt-2 whitespace-pre-wrap text-[14px] leading-7 text-amber-900">
                           {selectedTicket.rejectReason}
                         </p>
@@ -670,29 +753,64 @@ export default function CloseWorkDetailPage() {
                         {ticketLoading ? (
                           <TicketFilesSkeleton />
                         ) : ticketFiles.length === 0 ? (
-                          <p className="text-[13px] text-gray-500">ไม่มีไฟล์หลักฐานการแก้ไข</p>
+                          <p className="text-[13px] text-gray-500">
+                            ไม่มีไฟล์หลักฐานการแก้ไข
+                          </p>
                         ) : (
                           ticketFiles.map((file) => {
-                            const ext = file.fileExt.toLowerCase().replace(/^\./, "");
+                            const ext = file.fileExt
+                              .toLowerCase()
+                              .replace(/^\./, "");
                             const isImage = IMAGE_EXTENSIONS.has(ext);
                             const url = `${API_BASE_URL}/uploads/requests/${file.savedName}`;
-                            const nameNoExt = file.originalName.replace(/\.[^.]+$/, "");
+                            const nameNoExt = file.originalName.replace(
+                              /\.[^.]+$/,
+                              "",
+                            );
                             return (
-                              <div key={file.id} className="flex items-center rounded-xl border border-gray-200 bg-white px-3 py-2.5">
+                              <div
+                                key={file.id}
+                                className="flex items-center rounded-xl border border-gray-200 bg-white px-3 py-2.5"
+                              >
                                 <button
                                   type="button"
                                   onClick={() => isImage && setLightbox(url)}
                                   className={`flex min-w-0 items-center gap-3 ${isImage ? "cursor-zoom-in" : "cursor-default"}`}
                                 >
-                                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isImage ? "bg-blue-50" : "bg-red-50"}`}>
-                                    {isImage ? <ImageIcon size={20} className="text-blue-500" /> : <FileText size={20} className="text-red-500" />}
+                                  <div
+                                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isImage ? "bg-blue-50" : "bg-red-50"}`}
+                                  >
+                                    {isImage ? (
+                                      <ImageIcon
+                                        size={20}
+                                        className="text-blue-500"
+                                      />
+                                    ) : (
+                                      <FileText
+                                        size={20}
+                                        className="text-red-500"
+                                      />
+                                    )}
                                   </div>
                                   <div className="flex min-w-0 flex-col text-left">
-                                    <span className="truncate text-[13px] font-medium text-gray-800">{nameNoExt}</span>
-                                    <span className="text-[11px] text-gray-400">{ext.toUpperCase()}</span>
+                                    <span className="truncate text-[13px] font-medium text-gray-800">
+                                      {nameNoExt}
+                                    </span>
+                                    <span className="text-[11px] text-gray-400">
+                                      {ext.toUpperCase()}
+                                    </span>
                                   </div>
                                 </button>
-                                {!isImage && <a href={url} target="_blank" rel="noreferrer" className="ml-auto shrink-0 text-[12px] text-[#366DBD] hover:underline">เปิด</a>}
+                                {!isImage && (
+                                  <a
+                                    href={url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="ml-auto shrink-0 text-[12px] text-[#366DBD] hover:underline"
+                                  >
+                                    เปิด
+                                  </a>
+                                )}
                               </div>
                             );
                           })
@@ -700,30 +818,30 @@ export default function CloseWorkDetailPage() {
                       </div>
                     </div>
 
-                    {tab === "pending" && selectedTicket.resolutionStatus === "pending" ? (
+                    {tab === "pending" &&
+                    selectedTicket.resolutionStatus === "pending" ? (
                       <div className="flex justify-end gap-3 w-full">
-                          <ProTechButton
-                            variant="delete"
-                            className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-35 text-[14px]"
-                            onClick={() => {
-                              setRejectReason("");
-                              setModal("confirmReject");
-                            }}
-                            disabled={actionLoading}
-                          >
-                            ไม่อนุมัติ
-                          </ProTechButton>
-                          <ProTechButton
-                            variant="primary"
-                            className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-35 text-[14px]"
-                            onClick={() => setModal("confirmApprove")}
-                            disabled={actionLoading}
-                          >
-                            อนุมัติ
-                          </ProTechButton>
+                        <ProTechButton
+                          variant="delete"
+                          className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-35 text-[14px]"
+                          onClick={() => {
+                            setRejectReason("");
+                            setModal("confirmReject");
+                          }}
+                          disabled={actionLoading}
+                        >
+                          ไม่อนุมัติ
+                        </ProTechButton>
+                        <ProTechButton
+                          variant="primary"
+                          className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-35 text-[14px]"
+                          onClick={() => setModal("confirmApprove")}
+                          disabled={actionLoading}
+                        >
+                          อนุมัติ
+                        </ProTechButton>
                       </div>
                     ) : null}
-
                   </div>
                 </div>
               )}
@@ -744,10 +862,8 @@ export default function CloseWorkDetailPage() {
         widthClassName="max-w-[420px]"
       >
         <div className="space-y-5 text-center">
-          <div className="flex justify-center">
-           
-          </div>
-          
+          <div className="flex justify-center"></div>
+
           {isFinalApproval ? (
             <div className="text-left">
               <label
@@ -767,13 +883,24 @@ export default function CloseWorkDetailPage() {
             </div>
           ) : null}
           <div className="flex w-full justify-center gap-3">
-            <ProTechButton variant="delete" className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30 text-[14px]" onClick={() => {
-              setModal(null);
-              setApprovalSummary("");
-            }}>
+            <ProTechButton
+              variant="delete"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30 text-[14px]"
+              onClick={() => {
+                setModal(null);
+                setApprovalSummary("");
+              }}
+            >
               ยกเลิก
             </ProTechButton>
-            <ProTechButton variant="primary" className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30 text-[14px]" onClick={handleApprove} disabled={actionLoading || (isFinalApproval && !approvalSummary.trim())}>
+            <ProTechButton
+              variant="primary"
+              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30 text-[14px]"
+              onClick={handleApprove}
+              disabled={
+                actionLoading || (isFinalApproval && !approvalSummary.trim())
+              }
+            >
               ยืนยัน
             </ProTechButton>
           </div>
@@ -845,9 +972,15 @@ export default function CloseWorkDetailPage() {
               <CheckCircle2 size={34} />
             </div>
           </div>
-          <p className="text-[15px] leading-7 text-gray-600">บันทึกผลการอนุมัติเรียบร้อยแล้ว</p>
+          <p className="text-[15px] leading-7 text-gray-600">
+            บันทึกผลการอนุมัติเรียบร้อยแล้ว
+          </p>
           <div className="flex justify-center">
-            <ProTechButton variant="primary" className="h-10 min-w-30" onClick={() => setModal(null)}>
+            <ProTechButton
+              variant="primary"
+              className="h-10 min-w-30"
+              onClick={() => setModal(null)}
+            >
               ตกลง
             </ProTechButton>
           </div>
@@ -868,9 +1001,15 @@ export default function CloseWorkDetailPage() {
               <CheckCircle2 size={34} />
             </div>
           </div>
-          <p className="text-[15px] leading-7 text-gray-600">ส่งตั๋วย่อยกลับไปแก้ไขเรียบร้อยแล้ว</p>
+          <p className="text-[15px] leading-7 text-gray-600">
+            ส่งตั๋วย่อยกลับไปแก้ไขเรียบร้อยแล้ว
+          </p>
           <div className="flex justify-center">
-            <ProTechButton variant="primary" className="h-10 min-w-30" onClick={() => setModal(null)}>
+            <ProTechButton
+              variant="primary"
+              className="h-10 min-w-30"
+              onClick={() => setModal(null)}
+            >
               ตกลง
             </ProTechButton>
           </div>
@@ -895,7 +1034,11 @@ export default function CloseWorkDetailPage() {
             {errorMessage || "ไม่สามารถดำเนินการได้ในขณะนี้"}
           </p>
           <div className="flex justify-center">
-            <ProTechButton variant="primary" className="h-10 min-w-30" onClick={() => setModal(null)}>
+            <ProTechButton
+              variant="primary"
+              className="h-10 min-w-30"
+              onClick={() => setModal(null)}
+            >
               ตกลง
             </ProTechButton>
           </div>
