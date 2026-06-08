@@ -7,6 +7,11 @@ import { join } from 'path';
 import { networkInterfaces } from 'os';
 import React from 'react';
 import * as QRCode from 'qrcode';
+import { CreateScreeningDto } from './dto/create-screening.dto';
+import { UpdateScreeningDto } from './dto/update-screening.dto';
+import type { Screening } from './interfaces/screening.interface';
+import { ScreeningPdfData } from './interfaces/screening-pdf.interface';
+import { ScreeningReceiptTemplate } from './templates/screening-receipt.template';
 
 function getLocalIp(): string {
   const nets = networkInterfaces();
@@ -17,11 +22,6 @@ function getLocalIp(): string {
   }
   return 'localhost';
 }
-import { CreateScreeningDto } from './dto/create-screening.dto';
-import { UpdateScreeningDto } from './dto/update-screening.dto';
-import type { Screening } from './interfaces/screening.interface';
-import { ScreeningPdfData } from './interfaces/screening-pdf.interface';
-import { ScreeningReceiptTemplate } from './templates/screening-receipt.template';
 
 @Injectable()
 export class ScreeningsService implements OnModuleInit {
