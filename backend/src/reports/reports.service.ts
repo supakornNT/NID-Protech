@@ -2,8 +2,18 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { Pool, RowDataPacket } from 'mysql2/promise';
 
 const THAI_MONTHS = [
-  'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-  'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม',
+  'มกราคม',
+  'กุมภาพันธ์',
+  'มีนาคม',
+  'เมษายน',
+  'พฤษภาคม',
+  'มิถุนายน',
+  'กรกฎาคม',
+  'สิงหาคม',
+  'กันยายน',
+  'ตุลาคม',
+  'พฤศจิกายน',
+  'ธันวาคม',
 ];
 
 @Injectable()
@@ -107,9 +117,11 @@ export class ReportsService {
       return rows.map((r) => {
         const diff = r.dueAt ? new Date(r.dueAt).getTime() - Date.now() : null;
         const remaining =
-          diff === null ? 'ไม่กำหนด'
-          : diff <= 0 ? 'เกินกำหนด'
-          : `คงเหลือ ${Math.ceil(diff / 86400000)} วัน`;
+          diff === null
+            ? 'ไม่กำหนด'
+            : diff <= 0
+              ? 'เกินกำหนด'
+              : `คงเหลือ ${Math.ceil(diff / 86400000)} วัน`;
         return {
           id: Number(r.id),
           title: String(r.title),
@@ -126,7 +138,15 @@ export class ReportsService {
       kanbanQuery(`r.status = 'assigned'`),
     ]);
 
-    const THAI_DAYS = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
+    const THAI_DAYS = [
+      'อาทิตย์',
+      'จันทร์',
+      'อังคาร',
+      'พุธ',
+      'พฤหัสบดี',
+      'ศุกร์',
+      'เสาร์',
+    ];
     const [dailyRows] = await this.db.query<RowDataPacket[]>(
       `SELECT
         DAYOFWEEK(r.created_at) AS dayOfWeek,
@@ -143,7 +163,8 @@ export class ReportsService {
     for (const row of dailyRows) {
       const d = Number(row.dayOfWeek);
       if (row.type === 'issue') dayMap[d].issue = Number(row.count);
-      else if (row.type === 'complaint') dayMap[d].complaint = Number(row.count);
+      else if (row.type === 'complaint')
+        dayMap[d].complaint = Number(row.count);
     }
 
     const today = new Date().getDay();
@@ -213,7 +234,8 @@ export class ReportsService {
     for (const row of weeklyRows) {
       const w = Number(row.weekNum);
       if (row.type === 'issue') weeklyMap[w].issue = Number(row.count);
-      else if (row.type === 'complaint') weeklyMap[w].complaint = Number(row.count);
+      else if (row.type === 'complaint')
+        weeklyMap[w].complaint = Number(row.count);
     }
     const weeklyData = [1, 2, 3, 4].map((w) => ({
       week: `สัปดาห์ที่ ${w}`,
@@ -228,7 +250,8 @@ export class ReportsService {
        GROUP BY month`,
     );
     const monthlyMap: Record<number, number> = {};
-    for (const row of monthlyRows) monthlyMap[Number(row.month)] = Number(row.count);
+    for (const row of monthlyRows)
+      monthlyMap[Number(row.month)] = Number(row.count);
     const monthlyData = THAI_MONTHS.map((name, i) => ({
       month: name,
       count: monthlyMap[i + 1] ?? 0,
@@ -270,10 +293,26 @@ export class ReportsService {
     const curr = currRows[0];
     const prev = prevRows[0];
     const ticketStats = [
-      { label: 'ตั๋วทั้งหมด', prev: Number(prev.total), curr: Number(curr.total) },
-      { label: 'แก้ไขสำเร็จ', prev: Number(prev.closed), curr: Number(curr.closed) },
-      { label: 'เกินกำหนด', prev: Number(prev.overdue), curr: Number(curr.overdue) },
-      { label: 'ปฏิเสธ', prev: Number(prev.rejected), curr: Number(curr.rejected) },
+      {
+        label: 'ตั๋วทั้งหมด',
+        prev: Number(prev.total),
+        curr: Number(curr.total),
+      },
+      {
+        label: 'แก้ไขสำเร็จ',
+        prev: Number(prev.closed),
+        curr: Number(curr.closed),
+      },
+      {
+        label: 'เกินกำหนด',
+        prev: Number(prev.overdue),
+        curr: Number(curr.overdue),
+      },
+      {
+        label: 'ปฏิเสธ',
+        prev: Number(prev.rejected),
+        curr: Number(curr.rejected),
+      },
     ].map((s) => ({ ...s, diff: s.curr - s.prev }));
 
     const [scoreRows] = await this.db.query<RowDataPacket[]>(
@@ -284,12 +323,20 @@ export class ReportsService {
        ORDER BY score DESC`,
     );
     const scoreMap: Record<number, number> = {};
-    for (const row of scoreRows) scoreMap[Number(row.score)] = Number(row.count);
-    const ratings = [5, 4, 3, 2, 1].map((s) => ({ star: s, count: scoreMap[s] ?? 0 }));
+    for (const row of scoreRows)
+      scoreMap[Number(row.score)] = Number(row.count);
+    const ratings = [5, 4, 3, 2, 1].map((s) => ({
+      star: s,
+      count: scoreMap[s] ?? 0,
+    }));
 
     const donutData = [
       { name: 'ปิดแล้ว', value: Number(stats.closed), color: '#4CAF50' },
-      { name: 'กำลังดำเนินการ', value: Number(stats.inProgress), color: '#FFC107' },
+      {
+        name: 'กำลังดำเนินการ',
+        value: Number(stats.inProgress),
+        color: '#FFC107',
+      },
       { name: 'เกินกำหนด', value: Number(stats.overdue), color: '#F44336' },
     ];
 

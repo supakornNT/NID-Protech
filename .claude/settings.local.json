@@ -24,7 +24,9 @@
       "Bash(grep -r \"input.*type.*file\\\\|accept.*pdf\\\\|accept.*jpg\" \"c:\\\\\\\\Users\\\\\\\\deadc\\\\\\\\NID-Protech\\\\\\\\frontend-user\\\\\\\\components\" --include=\"*.tsx\" --include=\"*.ts\")",
       "Bash(ipconfig)",
       "Bash(netsh advfirewall *)",
-      "Bash(grep -A 40 \"CREATE TABLE \\\\`requests\\\\`\" /c/Users/deadc/NID-Protech/\"support_system \\(30\\).sql\")"
+      "Bash(grep -A 40 \"CREATE TABLE \\\\`requests\\\\`\" /c/Users/deadc/NID-Protech/\"support_system \\(30\\).sql\")",
+      "Bash(sed -n '28,42p' C:/Users/deadc/NID-Protech/backend/src/screenings/screenings.service.ts)",
+      "Bash(sed -n '115,125p' C:/Users/deadc/NID-Protech/backend/src/screenings/screenings.service.ts)"
     ]
   }
 }

@@ -233,60 +233,61 @@ export class TicketsService {
     await this.db.query(`UPDATE attachments SET status = 'hide' WHERE id = ?`, [
       attachmentId,
     ]);
-  }async updateSubTicket(id: number, dto: UpdateTicketDto) {
-  const sets: string[] = [];
-  const params: unknown[] = [];
-
-  if (dto.title !== undefined) {
-    sets.push('title = ?');
-    params.push(dto.title);
   }
+  async updateSubTicket(id: number, dto: UpdateTicketDto) {
+    const sets: string[] = [];
+    const params: unknown[] = [];
 
-  if (dto.description !== undefined) {
-    sets.push('description = ?');
-    params.push(dto.description);
-  }
+    if (dto.title !== undefined) {
+      sets.push('title = ?');
+      params.push(dto.title);
+    }
 
-  if (dto.dueAt !== undefined) {
-    sets.push('due_at = ?');
-    params.push(dto.dueAt);
-  }
+    if (dto.description !== undefined) {
+      sets.push('description = ?');
+      params.push(dto.description);
+    }
 
-  if (dto.status !== undefined) {
-    sets.push('status = ?');
-    params.push(dto.status);
-  }
+    if (dto.dueAt !== undefined) {
+      sets.push('due_at = ?');
+      params.push(dto.dueAt);
+    }
 
-  if (dto.status === 'closed') {
-    sets.push('closed_at = NOW()');
-  }
+    if (dto.status !== undefined) {
+      sets.push('status = ?');
+      params.push(dto.status);
+    }
 
-  if (sets.length === 0) {
-    return;
-  }
+    if (dto.status === 'closed') {
+      sets.push('closed_at = NOW()');
+    }
 
-  type TicketRow = {
-    status: string;
-    request_id: number;
-  } & RowDataPacket;
+    if (sets.length === 0) {
+      return;
+    }
 
-  const [rows] = await this.db.query<TicketRow[]>(
-    'SELECT status, request_id FROM tickets WHERE id = ?',
-    [id],
-  );
+    type TicketRow = {
+      status: string;
+      request_id: number;
+    } & RowDataPacket;
 
-  const current = rows[0];
+    const [rows] = await this.db.query<TicketRow[]>(
+      'SELECT status, request_id FROM tickets WHERE id = ?',
+      [id],
+    );
 
-  params.push(id);
+    const current = rows[0];
 
-  await this.db.query(
-    `UPDATE tickets SET ${sets.join(', ')} WHERE id = ?`,
-    params,
-  );
+    params.push(id);
 
-  if (dto.status !== undefined && current) {
     await this.db.query(
-      `INSERT INTO ticket_status_logs (
+      `UPDATE tickets SET ${sets.join(', ')} WHERE id = ?`,
+      params,
+    );
+
+    if (dto.status !== undefined && current) {
+      await this.db.query(
+        `INSERT INTO ticket_status_logs (
         ticket_id,
         old_status,
         new_status,
@@ -294,18 +295,18 @@ export class TicketsService {
         note
       )
       VALUES (?, ?, ?, ?, ?)`,
-      [
-        id,
-        current.status,
-        dto.status,
-        dto.changedBy ?? null,
-        dto.note ?? null,
-      ],
-    );
+        [
+          id,
+          current.status,
+          dto.status,
+          dto.changedBy ?? null,
+          dto.note ?? null,
+        ],
+      );
 
-    if (dto.status === 'in_progress') {
-      await this.db.query(
-        `INSERT INTO request_status_logs (
+      if (dto.status === 'in_progress') {
+        await this.db.query(
+          `INSERT INTO request_status_logs (
           request_id,
           status,
           changed_by_type,
@@ -313,11 +314,11 @@ export class TicketsService {
           note
         )
         VALUES (?, 'in_progress', 'staff', ?, NULL)`,
-        [current.request_id, dto.changedBy ?? null],
-      );
+          [current.request_id, dto.changedBy ?? null],
+        );
+      }
     }
   }
-}
   async findMyWork(staffId: number): Promise<MyWorkItem[]> {
     const [rows] = await this.db.query<MyWorkItem[]>(
       `SELECT
