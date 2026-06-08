@@ -29,8 +29,18 @@ async function bootstrap() {
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
+  const isProd = process.env.NODE_ENV === 'production';
+
+  if (isProd) {
+    app.set('trust proxy', 1);
+  }
+
   app.enableCors({
-    origin: true,
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://192.168.25.78:3000',
+    ],
     credentials: true,
   });
 
@@ -47,6 +57,7 @@ async function bootstrap() {
     cookie: {
       secure: false,
       httpOnly: true,
+      sameSite: 'lax',
       maxAge: SESSION_MAX_AGE_MS,
     },
   };
