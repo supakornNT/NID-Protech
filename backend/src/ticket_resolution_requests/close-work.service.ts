@@ -1,18 +1,72 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { Pool, RowDataPacket } from 'mysql2/promise';
+import { CloseWorkQueryDto } from './dto/close-work-query-dto.dto';
 
 @Injectable()
 export class CloseWorkService {
   constructor(@Inject('DB') private readonly db: Pool) {}
+async findRequests(query: CloseWorkQueryDto) {
+  const {
+    status = 'pending',
+    page = 1,
+    limit = 4,
+    search = '',
+  } = query;
 
-  async findRequests(status: 'pending' | 'history') {
-    const requestFilter =
-      status === 'pending'
-        ? "r.status = 'in_progress'"
-        : "r.status IN ('waiting_confirm', 'closed')";
+  const offset = (page - 1) * limit;
 
-    const [rows] = await this.db.query<RowDataPacket[]>(
-      `SELECT DISTINCT
+  const requestFilter =
+    status === 'pending'
+      ? "r.status = 'in_progress'"
+      : "r.status IN ('waiting_confirm', 'closed')";
+
+  const whereClauses = [
+    requestFilter,
+    "trr.status IN ('pending', 'approved', 'rejected')",
+  ];
+
+  const params: unknown[] = [];
+
+  const searchText = search.trim();
+
+  if (searchText !== '') {
+    const keyword = `%${searchText}%`;
+
+    whereClauses.push(`
+      (
+        r.request_no LIKE ?
+        OR r.title LIKE ?
+        OR CONCAT(c.name, ' ', COALESCE(c.surname, '')) LIKE ?
+        OR s.name LIKE ?
+        OR pt.name LIKE ?
+      )
+    `);
+
+    params.push(keyword, keyword, keyword, keyword, keyword);
+  }
+
+  const whereSql = `WHERE ${whereClauses.join(' AND ')}`;
+
+  const [countRows] = await this.db.query<RowDataPacket[]>(
+    `
+      SELECT COUNT(DISTINCT r.id) AS total
+      FROM requests r
+      JOIN tickets t ON t.request_id = r.id
+      JOIN ticket_resolution_requests trr ON trr.ticket_id = t.id
+      LEFT JOIN customers c ON c.id = r.customer_id
+      LEFT JOIN systems s ON s.id = r.system_id
+      LEFT JOIN problem_types pt ON pt.id = r.problem_type_id
+      ${whereSql}
+    `,
+    params,
+  );
+
+  const total = Number(countRows[0]?.total ?? 0);
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+
+  const [rows] = await this.db.query<RowDataPacket[]>(
+    `
+      SELECT DISTINCT
         r.id,
         r.request_no AS requestNo,
         r.title,
@@ -28,13 +82,23 @@ export class CloseWorkService {
       LEFT JOIN customers c ON c.id = r.customer_id
       LEFT JOIN systems s ON s.id = r.system_id
       LEFT JOIN problem_types pt ON pt.id = r.problem_type_id
-      WHERE ${requestFilter}
-        AND trr.status IN ('pending', 'approved', 'rejected')
-      ORDER BY r.created_at DESC`,
-    );
+      ${whereSql}
+      ORDER BY r.created_at DESC
+      LIMIT ? OFFSET ?
+    `,
+    [...params, limit, offset],
+  );
 
-    return rows;
-  }
+  return {
+    items: rows,
+    pagination: {
+      total,
+      page,
+      limit,
+      totalPages,
+    },
+  };
+}
 
   async findRequestTickets(requestId: number, status: 'pending' | 'history') {
     const requestFilter =

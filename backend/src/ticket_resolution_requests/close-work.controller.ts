@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { CloseWorkService } from './close-work.service';
+import { CloseWorkQueryDto } from './dto/close-work-query-dto.dto';
 
 @Controller('admin/close-work')
 export class CloseWorkController {
@@ -30,14 +31,17 @@ export class CloseWorkController {
   }
 
   @Get('requests')
-  getRequests(@Query('status') status: 'pending' | 'history' = 'pending') {
-    if (status !== 'pending' && status !== 'history') {
-      throw new BadRequestException('Status must be pending or history');
-    }
+  getRequests(@Query() query: CloseWorkQueryDto) {
+    const normalizedQuery: CloseWorkQueryDto = {
+      status: query.status === 'history' ? 'history' : 'pending',
+      page: Math.max(Number(query.page ?? 1), 1),
+      limit: Math.min(Math.max(Number(query.limit ?? 4), 1), 100),
+      search: String(query.search ?? '').trim(),
+    };
 
-    return this.closeWorkService.findRequests(status);
+    return this.closeWorkService.findRequests(normalizedQuery);
   }
-
+  
   @Get('requests/:id/tickets')
   getRequestTickets(
     @Param('id', ParseIntPipe) requestId: number,

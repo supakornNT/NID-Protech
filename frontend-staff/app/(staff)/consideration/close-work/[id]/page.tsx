@@ -178,6 +178,8 @@ export default function CloseWorkDetailPage() {
     searchParams.get("tab") === "history" ? "history" : "pending";
 
   const { staff } = useStaffSession();
+  const [tab] = useState<"pending" | "history">(initialTab);
+
   const {
     requests,
     loading,
@@ -189,11 +191,14 @@ export default function CloseWorkDetailPage() {
     fetchTicketAttachments,
     approveTicket,
     rejectTicket,
-  } = useCloseWork();
+  } = useCloseWork({
+    status: tab,
+    page: 1,
+    limit: 100,
+    search: "",
+  });
 
   const { lightbox, setLightbox } = useLightbox();
-
-  const [tab] = useState<"pending" | "history">(initialTab);
   const [selectedRequest, setSelectedRequest] =
     useState<RequestCloseItem | null>(null);
   const [selectedTicket, setSelectedTicket] = useState<TicketCloseItem | null>(
@@ -212,10 +217,6 @@ export default function CloseWorkDetailPage() {
   const [approvalSummary, setApprovalSummary] = useState("");
   const [modal, setModal] = useState<ModalState>(null);
   const [errorMessage, setErrorMessage] = useState("");
-
-  useEffect(() => {
-    fetchRequests(tab);
-  }, [tab, fetchRequests]);
 
   useEffect(() => {
     const found = requests.find((item) => item.id === requestId) ?? null;
@@ -353,7 +354,7 @@ export default function CloseWorkDetailPage() {
         isFinalApproval ? approvalSummary.trim() : undefined,
       );
       const updatedTickets = await refreshRequestDetail();
-      await fetchRequests(tab);
+      await fetchRequests();
       setSelectedTicket(null);
       setTicketFiles([]);
       setRejectReason("");
@@ -392,7 +393,7 @@ export default function CloseWorkDetailPage() {
         rejectReason.trim(),
       );
       const updatedTickets = await refreshRequestDetail();
-      await fetchRequests(tab);
+      await fetchRequests();
 
       const nextTicket =
         updatedTickets.find((item) => item.id === selectedTicket.id) ?? null;
@@ -471,7 +472,6 @@ export default function CloseWorkDetailPage() {
             >
               <ArrowLeft size={18} />
             </button>
-
             <div>
               <h1 className="text-[22px] font-bold text-gray-900">
                 พิจารณาปิดงาน
@@ -483,18 +483,6 @@ export default function CloseWorkDetailPage() {
               </p>
             </div>
           </div>
-
-          {selectedRequest && (
-            <a
-              href={`${API_BASE_URL}/requests/${selectedRequest.id}/pdf`}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-[14px] text-gray-700 hover:bg-gray-50"
-            >
-              <FileText size={15} />
-              ดูเอกสาร
-            </a>
-          )}
         </div>
 
         {(loading && !selectedRequest) || requestLoading ? (

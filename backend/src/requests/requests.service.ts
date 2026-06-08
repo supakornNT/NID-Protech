@@ -16,7 +16,9 @@ import type {
   RequestTrackingRow,
 } from './interfaces/requests.interface';
 import { RequestTemplate, type RequestData } from './templates/report.template';
-import { ScreeningQueryDto } from './dto/ScreeningQueryDto.dto';
+import { ScreeningQueryDto } from './dto/screening-query-dto.dto';
+import { RequestAssignQueryDto } from './dto/request-assign-query.dto';
+
 
 @Injectable()
 export class RequestsService {
@@ -287,10 +289,72 @@ export class RequestsService {
 
     return { message: 'deleted' };
   }
+async findAssign(query: RequestAssignQueryDto) {
+  const {
+    page = 1,
+    limit = 4,
+    search = '',
+  } = query;
 
-  async findAssign(): Promise<RequestsAssign[]> {
-    const [rows] = await this.db.query<RequestsAssign[]>(
-      `SELECT
+  const offset = (page - 1) * limit;
+
+  const whereClauses = [
+    `
+      (
+        requests.status = 'assigned'
+        OR (
+          requests.status = 'in_progress'
+          AND EXISTS (
+            SELECT 1 FROM request_status_logs
+            WHERE request_id = requests.id
+              AND status = 'in_progress'
+              AND changed_by_type = 'operator'
+          )
+        )
+      )
+    `,
+  ];
+
+  const params: unknown[] = [];
+  const searchText = search.trim();
+
+  if (searchText !== '') {
+    const keyword = `%${searchText}%`;
+
+    whereClauses.push(`
+      (
+        requests.request_no LIKE ?
+        OR requests.title LIKE ?
+        OR systems.name LIKE ?
+        OR customers.name LIKE ?
+        OR customers.surname LIKE ?
+        OR problem_types.name LIKE ?
+      )
+    `);
+
+    params.push(keyword, keyword, keyword, keyword, keyword, keyword);
+  }
+
+  const whereSql = `WHERE ${whereClauses.join(' AND ')}`;
+
+  const [countRows] = await this.db.query<RowDataPacket[]>(
+    `
+      SELECT COUNT(*) AS total
+      FROM requests
+      LEFT JOIN systems ON systems.id = requests.system_id
+      LEFT JOIN customers ON customers.id = requests.customer_id
+      LEFT JOIN problem_types ON problem_types.id = requests.problem_type_id
+      ${whereSql}
+    `,
+    params,
+  );
+
+  const total = Number(countRows[0]?.total ?? 0);
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+
+  const [rows] = await this.db.query<RequestsAssign[]>(
+    `
+      SELECT
         requests.id,
         requests.request_no AS requestNo,
         requests.title,
@@ -311,21 +375,23 @@ export class RequestsService {
       LEFT JOIN systems ON systems.id = requests.system_id
       LEFT JOIN customers ON customers.id = requests.customer_id
       LEFT JOIN problem_types ON problem_types.id = requests.problem_type_id
-      WHERE requests.status = 'assigned'
-        OR (
-          requests.status = 'in_progress'
-          AND EXISTS (
-            SELECT 1 FROM request_status_logs
-            WHERE request_id = requests.id
-              AND status = 'in_progress'
-              AND changed_by_type = 'operator'
-          )
-        )`,
-    );
+      ${whereSql}
+      ORDER BY requests.created_at DESC
+      LIMIT ? OFFSET ?
+    `,
+    [...params, limit, offset],
+  );
 
-    return rows;
-  }
-
+  return {
+    items: rows,
+    pagination: {
+      total,
+      page,
+      limit,
+      totalPages,
+    },
+  };
+}
   private async insertScreeningLog(requestId: number) {
     await this.db.query(
       `INSERT INTO request_status_logs (request_id, status, changed_by_type, changed_by_id, note)

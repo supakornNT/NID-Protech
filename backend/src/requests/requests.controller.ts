@@ -26,7 +26,8 @@ import { CreateInternalRequestDto } from './dto/create-request-internal.dto';
 import { CreateServiceRequestDto } from './dto/create-request-service.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
 import { RequestsService } from './requests.service';
-import { ScreeningQueryDto } from './dto/ScreeningQueryDto.dto';
+import { ScreeningQueryDto } from './dto/screening-query-dto.dto';
+import { RequestAssignQueryDto } from './dto/request-assign-query.dto';
 
 const requestsUploadDir = resolve(process.cwd(), '..', 'uploads', 'requests');
 
@@ -46,18 +47,23 @@ const internalStorage = diskStorage({
 export class RequestsController {
   constructor(private readonly request: RequestsService) {}
 
-@Get("screening")
-findScreening(@Query() query: ScreeningQueryDto) {
-  return this.request.findScreening(query);
-}
+  @Get('screening')
+  findScreening(@Query() query: ScreeningQueryDto) {
+    return this.request.findScreening(query);
+  }
   @Get('detail')
   findDetail(@Query('id', ParseIntPipe) id: number) {
     return this.request.findDetail(id);
   }
-
   @Get('assign')
-  findAssign() {
-    return this.request.findAssign();
+  findAssign(@Query() query: RequestAssignQueryDto) {
+    const normalizedQuery: RequestAssignQueryDto = {
+      page: Math.max(Number(query.page ?? 1), 1),
+      limit: Math.min(Math.max(Number(query.limit ?? 4), 1), 100),
+      search: String(query.search ?? '').trim(),
+    };
+
+    return this.request.findAssign(normalizedQuery);
   }
 
   @Get('attachments')
