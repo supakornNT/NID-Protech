@@ -1,4 +1,5 @@
 export type TrackingRow = {
+  id: number;
   trackingNo: string;
   system: string;
   problem: string;

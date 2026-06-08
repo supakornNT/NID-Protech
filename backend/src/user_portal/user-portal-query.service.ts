@@ -102,6 +102,7 @@ export class UserPortalQueryService {
 
     return {
       items: rows.map((row) => ({
+        id: row.id,
         trackingNo: row.requestNo,
         system: row.systemName ?? "-",
         problem: row.problemName ?? "-",
