@@ -92,13 +92,11 @@ export class LoginLogsService {
     return `${value.getUTCFullYear()}-${String(value.getUTCMonth() + 1).padStart(2, '0')}`;
   }
 
-  private normalizeChartPeriod(query: GetLoginLogChartQuery): LoginLogChartPeriod {
+  private normalizeChartPeriod(
+    query: GetLoginLogChartQuery,
+  ): LoginLogChartPeriod {
     return (
-      optionalEnumValue(
-        query.period,
-        'period',
-        LOGIN_CHART_PERIODS,
-      ) ?? 'day'
+      optionalEnumValue(query.period, 'period', LOGIN_CHART_PERIODS) ?? 'day'
     );
   }
 
@@ -372,18 +370,30 @@ export class LoginLogsService {
         FROM login_logs
       `,
       [
-        `${selectedDate} 00:00:00`, `${nextDate} 00:00:00`,
-        `${selectedDate} 00:00:00`, `${nextDate} 00:00:00`,
-        `${selectedDate} 00:00:00`, `${nextDate} 00:00:00`,
-        `${selectedDate} 00:00:00`, `${nextDate} 00:00:00`,
-        `${selectedMonth}-01 00:00:00`, `${nextMonth}-01 00:00:00`,
-        `${selectedMonth}-01 00:00:00`, `${nextMonth}-01 00:00:00`,
-        `${selectedMonth}-01 00:00:00`, `${nextMonth}-01 00:00:00`,
-        `${selectedMonth}-01 00:00:00`, `${nextMonth}-01 00:00:00`,
-        `${selectedYear}-01-01 00:00:00`, `${nextYear}-01-01 00:00:00`,
-        `${selectedYear}-01-01 00:00:00`, `${nextYear}-01-01 00:00:00`,
-        `${selectedYear}-01-01 00:00:00`, `${nextYear}-01-01 00:00:00`,
-        `${selectedYear}-01-01 00:00:00`, `${nextYear}-01-01 00:00:00`,
+        `${selectedDate} 00:00:00`,
+        `${nextDate} 00:00:00`,
+        `${selectedDate} 00:00:00`,
+        `${nextDate} 00:00:00`,
+        `${selectedDate} 00:00:00`,
+        `${nextDate} 00:00:00`,
+        `${selectedDate} 00:00:00`,
+        `${nextDate} 00:00:00`,
+        `${selectedMonth}-01 00:00:00`,
+        `${nextMonth}-01 00:00:00`,
+        `${selectedMonth}-01 00:00:00`,
+        `${nextMonth}-01 00:00:00`,
+        `${selectedMonth}-01 00:00:00`,
+        `${nextMonth}-01 00:00:00`,
+        `${selectedMonth}-01 00:00:00`,
+        `${nextMonth}-01 00:00:00`,
+        `${selectedYear}-01-01 00:00:00`,
+        `${nextYear}-01-01 00:00:00`,
+        `${selectedYear}-01-01 00:00:00`,
+        `${nextYear}-01-01 00:00:00`,
+        `${selectedYear}-01-01 00:00:00`,
+        `${nextYear}-01-01 00:00:00`,
+        `${selectedYear}-01-01 00:00:00`,
+        `${nextYear}-01-01 00:00:00`,
       ],
     );
 
@@ -413,7 +423,9 @@ export class LoginLogsService {
 
   async getMeta(): Promise<LoginLogMetaResponse> {
     const currentYear = this.getCurrentYear();
-    const [rows] = await this.db.query<Array<{ year: number | null } & CountRow>>(
+    const [rows] = await this.db.query<
+      Array<{ year: number | null } & CountRow>
+    >(
       `
         SELECT DISTINCT YEAR(login_logs.login_at) AS year
         FROM login_logs
@@ -427,7 +439,8 @@ export class LoginLogsService {
       .filter((year) => Number.isInteger(year) && year > 0);
 
     return {
-      availableYears: availableYears.length > 0 ? availableYears : [currentYear],
+      availableYears:
+        availableYears.length > 0 ? availableYears : [currentYear],
     };
   }
 
@@ -441,18 +454,18 @@ export class LoginLogsService {
     const nextYear = selectedYear + 1;
 
     let bucketSql = `DATE_FORMAT(login_logs.login_at, '%H:00')`;
-    let groupOrderSql = `HOUR(login_logs.login_at) ASC`;
+    let groupOrderSql = `bucket ASC`;
     let rangeStart = `${selectedDate} 00:00:00`;
     let rangeEnd = `${nextDate} 00:00:00`;
 
     if (period === 'month') {
       bucketSql = `DATE_FORMAT(login_logs.login_at, '%d')`;
-      groupOrderSql = `DAY(login_logs.login_at) ASC`;
+      groupOrderSql = `bucket ASC`;
       rangeStart = `${selectedMonth}-01 00:00:00`;
       rangeEnd = `${nextMonth}-01 00:00:00`;
     } else if (period === 'year') {
       bucketSql = `DATE_FORMAT(login_logs.login_at, '%m')`;
-      groupOrderSql = `MONTH(login_logs.login_at) ASC`;
+      groupOrderSql = `bucket ASC`;
       rangeStart = `${selectedYear}-01-01 00:00:00`;
       rangeEnd = `${nextYear}-01-01 00:00:00`;
     }
