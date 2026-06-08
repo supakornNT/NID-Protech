@@ -69,37 +69,55 @@ export class AuthController {
   }
 
   @Post('login/customer')
-  @HttpCode(200)
-  async customerLogin(@Body() dto: LoginDto, @Req() req: SessionRequest) {
-    const ipAddress =
-      (req.headers['x-forwarded-for'] as string) ||
-      req.socket.remoteAddress ||
-      req.ip ||
-      null;
-    const userAgent = req.headers['user-agent'] || null;
+@HttpCode(200)
+async customerLogin(
+  @Body() dto: LoginDto,
+  @Req() req: SessionRequest,
+) {
+  const ipAddress =
+    (req.headers['x-forwarded-for'] as string) ||
+    req.socket.remoteAddress ||
+    req.ip ||
+    null;
 
-    const customer = await this.authService.customerLogin(dto, ipAddress, userAgent);
+  const userAgent = req.headers['user-agent'] || null;
 
-    req.session.customer = {
+  const customer = await this.authService.customerLogin(
+    dto,
+    ipAddress,
+    userAgent,
+  );
+
+  req.session.customer = {
+    id: customer.id,
+    email: customer.email,
+    name: customer.name,
+    customerType: customer.customerType,
+    organizationId: customer.organizationId,
+  };
+
+  await new Promise<void>((resolve, reject) => {
+    req.session.save((err) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      resolve();
+    });
+  });
+
+  return {
+    message: 'login success',
+    user: {
       id: customer.id,
       email: customer.email,
       name: customer.name,
       customerType: customer.customerType,
       organizationId: customer.organizationId,
-    };
-
-    return {
-      message: 'login success',
-      user: {
-        id: customer.id,
-        email: customer.email,
-        name: customer.name,
-        customerType: customer.customerType,
-        organizationId: customer.organizationId,
-      },
-    };
-  }
-
+    },
+  };
+}
   @Get('me')
   getMe(@Req() req: SessionRequest) {
     if (!req.session.staff) {
