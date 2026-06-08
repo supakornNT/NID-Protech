@@ -103,6 +103,7 @@ export class UserPortalRepository {
   ): Promise<PublicRequestRow[]> {
     const [rows] = await this.db.query<PublicRequestRow[]>(
       `SELECT
+        r.id,
         r.request_no AS requestNo,
         s.name AS systemName,
         pt.name AS problemName,

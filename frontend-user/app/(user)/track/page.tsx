@@ -2,9 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Info, Search } from "lucide-react";
+import { FileText, Info, Search } from "lucide-react";
 
-import TicketPdfButton from "@/components/pdf/TicketPdfButton";
 import { ProTechButton } from "@/components/tables/protech-button";
 import { ProTechSearch } from "@/components/tables/protech-search";
 import { ProTechTable } from "@/components/tables/protech-table";
@@ -30,19 +29,33 @@ const columns: Column<RequestListItem>[] = [
   },
   {
     key: "document",
-    title: "ออกเอกสาร",
+    title: "ดูเอกสาร",
     className: "min-w-[140px]",
-    render: (_, row) => (
-      <div className="flex justify-center text-[#3A6FCF]">
-        <TicketPdfButton
-          ticket={{ trackingNo: row.trackingNo }}
-          trackingPath={`/track/${row.trackingNo}`}
-          fileName={`${row.trackingNo}.pdf`}
-          buttonLabel="Download PDF"
-          iconOnly
-        />
-      </div>
-    ),
+    render: (_, row) => {
+      const API_BASE_URL =
+        process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+      const canViewDocument = [
+        "รอดำเนินการ",
+        "กำลังดำเนินการ",
+        "รอตรวจสอบโดยลูกค้า",
+        "เสร็จสิ้น",
+      ].includes(row.status);
+      return (
+        <div className="flex justify-center text-[#3A6FCF]">
+          {canViewDocument ? (
+            <a
+              href={`${API_BASE_URL}/requests/${row.id}/pdf`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <FileText size={18} />
+            </a>
+          ) : (
+            <FileText size={18} className="cursor-not-allowed text-gray-300" />
+          )}
+        </div>
+      );
+    },
   },
   {
     key: "detail",
@@ -110,7 +123,10 @@ export default function Page() {
         <div className="w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
           <div className="h-12 border-b bg-gray-150 px-4" />
           {Array.from({ length: 5 }).map((_, index) => (
-            <div key={index} className="flex h-16 items-center border-b border-gray-100 px-4 gap-4">
+            <div
+              key={index}
+              className="flex h-16 items-center border-b border-gray-100 px-4 gap-4"
+            >
               <div className="h-4 w-1/4 rounded bg-gray-200" />
               <div className="h-4 w-1/6 rounded bg-gray-200" />
               <div className="h-4 w-1/4 rounded bg-gray-200" />
