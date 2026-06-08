@@ -1,12 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { Info, Search } from "lucide-react";
+import { Info } from "lucide-react";
 import { useStaffSession } from "@/contexts/staff-session-context";
 
+import { AdminTablePage } from "@/components/admin/admin-table-page";
 import { ProTechButton } from "@/components/tables/protech-button";
-import { ProTechTable } from "@/components/tables/protech-table";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,8 @@ import { useAcceptComplaint } from "@/hooks/use-accept-complaint";
 import { useRejectComplaint } from "@/hooks/use-reject-complaint";
 import { useRequests } from "@/hooks/use-requests";
 import type { Column } from "@/types/table";
+
+const LIMIT = 10;
 
 type IssueRow = {
   id: number;
@@ -42,9 +44,7 @@ function formatTime(iso: string) {
 }
 
 function CategoryBadge({ value }: { value: string }) {
-  if (!value) {
-    return <span className="text-gray-300">-</span>;
-  }
+  if (!value) return <span className="text-gray-300">-</span>;
 
   return (
     <span className="inline-flex items-center rounded-full border border-[#F4A0A0] bg-[#FFF0F0] px-3 py-0.5 text-[12px] font-medium text-[#D9534F]">
@@ -84,7 +84,19 @@ function StatusCell({
 export default function IssuesPage() {
   const { staff } = useStaffSession();
   const staffId = typeof staff?.id === "number" ? staff.id : Number(staff?.id);
-  const { rows, setRows, loading } = useRequests("issue");
+
+  const [page, setPage] = useState(1);
+  const [searchValue, setSearchValue] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
+  const [rejectError, setRejectError] = useState<string | null>(null);
+
+  const { rows, setRows, loading, pagination } = useRequests({
+    type: "issue",
+    page,
+    limit: LIMIT,
+    search: appliedSearch,
+  });
+
   const {
     rejectId,
     rejectReason,
@@ -93,10 +105,11 @@ export default function IssuesPage() {
     openReject,
     handleReject,
     closeReject,
-  } = useRejectComplaint((id) =>
-    setRows((prev) => prev.filter((row) => row.id !== id)),
+  } = useRejectComplaint(
+    (id) => setRows((prev) => prev.filter((row) => row.id !== id)),
     staffId,
   );
+
   const {
     acceptId,
     submitting: acceptSubmitting,
@@ -108,19 +121,12 @@ export default function IssuesPage() {
     staffId,
   );
 
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [rejectError, setRejectError] = useState<string | null>(null);
+  const totalPages = Math.max(pagination?.totalPages ?? 1, 1);
+  const safePage = Math.min(page, totalPages);
 
-  const filtered = useMemo(
-    () =>
-      rows.filter(
-        (row) =>
-          search === "" ||
-          row.systemName.toLowerCase().includes(search.toLowerCase()),
-      ),
-    [rows, search],
-  );
+  function resetToFirstPage() {
+    setPage(1);
+  }
 
   async function submitReject() {
     const trimmedReason = rejectReason.trim();
@@ -210,10 +216,7 @@ export default function IssuesPage() {
             <textarea
               value={rejectReason}
               onChange={(event) => {
-                if (rejectError) {
-                  setRejectError(null);
-                }
-
+                if (rejectError) setRejectError(null);
                 setRejectReason(event.target.value);
               }}
               placeholder="ระบุเหตุผลการปฏิเสธ..."
@@ -231,7 +234,7 @@ export default function IssuesPage() {
           <DialogFooter className="gap-2">
             <ProTechButton
               variant="delete"
-              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-24 text-[14px]"
+              className="h-10 min-w-0 flex-1 text-[14px] sm:min-w-24 sm:flex-none"
               onClick={() => {
                 setRejectError(null);
                 closeReject();
@@ -242,7 +245,7 @@ export default function IssuesPage() {
 
             <ProTechButton
               variant="primary"
-              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-24 text-[14px]"
+              className="h-10 min-w-0 flex-1 text-[14px] sm:min-w-24 sm:flex-none"
               onClick={() => {
                 void submitReject();
               }}
@@ -257,9 +260,7 @@ export default function IssuesPage() {
       <Dialog
         open={acceptId !== null}
         onOpenChange={(open) => {
-          if (!open) {
-            closeAccept();
-          }
+          if (!open) closeAccept();
         }}
       >
         <DialogContent className="rounded-2xl">
@@ -276,7 +277,7 @@ export default function IssuesPage() {
           <DialogFooter className="gap-2">
             <ProTechButton
               variant="delete"
-              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-24 text-[14px]"
+              className="h-10 min-w-0 flex-1 text-[14px] sm:min-w-24 sm:flex-none"
               onClick={closeAccept}
             >
               ยกเลิก
@@ -284,7 +285,7 @@ export default function IssuesPage() {
 
             <ProTechButton
               variant="primary"
-              className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-24 text-[14px]"
+              className="h-10 min-w-0 flex-1 text-[14px] sm:min-w-24 sm:flex-none"
               onClick={() => {
                 void handleAccept();
               }}
@@ -296,51 +297,44 @@ export default function IssuesPage() {
         </DialogContent>
       </Dialog>
 
-      <div className="flex flex-1 flex-col gap-5 bg-white px-4 sm:px-6 lg:px-10 py-8">
-        <div>
-          <h1 className="text-[26px] font-bold text-gray-900">
-            รับเรื่องและคัดกรอง
-          </h1>
-          <p className="mt-1 text-[14px] text-gray-400">ประเด็นปัญหา</p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex gap-2 w-full sm:w-auto">
-            <div className="relative flex-1 sm:flex-none">
-              <Search
-                size={15}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              />
-              <input
-                type="text"
-                value={search}
-                onChange={(event) => {
-                  setSearch(event.target.value);
-                  setPage(1);
-                }}
-                placeholder="ค้นหาระบบ..."
-                className="h-9 w-full sm:w-56 rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-[14px] outline-none focus:border-[#366DBD] focus:ring-2 focus:ring-[#366DBD]/10"
-              />
-            </div>
-            <button
-              type="button"
-              onClick={() => setPage(1)}
-              className="h-9 shrink-0 rounded-lg bg-[#366DBD] px-5 text-[14px] font-semibold text-white transition hover:bg-[#2d5da3]"
-            >
-              ค้นหา
-            </button>
-          </div>
-        </div>
-
-        <ProTechTable
+      <div className="min-h-full w-full rounded-xl px-5 py-7 sm:px-6 sm:py-8 lg:px-8 lg:py-9">
+        <AdminTablePage
+          title="รับเรื่องและคัดกรอง"
+          subtitle="ประเด็นปัญหา"
           columns={columns}
-          data={filtered}
-          limit={10}
-          page={page}
-          totalPages={Math.max(1, Math.ceil(filtered.length / 10))}
-          totalItems={filtered.length}
+          data={rows}
+          searchValue={searchValue}
+          searchInputProps={{
+            type: "search",
+            inputMode: "search",
+            autoComplete: "off",
+            maxLength: 120,
+            title: "ค้นหาด้วยชื่อระบบ",
+          }}
+          searchPlaceholder="ค้นหาระบบ..."
+          onSearchClick={(value) => {
+            setSearchValue(value);
+            setAppliedSearch(value);
+            resetToFirstPage();
+          }}
+          page={safePage}
+          totalPages={totalPages}
+          totalItems={pagination?.total ?? rows.length}
           onPageChange={setPage}
+          disableClientFiltering
+          disableClientPagination
+          showCreate={false}
+          showDelete={false}
           loading={loading}
+          renderToolbar={({ searchBar }) => (
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                <div className="flex flex-1 flex-wrap items-center gap-3">
+                  {searchBar}
+                </div>
+              </div>
+            </div>
+          )}
         />
       </div>
     </>

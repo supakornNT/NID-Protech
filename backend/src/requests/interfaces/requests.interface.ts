@@ -43,6 +43,7 @@ export interface RequestTrackingLogRow extends RowDataPacket {
 export interface RequestsScreening extends RowDataPacket {
   id: number;
   requestNo: string;
+  problemName: string;
   systemName: string;
   requestTypeName: string;
   createdAt: Date;

@@ -16,6 +16,7 @@ import type {
   RequestTrackingRow,
 } from './interfaces/requests.interface';
 import { RequestTemplate, type RequestData } from './templates/report.template';
+import { ScreeningQueryDto } from './dto/ScreeningQueryDto.dto';
 
 @Injectable()
 export class RequestsService {
@@ -49,31 +50,89 @@ export class RequestsService {
     return rows;
   }
 
-  async findScreening(type: string): Promise<RequestsScreening[]> {
-    const [rows] = await this.db.query<RequestsScreening[]>(
-      `SELECT
-        requests.id,
-        requests.request_no AS requestNo,
-        systems.name AS systemName,
-        problem_types.request_type AS requestTypeName,
-        requests.created_at AS createdAt
-      FROM requests
-      LEFT JOIN systems ON systems.id = requests.system_id
-      INNER JOIN problem_types ON problem_types.id = requests.problem_type_id
-      WHERE problem_types.request_type = ?
-      AND requests.status = 'screening'`,
-      [type],
+  async findScreening(query: ScreeningQueryDto): Promise<{
+    items: RequestsScreening[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  }> {
+    const type = query.type === 'issue' ? 'issue' : 'complaint';
+    const page = Math.max(Number(query.page ?? 1), 1);
+    const limit = Math.min(Math.max(Number(query.limit ?? 10), 1), 100);
+    const offset = (page - 1) * limit;
+    const search = query.search?.trim() ?? '';
+
+    const where: string[] = [
+      `problem_types.request_type = ?`,
+      `requests.status = 'screening'`,
+    ];
+
+    const params: Array<string | number> = [type];
+
+    if (search) {
+      where.push(`
+      (
+        requests.request_no LIKE ?
+        OR systems.name LIKE ?
+      )
+    `);
+
+      const keyword = `%${search}%`;
+      params.push(keyword, keyword);
+    }
+
+    const whereSql = `WHERE ${where.join(' AND ')}`;
+
+    const [countRows] = await this.db.query<RowDataPacket[]>(
+      `
+    SELECT COUNT(*) AS total
+    FROM requests
+    LEFT JOIN systems ON systems.id = requests.system_id
+    INNER JOIN problem_types ON problem_types.id = requests.problem_type_id
+    ${whereSql}
+    `,
+      params,
     );
 
-    return rows;
-  }
+    const total = Number(countRows[0]?.total ?? 0);
+    const [rows] = await this.db.query<RequestsScreening[]>(
+      `
+  SELECT
+    requests.id,
+    requests.request_no AS requestNo,
+    COALESCE(systems.name, '-') AS systemName,
+    problem_types.request_type AS requestTypeName,
+    problem_types.name AS problemName,
+    requests.created_at AS createdAt
+  FROM requests
+  LEFT JOIN systems ON systems.id = requests.system_id
+  INNER JOIN problem_types ON problem_types.id = requests.problem_type_id
+  ${whereSql}
+  ORDER BY requests.id DESC
+  LIMIT ? OFFSET ?
+  `,
+      [...params, limit, offset],
+    );
 
+    return {
+      items: rows,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+      },
+    };
+  }
   async findDetail(id: number): Promise<RequestsDetail | null> {
     const [rows] = await this.db.query<RequestsDetail[]>(
       `SELECT
         requests.id,
         requests.request_no AS requestNo,
-        customers.name AS customerName,
+        CONCAT(customers.name, ' ', customers.surname) AS customerName,
         requests.organization AS organizationName,
         systems.name AS systemName,
         problem_types.name AS problemName,
@@ -551,8 +610,8 @@ export class RequestsService {
       const firstAssignedLog = findFirst(rLogs, 'assigned');
       const currentAssignedLog = findLast(rLogs, 'assigned');
       const assignedCompletedLog = currentAssignedLog
-        ? findFirst(rLogs, 'in_progress', currentAssignedLog.created_at) ??
-          findFirst(rLogs, 'waiting_confirm', currentAssignedLog.created_at)
+        ? (findFirst(rLogs, 'in_progress', currentAssignedLog.created_at) ??
+          findFirst(rLogs, 'waiting_confirm', currentAssignedLog.created_at))
         : findFirst(rLogs, 'in_progress');
       const inProgressCompletedLog = assignedCompletedLog
         ? findFirst(rLogs, 'waiting_confirm', assignedCompletedLog.created_at)

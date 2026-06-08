@@ -26,6 +26,7 @@ import { CreateInternalRequestDto } from './dto/create-request-internal.dto';
 import { CreateServiceRequestDto } from './dto/create-request-service.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
 import { RequestsService } from './requests.service';
+import { ScreeningQueryDto } from './dto/ScreeningQueryDto.dto';
 
 const requestsUploadDir = resolve(process.cwd(), '..', 'uploads', 'requests');
 
@@ -45,11 +46,10 @@ const internalStorage = diskStorage({
 export class RequestsController {
   constructor(private readonly request: RequestsService) {}
 
-  @Get('screening')
-  findScreening(@Query('type') type: string) {
-    return this.request.findScreening(type);
-  }
-
+@Get("screening")
+findScreening(@Query() query: ScreeningQueryDto) {
+  return this.request.findScreening(query);
+}
   @Get('detail')
   findDetail(@Query('id', ParseIntPipe) id: number) {
     return this.request.findDetail(id);

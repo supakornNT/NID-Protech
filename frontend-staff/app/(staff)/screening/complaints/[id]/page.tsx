@@ -189,15 +189,7 @@ export default function ComplaintDetailPage() {
             )}
           </div>
 
-          <div className="flex justify-end px-4 sm:px-8 pb-6">
-            <button
-              type="button"
-              onClick={() => router.push(`/screening/complaints`)}
-              className="rounded-full bg-[#366DBD] px-6 py-2 text-[14px] font-semibold text-white hover:bg-[#2d5da3]"
-            >
-              ย้อนกลับ
-            </button>
-          </div>
+         
         </>
       )}
         </div>
