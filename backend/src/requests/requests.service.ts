@@ -18,6 +18,7 @@ import type {
 import { RequestTemplate, type RequestData } from './templates/report.template';
 import { ScreeningQueryDto } from './dto/screening-query-dto.dto';
 import { RequestAssignQueryDto } from './dto/request-assign-query.dto';
+import { TrackingQueryDto } from './dto/tracking-query.dto';
 
 
 @Injectable()
@@ -560,10 +561,82 @@ async findAssign(query: RequestAssignQueryDto) {
       `${id}.pdf`,
     );
   }
+async findTracking(query: TrackingQueryDto): Promise<{
+  items: RequestTracking[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}> {
+  const normalizedQuery = {
+    page: Math.max(Number(query.page ?? 1), 1),
+    limit: Math.min(Math.max(Number(query.limit ?? 10), 1), 100),
+    search: query.search?.trim() ?? '',
+    status: query.status?.trim(),
+  };
 
-  async findTracking(): Promise<RequestTracking[]> {
-    const [requests] = await this.db.query<RequestTrackingRow[]>(
-      `SELECT
+  const offset = (normalizedQuery.page - 1) * normalizedQuery.limit;
+
+  const whereClauses: string[] = [
+    `r.status IN (
+      'screening',
+      'assigned',
+      'in_progress',
+      'waiting_confirm',
+      'closed'
+    )`,
+  ];
+
+  const values: Array<string | number> = [];
+
+  if (normalizedQuery.search) {
+    whereClauses.push(`
+      (
+        r.request_no LIKE ?
+        OR r.title LIKE ?
+        OR CONCAT(c.name, ' ', c.surname) LIKE ?
+        OR s.name LIKE ?
+      )
+    `);
+
+    const searchValue = `%${normalizedQuery.search}%`;
+    values.push(searchValue, searchValue, searchValue, searchValue);
+  }
+
+  if (normalizedQuery.status) {
+    whereClauses.push('r.status = ?');
+    values.push(normalizedQuery.status);
+  }
+
+  const whereSql = whereClauses.join(' AND ');
+
+  const baseFromSql = `
+    FROM requests r
+    LEFT JOIN customers c ON c.id = r.customer_id
+    LEFT JOIN systems s ON s.id = r.system_id
+    LEFT JOIN problem_types pt ON pt.id = r.problem_type_id
+    WHERE ${whereSql}
+  `;
+
+  const [countRows] = await this.db.query<RowDataPacket[]>(
+    `
+      SELECT COUNT(*) AS total
+      ${baseFromSql}
+    `,
+    values,
+  );
+
+  const total = Number(countRows[0]?.total ?? 0);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(total / normalizedQuery.limit),
+  );
+
+  const [requests] = await this.db.query<RequestTrackingRow[]>(
+    `
+      SELECT
         r.id,
         r.request_no AS requestNo,
         r.title,
@@ -588,125 +661,139 @@ async findAssign(query: RequestAssignQueryDto) {
               AND changed_by_type = 'operator'
           )
         THEN 1 ELSE 0 END AS wasRejected
-      FROM requests r
-      LEFT JOIN customers c ON c.id = r.customer_id
-      LEFT JOIN systems s ON s.id = r.system_id
-      LEFT JOIN problem_types pt ON pt.id = r.problem_type_id
-      WHERE r.status IN (
-      'screening',
-      'assigned',
-      'in_progress',
-      'waiting_confirm',
-      'closed'
-)
-      ORDER BY r.created_at DESC`,
-    );
+      ${baseFromSql}
+      ORDER BY r.created_at DESC
+      LIMIT ? OFFSET ?
+    `,
+    [...values, normalizedQuery.limit, offset],
+  );
 
-    if (requests.length === 0) return [];
+  if (requests.length === 0) {
+    return {
+      items: [],
+      pagination: {
+        total,
+        page: normalizedQuery.page,
+        limit: normalizedQuery.limit,
+        totalPages,
+      },
+    };
+  }
 
-    const ids = requests.map((r) => r.id);
-    const [logs] = await this.db.query<RequestTrackingLogRow[]>(
-      `SELECT request_id, status, created_at
-       FROM request_status_logs
-       WHERE request_id IN (?)
-       ORDER BY created_at ASC`,
-      [ids],
-    );
+  const ids = requests.map((r) => r.id);
 
-    const logMap = new Map<number, RequestTrackingLogRow[]>();
-    for (const log of logs) {
-      if (!logMap.has(log.request_id)) logMap.set(log.request_id, []);
-      logMap.get(log.request_id)!.push(log);
+  const [logs] = await this.db.query<RequestTrackingLogRow[]>(
+    `SELECT request_id, status, created_at
+     FROM request_status_logs
+     WHERE request_id IN (?)
+     ORDER BY created_at ASC`,
+    [ids],
+  );
+
+  const logMap = new Map<number, RequestTrackingLogRow[]>();
+
+  for (const log of logs) {
+    if (!logMap.has(log.request_id)) {
+      logMap.set(log.request_id, []);
     }
 
-    const fmt = (d: Date | string | undefined, label: string) => {
-      if (!d) return null;
-      const dt = new Date(d);
-      const h = String(dt.getHours()).padStart(2, '0');
-      const m = String(dt.getMinutes()).padStart(2, '0');
-      return {
-        label,
-        date: `${dt.getDate()}/${dt.getMonth() + 1}`,
-        time: `${h}:${m}`,
-      };
-    };
-
-    const findFirst = (
-      logs: RequestTrackingLogRow[],
-      status: string,
-      after?: Date | string,
-    ) => {
-      const afterTime = after
-        ? new Date(after).getTime()
-        : Number.NEGATIVE_INFINITY;
-      return logs.find(
-        (log) =>
-          log.status === status &&
-          new Date(log.created_at).getTime() >= afterTime,
-      );
-    };
-
-    const findLast = (logs: RequestTrackingLogRow[], status: string) => {
-      for (let index = logs.length - 1; index >= 0; index -= 1) {
-        if (logs[index].status === status) return logs[index];
-      }
-      return undefined;
-    };
-
-    return requests.map((r) => {
-      const rLogs = logMap.get(r.id) ?? [];
-      const allSteps = [
-        fmt(
-          rLogs.find((l) => l.status === 'screening')?.created_at,
-          'ยื่นเรื่อง',
-        ),
-        fmt(rLogs.find((l) => l.status === 'assigned')?.created_at, 'ตรวจสอบ'),
-        fmt(
-          rLogs.find((l) => l.status === 'in_progress')?.created_at,
-          'ดำเนินการแก้ไข',
-        ),
-        fmt(
-          rLogs.find((l) => l.status === 'waiting_confirm')?.created_at,
-          'รอประเมิน',
-        ),
-        fmt(rLogs.find((l) => l.status === 'closed')?.created_at, 'เสร็จสิ้น'),
-      ];
-
-      const screeningLog = findFirst(rLogs, 'screening');
-      const firstAssignedLog = findFirst(rLogs, 'assigned');
-      const currentAssignedLog = findLast(rLogs, 'assigned');
-      const assignedCompletedLog = currentAssignedLog
-        ? (findFirst(rLogs, 'in_progress', currentAssignedLog.created_at) ??
-          findFirst(rLogs, 'waiting_confirm', currentAssignedLog.created_at))
-        : findFirst(rLogs, 'in_progress');
-      const inProgressCompletedLog = assignedCompletedLog
-        ? findFirst(rLogs, 'waiting_confirm', assignedCompletedLog.created_at)
-        : undefined;
-      const waitingConfirmCompletedLog = inProgressCompletedLog
-        ? findFirst(rLogs, 'closed', inProgressCompletedLog.created_at)
-        : undefined;
-
-      const steps = [
-        fmt(screeningLog?.created_at ?? r.createdAt, 'รับเรื่อง'),
-        fmt(firstAssignedLog?.created_at, 'คัดกรอง'),
-        fmt(assignedCompletedLog?.created_at, 'มอบหมายงาน'),
-        fmt(inProgressCompletedLog?.created_at, 'ดำเนินการแก้ไข'),
-        fmt(waitingConfirmCompletedLog?.created_at, 'รอลูกค้ายืนยัน'),
-      ];
-
-      return {
-        id: r.id,
-        requestNo: r.requestNo,
-        title: r.title,
-        status: r.status,
-        customerName: r.customerName,
-        systemName: r.systemName,
-        problemName: r.problemName,
-        dueAt: r.dueAt ? new Date(r.dueAt).toISOString() : null,
-        allResolved: r.allResolved,
-        wasRejected: r.wasRejected,
-        steps,
-      };
-    });
+    logMap.get(log.request_id)!.push(log);
   }
+
+  const fmt = (d: Date | string | undefined, label: string) => {
+    if (!d) return null;
+
+    const dt = new Date(d);
+    const h = String(dt.getHours()).padStart(2, '0');
+    const m = String(dt.getMinutes()).padStart(2, '0');
+
+    return {
+      label,
+      date: `${dt.getDate()}/${dt.getMonth() + 1}`,
+      time: `${h}:${m}`,
+    };
+  };
+
+  const findFirst = (
+    logs: RequestTrackingLogRow[],
+    status: string,
+    after?: Date | string,
+  ) => {
+    const afterTime = after
+      ? new Date(after).getTime()
+      : Number.NEGATIVE_INFINITY;
+
+    return logs.find(
+      (log) =>
+        log.status === status &&
+        new Date(log.created_at).getTime() >= afterTime,
+    );
+  };
+
+  const findLast = (
+    logs: RequestTrackingLogRow[],
+    status: string,
+  ) => {
+    for (let index = logs.length - 1; index >= 0; index -= 1) {
+      if (logs[index].status === status) {
+        return logs[index];
+      }
+    }
+
+    return undefined;
+  };
+
+  const items = requests.map((r) => {
+    const rLogs = logMap.get(r.id) ?? [];
+
+    const screeningLog = findFirst(rLogs, 'screening');
+    const firstAssignedLog = findFirst(rLogs, 'assigned');
+    const currentAssignedLog = findLast(rLogs, 'assigned');
+
+    const assignedCompletedLog = currentAssignedLog
+      ? findFirst(rLogs, 'in_progress', currentAssignedLog.created_at) ??
+        findFirst(rLogs, 'waiting_confirm', currentAssignedLog.created_at)
+      : findFirst(rLogs, 'in_progress');
+
+    const inProgressCompletedLog = assignedCompletedLog
+      ? findFirst(rLogs, 'waiting_confirm', assignedCompletedLog.created_at)
+      : undefined;
+
+    const waitingConfirmCompletedLog = inProgressCompletedLog
+      ? findFirst(rLogs, 'closed', inProgressCompletedLog.created_at)
+      : undefined;
+
+    const steps = [
+      fmt(screeningLog?.created_at ?? r.createdAt, 'รับเรื่อง'),
+      fmt(firstAssignedLog?.created_at, 'คัดกรอง'),
+      fmt(assignedCompletedLog?.created_at, 'มอบหมายงาน'),
+      fmt(inProgressCompletedLog?.created_at, 'ดำเนินการแก้ไข'),
+      fmt(waitingConfirmCompletedLog?.created_at, 'รอลูกค้ายืนยัน'),
+    ];
+
+    return {
+      id: r.id,
+      requestNo: r.requestNo,
+      title: r.title,
+      status: r.status,
+      customerName: r.customerName,
+      systemName: r.systemName,
+      problemName: r.problemName,
+      dueAt: r.dueAt ? new Date(r.dueAt).toISOString() : null,
+      allResolved: r.allResolved,
+      wasRejected: r.wasRejected,
+      steps,
+    };
+  });
+
+  return {
+    items,
+    pagination: {
+      total,
+      page: normalizedQuery.page,
+      limit: normalizedQuery.limit,
+      totalPages,
+    },
+  };
+}
 }

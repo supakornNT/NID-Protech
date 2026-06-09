@@ -150,7 +150,7 @@ export default function CloseWorkListPage() {
             {requests.map((item) => (
               <div
                 key={item.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white px-4 sm:px-6 py-5"
+                className="flex flex-col sm:flex-row sm:items-stretch justify-between gap-4 bg-white px-4 sm:px-6 py-5"
               >
                 <div className="flex flex-col gap-1.5">
                   <p className="text-[17px] font-bold text-gray-900">

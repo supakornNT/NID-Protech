@@ -40,7 +40,9 @@ export default function OperationsPage() {
   const typeOptions = [
     { value: ALL_OPTION, label: "ประเภททั้งหมด" },
     ...Array.from(
-      new Set(items.map((item) => TYPE_LABEL[item.requestType] ?? item.requestType)),
+      new Set(
+        items.map((item) => TYPE_LABEL[item.requestType] ?? item.requestType),
+      ),
     ).map((label) => ({
       value: label,
       label,
@@ -71,7 +73,10 @@ export default function OperationsPage() {
     }
 
     const start = Math.max(1, Math.min(safePage - 1, totalPages - 3));
-    return Array.from({ length: Math.min(3, totalPages) }, (_, index) => start + index);
+    return Array.from(
+      { length: Math.min(3, totalPages) },
+      (_, index) => start + index,
+    );
   }
 
   if (error) {
@@ -90,7 +95,7 @@ export default function OperationsPage() {
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-    <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex gap-2 w-full sm:w-auto">
           <ProTechSearchBar
             defaultValue={searchValue}
             placeholder="ค้นหา..."
@@ -176,11 +181,12 @@ export default function OperationsPage() {
         ) : (
           <div className="flex flex-col divide-y divide-[#7FA7E8] ">
             {items.map((item) => {
-              const typeLabel = TYPE_LABEL[item.requestType] ?? item.requestType;
+              const typeLabel =
+                TYPE_LABEL[item.requestType] ?? item.requestType;
 
               return (
                 <div key={item.id} className="bg-white p-5">
-                  <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-stretch justify-between gap-4">
                     <div className="flex flex-col gap-1">
                       <p className="text-[16px] font-bold text-gray-900">
                         {item.ticketNo}
@@ -192,27 +198,26 @@ export default function OperationsPage() {
                         <p className="text-[13px] text-gray-500">
                           ผู้ใช้งานภายในองค์กร : {item.customerName}
                         </p>
-                      
                       </div>
                       <div className="mt-1 flex items-center gap-2">
-                         <p className="text-[13px] text-gray-500">
-                        ประเภท :{" "}
-                        <span className="font-semibold text-gray-800">
-                          {item.problemName}
-                        </span>
-                      </p>
+                        <p className="text-[13px] text-gray-500">
+                          ประเภท :{" "}
+                          <span className="font-semibold text-gray-800">
+                            {item.problemName}
+                          </span>
+                        </p>
                       </div>
                     </div>
 
-                    <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t border-gray-100 sm:border-0">
-                       <span className="rounded-md border border-[#F4A0A0] bg-[#FFF0F0] px-2.5 py-0.5 text-[12px] text-[#D9534F]">
-                          {typeLabel}
-                        </span>
-                    
+                    <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between gap-2 w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t border-gray-100 sm:border-0">
+                      <span className="rounded-md border border-[#F4A0A0] bg-[#FFF0F0] px-2.5 py-0.5 text-[12px] text-[#D9534F]">
+                        {typeLabel}
+                      </span>
+
                       <button
                         type="button"
                         onClick={() => router.push(`/operations/${item.id}`)}
-                        className="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-[13px] text-gray-700 hover:bg-gray-50"
+                        className="sm:mt-auto rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-[13px] text-gray-700 hover:bg-gray-50"
                       >
                         รายละเอียด
                       </button>
@@ -228,7 +233,8 @@ export default function OperationsPage() {
       <div className="flex items-center justify-between text-[13px] text-gray-500">
         <span>
           แสดง {pagination.total === 0 ? 0 : (safePage - 1) * LIMIT + 1}–
-          {Math.min(safePage * LIMIT, pagination.total)} จาก {pagination.total} รายการ
+          {Math.min(safePage * LIMIT, pagination.total)} จาก {pagination.total}{" "}
+          รายการ
         </span>
         <div className="flex items-center gap-1">
           <button
@@ -253,7 +259,9 @@ export default function OperationsPage() {
           ))}
           {totalPages > 3 && <span className="px-1 text-gray-400">...</span>}
           <button
-            onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+            onClick={() =>
+              setPage((current) => Math.min(totalPages, current + 1))
+            }
             disabled={safePage >= totalPages}
             className="flex h-8 items-center gap-1 rounded-md px-2 hover:text-[#366DBD] disabled:opacity-40"
           >

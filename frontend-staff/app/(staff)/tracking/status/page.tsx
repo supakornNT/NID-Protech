@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { ProTechButton } from "@/components/tables/protech-button";
 import { ToolbarSelect } from "@/components/ui/toolbar-select";
@@ -12,15 +12,7 @@ import { formatBangkokTimeLeft } from "@/lib/tracking-time";
 const LIMIT = 10;
 const ALL_OPTION = "ทั้งหมด";
 
-const STATUS_STEPS = [
-  "คัดกรอง",
-  "มอบหมายงาน",
-  "ดำเนินการ",
-  "รอตรวจสอบโดยลูกค้า",
-  "เสร็จสิ้น",
-];
-
-const STATUS_TO_STEP : Record<string, number>= {
+const STATUS_TO_STEP: Record<string, number> = {
   screening: 1,
   assigned: 2,
   in_progress: 3,
@@ -61,25 +53,12 @@ const STATUS_MAP: Record<string, { label: string; style: string }> = {
 
 const STATUS_FILTER_OPTIONS = [
   { value: ALL_OPTION, label: "สถานะทั้งหมด" },
-  { value: "รอคัดกรอง", label: "รอคัดกรอง" },
-  { value: "รอดำเนินการ", label: "รอดำเนินการ" },
-  { value: "กำลังดำเนินการ", label: "กำลังดำเนินการ" },
-  { value: "รอตรวจสอบโดยลูกค้า", label: "รอตรวจสอบโดยลูกค้า" },
-  { value: "เสร็จสิ้น", label: "เสร็จสิ้น" },
+  { value: "screening", label: "รอคัดกรอง" },
+  { value: "assigned", label: "รอดำเนินการ" },
+  { value: "in_progress", label: "กำลังดำเนินการ" },
+  { value: "waiting_confirm", label: "รอตรวจสอบโดยลูกค้า" },
+  { value: "closed", label: "เสร็จสิ้น" },
 ];
-
-
-function formatTimeLeft(dueAt: string | null, status: string): string {
-  if (status === "closed") return "เสร็จสิ้นแล้ว";
-  if (!dueAt) return "ยังไม่กำหนดเวลา";
-
-  const diff = new Date(dueAt).getTime() - Date.now();
-  if (diff <= 0) return "เกินกำหนดแล้ว";
-
-  const days = Math.floor(diff / 86400000);
-  const hours = Math.floor((diff % 86400000) / 3600000);
-  return `เหลือเวลาอีก ${days} วัน ${hours} ชั่วโมง`;
-}
 
 function StepperBar({
   steps,
@@ -92,7 +71,7 @@ function StepperBar({
   const currentStepIndex = STATUS_TO_STEP[status] ?? -1;
 
   return (
-    <div className="mt-3 flex items-start gap-0 min-w-[550px] md:min-w-0">
+    <div className="mt-3 flex min-w-[550px] items-start gap-0 md:min-w-0">
       {TRACKING_STEP_LABELS.map((label, stepIndex) => {
         const stepInfo = steps[stepIndex];
         const isLast = stepIndex === TRACKING_STEP_LABELS.length - 1;
@@ -177,32 +156,21 @@ function StepperBar({
 
 export default function TrackingStatusPage() {
   const router = useRouter();
-  const { items, loading, error } = useTracking();
-  const [search, setSearch] = useState("");
+
+  const [searchValue, setSearchValue] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState(ALL_OPTION);
   const [page, setPage] = useState(1);
 
-  const filtered = useMemo(() => {
-    return items.filter((item) => {
-      const statusLabel = STATUS_MAP[item.status]?.label ?? item.status;
-      const matchSearch =
-        search === "" ||
-        item.requestNo.includes(search) ||
-        item.title.includes(search) ||
-        item.customerName.includes(search) ||
-        item.systemName.includes(search);
-      const matchStatus =
-        statusFilter === ALL_OPTION || statusLabel === statusFilter;
-      return matchSearch && matchStatus;
-    });
-  }, [items, search, statusFilter]);
+  const { items, pagination, loading, error } = useTracking({
+    page,
+    limit: LIMIT,
+    search: appliedSearch,
+    status: statusFilter === ALL_OPTION ? undefined : statusFilter,
+  });
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / LIMIT));
+  const totalPages = Math.max(1, pagination.totalPages);
   const currentPage = Math.min(page, totalPages);
-  const paged = filtered.slice(
-    (currentPage - 1) * LIMIT,
-    currentPage * LIMIT,
-  );
 
   function getVisiblePages() {
     if (totalPages <= 5) {
@@ -228,43 +196,47 @@ export default function TrackingStatusPage() {
         <p className="text-[14px] text-gray-500">ติดตามสถานะการดำเนินการของคำขอ</p>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <div className="flex gap-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:flex-none">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+        <div className="flex flex-1 flex-wrap items-center gap-3">
+          <div className="flex gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:flex-none">
+              <input
+                type="text"
+                value={searchValue}
+                onChange={(e) => {
+                  setSearchValue(e.target.value);
+                }}
+                placeholder="ค้นหา..."
+                className="h-9 w-full sm:w-56 rounded-lg border border-gray-300 bg-white px-3 text-[14px] outline-none focus:border-[#366DBD]"
+              />
+            </div>
+            <ProTechButton
+              variant="search"
+              className="h-9 shrink-0 px-5 text-[14px]"
+              onClick={() => {
                 setPage(1);
+                setAppliedSearch(searchValue.trim());
               }}
-              placeholder="ค้นหา..."
-              className="h-9 w-full sm:w-56 rounded-lg border border-gray-300 bg-white px-3 text-[14px] outline-none focus:border-[#366DBD]"
-            />
+            >
+              ค้นหา
+            </ProTechButton>
           </div>
-          <ProTechButton
-            variant="search"
-            className="h-9 shrink-0 px-5 text-[14px]"
-            onClick={() => setPage(1)}
-          >
-            ค้นหา
-          </ProTechButton>
-        </div>
 
-        <ToolbarSelect
-          value={statusFilter}
-          options={STATUS_FILTER_OPTIONS}
-          placeholder="สถานะทั้งหมด"
-          onChange={(value) => {
-            setStatusFilter(value);
-            setPage(1);
-          }}
-          className="w-full sm:w-[190px]"
-        />
+          <ToolbarSelect
+            value={statusFilter}
+            options={STATUS_FILTER_OPTIONS}
+            placeholder="สถานะทั้งหมด"
+            onChange={(value) => {
+              setStatusFilter(value);
+              setPage(1);
+            }}
+            className="w-full sm:w-[190px]"
+          />
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-[14px] border border-[#7FA7E8] bg-white">
-        {loading && paged.length === 0 ? (
+        {loading && items.length === 0 ? (
           <div className="animate-pulse divide-y divide-[#7FA7E8]">
             {Array.from({ length: 3 }).map((_, index) => (
               <div key={index} className="space-y-4 bg-white p-5">
@@ -286,18 +258,19 @@ export default function TrackingStatusPage() {
               </div>
             ))}
           </div>
-        ) : paged.length === 0 ? (
+        ) : items.length === 0 ? (
           <div className="flex h-32 items-center justify-center text-sm text-gray-500">
             ไม่พบข้อมูล
           </div>
         ) : (
           <div className="flex flex-col divide-y divide-[#7FA7E8]">
-            {paged.map((item) => {
+            {items.map((item) => {
               const mapped = STATUS_MAP[item.status];
               const statusLabel = mapped?.label ?? item.status;
               const statusStyle =
                 mapped?.style ?? "border-gray-300 bg-gray-50 text-gray-600";
               const timeLeft = formatBangkokTimeLeft(item.dueAt, item.status);
+
               return (
                 <div key={item.id} className="bg-white p-5">
                   <div className="flex items-start justify-between gap-4">
@@ -326,6 +299,7 @@ export default function TrackingStatusPage() {
                         ระบบ : {item.systemName}
                       </p>
                     </div>
+
                     <div className="flex items-center gap-2">
                       {!!item.wasRejected && (
                         <span className="rounded-md border border-[#F4A0A0] bg-[#FFF0F0] px-2.5 py-0.5 text-[12px] text-[#D9534F]">
@@ -340,14 +314,14 @@ export default function TrackingStatusPage() {
                     </div>
                   </div>
 
-                  <div className="mt-3 flex flex-col md:flex-row md:items-end gap-4">
+                  <div className="mt-3 flex flex-col gap-4 md:flex-row md:items-end">
                     <div className="flex-1 w-full overflow-x-auto pb-2">
                       <StepperBar steps={item.steps} status={item.status} />
                     </div>
-                    <div className="flex flex-col gap-3 shrink-0 items-end w-full md:w-auto">
+                    <div className="flex w-full shrink-0 flex-col items-end gap-3 md:w-auto">
                       <button
                         type="button"
-                        className="w-full md:w-auto rounded-lg border border-gray-400 bg-white px-4 py-1.5 text-[13px] text-gray-700 hover:bg-gray-50"
+                        className="w-full rounded-lg border border-gray-400 bg-white px-4 py-1.5 text-[13px] text-gray-700 hover:bg-gray-50 md:w-auto"
                         onClick={() => router.push(`/tracking/status/${item.id}`)}
                       >
                         ดูรายละเอียด
@@ -363,9 +337,11 @@ export default function TrackingStatusPage() {
 
       <div className="flex items-center justify-between text-[13px] text-gray-500">
         <span>
-          แสดง {filtered.length === 0 ? 0 : (currentPage - 1) * LIMIT + 1}-
-          {Math.min(currentPage * LIMIT, filtered.length)} จาก {filtered.length} รายการ
+          แสดง {pagination.total === 0 ? 0 : (currentPage - 1) * LIMIT + 1}-
+          {Math.min(currentPage * LIMIT, pagination.total)} จาก{" "}
+          {pagination.total} รายการ
         </span>
+
         <div className="flex items-center gap-1">
           <button
             onClick={() => setPage((current) => Math.max(1, current - 1))}
@@ -374,6 +350,7 @@ export default function TrackingStatusPage() {
           >
             <ChevronLeft size={14} /> Previous
           </button>
+
           {getVisiblePages().map((visiblePage) => (
             <button
               key={visiblePage}
@@ -387,7 +364,9 @@ export default function TrackingStatusPage() {
               {visiblePage}
             </button>
           ))}
+
           {totalPages > 5 && <span className="px-1 text-gray-400">...</span>}
+
           <button
             onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
             disabled={currentPage === totalPages}

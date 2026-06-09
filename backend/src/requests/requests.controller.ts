@@ -28,6 +28,7 @@ import { UpdateRequestDto } from './dto/update-request.dto';
 import { RequestsService } from './requests.service';
 import { ScreeningQueryDto } from './dto/screening-query-dto.dto';
 import { RequestAssignQueryDto } from './dto/request-assign-query.dto';
+import { TrackingQueryDto } from './dto/tracking-query.dto';
 
 const requestsUploadDir = resolve(process.cwd(), '..', 'uploads', 'requests');
 
@@ -77,9 +78,9 @@ export class RequestsController {
   }
 
   @Get('tracking')
-  findTracking() {
-    return this.request.findTracking();
-  }
+findTracking(@Query() query: TrackingQueryDto) {
+  return this.request.findTracking(query);
+}
 
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
