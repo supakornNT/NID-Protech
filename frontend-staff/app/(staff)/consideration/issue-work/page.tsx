@@ -35,7 +35,10 @@ export default function IssueWorkPage() {
     }
 
     const start = Math.max(1, Math.min(safePage - 1, totalPages - 4));
-    return Array.from({ length: Math.min(3, totalPages) }, (_, index) => start + index);
+    return Array.from(
+      { length: Math.min(3, totalPages) },
+      (_, index) => start + index,
+    );
   }
 
   return (
@@ -45,30 +48,30 @@ export default function IssueWorkPage() {
         <p className="text-[16px] text-gray-500">งานที่ต้องมอบหมาย</p>
       </div>
 
-    <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex flex-1 flex-wrap items-center gap-3">
-              <ProTechSearchBar
-                defaultValue={searchValue}
-                placeholder="ค้นหาคำขอ..."
-                className="flex-none"
-                inputClassName="h-[31px] rounded-md border border-[#A8B1C2] px-3 text-[14px]"
-                inputProps={{
-                  type: "search",
-                  inputMode: "search",
-                  autoComplete: "off",
-                  maxLength: 120,
-                }}
-                onValueChange={(value) => {
-                  setSearchValue(value);
-                }}
-                onSearch={(value) => {
-                  setSearchValue(value);
-                  setAppliedSearch(value);
-                  setPage(1);
-                }}
-              />
-            </div>
-          </div>
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+        <div className="flex flex-1 flex-wrap items-center gap-3">
+          <ProTechSearchBar
+            defaultValue={searchValue}
+            placeholder="ค้นหาคำขอ..."
+            className="flex-none"
+            inputClassName="h-[31px] rounded-md border border-[#A8B1C2] px-3 text-[14px]"
+            inputProps={{
+              type: "search",
+              inputMode: "search",
+              autoComplete: "off",
+              maxLength: 120,
+            }}
+            onValueChange={(value) => {
+              setSearchValue(value);
+            }}
+            onSearch={(value) => {
+              setSearchValue(value);
+              setAppliedSearch(value);
+              setPage(1);
+            }}
+          />
+        </div>
+      </div>
 
       <div className="overflow-hidden rounded-[14px] border border-[#7FA7E8] bg-white">
         {loading && rows.length === 0 ? (
@@ -125,39 +128,43 @@ export default function IssueWorkPage() {
                   <p className="text-[14px] text-gray-500">
                     ผู้แจ้ง : {item.customerName} {item.customerSurname}
                   </p>
-
-                  <p className="text-[14px] text-gray-500">
-                    ระบบ : {item.systemName}
-                  </p>
-
-                  <span className="mt-1 inline-flex w-fit rounded-md border border-[#F4A0A0] bg-[#FFF0F0] px-3 py-0.5 text-[13px] text-[#D9534F]">
+                    {item.systemName && (
+                      <p className="text-[14px] text-gray-500">
+                        ระบบ : {item.systemName}
+                      </p>
+                    )}
+                </div>
+                <div className="w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t border-gray-100 sm:border-0">
+                  <span className="mb-2 inline-flex w-fit rounded-md border border-[#F4A0A0] bg-[#FFF0F0] px-3 py-0.5 text-[13px] text-[#D9534F]">
                     {item.problemName}
                   </span>
-                </div>
 
-                <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t border-gray-100 sm:border-0">
-                  <p className="text-[14px]">
-                    ประเภท :{" "}
-                    <span
-                      className={`font-bold ${
-                        item.probleTypeName === "issue"
-                          ? "text-[#D9534F]"
-                          : "text-[#D4A017]"
-                      }`}
+                  <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2">
+                    <p className="text-[14px]">
+                      ประเภท :{" "}
+                      <span
+                        className={`font-bold ${
+                          item.probleTypeName === "issue"
+                            ? "text-[#D9534F]"
+                            : "text-[#D4A017]"
+                        }`}
+                      >
+                        {item.probleTypeName === "issue"
+                          ? "ประเด็นปัญหา"
+                          : "ข้อร้องเรียน"}
+                      </span>
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        router.push(`/consideration/issue-work/${item.id}`)
+                      }
+                      className="sm:mt-1 rounded-lg border border-[#929396] bg-white px-5 py-1.5 text-[14px] text-gray-700 hover:bg-gray-50"
                     >
-                      {item.probleTypeName === "issue"
-                        ? "ประเด็นปัญหา"
-                        : "ข้อร้องเรียน"}
-                    </span>
-                  </p>
-
-                  <button
-                    type="button"
-                    onClick={() => router.push(`/consideration/issue-work/${item.id}`)}
-                    className="sm:mt-1 rounded-lg border border-[#929396] bg-white px-5 py-1.5 text-[14px] text-gray-700 hover:bg-gray-50"
-                  >
-                    จัดการ
-                  </button>
+                      จัดการ
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -194,7 +201,9 @@ export default function IssueWorkPage() {
 
         <button
           type="button"
-          onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+          onClick={() =>
+            setPage((current) => Math.min(totalPages, current + 1))
+          }
           disabled={safePage === totalPages}
           className="flex h-9 items-center gap-1 rounded-md px-2 text-gray-500 hover:text-[#366DBD] disabled:opacity-40"
         >

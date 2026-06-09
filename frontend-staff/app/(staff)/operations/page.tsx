@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ToolbarSelect } from "@/components/ui/toolbar-select";
 import { ProTechButton } from "@/components/tables/protech-button";
 import { useMyWork } from "@/hooks/use-my-work";
+import { ProTechSearchBar } from "@/components/tables/protech-search";
 
 const LIMIT = 4;
 const ALL_OPTION = "ทั้งหมด";
@@ -18,13 +19,23 @@ const TYPE_LABEL: Record<string, string> = {
 
 export default function OperationsPage() {
   const router = useRouter();
-  const { items, loading, error } = useMyWork(1);
 
-  const [search, setSearch] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState(ALL_OPTION);
   const [systemFilter, setSystemFilter] = useState(ALL_OPTION);
   const [sortTime, setSortTime] = useState<"latest" | "earliest">("latest");
   const [page, setPage] = useState(1);
+
+  const { items, pagination, loading, error } = useMyWork({
+    staffId: 1,
+    page,
+    limit: LIMIT,
+    search: appliedSearch,
+    type: typeFilter === ALL_OPTION ? undefined : typeFilter,
+    system: systemFilter === ALL_OPTION ? undefined : systemFilter,
+    sort: sortTime,
+  });
 
   const typeOptions = [
     { value: ALL_OPTION, label: "ประเภททั้งหมด" },
@@ -51,39 +62,15 @@ export default function OperationsPage() {
     { value: "earliest", label: "ครบกำหนดก่อน" },
   ];
 
-  const filtered = useMemo(() => {
-    const result = items.filter((item) => {
-      const typeLabel = TYPE_LABEL[item.requestType] ?? item.requestType;
-      const matchSearch =
-        search === "" ||
-        item.ticketNo.includes(search) ||
-        item.title.includes(search) ||
-        item.customerName.includes(search) ||
-        (item.systemName ?? "").includes(search);
-      const matchType = typeFilter === ALL_OPTION || typeLabel === typeFilter;
-      const matchSystem =
-        systemFilter === ALL_OPTION || (item.systemName ?? "—") === systemFilter;
-      return matchSearch && matchType && matchSystem;
-    });
-
-    result.sort((a, b) => {
-      const left = a.dueAt ? new Date(a.dueAt).getTime() : 0;
-      const right = b.dueAt ? new Date(b.dueAt).getTime() : 0;
-      return sortTime === "latest" ? right - left : left - right;
-    });
-
-    return result;
-  }, [items, search, sortTime, systemFilter, typeFilter]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / LIMIT));
-  const paged = filtered.slice((page - 1) * LIMIT, page * LIMIT);
+  const totalPages = Math.max(1, pagination.totalPages);
+  const safePage = Math.min(page, totalPages);
 
   function getVisiblePages() {
     if (totalPages <= 5) {
       return Array.from({ length: totalPages }, (_, index) => index + 1);
     }
 
-    const start = Math.max(1, Math.min(page - 1, totalPages - 3));
+    const start = Math.max(1, Math.min(safePage - 1, totalPages - 3));
     return Array.from({ length: Math.min(3, totalPages) }, (_, index) => start + index);
   }
 
@@ -103,26 +90,28 @@ export default function OperationsPage() {
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <div className="flex gap-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:flex-none">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              placeholder="ค้นหา..."
-              className="h-9 w-full sm:w-56 rounded-lg border border-gray-300 bg-white px-3 text-[14px] outline-none focus:border-[#366DBD]"
-            />
-          </div>
-          <ProTechButton
-            variant="search"
-            className="h-9 shrink-0 px-5 text-[14px]"
-            onClick={() => setPage(1)}
-          >
-            ค้นหา
-          </ProTechButton>
+    <div className="flex gap-2 w-full sm:w-auto">
+          <ProTechSearchBar
+            defaultValue={searchValue}
+            placeholder="ค้นหา..."
+            className="flex-none"
+            inputClassName="h-[31px] rounded-md border border-[#A8B1C2] px-3 text-[14px]"
+            inputProps={{
+              type: "search",
+              inputMode: "search",
+              autoComplete: "off",
+              maxLength: 120,
+            }}
+            onValueChange={(value) => {
+              setSearchValue(value);
+            }}
+            onSearch={(value) => {
+              const nextSearch = value.trim();
+              setSearchValue(value);
+              setAppliedSearch(nextSearch);
+              setPage(1);
+            }}
+          />
         </div>
 
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
@@ -134,7 +123,7 @@ export default function OperationsPage() {
               setTypeFilter(value);
               setPage(1);
             }}
-            className="flex-1 min-w-[120px] sm:flex-none sm:w-[190px]"
+            className="flex-1 min-w-30 sm:flex-none sm:w-47.5"
           />
 
           <ToolbarSelect
@@ -145,7 +134,7 @@ export default function OperationsPage() {
               setSystemFilter(value);
               setPage(1);
             }}
-            className="flex-1 min-w-[120px] sm:flex-none sm:w-[190px]"
+            className="flex-1 min-w-30 sm:flex-none sm:w-47.5"
           />
 
           <ToolbarSelect
@@ -156,13 +145,13 @@ export default function OperationsPage() {
               setSortTime(value as "latest" | "earliest");
               setPage(1);
             }}
-            className="w-full sm:w-[170px]"
+            className="w-full sm:w-42.5"
           />
         </div>
       </div>
 
       <div className="overflow-hidden rounded-[14px] border border-[#7FA7E8] bg-white">
-        {loading && paged.length === 0 ? (
+        {loading && items.length === 0 ? (
           <div className="animate-pulse divide-y divide-[#7FA7E8]">
             {Array.from({ length: 3 }).map((_, index) => (
               <div key={index} className="space-y-4 bg-white p-5">
@@ -180,13 +169,13 @@ export default function OperationsPage() {
               </div>
             ))}
           </div>
-        ) : paged.length === 0 ? (
+        ) : items.length === 0 ? (
           <div className="flex h-32 items-center justify-center text-sm text-gray-500">
             ไม่พบข้อมูล
           </div>
         ) : (
           <div className="flex flex-col divide-y divide-[#7FA7E8] ">
-            {paged.map((item) => {
+            {items.map((item) => {
               const typeLabel = TYPE_LABEL[item.requestType] ?? item.requestType;
 
               return (
@@ -203,24 +192,23 @@ export default function OperationsPage() {
                         <p className="text-[13px] text-gray-500">
                           ผู้ใช้งานภายในองค์กร : {item.customerName}
                         </p>
-                        <p className="text-[13px] text-gray-500">
-                          ระบบ : {item.systemName ?? "—"}
-                        </p>
+                      
                       </div>
                       <div className="mt-1 flex items-center gap-2">
-                        <span className="rounded-md border border-[#F4A0A0] bg-[#FFF0F0] px-2.5 py-0.5 text-[12px] text-[#D9534F]">
-                          {typeLabel}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t border-gray-100 sm:border-0">
-                      <p className="text-[13px] text-gray-500">
+                         <p className="text-[13px] text-gray-500">
                         ประเภท :{" "}
                         <span className="font-semibold text-gray-800">
                           {item.problemName}
                         </span>
                       </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t border-gray-100 sm:border-0">
+                       <span className="rounded-md border border-[#F4A0A0] bg-[#FFF0F0] px-2.5 py-0.5 text-[12px] text-[#D9534F]">
+                          {typeLabel}
+                        </span>
+                    
                       <button
                         type="button"
                         onClick={() => router.push(`/operations/${item.id}`)}
@@ -239,13 +227,13 @@ export default function OperationsPage() {
 
       <div className="flex items-center justify-between text-[13px] text-gray-500">
         <span>
-          แสดง {filtered.length === 0 ? 0 : (page - 1) * LIMIT + 1}–
-          {Math.min(page * LIMIT, filtered.length)} จาก {filtered.length} รายการ
+          แสดง {pagination.total === 0 ? 0 : (safePage - 1) * LIMIT + 1}–
+          {Math.min(safePage * LIMIT, pagination.total)} จาก {pagination.total} รายการ
         </span>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setPage((current) => Math.max(1, current - 1))}
-            disabled={page === 1}
+            disabled={safePage <= 1}
             className="flex h-8 items-center gap-1 rounded-md px-2 hover:text-[#366DBD] disabled:opacity-40"
           >
             <ChevronLeft size={14} /> Previous
@@ -255,7 +243,7 @@ export default function OperationsPage() {
               key={visiblePage}
               onClick={() => setPage(visiblePage)}
               className={`flex h-8 w-8 items-center justify-center rounded-md border text-[13px] ${
-                page === visiblePage
+                safePage === visiblePage
                   ? "border-[#7FA7E8] bg-[#EEF4FF] text-[#3A6FCF]"
                   : "border-transparent hover:border-[#7FA7E8]"
               }`}
@@ -266,7 +254,7 @@ export default function OperationsPage() {
           {totalPages > 3 && <span className="px-1 text-gray-400">...</span>}
           <button
             onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-            disabled={page === totalPages}
+            disabled={safePage >= totalPages}
             className="flex h-8 items-center gap-1 rounded-md px-2 hover:text-[#366DBD] disabled:opacity-40"
           >
             Next <ChevronRight size={14} />

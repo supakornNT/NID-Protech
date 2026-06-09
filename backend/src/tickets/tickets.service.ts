@@ -12,6 +12,7 @@ import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { SubmitTicketResolutionDto } from './dto/submit-ticket-resolution.dto';
 import { Inject, Injectable } from '@nestjs/common';
+import { MyWorkQueryDto } from './dto/my-work-query.dto';
 
 @Injectable()
 export class TicketsService {
@@ -309,9 +310,105 @@ export class TicketsService {
       }
     }
   }
-  async findMyWork(staffId: number): Promise<MyWorkItem[]> {
-    const [rows] = await this.db.query<MyWorkItem[]>(
-      `SELECT
+async findMyWork(
+  staffId: number,
+  query: MyWorkQueryDto,
+): Promise<{
+  items: MyWorkItem[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}> {
+  const normalizedQuery = {
+    page: Math.max(Number(query.page ?? 1), 1),
+    limit: Math.min(Math.max(Number(query.limit ?? 4), 1), 100),
+    search: query.search?.trim() ?? '',
+    type: query.type?.trim(),
+    system: query.system?.trim(),
+    sort: query.sort === 'earliest' ? 'earliest' : 'latest',
+  };
+
+  const offset = (normalizedQuery.page - 1) * normalizedQuery.limit;
+
+  const whereClauses: string[] = [
+    'tickets.assigned_staff_id = ?',
+    "requests.status = 'in_progress'",
+    "tickets.status NOT IN ('cancelled', 'closed')",
+    "COALESCE(latest_trr.status, '') != 'pending'",
+  ];
+
+  const values: Array<string | number> = [staffId];
+
+  if (normalizedQuery.search) {
+    whereClauses.push(`
+      (
+        tickets.ticket_no LIKE ?
+        OR tickets.title LIKE ?
+        OR CONCAT(customers.name, ' ', customers.surname) LIKE ?
+        OR systems.name LIKE ?
+      )
+    `);
+
+    const searchValue = `%${normalizedQuery.search}%`;
+    values.push(searchValue, searchValue, searchValue, searchValue);
+  }
+
+  if (normalizedQuery.type) {
+    whereClauses.push('problem_types.request_type = ?');
+    values.push(normalizedQuery.type);
+  }
+
+  if (normalizedQuery.system) {
+    whereClauses.push('systems.name = ?');
+    values.push(normalizedQuery.system);
+  }
+
+  const whereSql = whereClauses.join(' AND ');
+
+  const orderSql =
+    normalizedQuery.sort === 'earliest'
+      ? 'tickets.due_at ASC, tickets.created_at DESC'
+      : 'tickets.created_at DESC';
+
+  const baseFromSql = `
+    FROM tickets
+    LEFT JOIN requests ON requests.id = tickets.request_id
+    LEFT JOIN customers ON customers.id = requests.customer_id
+    LEFT JOIN systems ON systems.id = requests.system_id
+    LEFT JOIN problem_types ON problem_types.id = requests.problem_type_id
+    LEFT JOIN (
+      SELECT latest.*
+      FROM ticket_resolution_requests latest
+      INNER JOIN (
+        SELECT ticket_id, MAX(id) AS latest_id
+        FROM ticket_resolution_requests
+        GROUP BY ticket_id
+      ) picked
+        ON picked.latest_id = latest.id
+    ) latest_trr ON latest_trr.ticket_id = tickets.id
+    WHERE ${whereSql}
+  `;
+
+  const [countRows] = await this.db.query<RowDataPacket[]>(
+    `
+      SELECT COUNT(*) AS total
+      ${baseFromSql}
+    `,
+    values,
+  );
+
+  const total = Number(countRows[0]?.total ?? 0);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(total / normalizedQuery.limit),
+  );
+
+  const [rows] = await this.db.query<MyWorkItem[]>(
+    `
+      SELECT
         tickets.id,
         tickets.ticket_no AS ticketNo,
         tickets.request_id AS requestId,
@@ -322,30 +419,23 @@ export class TicketsService {
         systems.name AS systemName,
         problem_types.name AS problemName,
         problem_types.request_type AS requestType
-      FROM tickets
-      LEFT JOIN requests ON requests.id = tickets.request_id
-      LEFT JOIN customers ON customers.id = requests.customer_id
-      LEFT JOIN systems ON systems.id = requests.system_id
-      LEFT JOIN problem_types ON problem_types.id = requests.problem_type_id
-      LEFT JOIN (
-        SELECT latest.*
-        FROM ticket_resolution_requests latest
-        INNER JOIN (
-          SELECT ticket_id, MAX(id) AS latest_id
-          FROM ticket_resolution_requests
-          GROUP BY ticket_id
-        ) picked
-          ON picked.latest_id = latest.id
-      ) latest_trr ON latest_trr.ticket_id = tickets.id
-      WHERE tickets.assigned_staff_id = ?
-        AND requests.status = 'in_progress'
-        AND tickets.status NOT IN ('cancelled', 'closed')
-        AND COALESCE(latest_trr.status, '') != 'pending'
-      ORDER BY tickets.created_at DESC`,
-      [staffId],
-    );
-    return rows;
-  }
+      ${baseFromSql}
+      ORDER BY ${orderSql}
+      LIMIT ? OFFSET ?
+    `,
+    [...values, normalizedQuery.limit, offset],
+  );
+
+  return {
+    items: rows,
+    pagination: {
+      total,
+      page: normalizedQuery.page,
+      limit: normalizedQuery.limit,
+      totalPages,
+    },
+  };
+}
 
   async submitResolution(
     ticketId: number,

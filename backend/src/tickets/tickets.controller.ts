@@ -19,6 +19,7 @@ import { TicketsService } from './tickets.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { SubmitTicketResolutionDto } from './dto/submit-ticket-resolution.dto';
+import { MyWorkQueryDto } from './dto/my-work-query.dto';
 
 const uploadDir = resolve(process.cwd(), '..', 'uploads', 'requests');
 mkdirSync(uploadDir, { recursive: true });
@@ -47,11 +48,13 @@ export class TicketsController {
     return this.ticket.findByStaff(staffId);
   }
 
-  @Get('my-work')
-  findMyWork(@Query('staffId', ParseIntPipe) staffId: number) {
-    return this.ticket.findMyWork(staffId);
-  }
-
+ @Get('my-work')
+findMyWork(
+  @Query('staffId', ParseIntPipe) staffId: number,
+  @Query() query: MyWorkQueryDto, 
+) {
+  return this.ticket.findMyWork(staffId, query);
+}
   @Get('my-requests')
   findMyRequests(@Query('staffId', ParseIntPipe) staffId: number) {
     return this.ticket.findMyRequests(staffId);
