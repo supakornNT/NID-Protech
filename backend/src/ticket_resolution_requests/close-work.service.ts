@@ -5,50 +5,47 @@ import { CloseWorkQueryDto } from './dto/close-work-query-dto.dto';
 @Injectable()
 export class CloseWorkService {
   constructor(@Inject('DB') private readonly db: Pool) {}
-async findRequests(query: CloseWorkQueryDto) {
-  const {
-    status = 'pending',
-    page = 1,
-    limit = 4,
-    search = '',
-  } = query;
+  async findRequests(query: CloseWorkQueryDto) {
+    const { status = 'pending', page = 1, limit = 4, search = '' } = query;
 
-  const offset = (page - 1) * limit;
+    const offset = (page - 1) * limit;
 
-  const requestFilter =
-    status === 'pending'
-      ? "r.status = 'in_progress'"
-      : "r.status IN ('waiting_confirm', 'closed')";
+    const requestFilter =
+      status === 'pending'
+        ? "r.status = 'in_progress'"
+        : "r.status IN ('waiting_confirm', 'closed')";
 
-  const whereClauses = [
-    requestFilter,
-    "trr.status IN ('pending', 'approved', 'rejected')",
-  ];
+    const whereClauses = [
+      requestFilter,
+      "trr.status IN ('pending', 'approved', 'rejected')",
+    ];
 
-  const params: unknown[] = [];
+    const params: unknown[] = [];
 
-  const searchText = search.trim();
+    const searchText = search.trim();
 
-  if (searchText !== '') {
-    const keyword = `%${searchText}%`;
+    if (searchText !== '') {
+      const keyword = `%${searchText}%`;
 
     whereClauses.push(`
-      (
-        r.request_no LIKE ?
-        OR r.title LIKE ?
-        OR CONCAT(c.name, ' ', COALESCE(c.surname, '')) LIKE ?
-        OR s.name LIKE ?
-        OR pt.name LIKE ?
-      )
-    `);
+    (
+      r.id = ?
+      OR r.request_no LIKE ?
+      OR r.title LIKE ?
+      OR CONCAT(c.name, ' ', COALESCE(c.surname, '')) LIKE ?
+      OR s.name LIKE ?
+      OR pt.name LIKE ?
+    )
+  `);
 
-    params.push(keyword, keyword, keyword, keyword, keyword);
-  }
 
-  const whereSql = `WHERE ${whereClauses.join(' AND ')}`;
+     params.push(searchText, keyword, keyword, keyword, keyword, keyword);
+    }
 
-  const [countRows] = await this.db.query<RowDataPacket[]>(
-    `
+    const whereSql = `WHERE ${whereClauses.join(' AND ')}`;
+
+    const [countRows] = await this.db.query<RowDataPacket[]>(
+      `
       SELECT COUNT(DISTINCT r.id) AS total
       FROM requests r
       JOIN tickets t ON t.request_id = r.id
@@ -58,14 +55,14 @@ async findRequests(query: CloseWorkQueryDto) {
       LEFT JOIN problem_types pt ON pt.id = r.problem_type_id
       ${whereSql}
     `,
-    params,
-  );
+      params,
+    );
 
-  const total = Number(countRows[0]?.total ?? 0);
-  const totalPages = Math.max(1, Math.ceil(total / limit));
+    const total = Number(countRows[0]?.total ?? 0);
+    const totalPages = Math.max(1, Math.ceil(total / limit));
 
-  const [rows] = await this.db.query<RowDataPacket[]>(
-    `
+    const [rows] = await this.db.query<RowDataPacket[]>(
+      `
       SELECT DISTINCT
         r.id,
         r.request_no AS requestNo,
@@ -86,19 +83,19 @@ async findRequests(query: CloseWorkQueryDto) {
       ORDER BY r.created_at DESC
       LIMIT ? OFFSET ?
     `,
-    [...params, limit, offset],
-  );
+      [...params, limit, offset],
+    );
 
-  return {
-    items: rows,
-    pagination: {
-      total,
-      page,
-      limit,
-      totalPages,
-    },
-  };
-}
+    return {
+      items: rows,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages,
+      },
+    };
+  }
 
   async findRequestTickets(requestId: number, status: 'pending' | 'history') {
     const requestFilter =
@@ -186,20 +183,24 @@ async findRequests(query: CloseWorkQueryDto) {
     return rows;
   }
 
-  async findLatestReopenComment(requestId: number) {
-    const [rows] = await this.db.query<RowDataPacket[]>(
-      `SELECT comment
-       FROM request_confirmations
-       WHERE request_id = ?
-         AND result = 'reopened'
-       ORDER BY confirmed_at DESC, id DESC
-       LIMIT 1`,
-      [requestId],
-    );
+async findLatestRejectComment(requestId: number) {
+  const [rows] = await this.db.query<RowDataPacket[]>(
+    `
+      SELECT trr.reject_reason AS rejectReason
+      FROM ticket_resolution_requests trr
+      JOIN tickets t ON t.id = trr.ticket_id
+      WHERE t.request_id = ?
+        AND trr.status = 'rejected'
+        AND trr.reject_reason IS NOT NULL
+        AND trr.reject_reason != ''
+      ORDER BY trr.reviewed_at DESC, trr.id DESC
+      LIMIT 1
+    `,
+    [requestId],
+  );
 
-    return rows[0]?.comment ?? null;
-  }
-
+  return rows[0]?.rejectReason ?? null;
+}
   async approveTicketResolution(
     ticketId: number,
     resolutionRequestId: number,

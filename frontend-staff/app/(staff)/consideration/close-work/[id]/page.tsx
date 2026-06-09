@@ -173,13 +173,13 @@ export default function CloseWorkDetailPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const requestId = Number(Array.isArray(params.id) ? params.id[0] : params.id);
   const initialTab =
     searchParams.get("tab") === "history" ? "history" : "pending";
-
+  const TICKET_LIMIT = 5;
+  const [ticketPage, setTicketPage] = useState(1);
   const { staff } = useStaffSession();
   const [tab] = useState<"pending" | "history">(initialTab);
-
+  const requestNo = (Array.isArray(params.id) ? params.id[0] : params.id) ?? "";
   const {
     requests,
     loading,
@@ -194,8 +194,8 @@ export default function CloseWorkDetailPage() {
   } = useCloseWork({
     status: tab,
     page: 1,
-    limit: 100,
-    search: "",
+    limit: 1,
+    search: `${requestNo.trim()}`,
   });
 
   const { lightbox, setLightbox } = useLightbox();
@@ -219,15 +219,14 @@ export default function CloseWorkDetailPage() {
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    const found = requests.find((item) => item.id === requestId) ?? null;
-    setSelectedRequest(found);
-  }, [requests, requestId]);
-
+    setSelectedRequest(requests[0] ?? null);
+  }, [requests]);
   useEffect(() => {
     if (!selectedRequest) {
       setRequestTickets([]);
       setRequestFiles([]);
       setTicketFiles([]);
+      setTicketPage(1);
       setLatestRejectComment(null);
       setSelectedTicket(null);
       return;
@@ -292,7 +291,17 @@ export default function CloseWorkDetailPage() {
     fetchRequestTickets,
     fetchTicketAttachments,
   ]);
+  const ticketTotalPages = Math.max(
+    1,
+    Math.ceil(requestTickets.length / TICKET_LIMIT),
+  );
 
+  const safeTicketPage = Math.min(ticketPage, ticketTotalPages);
+
+  const pagedRequestTickets = requestTickets.slice(
+    (safeTicketPage - 1) * TICKET_LIMIT,
+    safeTicketPage * TICKET_LIMIT,
+  );
   async function handleSelectTicket(ticket: TicketCloseItem) {
     if (!canOpenTicket(ticket)) {
       return;
@@ -354,7 +363,7 @@ export default function CloseWorkDetailPage() {
         isFinalApproval ? approvalSummary.trim() : undefined,
       );
       const updatedTickets = await refreshRequestDetail();
-      await fetchRequests();
+      // await fetchRequests();
       setSelectedTicket(null);
       setTicketFiles([]);
       setRejectReason("");
@@ -393,7 +402,7 @@ export default function CloseWorkDetailPage() {
         rejectReason.trim(),
       );
       const updatedTickets = await refreshRequestDetail();
-      await fetchRequests();
+      // await fetchRequests();
 
       const nextTicket =
         updatedTickets.find((item) => item.id === selectedTicket.id) ?? null;
@@ -599,7 +608,7 @@ export default function CloseWorkDetailPage() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {requestTickets.map((ticket) => {
+                    {pagedRequestTickets.map((ticket) => {
                       const active = selectedTicket?.id === ticket.id;
                       const openable = canOpenTicket(ticket);
                       const disabled = active || !openable;
@@ -647,6 +656,51 @@ export default function CloseWorkDetailPage() {
                   </div>
                 )}
               </div>
+              {requestTickets.length > TICKET_LIMIT && (
+                <div className="mt-3 flex items-center justify-end gap-1 text-[12px] text-gray-500">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setTicketPage((current) => Math.max(1, current - 1))
+                    }
+                    disabled={safeTicketPage === 1}
+                    className="rounded-md px-2 py-1 hover:text-[#366DBD] disabled:opacity-40"
+                  >
+                    Previous
+                  </button>
+
+                  {Array.from(
+                    { length: ticketTotalPages },
+                    (_, index) => index + 1,
+                  ).map((pageNumber) => (
+                    <button
+                      key={pageNumber}
+                      type="button"
+                      onClick={() => setTicketPage(pageNumber)}
+                      className={`flex h-7 w-7 items-center justify-center rounded-md border text-[12px] ${
+                        safeTicketPage === pageNumber
+                          ? "border-[#7FA7E8] bg-[#EEF4FF] text-[#3A6FCF]"
+                          : "border-transparent hover:border-[#7FA7E8]"
+                      }`}
+                    >
+                      {pageNumber}
+                    </button>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setTicketPage((current) =>
+                        Math.min(ticketTotalPages, current + 1),
+                      )
+                    }
+                    disabled={safeTicketPage === ticketTotalPages}
+                    className="rounded-md px-2 py-1 hover:text-[#366DBD] disabled:opacity-40"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="flex min-h-0 flex-col rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
@@ -695,12 +749,7 @@ export default function CloseWorkDetailPage() {
                         {selectedRequest.detail || "-"}
                       </p>
                       <div className="mt-4 border-t border-gray-100 pt-4">
-                        <p className="text-[14px] font-bold text-gray-900">
-                          การตีกลับล่าสุด
-                        </p>
-                        <p className="mt-2 whitespace-pre-wrap text-[14px] leading-7 text-gray-700">
-                          {latestRejectComment || "-"}
-                        </p>
+                       
                       </div>
                     </div>
 
@@ -722,17 +771,17 @@ export default function CloseWorkDetailPage() {
                       </p>
                     </div>
 
-                    {selectedTicket.rejectReason ? (
+                    {latestRejectComment? (
                       <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
                         <p className="text-[14px] font-bold text-amber-800">
                           เหตุผลที่เคยส่งกลับแก้ไข
                         </p>
                         <p className="mt-2 whitespace-pre-wrap text-[14px] leading-7 text-amber-900">
-                          {selectedTicket.rejectReason}
+                          {latestRejectComment || "-"}
                         </p>
                       </div>
                     ) : null}
-
+                  {ticketFiles.length > 0 && (  
                     <div>
                       <p className="text-[14px] font-bold text-gray-900">
                         ไฟล์หลักฐานการแก้ไข ({ticketFiles.length})
@@ -805,7 +854,7 @@ export default function CloseWorkDetailPage() {
                         )}
                       </div>
                     </div>
-
+                  )}
                     {tab === "pending" &&
                     selectedTicket.resolutionStatus === "pending" ? (
                       <div className="flex justify-end gap-3 w-full">

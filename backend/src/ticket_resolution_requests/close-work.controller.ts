@@ -59,10 +59,10 @@ export class CloseWorkController {
     return this.closeWorkService.findRequestEvidence(requestId);
   }
 
-  @Get('requests/:id/latest-reject')
-  getLatestReject(@Param('id', ParseIntPipe) requestId: number) {
-    return this.closeWorkService.findLatestReopenComment(requestId);
-  }
+@Get('requests/:id/latest-reject')
+getLatestReject(@Param('id', ParseIntPipe) requestId: number) {
+  return this.closeWorkService.findLatestRejectComment(requestId);
+}
 
   @Get('requests/:id/reopen-attachments')
   getReopenAttachments(@Param('id', ParseIntPipe) requestId: number) {

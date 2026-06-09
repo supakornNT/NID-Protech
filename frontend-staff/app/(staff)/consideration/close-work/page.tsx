@@ -187,7 +187,7 @@ export default function CloseWorkListPage() {
                       type="button"
                       onClick={() =>
                         router.push(
-                          `/consideration/close-work/${item.id}?tab=${tab}`,
+                          `/consideration/close-work/${item.requestNo}?tab=${tab}`,
                         )
                       }
                       className="sm:mt-1 rounded-lg border border-[#929396] bg-white px-5 py-1.5 text-[14px] text-gray-700 hover:bg-gray-50"
