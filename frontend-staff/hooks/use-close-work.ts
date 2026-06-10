@@ -47,6 +47,9 @@ export type UseCloseWorkParams = {
   page?: number;
   limit?: number;
   search?: string;
+  type?: string;
+  system?: string;
+  sort?: string;
 };
 
 const DEFAULT_PAGINATION: CloseWorkPagination = {
@@ -62,6 +65,9 @@ export function useCloseWork(params: UseCloseWorkParams = {}) {
     page = 1,
     limit = 4,
     search = "",
+    type,
+    system,
+    sort,
   } = params;
 
   const [requests, setRequests] = useState<RequestCloseItem[]>([]);
@@ -85,6 +91,9 @@ export function useCloseWork(params: UseCloseWorkParams = {}) {
       if (trimmedSearch !== "") {
         query.set("search", trimmedSearch);
       }
+      if (type) query.set("type", type);
+      if (system) query.set("system", system);
+      if (sort) query.set("sort", sort);
 
       const response = await fetch(
         `${API_BASE_URL}/admin/close-work/requests?${query.toString()}`,
@@ -105,7 +114,7 @@ export function useCloseWork(params: UseCloseWorkParams = {}) {
     } finally {
       setLoading(false);
     }
-  }, [status, page, limit, search]);
+  }, [status, page, limit, search, type, system, sort]);
 
   useEffect(() => {
     void fetchRequests();

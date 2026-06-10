@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   ChevronLeft,
@@ -49,6 +49,8 @@ interface EditModal {
 export default function ManageWorkDetailPage() {
   const { id } = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryMainDue = searchParams.get("mainDue") ?? undefined;
   const { staff } = useStaffSession();
   const staffId = typeof staff?.id === "number" ? staff.id : Number(staff?.id);
   const { data, attachments, loading, resolvedRequestId } =
@@ -64,7 +66,7 @@ export default function ManageWorkDetailPage() {
 
   const [subPage, setSubPage] = useState(1);
   const [subSearch, setSubSearch] = useState("");
-  const [editedDueDate, setDueDate] = useState<string | undefined>(undefined);
+  const [editedDueDate, setDueDate] = useState<string | undefined>(queryMainDue);
 
   // Default due date to 3 days from today
   const defaultDueDate = useMemo(() => {
@@ -668,7 +670,7 @@ export default function ManageWorkDetailPage() {
                   type="button"
                   onClick={() =>
                     router.push(
-                      `/consideration/issue-work/${effectiveRequestId}/assign`,
+                      `/consideration/issue-work/${effectiveRequestId}/assign?mainDue=${dueDate}`,
                     )
                   }
                   className="h-9 rounded-lg border border-[#366DBD] px-4 text-[13px] font-semibold text-[#366DBD] hover:bg-blue-50"

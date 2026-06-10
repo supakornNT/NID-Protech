@@ -62,6 +62,9 @@ export class RequestsController {
       page: Math.max(Number(query.page ?? 1), 1),
       limit: Math.min(Math.max(Number(query.limit ?? 4), 1), 100),
       search: String(query.search ?? '').trim(),
+      type: query.type?.trim(),
+      system: query.system?.trim(),
+      sort: query.sort,
     };
 
     return this.request.findAssign(normalizedQuery);

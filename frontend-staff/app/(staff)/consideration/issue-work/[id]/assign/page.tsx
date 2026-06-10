@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   ChevronLeft,
@@ -30,18 +30,19 @@ type SelectedStaff = {
 export default function AssignWorkPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
+  const queryMainDue = searchParams.get("mainDue") ?? undefined;
   const { staff } = useStaffSession();
   const staffId = typeof staff?.id === "number" ? staff.id : Number(staff?.id);
   const { data: requestData, resolvedRequestId } = useComplaintDetail(params.id);
-  const requestId = Number(
-    resolvedRequestId ?? (Array.isArray(params.id) ? params.id[0] : params.id),
-  );
+  const routeId = (Array.isArray(params.id) ? params.id[0] : params.id) ?? resolvedRequestId ?? "";
+  const requestId = Number(routeId);
   function formatYMD(date: Date): string {
-  const yyyy = date.getFullYear();
-  const mm = String(date.getMonth() + 1).padStart(2, '0');
-  const dd = String(date.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
-}
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
 
   const defaultDueDate = useMemo(() => {
     const d = new Date();
@@ -49,7 +50,7 @@ export default function AssignWorkPage() {
     return formatYMD(d);
   }, []);
   const localToday = formatYMD(new Date());
-  const requestDueAt = requestData?.dueAt ? requestData.dueAt.slice(0, 10) : undefined;
+  const requestDueAt = (requestData?.dueAt ? requestData.dueAt.slice(0, 10) : undefined) || (queryMainDue ? queryMainDue.slice(0, 10) : undefined);
   const isRequestDuePast = !!requestDueAt && requestDueAt < localToday;
 
   const { staffs, loading, refetch: refetchStaffs } = useStaffList();
@@ -126,7 +127,7 @@ export default function AssignWorkPage() {
       <div className="flex items-center gap-4">
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={() => router.push(`/consideration/issue-work/${routeId}?mainDue=${requestDueAt ?? ""}`)}
           className="flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 shadow-sm hover:bg-gray-50"
         >
           <ArrowLeft size={18} />
@@ -549,7 +550,12 @@ export default function AssignWorkPage() {
       {/* ── Success dialog ── */}
       <AdminModalShell
         open={showCreateSuccess}
-        onOpenChange={setShowCreateSuccess}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowCreateSuccess(false);
+            router.push(`/consideration/issue-work/${routeId}?mainDue=${requestDueAt ?? ""}`);
+          }
+        }}
         title="มอบหมายงานสำเร็จ"
         widthClassName="max-w-[460px]"
       >
@@ -568,7 +574,10 @@ export default function AssignWorkPage() {
             <ProTechButton
               variant="primary"
               className="h-10 min-w-[120px]"
-              onClick={() => setShowCreateSuccess(false)}
+              onClick={() => {
+                setShowCreateSuccess(false);
+                router.push(`/consideration/issue-work/${routeId}?mainDue=${requestDueAt ?? ""}`);
+              }}
             >
               ตกลง
             </ProTechButton>

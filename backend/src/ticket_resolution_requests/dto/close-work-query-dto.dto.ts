@@ -3,4 +3,7 @@ export class CloseWorkQueryDto {
   page?: number;
   limit?: number;
   search?: string;
+  type?: string;
+  system?: string;
+  sort?: 'latest' | 'earliest';
 }

@@ -25,6 +25,9 @@ type UseIssueWorkParams = {
   page: number;
   limit: number;
   search?: string;
+  type?: string;
+  system?: string;
+  sort?: string;
 };
 
 const DEFAULT_PAGINATION: IssueWorkPagination = {
@@ -38,6 +41,9 @@ export function useIssueWork({
   page,
   limit,
   search = "",
+  type,
+  system,
+  sort,
 }: UseIssueWorkParams) {
   const [rows, setRows] = useState<WorkItem[]>([]);
   const [pagination, setPagination] =
@@ -54,6 +60,9 @@ export function useIssueWork({
     if (trimmedSearch !== "") {
       query.set("search", trimmedSearch);
     }
+    if (type) query.set("type", type);
+    if (system) query.set("system", system);
+    if (sort) query.set("sort", sort);
 
     setLoading(true);
 
@@ -75,7 +84,7 @@ export function useIssueWork({
         setPagination(DEFAULT_PAGINATION);
       })
       .finally(() => setLoading(false));
-  }, [page, limit, search]);
+  }, [page, limit, search, type, system, sort]);
 
   return { rows, pagination, loading };
 }

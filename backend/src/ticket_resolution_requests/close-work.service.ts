@@ -42,7 +42,20 @@ export class CloseWorkService {
      params.push(searchText, keyword, keyword, keyword, keyword, keyword);
     }
 
+    if (query.type) {
+      whereClauses.push('pt.request_type = ?');
+      params.push(query.type);
+    }
+
+    if (query.system) {
+      whereClauses.push('s.name = ?');
+      params.push(query.system);
+    }
+
     const whereSql = `WHERE ${whereClauses.join(' AND ')}`;
+
+    const orderSql =
+      query.sort === 'earliest' ? 'r.created_at ASC' : 'r.created_at DESC';
 
     const [countRows] = await this.db.query<RowDataPacket[]>(
       `
@@ -80,7 +93,7 @@ export class CloseWorkService {
       LEFT JOIN systems s ON s.id = r.system_id
       LEFT JOIN problem_types pt ON pt.id = r.problem_type_id
       ${whereSql}
-      ORDER BY r.created_at DESC
+      ORDER BY ${orderSql}
       LIMIT ? OFFSET ?
     `,
       [...params, limit, offset],

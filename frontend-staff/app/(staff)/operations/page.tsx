@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ToolbarSelect } from "@/components/ui/toolbar-select";
@@ -10,6 +10,7 @@ import { ProTechSearchBar } from "@/components/tables/protech-search";
 
 const LIMIT = 4;
 const ALL_OPTION = "ทั้งหมด";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 const TYPE_LABEL: Record<string, string> = {
   issue: "ปัญหา",
@@ -26,6 +27,21 @@ export default function OperationsPage() {
   const [systemFilter, setSystemFilter] = useState(ALL_OPTION);
   const [sortTime, setSortTime] = useState<"latest" | "earliest">("latest");
   const [page, setPage] = useState(1);
+  const [systems, setSystems] = useState<{ id: number; name: string }[]>([]);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/admin/systems`)
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setSystems(data);
+        }
+      })
+      .catch((err) => console.error("Failed to load systems", err));
+  }, []);
 
   const { items, pagination, loading, error } = useMyWork({
     staffId: 1,
@@ -39,24 +55,17 @@ export default function OperationsPage() {
 
   const typeOptions = [
     { value: ALL_OPTION, label: "ประเภททั้งหมด" },
-    ...Array.from(
-      new Set(
-        items.map((item) => TYPE_LABEL[item.requestType] ?? item.requestType),
-      ),
-    ).map((label) => ({
-      value: label,
-      label,
-    })),
+    { value: "issue", label: "ปัญหา" },
+    { value: "complaint", label: "ร้องเรียน" },
+    { value: "service", label: "บริการ" },
   ];
 
   const systemOptions = [
     { value: ALL_OPTION, label: "ระบบทั้งหมด" },
-    ...Array.from(new Set(items.map((item) => item.systemName ?? "—"))).map(
-      (label) => ({
-        value: label,
-        label,
-      }),
-    ),
+    ...systems.map((sys) => ({
+      value: sys.name,
+      label: sys.name,
+    })),
   ];
 
   const timeOptions = [

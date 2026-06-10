@@ -336,7 +336,24 @@ async findAssign(query: RequestAssignQueryDto) {
     params.push(keyword, keyword, keyword, keyword, keyword, keyword);
   }
 
+  if (query.type) {
+    whereClauses.push('problem_types.request_type = ?');
+    params.push(query.type);
+  }
+
+  if (query.system) {
+    whereClauses.push('systems.name = ?');
+    params.push(query.system);
+  }
+
   const whereSql = `WHERE ${whereClauses.join(' AND ')}`;
+
+  const orderSql =
+    query.sort === 'earliest'
+      ? 'requests.created_at ASC'
+      : query.sort === 'due_soon'
+        ? 'requests.due_at ASC, requests.created_at DESC'
+        : 'requests.created_at DESC';
 
   const [countRows] = await this.db.query<RowDataPacket[]>(
     `
@@ -377,7 +394,7 @@ async findAssign(query: RequestAssignQueryDto) {
       LEFT JOIN customers ON customers.id = requests.customer_id
       LEFT JOIN problem_types ON problem_types.id = requests.problem_type_id
       ${whereSql}
-      ORDER BY requests.created_at DESC
+      ORDER BY ${orderSql}
       LIMIT ? OFFSET ?
     `,
     [...params, limit, offset],

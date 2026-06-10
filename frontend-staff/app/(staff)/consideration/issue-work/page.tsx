@@ -1,25 +1,70 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useIssueWork } from "@/hooks/use-issue-work";
 import { ProTechSearchBar } from "@/components/tables/protech-search";
+import { ToolbarSelect } from "@/components/ui/toolbar-select";
 
 const LIMIT = 4;
+const ALL_OPTION = "ทั้งหมด";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 export default function IssueWorkPage() {
   const router = useRouter();
 
   const [searchValue, setSearchValue] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState(ALL_OPTION);
+  const [systemFilter, setSystemFilter] = useState(ALL_OPTION);
+  const [sortTime, setSortTime] = useState<"latest" | "earliest" | "due_soon">("latest");
   const [page, setPage] = useState(1);
+  const [systems, setSystems] = useState<{ id: number; name: string }[]>([]);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/admin/systems`)
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setSystems(data);
+        }
+      })
+      .catch((err) => console.error("Failed to load systems", err));
+  }, []);
 
   const { rows, pagination, loading } = useIssueWork({
     page,
     limit: LIMIT,
     search: appliedSearch,
+    type: typeFilter === ALL_OPTION ? undefined : typeFilter,
+    system: systemFilter === ALL_OPTION ? undefined : systemFilter,
+    sort: sortTime,
   });
+
+  const typeOptions = [
+    { value: ALL_OPTION, label: "ประเภททั้งหมด" },
+    { value: "issue", label: "ปัญหา" },
+    { value: "complaint", label: "ร้องเรียน" },
+    { value: "service", label: "บริการ" },
+  ];
+
+  const systemOptions = [
+    { value: ALL_OPTION, label: "ระบบทั้งหมด" },
+    ...systems.map((sys) => ({
+      value: sys.name,
+      label: sys.name,
+    })),
+  ];
+
+  const timeOptions = [
+    { value: "latest", label: "ล่าสุด" },
+    { value: "earliest", label: "ครบกำหนดก่อน" },
+    { value: "due_soon", label: "กำหนดส่งด่วนสุด" },
+  ];
 
   const totalPages = Math.max(1, pagination?.totalPages ?? 1);
   const safePage = Math.min(page, totalPages);
@@ -48,8 +93,8 @@ export default function IssueWorkPage() {
         <p className="text-[16px] text-gray-500">งานที่ต้องมอบหมาย</p>
       </div>
 
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-        <div className="flex flex-1 flex-wrap items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="flex gap-2 w-full sm:w-auto">
           <ProTechSearchBar
             defaultValue={searchValue}
             placeholder="ค้นหาคำขอ..."
@@ -69,6 +114,41 @@ export default function IssueWorkPage() {
               setAppliedSearch(value);
               setPage(1);
             }}
+          />
+        </div>
+
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          <ToolbarSelect
+            value={typeFilter}
+            options={typeOptions}
+            placeholder="ประเภททั้งหมด"
+            onChange={(value) => {
+              setTypeFilter(value);
+              setPage(1);
+            }}
+            className="flex-1 min-w-30 sm:flex-none sm:w-47.5"
+          />
+
+          <ToolbarSelect
+            value={systemFilter}
+            options={systemOptions}
+            placeholder="ระบบทั้งหมด"
+            onChange={(value) => {
+              setSystemFilter(value);
+              setPage(1);
+            }}
+            className="flex-1 min-w-30 sm:flex-none sm:w-47.5"
+          />
+
+          <ToolbarSelect
+            value={sortTime}
+            options={timeOptions}
+            placeholder="เวลา"
+            onChange={(value) => {
+              setSortTime(value as "latest" | "earliest" | "due_soon");
+              setPage(1);
+            }}
+            className="w-full sm:w-42.5"
           />
         </div>
       </div>
