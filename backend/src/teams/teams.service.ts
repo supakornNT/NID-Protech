@@ -497,20 +497,8 @@ export class TeamsService {
       'SELECT COUNT(*) AS total FROM staff_team_roles WHERE team_id = ?',
       [id],
     );
-    const [ticketRows] = await this.db.query<TeamUsageCountRow[]>(
-      'SELECT COUNT(*) AS total FROM tickets WHERE assigned_team_id = ?',
-      [id],
-    );
-    const [ticketAssignmentRows] = await this.db.query<TeamUsageCountRow[]>(
-      'SELECT COUNT(*) AS total FROM ticket_assignments WHERE assigned_team_id = ?',
-      [id],
-    );
 
-    return (
-      getCountTotal(staffTeamRoleRows, 0) +
-      getCountTotal(ticketRows, 0) +
-      getCountTotal(ticketAssignmentRows, 0)
-    );
+    return getCountTotal(staffTeamRoleRows, 0);
   }
 
   async remove(id: number) {
