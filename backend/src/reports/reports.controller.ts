@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 
 @Controller('reports')
@@ -16,7 +16,19 @@ export class ReportsController {
   }
 
   @Get('edit-history')
-  getEditHistory() {
-    return this.reports.getEditHistory();
+  getEditHistory(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('search') search?: string,
+    @Query('status') status?: string,
+    @Query('type') type?: string,
+  ) {
+    return this.reports.getEditHistory({
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+      search,
+      status,
+      type,
+    });
   }
 }

@@ -7,9 +7,11 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { resolve } from 'path';
@@ -81,7 +83,11 @@ findMyWork(
   }
 
   @Post()
-  createSubTicket(@Body() dto: CreateTicketDto) {
+  createSubTicket(@Body() dto: CreateTicketDto, @Req() req: Request) {
+    const sessionStaffId = (req.session as any)?.staff?.id;
+    if (sessionStaffId && !dto.assignedBy) {
+      dto.assignedBy = Number(sessionStaffId);
+    }
     return this.ticket.createSubTicket(dto);
   }
 
@@ -89,7 +95,12 @@ findMyWork(
   updateSubTicket(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateTicketDto,
+    @Req() req: Request,
   ) {
+    const sessionStaffId = (req.session as any)?.staff?.id;
+    if (sessionStaffId && !dto.changedBy) {
+      dto.changedBy = Number(sessionStaffId);
+    }
     return this.ticket.updateSubTicket(id, dto);
   }
 
@@ -104,8 +115,16 @@ findMyWork(
   }
 
   @Patch(':id/cancel')
-  deletedSubTicket(@Param('id', ParseIntPipe) id: number) {
-    return this.ticket.deleteSubticket(id);
+  deletedSubTicket(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('staffId') queryStaffId: string | undefined,
+    @Req() req: Request,
+  ) {
+    const sessionStaffId = (req.session as any)?.staff?.id;
+    const staffId = sessionStaffId
+      ? Number(sessionStaffId)
+      : (queryStaffId ? Number(queryStaffId) : undefined);
+    return this.ticket.deleteSubticket(id, staffId);
   }
 
   @Get(':id/attachments')

@@ -217,6 +217,7 @@ export default function ManageWorkDetailPage() {
       title: editForm.title,
       description: editForm.description,
       dueAt: editForm.dueAt || undefined,
+      changedBy: staffId,
     });
   }
 
@@ -852,7 +853,7 @@ export default function ManageWorkDetailPage() {
               className="h-10 flex-1 min-w-0 sm:flex-none sm:min-w-30"
               onClick={() => {
                 if (deleteConfirmId !== null) {
-                  void deleteTicket(deleteConfirmId);
+                  void deleteTicket(deleteConfirmId, staffId);
                   setDeleteConfirmId(null);
                 }
               }}

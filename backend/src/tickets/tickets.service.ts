@@ -592,7 +592,7 @@ async findMyWork(
     return { uploaded: files.length };
   }
 
-  async deleteSubticket(id: number) {
+  async deleteSubticket(id: number, staffId?: number) {
     const [rows] = await this.db.query<RowDataPacket[]>(
       'SELECT status FROM tickets WHERE id = ?',
       [id],
@@ -610,8 +610,8 @@ async findMyWork(
     if (current) {
       await this.db.query(
         `INSERT INTO ticket_status_logs (ticket_id, old_status, new_status, changed_by, note)
-         VALUES (?, ?, 'cancelled', NULL, ?)`,
-        [id, current.status, 'ยกเลิกตั๋วงานย่อย'],
+         VALUES (?, ?, 'cancelled', ?, ?)`,
+        [id, current.status, staffId ?? null, 'ยกเลิกตั๋วงานย่อย'],
       );
     }
   }

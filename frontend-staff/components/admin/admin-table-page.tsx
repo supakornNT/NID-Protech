@@ -46,6 +46,7 @@ type AdminTablePageProps<T extends Record<string, unknown>> = {
   searchValue?: string;
   searchInputProps?: SearchInputConfig;
   filterValues?: Record<string, string>;
+  onFilterChange?: (filters: Record<string, string>) => void;
   page?: number;
   totalPages?: number;
   totalItems?: number;
@@ -81,6 +82,7 @@ export function AdminTablePage<T extends Record<string, unknown>>({
   searchValue,
   searchInputProps,
   filterValues,
+  onFilterChange,
   page,
   totalPages,
   totalItems,
@@ -191,12 +193,14 @@ export function AdminTablePage<T extends Record<string, unknown>>({
           ]}
           placeholder={filter.placeholder}
           onChange={(value) => {
+            const nextFilters = {
+              ...resolvedSelectedFilters,
+              [filter.key]: value,
+            };
             if (filterValues === undefined) {
-              setInternalSelectedFilters((current) => ({
-                ...current,
-                [filter.key]: value,
-              }));
+              setInternalSelectedFilters(nextFilters);
             }
+            onFilterChange?.(nextFilters);
 
             if (isControlledPagination) {
               onPageChange(1);

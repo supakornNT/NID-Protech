@@ -7,6 +7,7 @@ interface UpdateTicketPayload {
   title?: string;
   description?: string;
   status?: string;
+  changedBy?: number;
 }
 
 export function useUpdateTicket(onSuccess?: () => void) {
@@ -19,6 +20,7 @@ export function useUpdateTicket(onSuccess?: () => void) {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
+        credentials: "include",
       });
       onSuccess?.();
     } finally {

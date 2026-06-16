@@ -43,7 +43,13 @@ export class ReportsService implements OnModuleInit {
     }
   }
 
-  async getEditHistory() {
+  async getEditHistory(query: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+    type?: string;
+  }) {
     const [statsRows] = await this.db.query<RowDataPacket[]>(
       `SELECT
         COUNT(*) AS total,
@@ -57,10 +63,60 @@ export class ReportsService implements OnModuleInit {
     const STATUS_MAP: Record<string, string> = {
       assigned: 'รอดำเนินการ',
       in_progress: 'การดำเนินการ',
-      waiting_confirm: 'รอประเมิน',
       closed: 'เสร็จสิ้น',
       cancelled: 'ยกเลิก',
     };
+
+    const whereClauses: string[] = [];
+    const params: unknown[] = [];
+
+    if (query.search) {
+      const searchKeyword = `%${query.search.trim()}%`;
+      whereClauses.push(`(
+        r.title LIKE ? 
+        OR sys.name LIKE ? 
+        OR pt.name LIKE ? 
+        OR CONCAT(st.name, ' ', COALESCE(st.surname, '')) LIKE ?
+      )`);
+      params.push(searchKeyword, searchKeyword, searchKeyword, searchKeyword);
+    }
+
+    if (query.status) {
+      const dbStatus = Object.keys(STATUS_MAP).find(
+        (key) => STATUS_MAP[key] === query.status,
+      );
+      if (dbStatus) {
+        whereClauses.push(`tsl.new_status = ?`);
+        params.push(dbStatus);
+      } else {
+        whereClauses.push(`tsl.new_status = ?`);
+        params.push(query.status);
+      }
+    }
+
+    if (query.type) {
+      whereClauses.push(`pt.name = ?`);
+      params.push(query.type);
+    }
+
+    const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+    const [countRows] = await this.db.query<RowDataPacket[]>(
+      `SELECT COUNT(*) AS total
+       FROM ticket_status_logs tsl
+       JOIN tickets t ON t.id = tsl.ticket_id
+       JOIN requests r ON r.id = t.request_id
+       LEFT JOIN systems sys ON sys.id = r.system_id
+       LEFT JOIN problem_types pt ON pt.id = r.problem_type_id
+       LEFT JOIN staffs st ON st.id = tsl.changed_by
+       ${whereSql}`,
+      params,
+    );
+    const total = Number(countRows[0]?.total ?? 0);
+
+    const page = Math.max(Number(query.page ?? 1), 1);
+    const limit = Math.max(Number(query.limit ?? 10), 1);
+    const offset = (page - 1) * limit;
 
     const [logRows] = await this.db.query<RowDataPacket[]>(
       `SELECT
@@ -70,15 +126,17 @@ export class ReportsService implements OnModuleInit {
         pt.name AS type,
         tsl.new_status AS status,
         tsl.created_at AS createdAt,
-        CONCAT(st.name, ' ', st.surname) AS operator
+        CONCAT(st.name, ' ', COALESCE(st.surname, '')) AS operator
        FROM ticket_status_logs tsl
        JOIN tickets t ON t.id = tsl.ticket_id
        JOIN requests r ON r.id = t.request_id
        LEFT JOIN systems sys ON sys.id = r.system_id
        LEFT JOIN problem_types pt ON pt.id = r.problem_type_id
        LEFT JOIN staffs st ON st.id = tsl.changed_by
+       ${whereSql}
        ORDER BY tsl.created_at DESC
-       LIMIT 200`,
+       LIMIT ? OFFSET ?`,
+      [...params, limit, offset],
     );
 
     const rows = logRows.map((r) => {
@@ -100,6 +158,11 @@ export class ReportsService implements OnModuleInit {
       };
     });
 
+    const [typeRows] = await this.db.query<RowDataPacket[]>(
+      `SELECT DISTINCT name FROM problem_types WHERE name IS NOT NULL AND name != ''`
+    );
+    const typeOptions = typeRows.map((r) => String(r.name));
+
     return {
       stats: {
         total: Number(s.total ?? 0),
@@ -108,6 +171,16 @@ export class ReportsService implements OnModuleInit {
         overdue: Number(s.overdue ?? 0),
       },
       rows,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+      filterOptions: {
+        types: typeOptions,
+        statuses: Object.values(STATUS_MAP),
+      },
     };
   }
 

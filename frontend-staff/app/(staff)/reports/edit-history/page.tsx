@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { Column } from "@/types/table";
 import { AdminTablePage } from "@/components/admin/admin-table-page";
 import { MessageCircle, CheckCircle2, AlertTriangle } from "lucide-react";
+import { useLoadingDelay } from "@/hooks/use-loading-delay";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -56,18 +57,55 @@ export default function ReportEditHistoryPage() {
   const [stats, setStats] = useState<Stats>({ total: 0, inProgress: 0, done: 0, overdue: 0 });
   const [loading, setLoading] = useState(true);
 
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [search, setSearch] = useState("");
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({
+    status: "all",
+    type: "all",
+  });
+  const [serverStatusOptions, setServerStatusOptions] = useState<string[]>([]);
+  const [serverTypeOptions, setServerTypeOptions] = useState<string[]>([]);
+
+  const showSkeleton = useLoadingDelay(loading, 200);
+
   useEffect(() => {
-    fetch(`${API_BASE_URL}/reports/edit-history`)
+    const params = new URLSearchParams();
+    params.append("page", String(page));
+    params.append("limit", "10");
+    if (search) {
+      params.append("search", search);
+    }
+    if (selectedFilters.status && selectedFilters.status !== "all") {
+      params.append("status", selectedFilters.status);
+    }
+    if (selectedFilters.type && selectedFilters.type !== "all") {
+      params.append("type", selectedFilters.type);
+    }
+
+    setLoading(true);
+    fetch(`${API_BASE_URL}/reports/edit-history?${params.toString()}`)
       .then((r) => r.json())
       .then((d) => {
-        if (d && d.stats) {
-          setStats(d.stats);
+        if (d) {
+          if (d.stats) {
+            setStats(d.stats);
+          }
+          setRows(d.rows && Array.isArray(d.rows) ? d.rows : []);
+          if (d.pagination) {
+            setTotalPages(d.pagination.totalPages ?? 1);
+            setTotalItems(d.pagination.total ?? 0);
+          }
+          if (d.filterOptions) {
+            setServerStatusOptions(d.filterOptions.statuses ?? []);
+            setServerTypeOptions(d.filterOptions.types ?? []);
+          }
         }
-        setRows(d && Array.isArray(d.rows) ? d.rows : []);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [page, search, selectedFilters]);
 
   const columns: Column<HistoryRow>[] = [
     { key: "system", title: "ระบบ" },
@@ -81,9 +119,6 @@ export default function ReportEditHistoryPage() {
     { key: "time", title: "เวลา" },
     { key: "operator", title: "ผู้ดำเนินการ" },
   ];
-
-  const statusOptions = ["รอดำเนินการ", "การดำเนินการ", "เสร็จสิ้น", "ยกเลิก"];
-  const typeOptions = [...new Set(rows.map((r) => r.type).filter(Boolean))];
 
   return (
     <div className="flex flex-1 flex-col gap-6 bg-white p-4 sm:p-6 lg:p-8">
@@ -128,10 +163,39 @@ export default function ReportEditHistoryPage() {
         data={rows}
         showCreate={false}
         showDelete={false}
-        loading={loading}
+        loading={showSkeleton}
+        searchValue={search}
+        onSearchClick={(val) => {
+          setSearch(val);
+          setPage(1);
+        }}
+        page={page}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        onPageChange={setPage}
+        filterValues={{
+          status: selectedFilters.status ?? "all",
+          type: selectedFilters.type ?? "all",
+        }}
+        onFilterChange={(newFilters) => {
+          setSelectedFilters(newFilters);
+          setPage(1);
+        }}
+        disableClientFiltering
+        disableClientPagination
         filters={[
-          { key: "status", placeholder: "สถานะทั้งหมด", options: statusOptions },
-          { key: "type", placeholder: "ประเภททั้งหมด", options: typeOptions },
+          {
+            key: "status",
+            placeholder: "สถานะทั้งหมด",
+            options: serverStatusOptions.length > 0
+              ? serverStatusOptions
+              : ["รอดำเนินการ", "การดำเนินการ", "เสร็จสิ้น", "ยกเลิก"],
+          },
+          {
+            key: "type",
+            placeholder: "ประเภททั้งหมด",
+            options: serverTypeOptions,
+          },
         ]}
       />
     </div>
