@@ -25,10 +25,10 @@ type Stats = {
 };
 
 const STATUS_STYLES: Record<string, string> = {
-  การดำเนินการ: "border-[#366DBD] text-[#366DBD]",
-  รอประเมิน: "border-[#D9A800] text-[#D9A800]",
-  เสร็จสิ้น: "border-[#4CAF50] text-[#4CAF50]",
-  ยกเลิก: "border-gray-400 text-gray-400",
+  รอดำเนินการ: "border-gray-300 bg-gray-50 text-gray-600",
+  การดำเนินการ: "border-[#366DBD] bg-[#EEF4FF] text-[#366DBD]",
+  เสร็จสิ้น: "border-[#4CAF7D] bg-[#EDFAF3] text-[#1A7A4A]",
+  ยกเลิก: "border-[#FF6B81] bg-[#FFF0F2] text-[#FF5D76]",
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -60,8 +60,10 @@ export default function ReportEditHistoryPage() {
     fetch(`${API_BASE_URL}/reports/edit-history`)
       .then((r) => r.json())
       .then((d) => {
-        setStats(d.stats);
-        setRows(Array.isArray(d.rows) ? d.rows : []);
+        if (d && d.stats) {
+          setStats(d.stats);
+        }
+        setRows(d && Array.isArray(d.rows) ? d.rows : []);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -80,7 +82,7 @@ export default function ReportEditHistoryPage() {
     { key: "operator", title: "ผู้ดำเนินการ" },
   ];
 
-  const statusOptions = ["การดำเนินการ", "รอประเมิน", "เสร็จสิ้น", "ยกเลิก"];
+  const statusOptions = ["รอดำเนินการ", "การดำเนินการ", "เสร็จสิ้น", "ยกเลิก"];
   const typeOptions = [...new Set(rows.map((r) => r.type).filter(Boolean))];
 
   return (
@@ -93,26 +95,26 @@ export default function ReportEditHistoryPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
           icon={<MessageCircle size={36} className="text-[#366DBD]" strokeWidth={1.5} />}
-          value={String(stats.total)}
+          value={String(stats?.total ?? 0)}
           label="ตั๋วงานทั้งหมด"
           valueColor="text-[#366DBD]"
         />
         <StatCard
           icon={<CheckCircle2 size={36} className="text-[#366DBD]" strokeWidth={1.5} />}
-          value={String(stats.inProgress)}
+          value={String(stats?.inProgress ?? 0)}
           label="กำลังดำเนินการ"
           valueColor="text-[#366DBD]"
         />
         <StatCard
           icon={<CheckCircle2 size={36} className="text-[#4CAF50]" strokeWidth={1.5} />}
-          value={String(stats.done)}
+          value={String(stats?.done ?? 0)}
           label="เสร็จสิ้น"
           valueColor="text-[#4CAF50]"
           bg="bg-[#F0FAF1]"
         />
         <StatCard
           icon={<AlertTriangle size={36} className="text-[#F44336]" strokeWidth={1.5} />}
-          value={String(stats.overdue)}
+          value={String(stats?.overdue ?? 0)}
           label="เกินกำหนด"
           valueColor="text-[#F44336]"
           bg="bg-[#FFF5F5]"

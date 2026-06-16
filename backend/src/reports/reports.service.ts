@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import type { Pool, RowDataPacket } from 'mysql2/promise';
 
 const THAI_MONTHS = [
@@ -17,8 +17,31 @@ const THAI_MONTHS = [
 ];
 
 @Injectable()
-export class ReportsService {
+export class ReportsService implements OnModuleInit {
   constructor(@Inject('DB') private readonly db: Pool) {}
+
+  async onModuleInit() {
+    try {
+      const [cancelledTickets] = await this.db.query<RowDataPacket[]>(
+        `SELECT t.id, t.created_at, t.assigned_by FROM tickets t
+         WHERE t.status = 'cancelled'
+           AND NOT EXISTS (
+             SELECT 1 FROM ticket_status_logs tsl
+             WHERE tsl.ticket_id = t.id AND tsl.new_status = 'cancelled'
+           )`,
+      );
+
+      for (const ticket of cancelledTickets) {
+        await this.db.query(
+          `INSERT INTO ticket_status_logs (ticket_id, old_status, new_status, changed_by, note, created_at)
+           VALUES (?, 'in_progress', 'cancelled', ?, 'ยกเลิกตั๋วงานย่อย (ระบบสร้างย้อนหลัง)', ?)`,
+          [ticket.id, ticket.assigned_by || null, ticket.created_at],
+        );
+      }
+    } catch (err) {
+      console.error('[Migration] Failed to insert missing cancelled logs:', err);
+    }
+  }
 
   async getEditHistory() {
     const [statsRows] = await this.db.query<RowDataPacket[]>(
@@ -32,6 +55,7 @@ export class ReportsService {
     const s = statsRows[0];
 
     const STATUS_MAP: Record<string, string> = {
+      assigned: 'รอดำเนินการ',
       in_progress: 'การดำเนินการ',
       waiting_confirm: 'รอประเมิน',
       closed: 'เสร็จสิ้น',

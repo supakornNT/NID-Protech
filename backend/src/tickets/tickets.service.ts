@@ -593,6 +593,12 @@ async findMyWork(
   }
 
   async deleteSubticket(id: number) {
+    const [rows] = await this.db.query<RowDataPacket[]>(
+      'SELECT status FROM tickets WHERE id = ?',
+      [id],
+    );
+    const current = rows[0];
+
     await this.db.query(
       `
       UPDATE tickets
@@ -600,6 +606,14 @@ async findMyWork(
       `,
       [id],
     );
+
+    if (current) {
+      await this.db.query(
+        `INSERT INTO ticket_status_logs (ticket_id, old_status, new_status, changed_by, note)
+         VALUES (?, ?, 'cancelled', NULL, ?)`,
+        [id, current.status, 'ยกเลิกตั๋วงานย่อย'],
+      );
+    }
   }
 
   async findMyRequests(staffId: number): Promise<MyRequestItem[]> {
